@@ -7,6 +7,8 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var entytiesRouter = require('./routes/entyties.js'); //  список печей
+const getRouter=require('./routes/getReg.js'); // получение оперативных данных
+const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
 var app = express();
 
 // view engine setup
@@ -21,8 +23,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use("/",indexRouter);
 app.use('/entyties', entytiesRouter); // возвращает список всех печей с их характеристиками
-//app.use('/getRegs', getRegs); // возвращает текущие значения регистров
-//app.use('/log', logs); // работа с логами печей
+app.use('/getReg', getRouter); // возвращает текущие значения регистров
+app.use('/getLog', logsRouter); // работа с логами печей
 //app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler

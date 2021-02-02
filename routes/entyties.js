@@ -9,15 +9,17 @@ let gTrace=1; //=1 глобальная трассировка (трассиру
 gTrace ?  l('i',logName) : null;
 // /* GET /entyties  выдает список печей с их характеристиками */
 // router.get('/', function(req, res, next) {
-//   // -- настройки логгера --------------
-//   let trace=1;
-//   let logN=logName+"POST:/entyties => ";trace = ((gTrace !== 0) ? gTrace : trace);
-//   //-------------------------------------
-//   trace ?  l('i',logN,"req=",req) : null;
+
 //   let data
 //   res.status(200).send("Ok");
 // });
 router.post('/', function(req, res, next) {
+  // -- настройки логгера --------------
+  let trace=1;
+  let logN=logName+"POST:/entyties => ";trace = ((gTrace !== 0) ? gTrace : trace);
+  //-------------------------------------
+  trace ?  l('i',logN,"req=",req) : null;
+
   res.status(200).json(listEntyties);//.send('respond with a resource');
 });
 
