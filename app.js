@@ -21,6 +21,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(function(req,res,next){
+  res.set("Acess-Control-Allow-Origin","http://192.168.1.112:3001");
+  res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+  // console.log('------req.query-------');
+  // console.log(req.query);
+  // console.log('-------------');
+  next();
+});
+
+
+
 app.use("/",indexRouter);
 app.use('/entyties', entytiesRouter); // возвращает список всех печей с их характеристиками
 app.use('/getReg', getRouter); // возвращает текущие значения регистров
