@@ -35,7 +35,7 @@ entyties.push({
       }//regs
 });
 
-
+config.entyties=entyties;
 
 module.exports=config;
 

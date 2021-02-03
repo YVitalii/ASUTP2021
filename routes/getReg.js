@@ -5,6 +5,7 @@ let log = require('../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
 let gTrace=1; //=1 глобальная трассировка (трассируется все)
 gTrace ?  log('i',logName) : null;
+
 // ---------------
 /* GET users listing. */
 router.post('/', function(req, res, next) {
@@ -23,7 +24,6 @@ router.post('/', function(req, res, next) {
      trace ?  log('i',logN,"addr=",addr) : null;
      response[list[i]]=emulator(addr);
   }
-
   res.json(response);
 });
 
