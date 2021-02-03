@@ -15,6 +15,17 @@ router.post('/', function(req, res, next) {
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-------------------------------------
    trace ? log('i',logN,"req=", req.query) : null;
+   if (! req.query.list) {
+     res.status(400).send(
+         {err:
+           {
+             en:"Request don't have the coma separeted list of registers. Like this: list='1-T,2-T..'"
+             ,ru:"В теле запроса нет списка запрашиваемых регистров:  list='1-T,2-T..'"
+             ,ua:"В тілі запиту не вказано перелік потрібних регистрів: list='1-T,2-T..'"
+           }
+         })
+    return
+   }//if
   let list=req.query.list.trim().split(";");
   trace ?  log('i',logN,"list=",list) : null;
   let addr=1;

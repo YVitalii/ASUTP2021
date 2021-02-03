@@ -37,6 +37,11 @@ entyties.push({
 
 config.entyties=entyties;
 
+config.logger={
+   path:"/logs"
+  ,period:30 // период между записями 30 секунд
+};
+
 module.exports=config;
 
 if (! module.parent) {
