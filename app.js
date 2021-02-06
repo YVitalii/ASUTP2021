@@ -6,7 +6,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var entytiesRouter = require('./routes/entyties.js'); //  список печей
+var entitiesRouter = require('./routes/entities.js'); //  список печей
 const getRouter=require('./routes/getReg.js'); // получение оперативных данных
 const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
 var app = express();
@@ -34,7 +34,7 @@ app.use(function(req,res,next){
 
 
 app.use("/",indexRouter);
-app.use('/entyties', entytiesRouter); // возвращает список всех печей с их характеристиками
+app.use('/entyties', entitiesRouter); // возвращает список всех печей с их характеристиками
 app.use('/getReg', getRouter); // возвращает текущие значения регистров
 app.use('/getLog', logsRouter); // работа с логами печей
 //app.use('/users', usersRouter);

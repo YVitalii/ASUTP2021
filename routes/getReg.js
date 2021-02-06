@@ -29,12 +29,14 @@ router.post('/', function(req, res, next) {
   let list=req.query.list.trim().split(";");
   trace ?  log('i',logN,"list=",list) : null;
   let addr=1;
-  let response={}
+  let response={};
+  response['time']=new Date().getTime();
   for (var i = 0; i < list.length; i++) {
      addr=parseInt(list[i].split('-')[0]);
      trace ?  log('i',logN,"addr=",addr) : null;
      response[list[i]]=emulator(addr);
   }
+
   res.json(response);
 });
 

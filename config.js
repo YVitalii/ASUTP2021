@@ -1,7 +1,7 @@
 const config={};
 // ------------------- описание печей (сущностей) ------------------------
-let entyties = [];
-entyties.push({
+let entities = [];
+entities.push({
   id:"SNO-658-11"
 	,shortName:"СНО-6.5.8/11" //
   ,fullName: "Печь закалочная СНО-6.5.8/11" //
@@ -15,7 +15,7 @@ entyties.push({
       }//regs
 });
 
-entyties.push({
+entities.push({
   id:"SSHCM-8.15-10"
 	,shortName:"СШЦМ-8.15/10" //
   ,fullName: "Печь цементационная СШЦМ-8.15/10" //
@@ -35,7 +35,7 @@ entyties.push({
       }//regs
 });
 
-config.entyties=entyties;
+config.entities=entities;
 
 config.logger={
    path:"/logs"

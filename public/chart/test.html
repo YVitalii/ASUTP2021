@@ -1,0 +1,103 @@
+ <!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>d3 - design</title>
+    <link rel="stylesheet" href="./stylesheets/myStyle.css">
+    <script type="text/javascript" src="./d3/d3.js">    </script>
+    <script type="text/javascript" src="./js/config.js">    </script>
+    <script type="text/javascript" src="./js/drawChart/drawChart.js"> </script>
+
+  </head>
+  <body>
+    <h3>Тестовая страница с графиком отображающим оперативные данные </h3>
+    <div class="box" id="myChart">
+      <!-- Здесь будет график -->
+    </div>
+
+  <script type="text/javascript">
+  // ------------------       НАСТРОЙКИ    ----------------------
+  // ---------- вспомогательные функции ------------------
+  function getDate (d){
+        // преобразует заданную дату в строку типа: "ГГГГ-ММ-ДД"
+        let now = d ? d : new Date(d);
+        //let timeN=now.toLocaleDateString()
+        let timeN=(now.getFullYear())+"-"+("0"+(now.getMonth()+1)).slice(-2)+"-"+("0"+now.getDate()).slice(-2);
+        return timeN;
+      }
+    // ----- характеристики печи
+      const entity={
+        id:"SSHCM-8.15-10"
+      	,shortName:"СШЦМ-8.15/10" //
+        ,fullName: "Печь цементационная СШЦМ-8.15/10" //
+        ,regs:{
+              "1-T":{
+                title:"T1" // имя для вывода в описании поля
+                ,type:"integer" // тип значения
+                ,units: "\u00b0C" // единицы измерения
+                ,description:"Текущая температура в зоне №1" // описание
+              }
+              ,"2-T":{
+                title:"T2" // имя для вывода в описании поля
+                ,units: "\u00b0C" // тип значения
+                ,type:"integer" // единицы измерения
+                ,description:"Текущая температура в зоне №2" // описание
+              }
+            }//regs
+      });
+      // --- настройки ----------------
+      const logURL="/logs/SSHCM-8.15-10"; // слеш в конце не ставить
+      const realURL="/getReg/?list="+"1-T;2-T"
+      console.log("POST:URL:",realURL);
+      console.log("GET:URL:",logURL);
+ // ------------------       РАБОТА   ----------------------
+  // ----- получаем сегодняшнюю дату -----------
+  var today=getDate(new Date());
+  console.log("today=",today);
+
+  // ---- конфигурируем график -----------------
+  const chartConfig = {
+     dataURL:logURL
+    ,startDate:today
+    ,y :{ min: 0, max: 1000}
+    ,task:null
+  }
+
+  // ---- создаем объект графика -------------
+  var chart={};
+  chart= new Chart("#myChart",chartConfig);
+
+  // -------  Создаём новый объект XMLHttpRequest -------------
+  var xhrT = new XMLHttpRequest();
+  const url='/getReg/?list=1-T,2-T'; // список запрашиваемых регистров
+
+  xhrT.onload = function(){
+      // данные приняты
+     //console.log("xhrT.responseText=",xhrT.responseText);
+     let res=JSON.parse(xhrT.responseText);
+     //res['time']=new Date(res['time']);
+     realTimesData=res;
+     console.log("realTimesData=",realTimesData);
+     chart.addData(realTimesData);
+   }//onload
+
+  xhrT.onerror = function(){
+    console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+  } //  xhrT.onerror
+
+// ------ запускаем периодический запрос текущей температуры  ------------
+  var askT = setInterval(
+    function() {
+      // -- URL запроса
+
+
+      // -- создаем запрос
+      xhrT.open('POST', realURL, true);
+      // -- отправляем запрос
+      xhrT.send()}
+    ,3000); // опрос каждые 3 сек
+
+
+  </script>
+  </body>
+</html>
