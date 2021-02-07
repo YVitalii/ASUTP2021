@@ -1,4 +1,5 @@
 const config={};
+config.iface=require('./conf_iface.js');
 // ------------------- описание печей (сущностей) ------------------------
 let entities = [];
 entities.push({
