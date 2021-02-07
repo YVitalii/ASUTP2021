@@ -165,7 +165,7 @@ function saveRegister(regName,data){
   }
   if (! data.err) {
     // ошибок нет
-    regData.value=data.value; // записываем плученное новое значение
+    regData.value=data.value; // записываем полученное новое значение
     (regData.errorsCounter>0) ? regData.errorsCounter-=1 : 0; //при необх.уменьшаем счетчик ошибок
     regData.err=null;
   }
@@ -202,7 +202,7 @@ function read (name,cb){
     device.getReg(iface,adr,regName,(err,data) =>{
         if (err) {
           // сообщаем об ошибке
-          log(0,head,"Error: code=",err.code,"; message= ",err.message):null;
+          log(0,head,"Error: code=",err.code,"; message= ",err.message);
           // записываем ошибку в данные
           //data['err']=err;
           //return cb(err)
