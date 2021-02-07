@@ -1,5 +1,5 @@
 const config={};
-config.iface=require('./conf_iface.js');
+config.connection=require('./conf_iface.js');
 // ------------------- описание печей (сущностей) ------------------------
 let entities = [];
 entities.push({
@@ -57,6 +57,11 @@ config.logger={
    path:"/logs"
   ,period:30 // период между записями 30 секунд
 };
+// ------------  очереди опроса  -----------------------
+config.queue={};
+// рабочая очередь опроса, опрашивается автоматически в цикле
+//  актульным считается значение,если оно считано не более 5 сек назад
+config.queue.work=["1-T"];//,"2-T","3-T"];
 
 module.exports=config;
 
