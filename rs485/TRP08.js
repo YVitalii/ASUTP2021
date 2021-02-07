@@ -21,7 +21,7 @@
 
 */
 
-const log = require('./log.js');
+const log = require('../tools/log.js');
 log.setName("TRP08.js");
 
 
