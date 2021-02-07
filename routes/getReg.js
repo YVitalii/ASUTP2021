@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const rs485 = require('RS485_driver_get.js'); // клиент
 // ------------ логгер  --------------------
 let log = require('../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";

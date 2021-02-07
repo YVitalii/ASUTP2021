@@ -81,7 +81,7 @@ const devices=[]; // массив: индекс - адрес устройств�
 // таблица сопоставления тега и имени регистра, например 7SQ1 => 5-DIO1
 // загружаем и проверяем список
 
-const registers = new Map(); // список используемых физических регистров (названия как в драйвере)
+const registers = new Map(); // реестр используемых физических регистров (названия как в драйвере)
                             //  здесь хранятся все данные о регистре, значение  и пр.
                             // value, timestamp,buffer,note, err
 // ---------------------------
@@ -187,7 +187,7 @@ function getRegName(name) {
 
 function read (name,cb){
   // считывает значение регистра по RS-485 и заносит ответ в registers
-  let trace=0;
+  let trace=1;
   let head="server_RS485:read("+name+"):"
   // нормализуем имя регистра
   let reg=getRegName(name);
@@ -198,38 +198,21 @@ function read (name,cb){
     if ((! adr) | (! regName)) {return cb(new Error ("Немогу распарсить имя регистра: "+reg))};
     // получаем драйвер
     let device=devices[adr].driver;
+    if (config.emulateRS485) {
+      let data=emulator(adr,regName);
+
+      parseData(data,null);
+      return cb(null,registers.get(reg));
+    }
     // считываем данные по RS485
     device.getReg(iface,adr,regName,(err,data) =>{
         if (err) {
           // сообщаем об ошибке
           log(0,head,"Error: code=",err.code,"; message= ",err.message);
-          // записываем ошибку в данные
-          //data['err']=err;
-          //return cb(err)
         }
-
-        trace ? log(2,head,"Received data=",data) : null;
-        //обрабатываем принятые данные
-        // т.к. при ошибке может возвращаться одиночный объект, то проверяем на массив
-        if (Array.isArray(data)){
-          // для каждого элемента в массиве ответов
-            for (var i = 0; i < data.length; i++) {
-                // получаем имя регистра. т.к. оно может не совпадать с запросом, например при чтении группы регистров
-                let item=data[i];
-                let name= ""+item.req.id+"-"+item.regName;
-                if (err) {
-                  item['err']={"code":err.code,"message":err.message}
-                  // если была ошибка, вписываем ее в данные
-                };
-                // записываем в реестр принятые данные
-                if (registers.has(name)) {
-                  trace ? log("i",head,"записываем ",name,"=",item) : null;
-                  saveRegister(name,item);
-                } else {
-                  log("e",head,"Регистр: "+name+" не обнаружен в реестре. Пропускаем.");
-                };
-              }//for
-        }
+        //trace ? log(2,head,"Received data=",data) : null;
+        trace ? console.dir(data) : null;
+        parseData(data,err);
         // выходим
         return cb(err,registers.get(reg));
     });//getReg
@@ -239,6 +222,67 @@ function read (name,cb){
   }//else
 }  //function read
 
+// ------------ эмулирует получение температуры по RS485 -----
+const start = new Date().getTime()//запоминаем время первого запуска - єто будет 0
+function emulator(addr,name) {
+  let trace=0;
+  let furnace=config.entities[0]; // выбираем первую печь в списке
+  // функция отвечает на запросы эмулируя физические величины
+  let max= furnace.temperature.max; //максимальная температура
+  let min= furnace.temperature.min; //минимальная температрура
+  let period=(3*60*1000)*addr; //длительность периода колебаний (3 минут * addr)
+  let x=(new Date().getTime()-start)/period; // текущий х
+  let y=Math.sin(x)*(max-min)/2 + (max-min)/2;
+  y=Math.round(y);
+  let res=[];
+  res.push(
+       {
+         regName:name
+        ,value:y
+        ,req:{
+            FC:3
+            ,addr:05
+            ,data:1
+            ,timeout:2000
+            ,id:addr
+            }
+        ,timestamp:new Date()
+        ,buf: new Buffer([0,37])
+        ,note: "Текущая температура"
+      }) //push
+      trace ? console.log("emulator("+addr+","+name+")=") : null;
+      trace ? console.dir(res) : null;
+  return res
+}
+
+
+
+function parseData(data,err) {
+  //обрабатываем принятые данные
+  // т.к. при ошибке может возвращаться одиночный объект, то проверяем на массив
+  let trace=0;
+  let head="RS485_server:parseData():"
+
+  if (Array.isArray(data)){
+    // для каждого элемента в массиве ответов
+      for (var i = 0; i < data.length; i++) {
+          // получаем имя регистра. т.к. оно может не совпадать с запросом, например при чтении группы регистров
+          let item=data[i];
+          let name= ""+item.req.id+"-"+item.regName;
+          if (err) {
+            item['err']={"code":err.code,"message":err.message}
+            // если была ошибка, вписываем ее в данные
+          };
+          // записываем в реестр принятые данные
+          if (registers.has(name)) {
+            trace ? log("i",head,"записываем ",name,"=",item) : null;
+            saveRegister(name,item);
+          } else {
+            log("e",head,"Регистр: "+name+" не обнаружен в реестре. Пропускаем.");
+          };
+        }//for
+  }
+} //function parseData(data)
 
 function write(args,cb) {
   // записывает значение регистра  по RS-485 и заносит ответ в registers
@@ -301,6 +345,17 @@ module.exports.has=getRegName;
     console.log(registers);*/
 function testRead () {
     let t="1-T";
+    read(t,(err,data) => {
+      let logN=logName+" callback read(";
+      if (err) {
+        log("e",logN,t,"): error=");
+        return
+      }
+      //console.log(err);
+      log("i",logN,t,") data=");
+      console.log(data);
+    });
+    t="2-T";
     read(t,(err,data) => {
       let logN=logName+" callback read(";
       if (err) {

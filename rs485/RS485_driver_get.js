@@ -155,8 +155,12 @@ if (! module.parent) {
     console.group(data);
   });*/
   setInterval(()=>{
-    log("i",logName,"getValues=",getValues("1-T"));
-  }, 3000)
+    console.log("---------------- getValues=");
+    console.dir(getValues("1-T;2-T;3-T"));
+  }, 3000);
+  // setTimeout(()=>{
+  //   log("w",logName,"getValues=",getValues("5-T"));
+  // }, 10000);
 /*setInterval(
     ()=>{
           get("T1;T2;T3",(err,data) =>{
