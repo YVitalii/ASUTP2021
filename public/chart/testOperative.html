@@ -50,7 +50,7 @@
 
   // -------  Создаём новый объект XMLHttpRequest -------------
   var xhrT = new XMLHttpRequest();
-  const url='/getReg/?list=1-T,2-T'; // список запрашиваемых регистров
+  const url='/getReg/?list=1-T;2-T'; // список запрашиваемых регистров
 
   xhrT.onload = function(){
       // данные приняты
@@ -59,7 +59,17 @@
      //res['time']=new Date(res['time']);
      realTimesData=res;
      console.log("realTimesData=",realTimesData);
-     chart.addData(realTimesData);
+     // преобразуем результат, полученный с сервера к виду требуемому drawChart
+     // {1-T: 828, 2-T: 32, time: 1612724606689}
+     let points={}
+     for (key in res) {
+       points[key]=res[key].value
+       //console.log("res[key]=",res[key]);
+     }
+     points['time']=new Date().getTime();
+     //console.log("Points=",points);
+     // -- добавляем точки на график ------
+     chart.addData(points);
    }//onload
 
   xhrT.onerror = function(){
