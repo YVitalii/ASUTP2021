@@ -64,8 +64,9 @@ config.tags=tags;
 
 // настройки логгера
 config.logger={
-   path:__dirname+"/public/logs"
-  ,period:30 // период между записями 30 секунд
+   path:__dirname+"\\public\\logs"
+  ,period:2 // период между записями 30 секунд
+  ,separator:"\t" // разделитель значений в строке
 };
 // ------------  очереди опроса  -----------------------
 config.queue={};
