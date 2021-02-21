@@ -6,6 +6,7 @@ let thisFurnace = {};
 /* GET graph page. */
 router.get('/:furnace', function(req, res, next) {
   config.entities.forEach(furnace => {
+    console.log(furnace);
     if (req.params.furnace == furnace.id)
 		thisFurnace = furnace;
   });
