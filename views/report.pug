@@ -1,6 +1,6 @@
 extends layout
 block content
-	div(class="container card border-info mt-5")
+	div(class="container-fluid card border-info")
 		div(class="card-header")
 			h1(id="title-header")
 				| Страница с отчётами печи
@@ -26,6 +26,4 @@ block content
 		- var registers = JSON.stringify(furnace.regs);
 		!= `var registers = ${registers};`
 		!= `var furnaceName = ${JSON.stringify(furnace.shortName)};`
-		include ../public/chart/d3/d3.js
-		include ../public/chart/js/drawChart.js
 		include ../tools/createReport.js
