@@ -33,6 +33,8 @@ class LogWriter {
     trace ? log("i",logN,"this.listRegs=",this.listRegs) : null;
     trace ? log("i",logN,"this.regsArray=",this.regsArray) : null;
     trace ? log("i",logN,"this.headers=",this.headers) : null;
+    // --------  запись пердыдущих значений (для определения простоя печи)
+    let values = server.getValues(this.listRegs);
 
     // --------  путь к файлу  ---------------------
     if (! options.path) {
@@ -72,6 +74,8 @@ class LogWriter {
 
 module.exports=LogWriter;
 
+function getValues() {};
+
 function iterate() {
   // -- настройки логгера --------------
    let trace=1;
@@ -87,10 +91,8 @@ function iterate() {
   };
   line+="\r\n";
   trace ? log("i",logN,"this.fName=",this.fName,"; line=",line) : null;
-  //console.log(line);
   // записываем данные
   tools.writeLine(this.fName,line,(err) => {
-
     if (err) {
       log('e',logN,"writeLine error:",err);
       throw err};
