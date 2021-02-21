@@ -1,6 +1,10 @@
 const conf = require('../config.js').logger;
 const fs = require('fs');
-const log = require('../tools/log.js');
+// ------------ логгер  --------------------
+let log = require('../tools/log.js'); // логер
+let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
+let gTrace=0; //=1 глобальная трассировка (трассируется все)
+gTrace ?  log('i',logName) : null;
 
 function testFile(path,headers) {
   // проверяет наличие файла лога по пути path и если
@@ -40,6 +44,11 @@ function writeLine(fName,line,cb){
   // fName имя файла
   // line строку которую записать
   // cb = (err)
+  // -- настройки логгера --------------
+   let trace=1;
+   let logN=logName+"writeLine("+line+") => ";
+   trace = ((gTrace !== 0) ? gTrace : trace);
+   trace ? log("i",logN,"Enter") : null;
   fs.open(fName,'a',(err,fd) => {
     if (err) {
       log("e","Cant open log file:"+fName+"."+err.message);
@@ -51,6 +60,7 @@ function writeLine(fName,line,cb){
         fs.close(fd);
         cb(err);
       }
+      trace ? log("i",logN,"Line saved") : null;
       fs.close(fd,()=>{});
       cb();
     })//fs.write

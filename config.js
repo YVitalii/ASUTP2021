@@ -24,7 +24,7 @@ entities.push({
 });
 
 entities.push({
-  id:"SSHCM-8.15-10"
+  id:"SSHCM-8-15-10"
 	,shortName:"СШЦМ-8.15/10" //
   ,fullName: "Печь цементационная СШЦМ-8.15/10" //
   ,temperature:{min:0,max:1000} // диапазон рабочих температур
@@ -64,7 +64,7 @@ config.tags=tags;
 
 // настройки логгера
 config.logger={
-   path:__dirname+"\\public\\logs"
+   path:__dirname+"/public/logs"
   ,period:2 // период между записями 30 секунд
   ,separator:"\t" // разделитель значений в строке
 };
