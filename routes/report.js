@@ -11,7 +11,7 @@ router.get('/:furnace', function(req, res, next) {
     if (id == furnace.id)
 		thisFurnace = furnace;
   });
-  const path = "../ASUTP2021/public/logs/"+id;
+  const path = "./public/logs/"+id;
   let fileList = [];
   fs.readdirSync(path).forEach(file => {
       fileList.push(file);
