@@ -4,6 +4,7 @@
   }
   #myChart {
     width: 100% !important;
+    overflow: hidden;
       /* margin-left: -70px !important; */
   }
 }
