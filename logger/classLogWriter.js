@@ -12,7 +12,7 @@ const getDate = require('../tools/general.js').getDateString;
 
 class LogWriter {
   constructor(options){
-    let trace=1, logN="LogWriter.constructor: ";
+    var trace=1, logN="LogWriter.constructor: ";
     trace ? log("i",logN,"Enter.") : null;
     // --------- сервер ----------------------------
     if (! options.server) {
@@ -34,7 +34,7 @@ class LogWriter {
     trace ? log("i",logN,"this.regsArray=",this.regsArray) : null;
     trace ? log("i",logN,"this.headers=",this.headers) : null;
     // --------  запись пердыдущих значений (для определения простоя печи)
-    let values = server.getValues(this.listRegs);
+    let values = this.server.getValues(this.listRegs);
 
     // --------  путь к файлу  ---------------------
     if (! options.path) {
