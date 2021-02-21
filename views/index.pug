@@ -14,9 +14,20 @@ mixin Card(thisFurnace)
           button(type="button" class="btn btn-outline-info") Детали
 block content
   div(class="container mt-5")
-      div(class="row justify-content-around")
-        each furnace in entities
-          +Card(furnace)
+    div(class="row justify-content-around")
+      each furnace in entities
+        +Card(furnace)
+    button(id="settings" type="button" class="btn btn-outline-dark" style="position: fixed; right: 15vw; bottom: 50px") Настройка
+    div(id="modalWindow" style="display: none; width: 100vw; height: 100vh; position: fixed; left: 0; top: 0; background: rgba(46, 49, 49, .9)")
+      div(class="card border-info m-3" style="width: 450px; height: 180px; position: fixed; left: calc(50% - 225px); top: calc(50% - 90px)")
+        div(class="card-header")
+          h2= "Установка даты и времени"
+        div(class="card-body d-flex flex-column justify-content-around p-2")
+          div(class="row d-flex justify-content-around p-2")
+            input(id="timeStr" type="datetime-local" style="width: 300px")
+          div(class="row d-flex justify-content-around p-2")
+            button(id="setNewTime" type="button" class="btn btn-outline-success col-md-4") Установить
+            button(id="closeModal" type="button" class="btn btn-outline-danger col-md-4") Отменить
   script
     - var keys = '\"';
     each furnace in entities
@@ -27,3 +38,4 @@ block content
     != `var keys = ${keys};`
   script
     include ../tools/refreshData.js
+    include ../tools/modalWindow.js
