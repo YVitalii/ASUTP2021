@@ -21,10 +21,10 @@
 
 var buffer=new Buffer(0); // буфер приема данных
 const SerialPort= require('serialport');
-const config= require ("./config");
+const config= require ("../conf_iface.js"); // берем настройки порта
 const crc=require ('crc');
-const parseBuf= require('./parseBuf.js'); // форматирует вывод буфера для консоли
-var task={}; // активное сообщение
+const parseBuf= require('../tools/parseBuf.js'); // форматирует вывод буфера для консоли
+var task={}; // текущее активное сообщение
             /*
               id: адрес устройства
               FC: функция
@@ -39,12 +39,12 @@ var start; // запоминается время старта передачи 
 var resLength=6; //ожидаемая длина ответа
 var serial; // объект последовательног порта
 var portOpened=false; // флаг открытия порта
-const timeoutBetweenCalls=config.connection.timeoutBetweenCalls //пауза между запросами
+const timeoutBetweenCalls=config.timeoutBetweenCalls //пауза между запросами
 //console.log("timeoutBetweenCalls="+timeoutBetweenCalls);
 //
 //var timer; // таймер задающий время между проверками буфера
 // --------------------------------
-// описание ошибок
+// описание ошибок RS485
 var errors=[];
 errors[0]=undefined;
 errors[1]="Принятый код функции не может быть обработан";
@@ -86,31 +86,24 @@ function getCRC(buf){
 function isOpened(){return portOpened}; // выдает состояние порта
 
 function init(){
-  // ---------  открываем порт и готовим к работе ------------
-/*  if (! comName) {
-    let platform=process.platform;
-    if (platform != "win32") {
-      comName='/dev/ttyUSB0';
-    } else {comName='COM4';}
-  }
-  let bod= (baudRate) ? baudRate : 2400; */
-
+  // создаем объект последовательного порта
   serial= new SerialPort(
-    comName=config.connection.path,
-    config.connection.openOptions,
-    (err) => {if (err) {console.log(err);}});
+    comName=config.path,
+    config.openOptions,
+    (err) => {
+      if (err) {console.log(err);}
+    }
+  );//new SerialPort
 
   serial.on('open',()=>{
     //порт открыт
     portOpened=true;
     console.log("Port ["+comName+ "] opened.");
-    //buffer=new Buffer(0);
     //console.log("Call iterate");
     iterate();
-    //cb(null);
-  });
+  });//serial.on
 
-  // ---------- ставим прослушивателя --------------
+  // ---------- ставим прослушивателя данных--------------
   serial.on('data', (data) => {
             //console.log("onData:"+parseBuf(data));
             // при получении порции данных заносим их в буфер
@@ -120,17 +113,18 @@ function init(){
               //обработчик = пока нет
             //}
     }); // on data
-          // запуск опроса очереди
+}; //function init()
 
-};
-
-let delay = 5000 //ожидание между повторами подключений
+// ---- функция инициализации посл.порта -----------------
+let delay = 5000 //ожидание между повторами подключений к порту USB
 var timerID = setTimeout(
   function tryOpen() {
     if (! portOpened){
+        // порт не открыт - пробуем открыть
         init();
         timerID=setTimeout(tryOpen,delay);
         } else {
+          // порт открыт останавливаем попытки
           clearTimeout(timerID)
         }
     }, delay);
@@ -138,7 +132,7 @@ var timerID = setTimeout(
 
 
 function addTask(req,cb){
-  // -------------- компиляция сообщения RS485 -----------
+  // ------------- прием заданий ----------
         /*
          по запросу
           req={
@@ -158,12 +152,7 @@ function addTask(req,cb){
         */
 
         let trace=0; // трассировка
-        /*if (! portOpened) {
-          // порт не открыт - сразу ошибка
-          let err=new Error(errors[14]);
-          err.code=14;
-          cb(err,undefined);
-        };*/
+
         let msg={"timeout":((req.timeout) ? req.timeout : 1000),"cb":cb};
         // расчет длины ожидаемого сообщения
         let length=8;
@@ -439,14 +428,14 @@ function test_checkBuffer(){
 if (! module.parent) {
   //test_checkBuffer();
   //init("COM9",2400,(err) => {if (err) console.log(err);});
-function  test(){
-  // для тестирования
-
-  for (var i = 496; i < 0xfffe; i++) {
-    console.log("i=",i);
-    tasked(i)();
-  }}
-test();
+// function  test(){
+//   // для тестирования
+//
+//   for (var i = 496; i < 0xfffe; i++) {
+//     console.log("i=",i);
+//     tasked(i)();
+//   }}
+// test();
 //for
   /*tasked(256)();
   tasked(288)();
@@ -465,18 +454,18 @@ test();
   })//addTask
 }
 
-test();
-  /* addTask({id:1,FC:3,addr:0x1,data:0x1,timeout:1500},(err,data) =>{
+test();*/
+  addTask({id:1,FC:3,addr:0x1,data:0x1,timeout:1500},(err,data) =>{
     if (err){ console.log(err); }
-    if (data) {console.log("Data addr 0x1:["+parseBuf(data)+"]");}
+    if (data) {console.log("Data addr 0x01:["+parseBuf(data)+"]");}
   })//addTask
   addTask({id:1,FC:3,addr:0x2,data:0x1,timeout:1500},(err,data) =>{
     if (err){ console.log(err); }
-    if (data) {console.log("Data addr 0x2:["+parseBuf(data)+"]");}
+    if (data) {console.log("Data addr 0x02:["+parseBuf(data)+"]");}
   })//addTask
   addTask({id:1,FC:3,addr:0x3,data:0x1,timeout:1500},(err,data) =>{
     if (err){ console.log(err); }
-    if (data) {console.log("Data addr 0x3:["+parseBuf(data)+"]");}
+    if (data) {console.log("Data addr 0x03:["+parseBuf(data)+"]");}
   })//addTask
-*/
+
 }

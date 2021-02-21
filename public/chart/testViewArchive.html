@@ -1,0 +1,84 @@
+ <!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>d3 - design</title>
+    <script type="text/javascript" src="./d3/d3.js">    </script>
+    <script type="text/javascript" src="./testConfig.js">    </script>
+    <script type="text/javascript" src="./js/drawChart.js"> </script>
+  </head>
+  <body>
+    <!--
+    Тестовая страничка для отображения архива записанных данных
+    Настройки берутся из testConfig.js
+   -->
+    <h2 id='furnace'></h2>
+    <h3> Просмотр архива </h3>
+    <div class="box">
+        <div class="row header">
+          <h3> Выберите дату: <input type="date" id="fName"> </h3>
+        </div>
+        <div class="row content" align="center"  >
+            <div style="width:950px;height:400px" id ="myChart">
+          <!--  график -->
+             </div>
+        </div>
+
+  </div>
+
+  <script type="text/javascript">
+  var chart;
+  // ---------- вспомогательные функции ------------------
+  function getDate (d){
+        // преобразует заданную дату в строку типа: "ГГГГ-ММ-ДД"
+        let now = d ? d : new Date(d);
+        //let timeN=now.toLocaleDateString()
+        let timeN=(now.getFullYear())+"-"+("0"+(now.getMonth()+1)).slice(-2)+"-"+("0"+now.getDate()).slice(-2);
+        return timeN;
+      }
+  // ------------------       РАБОТА   ----------------------
+  //---  выводим название печи ---------------
+    furnace.innerHTML=entity.fullName;
+  // ----- получаем сегодняшнюю дату для имени лог-файла-----------
+    var today=getDate(new Date());
+    console.log("today=",today);
+
+  // ---- конфигурируем график -----------------
+  const chartConfig = {
+     dataURL:logURL
+    ,startDate:today
+    ,y :yRange
+    ,task:null
+    ,registers:entity.regs
+  }
+
+  //fName.value=(new Date()).toLocaleDateString();
+  fName.onchange=function () {
+      console.log("fName.value="+fName.value);
+      //myChart.innerHTML="";
+      chart={};
+      chartConfig["startDate"]=fName.value;
+      chart= new Chart("#myChart",chartConfig);
+  }
+  fName.value=today;
+  chart={};
+  chart= new Chart("#myChart",chartConfig);
+
+  </script>
+
+  <script type="text/javascript">
+  var now=new Date();
+  var task=[ // задание
+     {time:now,y:0,dYmin:null,dYmax:+15}
+    ,{time:new Date(now.getTime()+30*60*1000-1000),y:550,dYmin:null,dYmax:+15}
+    ,{time:new Date(now.getTime()+30*60*1000),y:550,dYmin:-15,dYmax:+1}
+    ,{time:new Date(now.getTime()+60*60*1000-1000),y:500,dYmin:-15,dYmax:+1}
+    ,{time:new Date(now.getTime()+60*60*1000),y:500,dYmin:-10,dYmax:+10}
+    ,{time:new Date(now.getTime()+120*60*1000-1000),y:800,dYmin:-10,dYmax:+10}
+    ,{time:new Date(now.getTime()+120*60*1000),y:800,dYmin:-20,dYmax:+20}
+    ,{time:new Date(now.getTime()+170*60*1000-1000),y:800,dYmin:-20,dYmax:+20}
+    ,{time:new Date(now.getTime()+170*60*1000),y:800,dYmin:-10,dYmax:+10}
+  ]; //var task
+  </script>
+  </body>
+</html>

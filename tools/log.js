@@ -1,3 +1,15 @@
+// ------------ логгер  --------------------
+// const l = require('../tools/log.js'); // логер
+// let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
+// let gTrace=0; //=1 глобальная трассировка (трассируется все)
+// ----------- настройки логгера локальные --------------
+// let logN=logName+"описание:";
+// let trace=0;   trace = (gTrace!=0) ? gTrace : trace;
+// trace ? log("i",logN,"Started") : null;
+
+
+
+
 var buf=require("./parseBuf.js");
 var colors=require("colors");
 
