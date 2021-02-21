@@ -4,6 +4,16 @@ html
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/bootstrap/bootstrap.min.css')
-    //- link(rel='stylesheet', href='/botstrap/bootstrap.bundle.min.js')
+    script(src="/bootstrap/bootstrap.bundle.min.js") 
+    script
+      include ../public/chart/d3/d3.js
+    script
+      include ../public/chart/js/drawChart.js
+    //- script
+    //-   include ../tools/createGraph.js
+    //- script
+    //-   include ../tools/createReport.js
   body
     block content
+    script(src="/bootstrap/popper.min.js") 
+    script(src="/bootstrap/bootstrap.min.js") 
