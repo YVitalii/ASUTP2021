@@ -24,14 +24,22 @@ xhrT.onload = function(){
   let res=JSON.parse(xhrT.responseText);
   let points={}
   for (key in res) {
-    points[key]=res[key].value
+    if (res[key].value === null){
+      let element = document.getElementById(key);
+      element.innerHTML = "Error";
+      points[key]=0;
+    } else {
+      let element = document.getElementById(key);
+      element.innerHTML = res[key].value;
+      points[key]=res[key].value;
+    }
   }
   points['time']=new Date().getTime();
   chart.addData(points);
-  for (let i=0; i<regsArr.length; i++) {
-    let element = document.getElementById(regsArr[i]);
-    element.innerHTML = res[regsArr[i]].value;
-  }
+  // for (let i=0; i<regsArr.length; i++) {
+  //   let element = document.getElementById(regsArr[i]);
+  //   element.innerHTML = res[regsArr[i]].value;
+  // }
 }
 function addPoints() {
   xhrT.open('POST', url, true);
