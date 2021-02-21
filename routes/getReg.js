@@ -11,7 +11,7 @@ gTrace ?  log('i',logName) : null;
 /* GET users listing. */
 router.post('/', function(req, res, next) {
   // -- настройки логгера --------------
-   let trace=0;
+   let trace=1;
    let logN=logName+"POST:/getReg => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-----------------------------------------
