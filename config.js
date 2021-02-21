@@ -1,7 +1,7 @@
 const config={};
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485=0//true;
+config.emulateRS4850=1//true;
 // загружает настройки связи
 config.connection=require('./conf_iface.js');
 // ------------------- описание печей (сущностей) ------------------------
