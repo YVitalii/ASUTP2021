@@ -45,7 +45,7 @@ function writeLine(fName,line,cb){
   // line строку которую записать
   // cb = (err)
   // -- настройки логгера --------------
-   let trace=1;
+   let trace=0;
    let logN=logName+"writeLine("+line+") => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
    trace ? log("i",logN,"Enter") : null;

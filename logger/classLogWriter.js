@@ -12,7 +12,7 @@ const getDate = require('../tools/general.js').getDateString;
 
 class LogWriter {
   constructor(options){
-    let trace=1, logN="LogWriter.constructor: ";
+    var trace=1, logN="LogWriter.constructor: ";
     trace ? log("i",logN,"Enter.") : null;
     // --------- сервер ----------------------------
     if (! options.server) {
@@ -33,6 +33,8 @@ class LogWriter {
     trace ? log("i",logN,"this.listRegs=",this.listRegs) : null;
     trace ? log("i",logN,"this.regsArray=",this.regsArray) : null;
     trace ? log("i",logN,"this.headers=",this.headers) : null;
+    // --------  запись предыдущих значений (для определения простоя печи и остановки записи в лог)
+    this.beforeValues=null;
 
     // --------  путь к файлу  ---------------------
     if (! options.path) {
@@ -72,13 +74,32 @@ class LogWriter {
 
 module.exports=LogWriter;
 
+function modifyValues(values) {
+  // читаем с сервера данные
+  //let values=;
+  for (each in values) {
+    //log("i",values[each]);
+    if (values[each].value === null) {
+      // если считанное значение = null
+       values[each].value=0;
+    }
+  } //  for (each in values)
+  return values
+};
+
 function iterate() {
   // -- настройки логгера --------------
    let trace=1;
    let logN=logName+"iterate() => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-----------------------------------------
-  let values=this.server.getValues(this.listRegs);
+  let values=modifyValues(this.server.getValues(this.listRegs));
+  if ( ! this.beforeValues ) {
+    // предыдущих значений еще нет, запоминаем их и выходим
+    this.beforeValues=values;
+    trace ? log("i",logN,"First time: beforeValues=",this.beforeValues) : null;
+    return;
+  };
   let sep=config.logger.separator;
   //console.log(values);
   let line=(new Date()).toJSON();
@@ -86,11 +107,9 @@ function iterate() {
     line+=sep+values[this.regsArray[i]].value
   };
   line+="\r\n";
-  trace ? log("i",logN,"this.fName=",this.fName,"; line=",line) : null;
-  //console.log(line);
+  //trace ? log("i",logN,"this.fName=",this.fName,"; line=",line) : null;
   // записываем данные
   tools.writeLine(this.fName,line,(err) => {
-
     if (err) {
       log('e',logN,"writeLine error:",err);
       throw err};
