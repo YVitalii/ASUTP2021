@@ -9,7 +9,8 @@ setNewTimeBtn.onclick = () => {
   if(timeStr.value == "") {
     alert("Неправильное значение.");
   } else {
-    alert(timeStr.value);
+    let newTime = new Date(timeStr.value);
+    alert(newTime.toISOString());
     modalWindow.style.display = "none";
   }
 }
