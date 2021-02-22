@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .bak
+package-lock.json
 
 
 # testing
