@@ -9,10 +9,10 @@ let chartConfig = {
   task:null,
   registers, // берётся из report.pug
 }
-console.error("restart page");
+// console.error("restart page");
 var chart={};
 function drawGraph(log) {
-  console.error("graph drawed");
+  // console.error("graph drawed");
   chart={};
   chartConfig["startDate"] = log;
   chart = new Chart("#myChart", chartConfig);
@@ -37,8 +37,26 @@ for (let li of logList) {
 };
 let printBtn = document.getElementById("print-btn");
 printBtn.onclick = () => {
-  let prevText = titleHeader.innerHTML;
-  titleHeader.innerHTML = `Отчёт печи ${furnaceName} за ${selectedList.id}`
-  window.print();
-  titleHeader.innerHTML = prevText;
+  let leftMenu = document.getElementById("left-menu");
+  leftMenu.style.display = "none";
+  let contain = document.getElementById("contain");
+  contain.style.border = "none";
+  let myChartPrint = document.getElementById("myChart");
+  myChartPrint.style.width = "280mm";
+  myChartPrint.style.position = "absolute";
+  myChartPrint.style.right = "30px";
+  chart.redraw();
+  setTimeout(()=>{
+    window.print();
+    leftMenu.style.display = "block";
+    myChartPrint.style.width = "calc(100% - 215px)";
+    myChartPrint.style.position = "";
+    contain.style.border = "";
+    chart.redraw();
+  }, 1000);
+  // window.print();
+  // leftMenu.style.display = "block";
+  // myChartPrint.style.width = "calc(100% - 215px)";
+  // contain.style.border = "";
+  // chart.redraw();
 };

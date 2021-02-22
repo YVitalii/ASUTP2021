@@ -22,6 +22,7 @@ let regsArr = regs.split(';');
 var xhrT = new XMLHttpRequest();
 xhrT.onload = function(){
   let res=JSON.parse(xhrT.responseText);
+  // console.log(res);
   let points={}
   for (key in res) {
     if (res[key].value === null){

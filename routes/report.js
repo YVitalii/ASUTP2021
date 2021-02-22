@@ -3,6 +3,10 @@ var router = express.Router();
 let config = require('../config.js'); // config.js
 const fs = require('fs');
 let thisFurnace = {};
+console.log("Содержимое папки logs:");
+fs.readdirSync("./public/logs/").forEach(file => {
+    console.log(file);
+});
 
 /* GET report page. */
 router.get('/:furnace', function(req, res, next) {

@@ -1,12 +1,17 @@
-@media print {
+/* @media print {
   #left-menu {
     display:none;
   }
+  #contain {
+    border: none;
+  }
   #myChart {
     width: 100% !important;
-      /* margin-left: -70px !important; */
+    border: solid 2px red;
+    position: absolute;
+    right: 70px;
   }
-}
+} */
 #logo {
   width: 110px;
   height: 67px;
