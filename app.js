@@ -3,9 +3,13 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const logWriter = require('./logger/logWriter.js');
 
 var indexRouter = require('./routes/index');
+var graphRouter = require('./routes/graph');
+var reportRouter = require('./routes/report');
 var usersRouter = require('./routes/users');
+var setTimeRouter= require('./routes/setTime.js');
 var entitiesRouter = require('./routes/entities.js'); //  список печей
 const getRouter=require('./routes/getReg.js'); // получение оперативных данных
 const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
@@ -32,8 +36,10 @@ app.use(function(req,res,next){
 });
 
 
-
 app.use("/",indexRouter);
+app.use("/setTime",setTimeRouter); //страница установки времени
+app.use('/graph', graphRouter); // страница с графиком
+app.use('/report', reportRouter); // страница с отчётом
 app.use('/entyties', entitiesRouter); // возвращает список всех печей с их характеристиками
 app.use('/getReg', getRouter); // возвращает текущие значения регистров
 app.use('/getLog', logsRouter); // работа с логами печей

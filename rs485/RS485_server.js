@@ -187,7 +187,7 @@ function getRegName(name) {
 
 function read (name,cb){
   // считывает значение регистра по RS-485 и заносит ответ в registers
-  let trace=1;
+  let trace=0;
   let head="server_RS485:read("+name+"):"
   // нормализуем имя регистра
   let reg=getRegName(name);

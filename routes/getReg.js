@@ -4,14 +4,14 @@ const rs485 = require('../rs485/RS485_driver_get.js'); // клиент
 // ------------ логгер  --------------------
 let log = require('../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
-let gTrace=1; //=1 глобальная трассировка (трассируется все)
+let gTrace=0; //=1 глобальная трассировка (трассируется все)
 gTrace ?  log('i',logName) : null;
 
 // ---------------
 /* GET users listing. */
 router.post('/', function(req, res, next) {
   // -- настройки логгера --------------
-   let trace=1;
+   let trace=0;
    let logN=logName+"POST:/getReg => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-----------------------------------------

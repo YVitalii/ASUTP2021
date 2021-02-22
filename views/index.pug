@@ -1,5 +1,41 @@
 extends layout
-
+mixin Card(thisFurnace)
+  div(class="col-md-5 h-100")
+    div(class="card border-info m-3" style="min-width: 320px")
+      div(class="card-header")
+        h1= thisFurnace.shortName
+      div(class="card-body")
+        each val, key in thisFurnace.regs
+          div(class="card-title row")
+            h2(class="col-md-4 w-auto")= thisFurnace.regs[key].title + ': '
+            h2(class="col-md-4 w-auto" id=key)= '0'
+            h2(class="col-md-4 w-auto")= thisFurnace.regs[key].units
+        a( href="/graph/"+thisFurnace.id)
+          button(type="button" class="btn btn-outline-info") Детали
 block content
-  h1= title
-  p Welcome to #{title}
+  div(class="container mt-5")
+    div(class="row justify-content-around")
+      each furnace in entities
+        +Card(furnace)
+    button(id="settings" type="button" class="btn btn-outline-dark" style="position: fixed; right: 15vw; bottom: 50px") Настройка
+    div(id="modalWindow" style="display: none; width: 100vw; height: 100vh; position: fixed; left: 0; top: 0; background: rgba(46, 49, 49, .9)")
+      div(class="card border-info m-3" style="width: 450px; height: 180px; position: fixed; left: calc(50% - 225px); top: calc(50% - 90px)")
+        div(class="card-header")
+          h2= "Установка даты и времени"
+        div(class="card-body d-flex flex-column justify-content-around p-2")
+          div(class="row d-flex justify-content-around p-2")
+            input(id="timeStr" type="datetime-local" style="width: 300px")
+          div(class="row d-flex justify-content-around p-2")
+            button(id="setNewTime" type="button" class="btn btn-outline-success col-md-4") Установить
+            button(id="closeModal" type="button" class="btn btn-outline-danger col-md-4") Отменить
+  script
+    - var keys = '\"';
+    each furnace in entities
+      each val, key in furnace.regs
+        - keys += key + ';';
+    - keys = keys.slice(0, -1);
+    - keys += '\"';
+    != `var keys = ${keys};`
+  script
+    include ../tools/refreshData.js
+    include ../tools/modalWindow.js

@@ -1,0 +1,29 @@
+extends layout
+block content
+	div(class="container-fluid card border-info mt-5")
+		div(class="card-header")
+			h1(id="title-header")
+				| Страница с отчётами печи
+				| #{furnace.shortName}
+		div(class="row card-body")
+			div(id="left-menu" style="width: 215px")
+				div.p-2
+					ul(class="list-group" style="max-height:200px; overflow:hidden; overflow-y:scroll")
+						- fileList.reverse();
+						each fileName in fileList
+							li(class="list-group-item list-group-item-action list-group-item-info" id=fileName.slice(0, -4)) #{fileName.slice(0, -4)}
+				div
+					div(class="btn-group-vertical w-100 p-2")
+						button(type="button" class="btn btn-outline-info" id="print-btn") Печать
+						a(id ="download-btn" class="btn btn-outline-info") Загрузить
+						//- button(type="button" class="btn btn-outline-info") Загрузить
+						button(type="button" class="btn btn-outline-danger") Удалить
+					div(class="btn-group-vertical w-100 p-2")
+						a(href="/graph/"+furnace.id class="btn btn-outline-dark w-100") Назад
+						a(href="/" class="btn btn-outline-dark w-100") Главная
+			div(style="height: 400px; width: calc(100% - 215px)" id="myChart")
+	script
+		- var registers = JSON.stringify(furnace.regs);
+		!= `var registers = ${registers};`
+		!= `var furnaceName = ${JSON.stringify(furnace.shortName)};`
+		include ../tools/createReport.js
