@@ -9,12 +9,15 @@ html
       include ../public/chart/d3/d3.js
     script
       include ../public/chart/js/drawChart.js
+    script
+      include ../public/timedisplay.js
     //- script
     //-   include ../tools/createGraph.js
     //- script
     //-   include ../tools/createReport.js
   body
     img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
+    div(id="timedisplay")
     block content
     script(src="/bootstrap/popper.min.js") 
     script(src="/bootstrap/bootstrap.min.js") 

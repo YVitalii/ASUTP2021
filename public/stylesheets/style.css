@@ -27,3 +27,9 @@ body {
 a {
   color: #00B7FF;
 }
+#timedisplay {
+  position: fixed;
+  top: 22px;
+  left: 150px;
+  font-size: x-large;
+}

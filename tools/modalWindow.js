@@ -10,7 +10,11 @@ setNewTimeBtn.onclick = () => {
     alert("Неправильное значение.");
   } else {
     let newTime = new Date(timeStr.value);
-    alert(newTime.toISOString());
+    // alert(newTime.toISOString());
+    var xhr = new XMLHttpRequest();
+    let url = "/setTime?time="+newTime.toISOString();
+    xhr.open("POST", url, true);
+    xhr.send();
     modalWindow.style.display = "none";
   }
 }
