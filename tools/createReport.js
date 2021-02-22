@@ -36,19 +36,31 @@ for (let li of logList) {
   }
 };
 let printBtn = document.getElementById("print-btn");
+let comment = document.getElementById("comment");
 printBtn.onclick = () => {
+  if(window.confirm("Хотите добавить комментарий?")) {
+    document.getElementsByTagName('p')[0].innerHTML = prompt("Введите комментарий:");
+    comment.style.display = "block";
+    comment.style.position = "absolute";
+    comment.style.top = "500px";
+  }
   let leftMenu = document.getElementById("left-menu");
   leftMenu.style.display = "none";
   let contain = document.getElementById("contain");
   contain.style.border = "none";
   let myChartPrint = document.getElementById("myChart");
-  myChartPrint.style.width = "280mm";
+  // myChartPrint.style.height = "400px";
+  myChartPrint.style.width = "100%";
   myChartPrint.style.position = "absolute";
   myChartPrint.style.right = "30px";
-  chart.redraw();
+  // chart.redraw();
   setTimeout(()=>{
+    // let svg = document.getElementsByTagName('svg')[0];
+    // svg.setAttribute("height", "400px");
+    // svg.setAttribute("width", "3300px");
     window.print();
     leftMenu.style.display = "block";
+    comment.style.display = "none";
     myChartPrint.style.width = "calc(100% - 215px)";
     myChartPrint.style.position = "";
     contain.style.border = "";

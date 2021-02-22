@@ -22,6 +22,9 @@ block content
 						a(href="/graph/"+furnace.id class="btn btn-outline-dark w-100") Назад
 						a(href="/" class="btn btn-outline-dark w-100") Главная
 			div(style="height: 400px; width: calc(100% - 215px)" id="myChart")
+		div(id="comment" class="row" style="display: none")
+			h2= "Примечания:"
+			p
 	script
 		- var registers = JSON.stringify(furnace.regs);
 		!= `var registers = ${registers};`
