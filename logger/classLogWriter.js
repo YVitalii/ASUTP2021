@@ -76,15 +76,16 @@ module.exports=LogWriter;
 
 function modifyValues(values) {
   // читаем с сервера данные
-  //let values=;
+  let newValues={};
   for (each in values) {
+    newValues[each]={value:values[each].value};
     //log("i",values[each]);
     if (values[each].value === null) {
       // если считанное значение = null
-       values[each].value=0;
+       newValues[each].value=-5;
     }
   } //  for (each in values)
-  return values
+  return newValues
 };
 
 function iterate() {
@@ -93,7 +94,8 @@ function iterate() {
    let logN=logName+"iterate() => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-----------------------------------------
-  let values=modifyValues(this.server.getValues(this.listRegs));
+  let values=this.server.getValues(this.listRegs);
+  values=modifyValues(values);
   if ( ! this.beforeValues ) {
     // предыдущих значений еще нет, запоминаем их и выходим
     this.beforeValues=values;
