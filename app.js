@@ -10,6 +10,7 @@ var graphRouter = require('./routes/graph');
 var reportRouter = require('./routes/report');
 var usersRouter = require('./routes/users');
 var entitiesRouter = require('./routes/entities.js'); //  список печей
+const deleteFileRouter=require('./routes/deleteFile.js'); // удаление файла
 const getRouter=require('./routes/getReg.js'); // получение оперативных данных
 const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
 var app = express();
@@ -39,6 +40,7 @@ app.use("/",indexRouter);
 app.use('/graph', graphRouter); // страница с графиком
 app.use('/report', reportRouter); // страница с отчётом
 app.use('/entyties', entitiesRouter); // возвращает список всех печей с их характеристиками
+app.use('/deleteFile', deleteFileRouter); // удаляет файл
 app.use('/getReg', getRouter); // возвращает текущие значения регистров
 app.use('/getLog', logsRouter); // работа с логами печей
 //app.use('/users', usersRouter);
