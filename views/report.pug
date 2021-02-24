@@ -6,9 +6,9 @@ block content
 				| Страница с отчётами печи
 				| #{furnace.shortName}
 		div(class="row card-body")
-			div(id="left-menu" style="width: 215px")
+			div(id="left-menu" style="width: 215px; display: flex" class="flex-column justify-content-between")
 				div.p-2
-					ul(class="list-group" style="max-height:200px; overflow:hidden; overflow-y:scroll")
+					ul(class="list-group" style="max-height:260px; overflow:hidden; overflow-y:scroll")
 						- fileList.reverse();
 						each fileName in fileList
 							li(class="list-group-item list-group-item-action list-group-item-info" id=fileName.slice(0, -4)) #{fileName.slice(0, -4)}
@@ -16,12 +16,18 @@ block content
 					div(class="btn-group-vertical w-100 p-2")
 						button(type="button" class="btn btn-outline-info" id="print-btn") Печать
 						a(id ="download-btn" class="btn btn-outline-info") Загрузить
-						//- button(type="button" class="btn btn-outline-info") Загрузить
 						button(id ="delete-btn" type="button" class="btn btn-outline-danger") Удалить
 					div(class="btn-group-vertical w-100 p-2")
 						a(href="/graph/"+furnace.id class="btn btn-outline-dark w-100") Назад
 						a(href="/" class="btn btn-outline-dark w-100") Главная
-			div(style="height: 400px; width: calc(100% - 215px)" id="myChart")
+			div(id="right-side" style="height: 460px; width: calc(100% - 215px)")
+				div(id="myChart" style="height: 400px; width: 100%")
+				div(id="graph-scale" class="d-flex justify-content-between" style="height: 60px; width: 100%; padding: 11px")
+					input(id="start-time" type="time" class="btn btn-outline-info")
+					div(id="scale-btns" class="btn-group")
+						button(id ="сancel-scale-btn" type="button" class="btn btn-outline-danger") Отменить
+						button(id="scale-btn" type="button" class="btn btn-outline-info") Обрезать
+					input(id="end-time" type="time" class="btn btn-outline-info")
 		div(id="comment" class="row" style="display: none")
 			h2= "Примечания:"
 			p

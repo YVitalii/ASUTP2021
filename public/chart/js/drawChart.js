@@ -91,7 +91,7 @@ class Chart {
       let newW=this.elementDOM.clientWidth;
       let newH=this.elementDOM.clientHeight;
       // проверяем на соответствие
-      if (( nowW != newW ) | ( nowH != newH ) ) {
+      if (( nowW != newW ) || ( nowH != newH ) ) {
         // размеры контейнера изменились
         console.log("nowW="+nowW+";nowH="+nowH+";newW="+newW+";newH="+newH);
         // запоминаем новые размеры контейнера
@@ -372,8 +372,15 @@ rectang (x1,y1,x2,y2,color){
 
   redraw () {
     // полностью перерисовывает график
+    // console.log("this.elementDOM.innerHTML:");
+    // console.log(this.elementDOM.innerHTML);
     this.elementDOM.innerHTML="";//удаляем svg
+    // console.log("this.elementDOM.innerHTML");
+    // console.log(this.elementDOM.innerHTML);
+    // console.log("this.container");
     this.svg=this.container.append("svg"); // создаем поле для графика
+    console.log(this.container);
+    // console.log(this.svg);
     console.log("redraw");
     // вычисляет размеры поля графика, строит оси и сетку
     this.width = this.elementDOM.clientWidth; // ширина клиента
@@ -520,7 +527,13 @@ rectang (x1,y1,x2,y2,color){
         this.task=task;
       } })//$.ajax
     };  //loadData()*/
-
+  resize(){
+    // let value = this.data[0].time;
+    // console.log("resize");
+    // console.log({value});
+    this.timeDomain.start=timeRoundDown(this.data[0].time);
+    this.timeDomain.end=timeRoundDown(this.data[this.data.length-2].time);
+  };
 
    reload(){
       let trace=0, logH="drawChart()::"+"reload()"+"::";

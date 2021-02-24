@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const logWriter = require('./logger/logWriter.js');
+const nocache = require('nocache');
 
 var indexRouter = require('./routes/index');
 var graphRouter = require('./routes/graph');
@@ -19,6 +20,14 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+
+app.use(nocache());
+
+// Отключение кэширования. ист. https://coderoad.ru/22632593/%D0%9A%D0%B0%D0%BA-%D0%BE%D1%82%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C-%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%B2%D0%B5%D0%B1-%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86-%D0%B2-ExpressJS-NodeJS
+app.set('etag', false);app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -62,5 +71,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+app.disable('view cache');
 
 module.exports = app;
