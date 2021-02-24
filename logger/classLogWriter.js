@@ -106,8 +106,12 @@ function iterate() {
   // Проверка изменилось ли хоть одно значение больше чем на 'deviation' изи config.js:
   var valuesDidNotChange = true;
   for (key in values) {
-    if (Math.abs(this.beforeValues[key] - values[key]) > config.logger.deviation) valuesDidNotChange = false;
+    // console.log([this.beforeValues[key], values[key], config.logger.deviation]);
+    if (Math.abs(this.beforeValues[key].value - values[key].value) > config.logger.deviation) {
+      valuesDidNotChange = false;
+    }
   }
+  // console.log(valuesDidNotChange);
   // Если значения не менялись - выход из функции:
   if (valuesDidNotChange) return;
 
