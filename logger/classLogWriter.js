@@ -102,6 +102,15 @@ function iterate() {
     trace ? log("i",logN,"First time: beforeValues=",this.beforeValues) : null;
     return;
   };
+
+  // Проверка изменилось ли хоть одно значение больше чем на 'deviation' изи config.js:
+  var valuesDidNotChange = true;
+  for (key in values) {
+    if (Math.abs(this.beforeValues[key] - values[key]) > config.logger.deviation) valuesDidNotChange = false;
+  }
+  // Если значения не менялись - выход из функции:
+  if (valuesDidNotChange) return;
+
   let sep=config.logger.separator;
   //console.log(values);
   let line=(new Date()).toJSON();

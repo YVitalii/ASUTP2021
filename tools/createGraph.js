@@ -25,17 +25,17 @@ xhrT.onload = function(){
   // console.log(res);
   let points={}
   for (key in res) {
+    let element = document.getElementById(key);
     if (res[key].value === null){
-      let element = document.getElementById(key);
       element.innerHTML = "Error";
-      points[key]=0;
+      points[key]=-5;
     } else {
-      let element = document.getElementById(key);
       element.innerHTML = res[key].value;
       points[key]=res[key].value;
     }
+    points['time']=res[key].timestamp;
   }
-  points['time']=new Date().getTime();
+  // points['time']=new Date().getTime();
   chart.addData(points);
   // for (let i=0; i<regsArr.length; i++) {
   //   let element = document.getElementById(regsArr[i]);
