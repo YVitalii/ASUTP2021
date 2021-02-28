@@ -4,10 +4,10 @@ block content
 		h1(class="card-header") #{furnace.fullName}
 		div(class="row card-body")
 			div(class="d-flex flex-column justify-content-between p-2" style="width: 215px")
-				div.p-2(title="Температура в печи")
+				div.p-2
 					table(style="width: 100%")
 						each val, key in furnace.regs
-							tr
+							tr(title=furnace.regs[key].description)
 								td 
 									h2(class="col-md-4 w-auto")= furnace.regs[key].title + ': '
 								td 

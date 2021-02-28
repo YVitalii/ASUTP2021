@@ -33,3 +33,6 @@ a {
   left: 150px;
   font-size: x-large;
 }
+#comment>p {
+  font-size: x-large;
+}
