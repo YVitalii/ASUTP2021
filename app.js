@@ -10,6 +10,7 @@ var passport = require('./tools/passport-loc.js');
 
 var indexRouter = require('./routes/index');
 var graphRouter = require('./routes/graph');
+var loginRouter = require('./routes/login');
 var reportRouter = require('./routes/report');
 var usersRouter = require('./routes/users');
 var setTimeRouter= require('./routes/setTime.js');
@@ -37,7 +38,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
+app.use(require('express-session')({ secret: 'furnaceBortek', resave: false, saveUninitialized: false }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -52,6 +53,19 @@ app.use(function(req,res,next){
 });
 
 
+
+// Initialize Passport and restore authentication state, if any, from the
+// session.
+app.use(passport.initialize(),(req,res,next)=>{
+  //console.dir(req.session);
+  next();
+});
+app.use(passport.session(),(req,res,next)=>{
+  //console.dir(req.session);
+  next();
+});
+app.use('/login',loginRouter);
+app.use(passport.testLogin); // проверяем авторизованній пользователь или нет, если нет перенаправляем на страничку /login
 app.use("/",indexRouter);
 app.use("/setTime",setTimeRouter); //страница установки времени
 app.use('/graph', graphRouter); // страница с графиком

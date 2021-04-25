@@ -1,6 +1,10 @@
 var passport = require('passport');
 var Strategy = require('passport-local').Strategy;
 const users = require('../db/users.js');
+// ------------ логгер  --------------------
+const log = require('../tools/log.js'); // логер
+let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
+let gTrace=0; //=1 глобальная трассировка (трассируется все)
 
 // Configure the local strategy for use by Passport.
 //
@@ -11,7 +15,7 @@ const users = require('../db/users.js');
 passport.use(new Strategy(
   function(username, password, cb) {
     //console.log("=========================================");
-    //console.log("new Strategy("+username+","+password+"); ");
+    //console.log("new` Strategy("+username+","+password+"); ");
     users.verifyUser(username, password, function(err, user) {
       if (err) { return cb(err); }
       if (!user) { return cb(null, false); }
@@ -38,5 +42,17 @@ passport.use(new Strategy(
       cb(null, user);
     });
   });
+
+  passport.testLogin=function(req,res,next) {
+    //console.dir(req);
+    //console.dir(res);
+    if (! req.user) {
+      //console.log("User not logged.");
+      res.redirect('/login');
+      return
+    }
+    //console.log("===> User logged. req.user=",req.user);
+    next();
+  }
 
 module.exports=passport;

@@ -179,7 +179,9 @@ exports.findByUsername = function(username, cb) {
   process.nextTick(function() {
     if (records[username]) {
       //console.dir(records[username]);
-      cb(null, records[username]);
+      let user=records[username];
+      user.role=roles[user.role];
+      cb(null, user);
       return
     }
     let err=new Err({
