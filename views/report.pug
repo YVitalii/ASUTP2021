@@ -35,4 +35,5 @@ block content
 		- var registers = JSON.stringify(furnace.regs);
 		!= `var registers = ${registers};`
 		!= `var furnaceName = ${JSON.stringify(furnace.shortName)};`
+		!= `var role = \'${userData.username}\';`
 		include ../tools/createReport.js

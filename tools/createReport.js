@@ -101,26 +101,30 @@ printBtn.onclick = () => {
 };
 let deleteBtn = document.getElementById("delete-btn");
 deleteBtn.onclick = () => {
-  var fileName = selectedList.id;
-  if (window.confirm(`Файл точно хотите удалить файл ${fileName}.`)) {
-    var msgN = 1;
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-      if (this.status == 200) {
-        if (msgN == 2) {
-          alert(this.responseText);
-          document.getElementById(fileName).remove();
-          selectedList = logList[0];
-          selectedList.classList.add("active");
-          drawGraph(selectedList.id);
+  if (role != "admin") {
+    alert("У Вас нет прав на удаление файлов.")
+  } else {
+    var fileName = selectedList.id;
+    if (window.confirm(`Файл точно хотите удалить файл ${fileName}.`)) {
+      var msgN = 1;
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function () {
+        if (this.status == 200) {
+          if (msgN == 2) {
+            alert(this.responseText);
+            document.getElementById(fileName).remove();
+            selectedList = logList[0];
+            selectedList.classList.add("active");
+            drawGraph(selectedList.id);
+          }
+          msgN++;
         }
-        msgN++;
       }
+      let url = "/deleteFile?folderName="+furnaceId+"&fileName="+fileName+".log";
+      console.log(url);
+      xhr.open("POST", url, true);
+      xhr.send();
     }
-    let url = "/deleteFile?folderName="+furnaceId+"&fileName="+fileName+".log";
-    console.log(url);
-    xhr.open("POST", url, true);
-    xhr.send();
   }
 }
 let scaleBtn = document.getElementById("scale-btn");

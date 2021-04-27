@@ -18,6 +18,7 @@ var entitiesRouter = require('./routes/entities.js'); //  список пече�
 const deleteFileRouter=require('./routes/deleteFile.js'); // удаление файла
 const getRouter=require('./routes/getReg.js'); // получение оперативных данных
 const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
+const { session } = require('./tools/passport-loc.js');
 
 var app = express();
 
@@ -65,7 +66,7 @@ app.use(passport.session(),(req,res,next)=>{
   next();
 });
 app.use('/login',loginRouter);
-app.use(passport.testLogin); // проверяем авторизованній пользователь или нет, если нет перенаправляем на страничку /login
+app.use(passport.testLogin); // проверяем авторизованный пользователь или нет, если нет перенаправляем на страничку /login
 app.use("/",indexRouter);
 app.use("/setTime",setTimeRouter); //страница установки времени
 app.use('/graph', graphRouter); // страница с графиком

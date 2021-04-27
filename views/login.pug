@@ -1,16 +1,11 @@
 extends layout
 block content
-  br
-  h1 Cторінка логіну
-  form(action="/login" method="post")
-    div
-      label Username:
-      input(type="text" name="username")
-      br
-    div
-      label Password:
-      input(type="password" name="password")
-      br
-    div
-      input(type="submit" name="Submit")
-      
+  div.login-form
+    form(action="/login" method="post")
+      h2.text-center Авторизация
+      div.form-group
+        input(type="text" name="username" class="form-control" placeholder="Username" required="required")
+      div.form-group
+        input(type="password" name="password" class="form-control" placeholder="Password" required="required")
+      div.form-group
+        button(type="submit" name="Submit" class="btn btn-outline-info btn-block") Войти

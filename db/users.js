@@ -178,9 +178,12 @@ loadRecords()
 exports.findByUsername = function(username, cb) {
   process.nextTick(function() {
     if (records[username]) {
-      //console.dir(records[username]);
+      // console.dir(records[username]);
       let user=records[username];
-      user.role=roles[user.role];
+      // console.log("Test: ", roles[user.role]);
+      // let r = roles[user.role];
+      // console.log(r);
+      // user.role=r;
       cb(null, user);
       return
     }
@@ -279,6 +282,7 @@ function addNewUser(user,cb){
       }; //if (err)
      });
      //console.dir(records);
+     user.role = roles[user.role];
      cb(null,user);
    });//findByUsername
 }//addNewUser
@@ -355,11 +359,11 @@ function verifyUser(username,password,cb){
         return };
       // res=false пароль неправильный
       // console.log("bcrypt. Password is Wrong");
-      let suff=" user='"+username.path+"'";
+      // let suff=" user='"+username.path+"'";
       let err=new Err({
-                   en:"Wrong password for "+suff
-                  ,ru:'Неправильный пароль '+suff
-                  ,ua:"Невірний пароль"+suff
+                   en:'Wrong password for user \''+username+'\''
+                  ,ru:'Неправильный пароль для пользователя \''+username+'\''
+                  ,ua:'Невірний пароль для користувача \''+username+'\''
                 });
      cb (err,null);
      return

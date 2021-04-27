@@ -33,6 +33,49 @@ a {
   left: 150px;
   font-size: x-large;
 }
+.user-tools {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 21px;
+  right: 50px;
+}
+.user-tools>h4 {
+  margin-top: 3px;
+  margin-right: 10px;
+}
+/* #logout {
+  position: fixed;
+  top: 22px;
+  right: 50px;
+} */
 #comment>p {
   font-size: x-large;
+}
+
+.form-group {
+  margin-bottom:1rem;
+}
+.login-form {
+  width: 340px;
+  margin: 50px auto;
+  font-size: 15px;
+}
+.login-form form {
+  margin-bottom: 15px;
+  background: #f7f7f7;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+  padding: 30px;
+}
+.login-form h2 {
+  margin: 0 0 15px;
+}
+.form-control, .btn {
+  min-height: 38px;
+  border-radius: 2px;
+}
+.btn {        
+  font-size: 15px;
+  font-weight: bold;
 }

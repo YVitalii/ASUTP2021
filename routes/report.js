@@ -10,6 +10,8 @@ fs.readdirSync("./public/logs/").forEach(file => {
 
 /* GET report page. */
 router.get('/:furnace', function(req, res, next) {
+  let userData = req.user
+  console.log("UserData: ", userData);
   const id = req.params.furnace;
   config.entities.forEach(furnace => {
     if (id == furnace.id)
@@ -20,7 +22,7 @@ router.get('/:furnace', function(req, res, next) {
   fs.readdirSync(path).forEach(file => {
       fileList.push(file);
   });
-  res.render('report', {furnace: thisFurnace, fileList: fileList});
+  res.render('report', {furnace: thisFurnace, fileList: fileList, userData});
 });
 
 module.exports = router;

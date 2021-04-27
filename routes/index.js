@@ -6,7 +6,9 @@ console.log(config.entities);
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { entities: config.entities });
+  let userData = req.user
+  console.log("UserData: ", userData);
+  res.render('index', { entities: config.entities, userData });
 });
 
 module.exports = router;
