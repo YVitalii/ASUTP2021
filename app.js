@@ -8,6 +8,8 @@ const nocache = require('nocache');
 
 var passport = require('./tools/passport-loc.js');
 
+// var flash = require('express-flash');
+
 var indexRouter = require('./routes/index');
 var graphRouter = require('./routes/graph');
 var loginRouter = require('./routes/login');
@@ -40,6 +42,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(require('express-session')({ secret: 'furnaceBortek', resave: false, saveUninitialized: false }));
+
+// app.use(flash());
 
 app.use(express.static(path.join(__dirname, 'public')));
 

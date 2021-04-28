@@ -21,8 +21,8 @@ html
     div.user-tools
       - if (userData) {
         h4 #{userData.displayName}
+        a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Выйти
       - }
-      a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Выйти
     block content
     script(src="/bootstrap/popper.min.js")
     script(src="/bootstrap/bootstrap.min.js")

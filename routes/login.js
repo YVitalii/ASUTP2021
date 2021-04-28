@@ -8,7 +8,7 @@ let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
 let gTrace=0; //=1 глобальная трассировка (трассируется все)
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', checkNotAuthentificated,  function(req, res, next) {
   // ----------- настройки логгера локальные --------------
   let logN=logName+'get:/login:';
   let trace=1;   trace = (gTrace!=0) ? gTrace : trace;
@@ -17,6 +17,15 @@ router.get('/', function(req, res, next) {
   res.render('login', {});
   //res.send();
 });
+
+// Если пользователь уже в системе, перенаправлять его с страницы логина на основную
+// Источник: https://www.youtube.com/watch?v=-RCnNyD0L-s&t=1612s   31:35
+function checkNotAuthentificated(req, res, next) {
+  if (req.user) {
+    res.redirect('/');
+  }
+  next();
+}
 
 router.post('/',
   passport.authenticate('local', { failureRedirect: '/login' }),

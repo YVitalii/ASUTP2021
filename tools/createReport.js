@@ -60,12 +60,28 @@ for (let li of logList) {
 };
 let printBtn = document.getElementById("print-btn");
 let comment = document.getElementById("comment");
+let colors=['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999',"#427220","#bba901","#e5a77e","#b76b4d","#ad2815"];
 printBtn.onclick = () => {
+  let userTools = document.getElementsByClassName('user-tools')[0];
+  userTools.style.display = "none";
+  comment.style.display = "flex";
+  comment.style.position = "absolute";
+  comment.style.top = "560px";
+  let comments = document.getElementsByTagName('p');
+  comments[1].innerHTML = "";
+  let k = 0;
+  for (let [key, value] of Object.entries(registers)) {
+    comments[1].innerHTML += `<span style="color: ${colors[k]};">${value.title}</span> - ${value.description}\n`;
+    k++;
+  }
   if(window.confirm("Хотите добавить комментарий?")) {
-    document.getElementsByTagName('p')[0].innerHTML = prompt("Введите комментарий:");
-    comment.style.display = "block";
-    comment.style.position = "absolute";
-    comment.style.top = "560px";
+    comments[0].innerHTML = prompt("Введите комментарий:");
+    comments[0].style.width = "50%";
+    comments[1].style.width = "50%";
+  } else {
+    comments[0].innerHTML = "";
+    comments[0].style.width = "0";
+    comments[1].style.width = "100%";
   }
   let leftMenu = document.getElementById("left-menu");
   leftMenu.style.display = "none";
@@ -91,6 +107,7 @@ printBtn.onclick = () => {
     rightSide.style.width = "calc(100% - 215px)";
     rightSide.style.position = "";
     contain.style.border = "";
+    userTools.style.display = "flex";
     chart.redraw();
   }, 1000);
   // window.print();

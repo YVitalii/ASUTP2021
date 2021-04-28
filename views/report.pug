@@ -30,7 +30,8 @@ block content
 					input(id="end-time" type="time" class="btn btn-outline-info")
 		div(id="comment" class="row" style="display: none")
 			h2= "Примечания:"
-			p
+			p(style="width: 50%")
+			p(style="width: 50%")
 	script
 		- var registers = JSON.stringify(furnace.regs);
 		!= `var registers = ${registers};`

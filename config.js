@@ -40,25 +40,25 @@ entities.push({
           title:"SP1" // имя для вывода в описании поля
           ,units: "\u00b0C"
           ,type:"integer"
-          ,description:"Заданная температура в зоне №2"
+          ,description:"Заданная температура в верхней зоне"
         }
         ,"1-T":{
           title:"T1" // имя для вывода в описании поля
           ,type:"integer"
           ,units: "\u00b0C"
-          ,description:"Текущая температура в зоне №1"
+          ,description:"Текущая температура в верхней зоне"
         }
         ,"2-SP":{
           title:"SP2" // имя для вывода в описании поля
           ,units: "\u00b0C"
           ,type:"integer"
-          ,description:"Заданная температура в зоне №2"
+          ,description:"Заданная температура в нижней зоне"
         }
         ,"2-T":{
           title:"T2" // имя для вывода в описании поля
           ,units: "\u00b0C"
           ,type:"integer"
-          ,description:"Текущая температура в зоне №2"
+          ,description:"Текущая температура в нижней зоне"
         }
 
 

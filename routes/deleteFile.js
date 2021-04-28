@@ -42,6 +42,7 @@ router.post('/', function(req, res, next) {
   let path = "./public/logs/" + req.query.folderName + "/" + req.query.fileName;
   trace ?  log('i',logN,"path=",path) : null;
   try {
+    // console.log("Попытка удалить файл от пользователя:", req.user);
     fs.unlinkSync(path);
     res.status(200).send("Файл " + path + " удалён.");
     return
