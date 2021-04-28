@@ -178,13 +178,19 @@ loadRecords()
 exports.findByUsername = function(username, cb) {
   process.nextTick(function() {
     if (records[username]) {
-      // console.dir(records[username]);
+       //console.log("Finded user:",records[username]);
       let user=records[username];
-      // console.log("Test: ", roles[user.role]);
-      // let r = roles[user.role];
-      // console.log(r);
-      // user.role=r;
-      cb(null, user);
+      // копируем права из базы
+      let clone = {}; // новый пустой объект
+      // скопируем все свойства user в него
+      for (let key in user) {
+        clone[key] = user[key];
+      }
+      let permissions=Object.assign({},roles[user.role]);
+      clone.role=permissions;
+      // удалять пароль нельзя - т.к. он используется при проверке пароля
+      //console.log("clone=",clone);
+      cb(null, clone);
       return
     }
     let err=new Err({
