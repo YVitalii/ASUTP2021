@@ -6,6 +6,8 @@ function refreshData() {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
                 temperatures = JSON.parse(xhr.responseText);
+            } else if (xhr.status === 0) {
+              alert("Произошла ошибка сервера, пожалуйста, перезагрузите сервер и страницу.");
             }
         }
     }
