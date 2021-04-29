@@ -136,6 +136,12 @@ deleteBtn.onclick = () => {
           }
           msgN++;
         }
+        if (this.status == 400) {
+          if (msgN == 2) {
+            alert(JSON.parse(this.responseText).err.ru);
+          }
+          msgN++;
+        }
       }
       let url = "/deleteFile?folderName="+furnaceId+"&fileName="+fileName+".log";
       console.log(url);
