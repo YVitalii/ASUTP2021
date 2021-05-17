@@ -118,9 +118,9 @@ printBtn.onclick = () => {
 };
 let deleteBtn = document.getElementById("delete-btn");
 deleteBtn.onclick = () => {
-  if (role != "admin") {
-    alert("У Вас нет прав на удаление файлов.")
-  } else {
+  // if (role != "admin") {
+  //   alert("У Вас нет прав на удаление файлов.")
+  // } else {
     var fileName = selectedList.id;
     if (window.confirm(`Файл точно хотите удалить файл ${fileName}.`)) {
       var msgN = 1;
@@ -148,7 +148,7 @@ deleteBtn.onclick = () => {
       xhr.open("POST", url, true);
       xhr.send();
     }
-  }
+  // }
 }
 let scaleBtn = document.getElementById("scale-btn");
 scaleBtn.onclick = () => {

@@ -47,6 +47,18 @@ router.post('/', function(req, res, next) {
     var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
     var yyyy = today.getFullYear();
     today = yyyy + '-' + mm + '-' + dd;
+    console.log(req.user);
+    if (! req.user.permissions.userDelete) {
+      res.status(400).send(
+        {err:
+          {
+            en:"You have no rights to delete files."
+            ,ru:"У Вас нет прав на удаление файлов."
+            ,ua:"Ви не маєте прав на видалення файлів."
+          }
+        })
+      return
+    }
     if (req.query.fileName.slice(0, -4) == today) {
       // console.log("Попытка удалить файл с сегодняшней датой.");
       res.status(400).send(
