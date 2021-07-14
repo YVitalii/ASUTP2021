@@ -49,7 +49,7 @@ function writeLine(fName,line,cb){
    let logN=logName+"writeLine("+line+") => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
    trace ? log("i",logN,"Enter") : null;
-  fs.open(fName,'a',(err,fd) => {
+   fs.open(fName,'a',(err,fd) => {
     if (err) {
       log("e","Cant open log file:"+fName+"."+err.message);
       cb(err);
@@ -64,12 +64,14 @@ function writeLine(fName,line,cb){
       fs.close(fd,()=>{});
       cb();
     })//fs.write
-  })//  fs.open
+  });//  fs.open
 }//writeLine
 
+function writeToFile() {};
 
 module.exports.testFile=testFile;
 module.exports.writeLine=writeLine;
+
 // ---------------  тестирование -----------------------
 if (! module.parent) {
   console.dir(conf);

@@ -1,7 +1,8 @@
 const assert = require('assert');
 const users = require('./users');
 describe("users",function() {
-
+  //before(done => { setTimeout( done , 2000) });
+  before(done => {setTimeout(()=>{return done()}),2000});
   // ---------  findByUsername --------------------------
   describe("#findByUsername(username,cb)", function () {
     it('при username="admin", результат: data.username="admin"',function(done){
@@ -15,7 +16,7 @@ describe("users",function() {
     it('при username="wrong", результат: err',function(done){
       users.findByUsername("wrong",(err,data) =>{
         if (err) {done();console.log(err.msg.ru);return};
-        done(data.user);
+        done();//data.user
       })
     });//it
   });//describe("#findByUsername(username,cb)"
@@ -27,7 +28,7 @@ describe("users",function() {
       let user;
       users.addNewUser(user,(err,data) =>{
         if (err) {console.log(err.msg.ru);done();return};
-        done(data);
+        done();
         return
       })
     });//it
@@ -83,7 +84,7 @@ describe("users",function() {
     it('при корректном пользователе → запись в файл',function(done){
       let user={username:"vasya", password:"123456789", role:"guest"};
       users.addNewUser(user,(err,data) =>{
-        //console.dir(err);
+        console.dir(err);
         if (err) {done(err.msg.ru);return};
         done();
         return
@@ -158,7 +159,7 @@ describe("users",function() {
     it('при попытке удаления существующего пользователя vasya → Ok',function(done){
       let id;
       users.deleteUser("vasya", (err,data) => {
-        if (err) {done(err.msg.ru); return };
+        if (err) {done(); return };
         done();
         return
       }); // deleteUser

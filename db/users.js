@@ -21,22 +21,22 @@ let gTrace=0; //=1 глобальная трассировка (трассиру
 
 /**
   Объект пользователя, описывающий его
-  * @property {object} user                -объект пользователя
-  * @property {string} user.username        - логин
+  * @property {object} user                 - объект пользователя
+  * @property {string} user.userName        - логин
   * @property {string} user.password        - хеш пароля
   * @property {string} user.role            - название группы прав доступа
   * @property {string} user.displayName     - отображаемое имя
 */
 const users={};
-
+ // ----- пользователи по умолчанию ---------------------
 const defaultAdmin={
-  username:"admin",
+  userName:"admin",
   password:"$2b$10$ehdyX/6RNtgel/JVI7jvO.2gE1EMP8Ub2x.qvk0WmXVYDDran6Isq", // password="bortek"
   displayName:"Администратор",
   role:"admin"
 } // defaultUser
 const defaultGuest={
-  username:"Гость",
+  userName:"Гость",
   password:"$2b$10$EtM1rFVCvg7U/t1ih5oNAOisOGWfRdNlgBbjgppxODN9sxgqrTMlG", // password="12345"
   displayName:"Гость",
   role:"guest"
@@ -44,8 +44,8 @@ const defaultGuest={
 
 // если все файлы не валидны, создаем новый с параметрами по умолчанию;
 const startData={ };
-startData[defaultAdmin.username]=defaultAdmin;
-startData[defaultGuest.username]=defaultGuest;
+startData[defaultAdmin.userName]=defaultAdmin;
+startData[defaultGuest.userName]=defaultGuest;
 
 /**
   Справочник ролей пользователей, описывающий права доступа каждой роли
@@ -86,6 +86,7 @@ function loadFile(fName){
 }; //function loadRecords
 
 function saveFile(fName,data,cb){
+  // преобразует записи в JSON и записывает их в файл JSON
   let records=JSON.stringify(data);
   fs.writeFile(fName,records,{encoding:"utf-8",flag:"w"}, (err) => {
     if (err) {cb(err);return}
@@ -97,11 +98,11 @@ function saveFile(fName,data,cb){
 /** Сохраняет изменения в базе записей + создает резервную копию
   @callback cb(error)
 */
-
 function saveChanges(cb) {
-  // делаем резервную копию предыдущих записей
+    // записываем записи
     saveFile(fName, records, (err) => {
       if (err) { cb(err); return }
+      // делаем резервную копию записей
       saveFile(backupFname, records, (err) => {
         if (err) { cb(err); return }
         cb(null);
@@ -162,52 +163,46 @@ loadRecords()
      }
    );
 
-/** поиск по id */
-// exports.findById = function(id, cb) {
-//   process.nextTick(function() {
-//     var idx = id - 1;
-//     //log('i',"findById: ","records=",records,"; id=",id);
-//     if (records[idx]) {
-//       cb(null, records[idx]);
-//     } else {
-//       let err=new Err({
-//                    en:'User ' + id + ' does not exist.'
-//                   ,ru:'Пользователь '+ id +" не существует."
-//                   ,ua:'Користувач '+ id +" не існує."
-//                 });
-//       cb(err,null);
-//     }//else
-//   });
-// };//findById
-
-/** поиск в базе по имени пользователя */
-function findByUsername (username, cb) {
-  process.nextTick(function() {
-    if (records[username]) {
-      // копируем ссылку на пользователя
-      // удалять хеш пароля нельзя - т.к. он потом используется для проверки пароля
-      let user=records[username];
-      // скопируем все свойства user в новый пустой объект
-      let clone = {};
-      for (let key in user) {
-        clone[key] = user[key];
-      };
-      // копируем все разрешения из словаря ролей в пользователя
-      let {...permissions} = roles[user.role];
-      clone.permissions=permissions;
-      // возвращаем пользователя
-      cb(null, clone);
-      return
-    }
+function findByUserName(userName) {
+  // функция на основе промисов
+  // ----------- настройки логгера локальные --------------
+  let logN=logName+"as_findByUserName("+userName+"):";
+  let trace=1;   trace = (gTrace!=0) ? gTrace : trace;
+  trace ? log("i",logN,"Started") : null;
+  // обрезаем пробельные символы
+  userName=userName.trim();
+  // ищем пользователя
+  if (! records[userName]) {
     let err=new Err({
-                 en:'User "' + username + '" does not exist.'
-                ,ru:'Пользователь "'+ username +'" не существует.'
-                ,ua:'Користувач '+ username +'" не існує.'
+                 en:'User "' + userName + '" does not exist.'
+                ,ru:'Пользователь "'+ userName +'" не существует.'
+                ,ua:'Користувач '+ userName +'" не існує.'
               });
-    return cb(err, null);
-  });
-}; //findByUsername
-exports.findByUsername = findByUsername;
+    trace ? log("e",logN,"err=",err.msg.ru) : null;
+    // такого пользователя нет, возвращаем ошибку
+    return Promise.reject(err);
+  }
+  // копируем объект пользователя, по ссылке передавать нельзя, т.к. портится база
+  // примечание: удалять хеш пароля нельзя - т.к. он потом используется для проверки пароля
+  let user=records[userName];
+  trace ? log("i",logN," user=",user) : null;
+  // скопируем все свойства user в новый пустой объект
+  let clone = {};
+  for (let key in user) {
+    clone[key] = user[key];
+  };
+  trace ? log("i",logN," clone=",clone) : null;
+  // копируем все разрешения из словаря ролей в клон объекта пользователя
+  trace ? log("i",logN,"roles[user.role]=",roles[user.role]) : null;
+  let {...permissions} = roles[user.role];
+  clone.permissions=permissions;
+  trace ? log("i",logN,"clone.permissions=",clone.permissions) : null;
+  // возвращаем пользователя
+  return Promise.resolve(clone);
+} //as_findByUserName(userName)
+
+exports.findByUserName = findByUserName;
+
 // --------------------------------------------------------
 /** добавление нового пользователя */
 
@@ -223,11 +218,11 @@ function addNewUser(user,cb){
      return
    };
   // проверяем наличие имени пользователя
-  if (! user.username) {
+  if (! user.userName) {
     let err=new Err({
-                 en:"Field: username not defined."
-                ,ru:'Поле username не указано'
-                ,ua:'Поле username не вказано'
+                 en:"Field: userName not defined."
+                ,ru:'Поле userName не указано'
+                ,ua:'Поле userName не вказано'
               });
      cb (err,null)
      return
@@ -256,7 +251,7 @@ function addNewUser(user,cb){
    // проверяем роль
    if (! user.role) { user.role="guest"; };
    if (! roles[user.role]) {
-     let suff=" (userrname='"+user.username+"'; user.role="+user.role+")"
+     let suff=" (userrname='"+user.userName+"'; user.role="+user.role+")"
      let err=new Err({
                   en:"Role is not defined"+suff
                  ,ru:'Роль пользователя неопределена'+suff
@@ -266,9 +261,9 @@ function addNewUser(user,cb){
       return
    };
    // ищем на совпадение имени
-   this.findByUsername(user.username,(err,data) => {
+   this.findByUsername(user.userName,(err,data) => {
      if (! err) {
-       let suff=" (user.username="+user.username+")"
+       let suff=" (user.userName="+user.userName+")"
        let err=new Err({
                     en:"Dublicate user"+suff
                    ,ru:'Пользователь с таким именем уже зарегистрирован'+suff
@@ -280,7 +275,7 @@ function addNewUser(user,cb){
      // все нормально такого пользователя в базе нет
      user.displayName = user.displayName ? user.displayName : "Новый пользователь";
      user.password = bcrypt.hashSync(user.password,10);
-     records[user.username]=user;
+     records[user.userName]=user;
      saveChanges((err) => {
        if (err) {
          let suff=" (file="+err.path+")";
@@ -298,25 +293,26 @@ function addNewUser(user,cb){
      cb(null,user);
    });//findByUsername
 };//addNewUser
-
 exports.addNewUser = addNewUser;
+
 /**
- * @param {number} username
+ * @param {text} current_user имя пользователя, инициировавшего удаление (текущий)
+ * @param {text} del_userName имя удаляемого пользователя
  * @param {number} cb(err,deletedUser) результат
 */
-function deleteUser(username,cb) {
+function deleteUser(current_user,del_userName,cb) {
   // id= undefined
-  if (! username) {
+  if (! del_userName) {
     let err=new Err({
-                 en:"No username specified"
-                ,ru:'Не указан username'
-                ,ua:"Не вказано username"
+                 en:"No del_userName specified"
+                ,ru:'Не указан del_userName'
+                ,ua:"Не вказано del_userName"
               });
    cb (err,null);
    return
  };
  // id=1=admin → нельзя удалять
- if (username == "admin") {
+ if (del_userName == "admin") {
    let s="'admin'"
    let err=new Err({
                 en:"Can't delete user:"+s
@@ -326,10 +322,11 @@ function deleteUser(username,cb) {
   cb (err,null);
   return
  }
-  // проверяем наличие пользователя с таким  ID
-  this.findByUsername(username, (err,data) => {
+  // -------- проверяем права на удаление
+  // ---- ищем пользователя давшего запрос на удаление в базе
+  this.findByUsername(current_user, (err,data) => {
     if (err) {
-      let suff=" username='"+username+"' ";
+      let suff=" userName='"+current_user+"' ";
       let err=new Err({
                    en:"User"+suff+" not found "
                   ,ru:"Пользователь"+suff+' не найден'+suff
@@ -338,28 +335,41 @@ function deleteUser(username,cb) {
      cb (err,null);
      return
    }; //if (err)
-   // пользователь найден, удаляем
-   records[username]=undefined;
-   // сохраняем изменения
-   saveChanges((err) => {
-       if (err) {
-         let suff=" (file="+err.path+")";
-         let err=new Err({
-                      en:"Can't save changes"+suff
-                     ,ru:'Ошибка сохранения'+suff
-                     ,ua:"Помилка збереження"+suff
-                   });
-        cb (err,null);
-        return
+   // проверяем наличие пользователя с таким  ID
+   this.findByUsername(del_userName, (err,data) => {
+     if (err) {
+       let suff=" userName='"+del_userName+"' ";
+       let err=new Err({
+                    en:"User"+suff+" not found "
+                   ,ru:"Пользователь"+suff+' не найден'+suff
+                   ,ua:"Користувача"+suff+" не знайдено"+suff
+                 });
+      cb (err,null);
+      return
     }; //if (err)
-    cb(null,data);
-  });// saveChanges
-  });//findById
-};//deleteUser(id,cb)
+    // пользователь найден, удаляем
+    records[del_userName]=undefined;
+    // сохраняем изменения
+    saveChanges((err) => {
+        if (err) {
+          let suff=" (file="+err.path+")";
+          let err=new Err({
+                       en:"Can't save changes"+suff
+                      ,ru:'Ошибка сохранения'+suff
+                      ,ua:"Помилка збереження"+suff
+                    });
+         cb (err,null);
+         return
+     }; //if (err)
+     cb(null,data);
+   });// saveChanges
+  });//findBy del_userName
+ });
+};// findByUsername(current_user,cb)
 exports.deleteUser=deleteUser;
 
-function verifyUser(username,password,cb){
-  this.findByUsername(username, (err, user) => {
+function verifyUser(userName,password,cb){
+  this.findByUsername(userName, (err, user) => {
     if (err) { cb(err,null); return };
     // console.log("User finded user=");
     // console.dir(user);
@@ -371,11 +381,11 @@ function verifyUser(username,password,cb){
         return };
       // res=false пароль неправильный
       // console.log("bcrypt. Password is Wrong");
-      // let suff=" user='"+username.path+"'";
+      // let suff=" user='"+userName.path+"'";
       let err=new Err({
-                   en:'Wrong password for user \''+username+'\''
-                  ,ru:'Неправильный пароль для пользователя \''+username+'\''
-                  ,ua:'Невірний пароль для користувача \''+username+'\''
+                   en:'Wrong password for user \''+userName+'\''
+                  ,ru:'Неправильный пароль для пользователя \''+userName+'\''
+                  ,ua:'Невірний пароль для користувача \''+userName+'\''
                 });
      cb (err,null);
      return
@@ -386,11 +396,20 @@ exports.verifyUser=verifyUser;
 
 if (! module.parent) {
   //пауза для загрузки данных из файла
-  setTimeout(function () {
-    findByUsername("admin",(err,data) => {
-      if (err) { console.error(err); return}
-      console.dir(data);
-    }); //findByUserName
-  }, 1000);
+  setTimeout(async function () {
+      // --- debug findByUserName() ----------------
+      try {
+        let data = await findByUserName("admin");
+        console.log('----------- findByUserName("admin") -------------');
+        console.dir(data);
+        console.log("----------- records -------------");
+        console.dir(records);
+        data = await findByUserName("wrongName");
+      } catch (err){
+        console.error(err);
+      }
+
+
+    }, 2000); //setTimeout
 
 }
