@@ -1,3 +1,6 @@
+/** @module /db/users_fs.js  */
+
+
 const {open} = require('fs/promises');
 
 // ------------ логгер  --------------------
@@ -10,9 +13,9 @@ let gTrace=0; //=1 глобальная трассировка (трассиру
 // trace ? log("i",logN,"Started") : null;
 
 /**
-  загружает  записи из файла, возвращает промис c данными или ошибку
+  загружает  записи из файла fName, возвращает промис c данными или ошибку
   * @param {string} fName Имя файла
-  * @returns {Promise} Промис содержащий данные из базы данных или ошибку
+  * @returns {Promise} Промис содержащий данные из базы данных в виде объекта или ошибку
 */
 
 async function loadFile(fName) {
@@ -30,6 +33,7 @@ async function loadFile(fName) {
     let data = await fh.readFile({encoding:"utf-8"});
     trace ? log("i",logN,"File readed: data=") : null;
     trace ? console.log(data) : null;
+    fh.close();
     // парсим
     let result = JSON.parse(data);
     trace ? console.dir(result) : null;
@@ -43,7 +47,7 @@ async function loadFile(fName) {
 module.exports.loadFile=loadFile;
 
 /**
-  записывает объект в файл, возвращает промис c данными или ошибку
+  записывает объект в файл, возвращает промис 
   * @param {string} fName Имя файла
   * @param {object} data  объект с данными
   * @returns {Promise} Промис reject(err) / resolve (1)
@@ -64,8 +68,8 @@ async function saveFile(fName,data) {
     // пишем в файл
     let result = await fh.writeFile(parsedData,{encoding:"utf-8"});
     trace ? log("i",logN,"File fileName="+fName+" was writed !") : null;
-    // парсим
     trace ? console.dir(result) : null;
+    fh.close();
     // возвращаем результат
     return Promise.resolve(1);
   } catch(err) {

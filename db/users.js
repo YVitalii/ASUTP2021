@@ -1,15 +1,12 @@
 /** @module /db/users  */
+const {loadFile,saveFile} = require('./users_fs.js'); // модуль для работы с файлами
+const bcrypt = require('bcrypt'); // шифровальщик
 
-const fs=require('fs');
-const bcrypt = require('bcrypt');
-//import {open} from 'fs/promises';
-//const fs = require('fs/promises');
 var records= {}; // база зарегистрированных пользователей
-//console.log("__dirname=",__dirname);
-// const log = require('../tools/log.js');
-const Err = require('../tools/apiError.js');
-const fName=__dirname+"/userRecords.json"; //файл с текущими данными
-const backupFname=__dirname+"/backupUserRecords.json"; // бекап предыдущей версии (на случай ошибки)
+
+const Err = require('../tools/apiError.js'); // мой класс ошибок
+const fName=__dirname+"/userRecords.json"; //имя файла с текущими данными
+const backupFname=__dirname+"/backupUserRecords.json"; // имя файла с бекапом предыдущей версии (на случай ошибки)
 // ------------ логгер  --------------------
 const log = require('../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
@@ -42,10 +39,6 @@ const defaultGuest={
   role:"guest"
 } // defaultUser
 
-// если все файлы не валидны, создаем новый с параметрами по умолчанию;
-const startData={ };
-startData[defaultAdmin.userName]=defaultAdmin;
-startData[defaultGuest.userName]=defaultGuest;
 
 /**
   Справочник ролей пользователей, описывающий права доступа каждой роли
@@ -71,97 +64,92 @@ const roles={
 //if (bcrypt.compareSync('bortek',startData[0].password)) { console.log("----> Confirmed");} else { console.log("----> Not confirmed");}
 //console.log("hashedPassw="+bcrypt.hashSync("12345",10));
 
-/**
-  загружает  записи из файла, возвращает промис
-  * @param {string} fName Имя файла
-  * @returns {Promise} Промис содержащий данные из базы данных
-*/
-function loadFile(fName){
-  return new Promise ((resolve,reject) => {
-        fs.readFile(fName,{encoding:"utf-8",flag:"r"},(err,data) => {
-          if (err) {reject(err)};
-          resolve(data);
-        })
-    })
-}; //function loadRecords
 
-function saveFile(fName,data,cb){
-  // преобразует записи в JSON и записывает их в файл JSON
-  let records=JSON.stringify(data);
-  fs.writeFile(fName,records,{encoding:"utf-8",flag:"w"}, (err) => {
-    if (err) {cb(err);return}
-    cb(null);
-    return
-  });
-}; //function saveFile
 
 /** Сохраняет изменения в базе записей + создает резервную копию
   @callback cb(error)
 */
-function saveChanges(cb) {
-    // записываем записи
-    saveFile(fName, records, (err) => {
-      if (err) { cb(err); return }
-      // делаем резервную копию записей
-      saveFile(backupFname, records, (err) => {
-        if (err) { cb(err); return }
-        cb(null);
-      });//saveFile backup
-    });//saveFile
-}//funcion saveChanges(cb)
+// function saveChanges(cb) {
+//     // записываем записи
+//     saveFile(fName, records, (err) => {
+//       if (err) { cb(err); return }
+//       // делаем резервную копию записей
+//       saveFile(backupFname, records, (err) => {
+//         if (err) { cb(err); return }
+//         cb(null);
+//       });//saveFile backup
+//     });//saveFile
+// }//funcion saveChanges(cb)
 
-function loadRecords() {
-  let title="User.constructor:loadRecords()";
-   return loadFile(fName) // пробуем загрузить основной файл с базой пользователей
-    .then(
-      result => {
-        // файл загружен
-        result=JSON.parse(result);
-        // файл обработан
-        return result; // возвращаем объект с массивом пользователей
-      })
-    .catch( error => {
-              log("e",title, " Can't open or parse file: ",fName,"; Err=",error);
-              console.log("-------------------------------------------");
-              return loadFile(backupFname)
-                  .then (
-                      result => {
-                        // backup-файл прочитан
-                        log("i",title,"Backup file '"+backupFname+"' loaded. ");
-                        // парсим
-                        let data=JSON.parse(result);
-                        // переписываем неисправный основной файл
-                        saveFile(fName,data,(err) => {
-                          if (err) { log("e",title, " Can't write file: ",err.path); return };
-                          log("w",title, " New file: '"+fName+"' was rewrited");
-                          return
-                        });
-                        return data;
-                      })
-                  .catch( error => {
-                        // ошибка чтения backup-файла
-                        log("e",title, " Can't open or parse backup file: '",fName,"'; Err=",error)
-                        // получаем данные по умолчанию (заводские установки)
-                        saveFile(backupFname,startData,(err) => {
-                          if (err) { log("e",title, " Can't write file: ",err.path); return };
-                          log("w",title, " New file: '"+backupFname+"' was rewrited");
-                          return
-                        });
-                        return startData}
-                    );
 
-                  }
-      );
+/**
+  загружает  записи из файла fName=__dirname+"/userRecords.json",
+  если загрузить не удалось, пробует загрузить данные из резервного файла backupFname=__dirname+"/backupUserRecords.json",
+  если и из резервного файла записи загрузить не удалось - создает новые файлы с пользователями по умолчанию.
+  * @returns {Promise} Промис содержащий данные  из базы данных в виде объекта
+*/
+async function loadRecords() {
+  // ----------- настройки логгера локальные --------------
+  let logN=logName+"loadRecords():";
+  let trace=1;   trace = (gTrace!=0) ? gTrace : trace;
+  trace ? log("i",logN,"Started") : null;
+  let records={};
+  //let title="User.constructor:loadRecords()";
+  try {
+    // пробуем загрузить данные из рабочего файла
+    let records= await loadFile(fName);
+    trace ? log("i",logN,"Файл" + fName+" загружен.") : null;
+  } catch (e) {
+      try {
+        // загрузить из рабочего файла не удалось, пробуем из резервного
+        log("e",logN,"Ошибка загрузки основного файла:"+e.message);
+        //console.error(e.message);
+        records= await loadFile(backupFname);
+        trace ? log("i",logN,"Резервный файл: " + backupFname+" загружен.") : null;
+        // восстанавливаем рабочий файл
+        await saveFile(fName,records);
+        trace ? log("w",logN,"Основной файл: " + fName+" восстановлен из резервного.") : null;
+      } catch (e) {
+        log("e",logN,"Ошибка загрузки резервного файла: "+e.message);
+        //console.dir(e);
+        // если все файлы не валидны, пробуем создать новый с параметрами по умолчанию;
+        let startData={};
+        startData[defaultAdmin.userName]=defaultAdmin;
+        startData[defaultGuest.userName]=defaultGuest;
+        // заносим данные по умолчанию в записи
+        records=startData;
+        try {
+          // пробуем восстановить основной файл
+          await saveFile(fName,startData);
+          trace ? log("w",logN,"Основной файл: " + fName+" восстановлен из значений по умолчанию.") : null;
+          // пробуем восстановить резервный файл
+          await saveFile(backupFname,startData);
+          trace ? log("w",logN,"Резервный файл: " + backupFname+ " восстановлен из значений по умолчанию.") : null;
+        } catch (e) {
+          log("e",logN,"Ошибка восстановления стартовых файлов : "+e.message);
+        }
+
+      }
+  }
+
 }; //function loadRecords()
+// ----- загружаем данные пользователей  -------
+(async () => {
+  try {
+    records = await loadRecords();
+  } catch (e) {
+    throw(new Error("Can't load users base!!!"));
+  }
+})();
 
-
-loadRecords()
-   .then(
-     result => {
-       records=result;
-       //console.dir(records);
-     }
-   );
+//
+// loadRecords()
+//    .then(
+//      result => {
+//        records=result;
+//        //console.dir(records);
+//      }
+//    );
 
 function findByUserName(userName) {
   // функция на основе промисов
