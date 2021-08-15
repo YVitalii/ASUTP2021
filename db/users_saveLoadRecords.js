@@ -1,6 +1,6 @@
-/** @module /db/users_fs.js  */
-
-const {open} = require('fs/promises');
+const {loadFile,saveFile} = require('./users_fs.js'); // модуль для работы с файлами
+const fName=__dirname+"/userRecords.json"; //имя файла с текущими данными
+const backupFname=__dirname+"/backupUserRecords.json"; // имя файла с бекапом предыдущей версии (на случай ошибки)
 
 // ------------ логгер  --------------------
 const log = require('../tools/log.js'); // логер
@@ -12,73 +12,6 @@ let gTrace=0; //=1 глобальная трассировка (трассиру
 // trace ? log("i",logN,"Started") : null;
 
 /**
-  загружает  записи из файла fName, возвращает промис c данными или ошибку
-  * @param {string} fName Имя файла
-  * @returns {Promise} Промис содержащий данные из базы данных в виде объекта или ошибку
-*/
-
-async function loadFile(fName) {
-  // ----------- настройки логгера локальные --------------
-  let logN=logName+"loadFile('"+fName+"'):";
-  let trace=0;   trace = (gTrace!=0) ? gTrace : trace;
-  trace ? log("i",logN,"Started") : null;
-  // ------------
-  let data="";
-  try {
-    // открываем файл
-    let fh = await open(fName,"r");
-    trace ? log("i",logN,"File opened.") : null;
-    // читаем файл
-    let data = await fh.readFile({encoding:"utf-8"});
-    trace ? log("i",logN,"File readed: data=") : null;
-    trace ? console.log(data) : null;
-    fh.close();
-    // парсим
-    let result = JSON.parse(data);
-    trace ? console.dir(result) : null;
-    // возвращаем результат
-    return Promise.resolve(result);
-  } catch(err) {
-    // ошибка
-    return Promise.reject(err);
-  }
-} //loadFile(fName)
-module.exports.loadFile=loadFile;
-
-/**
-  записывает объект в файл, возвращает промис
-  * @param {string} fName Имя файла
-  * @param {object} data  объект с данными
-  * @returns {Promise} Промис reject(err) / resolve (1)
-*/
-
-async function saveFile(fName,data) {
-  // ----------- настройки логгера локальные --------------
-  let logN=logName+"saveFile('"+fName+"'):";
-  let trace=0;   trace = (gTrace!=0) ? gTrace : trace;
-  trace ? log("i",logN,"Started") : null;
-  // ------------
-  try {
-    // готовим строку для записи в файл
-    let parsedData=JSON.stringify(data);
-    // открываем файл
-    let fh = await open(fName,"w");
-    trace ? log("i",logN,"File opened.") : null;
-    // пишем в файл
-    let result = await fh.writeFile(parsedData,{encoding:"utf-8"});
-    trace ? log("i",logN,"File fileName="+fName+" was writed !") : null;
-    trace ? console.dir(result) : null;
-    fh.close();
-    // возвращаем результат
-    return Promise.resolve(1);
-  } catch(err) {
-    // ошибка
-    return Promise.reject(err);
-  }
-} //saveFile(fName)
-module.exports.saveFile=saveFile;
-
-/**
   загружает  записи из файла fName=__dirname+"/userRecords.json",
 
   если загрузить не удалось, пробует загрузить данные из резервного файла backupFname=__dirname+"/backupUserRecords.json",
@@ -86,7 +19,7 @@ module.exports.saveFile=saveFile;
   * @property {object} records                 - ссылка на объект с пользователями
   * @returns {Promise} Промис содержащий данные  из базы данных в виде объекта
 */
-async function loadRecords(fName,backupFname) {
+async function loadRecords() {
   // ----------- настройки логгера локальные --------------
   let logN=logName+"loadRecords():";
   let trace=1;   trace = (gTrace!=0) ? gTrace : trace;
@@ -138,29 +71,17 @@ module.exports.loadRecords = loadRecords;
 
 
 if (! module.parent) {
-    (async () =>{
-        let records={};
-        try {
-          // загружаем файл
-          records= await loadFile(__dirname+"/userRecords.json");
-          console.log("------------- Records loaded: ------------");
-          console.dir(records);
-          // записываем в файл полученную информацию
-          await saveFile(__dirname+"/testSave_userRecords.json",records);
-        } catch (e) {
-          console.log(e);
-        };//catch
+  var records={};
+  //пауза для загрузки данных из файла
+    (async () => {
+      log("i","start test");
+      try {
+        records=await loadRecords();
+        log("i",'----------- records -------------');
+        console.dir(records);
+      } catch (err){
+        console.error(err);
+      }
     })();
-    //пауза для загрузки данных из файла
-      (async () => {
-        log("i","start test loadRecords()");
-        try {
-          records=await loadRecords();
-          log("i",'----------- records -------------');
-          console.dir(records);
-        } catch (err){
-          console.error(err);
-        }
-      })();
 
-}; //if (! module.parent)
+} //if (! module.parent)

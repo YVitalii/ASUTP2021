@@ -1,12 +1,14 @@
 /** @module /db/users  */
-const {loadFile,saveFile} = require('./users_fs.js'); // модуль для работы с файлами
+var {loadRecords,saveFile} = require('./users_fs.js'); // модуль для сохранения/загрузки данных пользователей
+console.dir(loadRecords);
 const bcrypt = require('bcrypt'); // шифровальщик
-
+const {getCloneObj} = require('../tools/general');
+const fName=__dirname+"/userRecords.json"; //имя файла с текущими данными
+const backupFname=__dirname+"/backupUserRecords.json"; // имя файла с бекапом предыдущей версии (на случай ошибки)
 var records= {}; // база зарегистрированных пользователей
 
 const Err = require('../tools/apiError.js'); // мой класс ошибок
-const fName=__dirname+"/userRecords.json"; //имя файла с текущими данными
-const backupFname=__dirname+"/backupUserRecords.json"; // имя файла с бекапом предыдущей версии (на случай ошибки)
+
 // ------------ логгер  --------------------
 const log = require('../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
@@ -66,100 +68,26 @@ const roles={
 
 
 
-/** Сохраняет изменения в базе записей + создает резервную копию
-  @callback cb(error)
+
+
+
+
+
+
+
+/** ищет по имени и возвращает ссылку на объект пользователя, для внутреннего использования
+  * @property {String} userName   - объект пользователя
+  * @returns {Promise} Промис содержащий данные из базы данных в виде ссылки на объект или ошибку
 */
-// function saveChanges(cb) {
-//     // записываем записи
-//     saveFile(fName, records, (err) => {
-//       if (err) { cb(err); return }
-//       // делаем резервную копию записей
-//       saveFile(backupFname, records, (err) => {
-//         if (err) { cb(err); return }
-//         cb(null);
-//       });//saveFile backup
-//     });//saveFile
-// }//funcion saveChanges(cb)
-
-
-/**
-  загружает  записи из файла fName=__dirname+"/userRecords.json",
-  если загрузить не удалось, пробует загрузить данные из резервного файла backupFname=__dirname+"/backupUserRecords.json",
-  если и из резервного файла записи загрузить не удалось - создает новые файлы с пользователями по умолчанию.
-  * @returns {Promise} Промис содержащий данные  из базы данных в виде объекта
-*/
-async function loadRecords() {
+async function getUserByName(userName){
   // ----------- настройки логгера локальные --------------
-  let logN=logName+"loadRecords():";
-  let trace=1;   trace = (gTrace!=0) ? gTrace : trace;
-  trace ? log("i",logN,"Started") : null;
-  let records={};
-  //let title="User.constructor:loadRecords()";
-  try {
-    // пробуем загрузить данные из рабочего файла
-    let records= await loadFile(fName);
-    trace ? log("i",logN,"Файл" + fName+" загружен.") : null;
-  } catch (e) {
-      try {
-        // загрузить из рабочего файла не удалось, пробуем из резервного
-        log("e",logN,"Ошибка загрузки основного файла:"+e.message);
-        //console.error(e.message);
-        records= await loadFile(backupFname);
-        trace ? log("i",logN,"Резервный файл: " + backupFname+" загружен.") : null;
-        // восстанавливаем рабочий файл
-        await saveFile(fName,records);
-        trace ? log("w",logN,"Основной файл: " + fName+" восстановлен из резервного.") : null;
-      } catch (e) {
-        log("e",logN,"Ошибка загрузки резервного файла: "+e.message);
-        //console.dir(e);
-        // если все файлы не валидны, пробуем создать новый с параметрами по умолчанию;
-        let startData={};
-        startData[defaultAdmin.userName]=defaultAdmin;
-        startData[defaultGuest.userName]=defaultGuest;
-        // заносим данные по умолчанию в записи
-        records=startData;
-        try {
-          // пробуем восстановить основной файл
-          await saveFile(fName,startData);
-          trace ? log("w",logN,"Основной файл: " + fName+" восстановлен из значений по умолчанию.") : null;
-          // пробуем восстановить резервный файл
-          await saveFile(backupFname,startData);
-          trace ? log("w",logN,"Резервный файл: " + backupFname+ " восстановлен из значений по умолчанию.") : null;
-        } catch (e) {
-          log("e",logN,"Ошибка восстановления стартовых файлов : "+e.message);
-        }
-
-      }
-  }
-
-}; //function loadRecords()
-// ----- загружаем данные пользователей  -------
-(async () => {
-  try {
-    records = await loadRecords();
-  } catch (e) {
-    throw(new Error("Can't load users base!!!"));
-  }
-})();
-
-//
-// loadRecords()
-//    .then(
-//      result => {
-//        records=result;
-//        //console.dir(records);
-//      }
-//    );
-
-function findByUserName(userName) {
-  // функция на основе промисов
-  // ----------- настройки логгера локальные --------------
-  let logN=logName+"as_findByUserName("+userName+"):";
+  let logN=logName+"getUserByName("+userName+"):";
   let trace=1;   trace = (gTrace!=0) ? gTrace : trace;
   trace ? log("i",logN,"Started") : null;
   // обрезаем пробельные символы
   userName=userName.trim();
   // ищем пользователя
+  trace ? log("i",logN,"records=",records) : null;
   if (! records[userName]) {
     let err=new Err({
                  en:'User "' + userName + '" does not exist.'
@@ -170,26 +98,61 @@ function findByUserName(userName) {
     // такого пользователя нет, возвращаем ошибку
     return Promise.reject(err);
   }
-  // копируем объект пользователя, по ссылке передавать нельзя, т.к. портится база
-  // примечание: удалять хеш пароля нельзя - т.к. он потом используется для проверки пароля
-  let user=records[userName];
-  trace ? log("i",logN," user=",user) : null;
-  // скопируем все свойства user в новый пустой объект
-  let clone = {};
-  for (let key in user) {
-    clone[key] = user[key];
-  };
-  trace ? log("i",logN," clone=",clone) : null;
-  // копируем все разрешения из словаря ролей в клон объекта пользователя
-  trace ? log("i",logN,"roles[user.role]=",roles[user.role]) : null;
-  let {...permissions} = roles[user.role];
-  clone.permissions=permissions;
-  trace ? log("i",logN,"clone.permissions=",clone.permissions) : null;
   // возвращаем пользователя
-  return Promise.resolve(clone);
-} //as_findByUserName(userName)
+  return records[userName];
+}; //getByUserName(userName)
+
+
+
+/** ищет по имени и возвращает копию объекта пользователя для внешнего кода
+  * @property {String} userName   - объект пользователя
+  * @returns {Promise} Промис содержащий данные из базы данных в виде независимой копии объекта или ошибку
+*/
+async function pr_findByUserName(userName) {
+  // ----------- настройки логгера локальные --------------
+  let logN=logName+"pr_findByUserName()"+userName+"):";
+  let trace=1;   trace = (gTrace!=0) ? gTrace : trace;
+  trace ? log("i",logN,"Started") : null;
+  // ищем пользователя
+  var newUser={};
+  try {
+    let user= await getUserByName(userName);
+    // делаем копию объекта пользователя
+    newUser=getCloneObj(user);
+    // делаем копию прав доступа
+    newUser.permissions=getCloneObj(roles[user.role]);
+    // убираем хеш пароля
+    newUser.password=null;
+    // возвращаем
+    trace ? log("i",logN,"user=", newUser) : null;
+    return newUser
+  } catch (e) {
+    // ошибка
+    return Promise.reject(e);
+  }
+} // function pr_findByUserName(userName)
+
+
+/** Функция-обертка для преобразования promises (pr_findByUserName(userName)) в  callback
+    ищет по имени и возвращает копию объекта пользователя для внешнего кода
+ * @property {String} userName   - login пользователя
+ * @returns {Callback(err,user)} Колбек, содержащий данные из базы данных в виде независимой копии объекта или ошибку
+*/
+async function findByUserName (userName,cb){
+  try {
+    let user =await pr_findByUserName(userName);
+    cb(null,user);
+    return
+  } catch (e) {
+    cb(e,null);
+    return
+  }
+
+} // function findByUserName
 
 exports.findByUserName = findByUserName;
+
+
 
 // --------------------------------------------------------
 /** добавление нового пользователя */
@@ -382,17 +345,31 @@ function verifyUser(userName,password,cb){
 };//function verifyUser
 exports.verifyUser=verifyUser;
 
+
+
+// ----- загружаем данные пользователей  -------
+(async () => {
+  try {
+    records = await loadRecords(fName,backupFname);
+    //console.dir(records);
+  } catch (e) {
+    log("e",logName,e);
+    throw(new Error("Can't load users base!!!"));
+  }
+})();
+
+
 if (! module.parent) {
   //пауза для загрузки данных из файла
   setTimeout(async function () {
       // --- debug findByUserName() ----------------
       try {
-        let data = await findByUserName("admin");
-        console.log('----------- findByUserName("admin") -------------');
+        let data = await pr_findByUserName("admin");
+        log("w",'----------- findByUserName("admin") -------------');
         console.dir(data);
-        console.log("----------- records -------------");
-        console.dir(records);
-        data = await findByUserName("wrongName");
+        //console.log("----------- records -------------");
+        //console.dir(records);
+        data = await pr_findByUserName("wrongName");
       } catch (err){
         console.error(err);
       }
