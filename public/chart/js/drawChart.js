@@ -379,7 +379,7 @@ rectang (x1,y1,x2,y2,color){
     // console.log(this.elementDOM.innerHTML);
     // console.log("this.container");
     this.svg=this.container.append("svg"); // создаем поле для графика
-    console.log(this.container);
+    //console.log(this.container);
     // console.log(this.svg);
     console.log("redraw");
     // вычисляет размеры поля графика, строит оси и сетку
@@ -448,12 +448,22 @@ rectang (x1,y1,x2,y2,color){
            );//call
 
      //this.line();
-
+     this.eventsInit(this.svg);
      this.drawData();
 
 
 
   }// redraw
+
+  eventsInit(svg){
+    let trace=1;
+    let title="==> eventsInit() started";
+    trace ? console.log(title): null;
+    svg.on("click", () => {
+      let mouse=d3.mouse(d3.event.target);
+      console.log("Mouse position: x=",mouse);//[0],"y=",mouse[1]
+    })
+  }; //eventsInit(svg)
 
   drawTask(){
     // --- отрисовка заданной программы ----------
