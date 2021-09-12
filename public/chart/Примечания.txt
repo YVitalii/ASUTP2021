@@ -1,0 +1,3 @@
+browser-sync start --server --browser "Chrome" --files "js/*, *.html"
+http://localhost:3000/testMouseMove.html   // тестовая страница
+https://observablehq.com/@d3/line-chart-with-tooltip // пример
