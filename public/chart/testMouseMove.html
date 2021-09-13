@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>d3 - design</title>
     <!-- <link rel="stylesheet" href="./stylesheets/myStyle.css"> -->
-    <script type="text/javascript" src="./d3/d3.js">    </script>
+    <script type="text/javascript" src="./d3/d3.min.js">    </script>
     <script type="text/javascript" src="./testConfig.js">    </script>
     <script type="text/javascript" src="./js/drawChart.js"> </script>
 
@@ -16,9 +16,17 @@
    -->
     <h3>Тестовая страница с графиком отображающим оперативные данные </h3>
     <h2 id="furnace"></h2>
-    <div style="height:400px" id="myChart" >
-      <!-- Здесь будет график -->
-    </div>
+    <table width="100%">
+      <tr>
+        <td> Текущие значения </td>
+        <td>
+          <div style="height:400px" id="myChart" >
+          <!-- Здесь будет график -->
+          </div>
+      </td>
+      </tr>
+    </table>
+
 
   <script type="text/javascript">
   // ---------- вспомогательные функции ------------------

@@ -166,7 +166,7 @@ class Chart {
    // если данных еще нет - выходим
    if (! this.data.columns) {return };
    // настройки трасировщика
-   let trace=1, logCaption="insertLegend::";
+   let trace=0, logCaption="insertLegend::";
    let fontSizeK=0.9; // насколько меньше шрифт от высоты поля легенды
    // задаем отступы для области легенды
    let margin={
@@ -234,7 +234,7 @@ class Chart {
  } // insertLegend
 
  legendAddValues (obj) {
-   var trace=1, title="legendAddValues(obj):"
+   var trace=0, title="legendAddValues(obj):"
    trace ? console.log(title,"---- Started ----") : null;
    var headers=this.data.columns; // имена колонок данных
    for (var i = 1; i < headers.length; i++) {
@@ -243,7 +243,7 @@ class Chart {
      let value=obj[key];
      trace ? console.log(title,"value=",value) : null;
      let text=this.registers[headers[i]].title ? this.registers[headers[i]].title : headers[i];
-     if (value) {
+     if (value || value == 0 ) {
        text += "="+value + " °C"
      }
      let item=d3.select("#legend_"+i).text(text);
@@ -354,7 +354,23 @@ rectang (x1,y1,x2,y2,color){
       });
 
   }
+  refreshTimeDomain() {
+    // функция определяет и запоминает границы диапазона времени данных
+    if (! this.data) return;
+    let [xMin,xMax] = d3.extent(this.data,(d) => {d.time}); // определяем минимум и максимум в массиве
+    xMin = xMin ? xMin : this.timeDomain.start; // если минимум не определен, то берем из настроек
+    this.timeDomain.start = xMin; // запоминаем новый минимум
+    xMax = xMax ? xMax : this.timeDomain.end; // если максимум не определен, то берем из настроек
+    this.timeDomain.end = xMax; // запоминаем новый максимум
+  };
 
+  trimData(start,end) {
+    // обрезает данные графика
+
+    // определяем новые границы
+    this.refreshTimeDomain();
+    this.redraw();
+  }
 
   drawData(){
     // отрисовывает таблицу данных
@@ -376,7 +392,7 @@ rectang (x1,y1,x2,y2,color){
                 .y((d) => { return this.yScale( d[colName]<0 ? 0 : d[colName])})
                 )
     } //for (var i = 1; i < columns.length; i++)
-   this.insertLegend();
+
   } //drawData
 
   line(x1,y1,x2,y2,color) {
@@ -393,7 +409,7 @@ rectang (x1,y1,x2,y2,color){
 
 
   redraw () {
-    let trace=1, logH="redraw():"
+    let trace=0, logH="redraw():"
     // полностью перерисовывает график
     // console.log("this.elementDOM.innerHTML:");
     // console.log(this.elementDOM.innerHTML);
@@ -413,9 +429,11 @@ rectang (x1,y1,x2,y2,color){
       .attr('width',this.width)
       .attr('height',this.height);
     // Масштабирование
+    // масштаб по оси x
     this.xScale=d3.scaleTime()
         .domain([this.timeDomain.start,this.timeDomain.end])// диапазон времени
         .range([this.margin.left,this.width-this.margin.right]);//поле графика
+    // масштаб по оси y
     this.yScale=d3.scaleLinear()
         .domain([this.config.y.min,this.config.y.max]) //диапазон температур
         .range([this.height-this.margin.bottom,this.margin.top]);
@@ -475,6 +493,8 @@ rectang (x1,y1,x2,y2,color){
      this.eventsInit(this.svg);
      // -------- отрисовка графика -----------------
      this.drawData();
+     // -------- отрисовка легенды -----------------
+     this.insertLegend();
 
 
   }// redraw
@@ -489,67 +509,91 @@ rectang (x1,y1,x2,y2,color){
     //trace ? console.log(title): null;
     svg.on("touchmove mousemove", () => {
       //trace ? console.log(title,"event.clientX=",d3.event.clientX) : null;
-      const dataPoint = this.bisect (d3.event.clientX);
+      trace ? console.log(title,"d3.pointer(event,svg)=",d3.pointer(event)) : null;
+      const dataPoint = this.bisect (d3.pointer(event)[0]);
       trace ? console.log(title,"dataPoint=",dataPoint) : null;
       //console.log("Mouse position: x=",mouse);//[0],"y=",mouse[1]
       let time= dataPoint.time;
+      let x= this.xScale(dataPoint.time);// позиция линии по координате х
+      let y_top= this.yScale (this.config.y.max * 1); // верх линии по y
+      let y_bottom= this.yScale (this.config.y.min * 1.05); // низ линии по y
       this.tooltip
-        .attr("transform", `translate(${this.xScale(time)},${this.yScale(dataPoint["1-T"])})`)
-        .call (this.callout,dataPoint);
+        .attr("transform", `translate(${x},${y_top})`)
+        .style("display", null)
+        .style("pointer-events", "none")
+        ;
+      // --- настраиваем путь  ------------
+      const path = this.tooltip.selectAll("path")
+          .data([null])
+          .join("path")
+            .attr("fill", "white")
+            .attr("stroke", "red")
+            .attr("stroke-width", "3")
+            .attr("stroke-opacity", "0.4")
+            ;
+      // --- рисуем линию
+
+      path.attr("d", `M 0 0 v ${y_bottom-y_top}`);
+      //trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
+      // --- выводим заначения в легенду
       this.legendAddValues( dataPoint );
 
     })
     svg.on("touchend mouseleave", () => {
-      this.tooltip.call(this.callout, null);
+      this.tooltip.style("display", "none");
       this.legendAddValues( {} );
     });
   }; //eventsInit(svg)
 
-  callout (g, dataPoint) {
-    // --- настройки логирования ----
-    let trace=1; let title="callout("+"):";
-    trace ? console.log(title,"--- Started ---") : null;
-
-  if (!dataPoint) return g.style("display", "none");
-  //trace ? console.log(title,"dataPoint= ", dataPoint) : null;
-
-  //console.log("value=",value);
-  //trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
-  g
-      .style("display", null)
-      .style("pointer-events", "none")
-      .style("font", "10px sans-serif");
-  //trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
-  const path = g.selectAll("path")
-    .data([null])
-    .join("path")
-      .attr("fill", "white")
-      .attr("stroke", "black");
-  //trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
-  //let value = "";
-  // const text = g.selectAll("text")
-  //   .data([null])
-  //   .join("text")
-  //   .call(text => text
-  //     .selectAll("tspan")
-  //     .data(( value + "").split(/\n/))
-  //     .join("tspan")
-  //       .attr("x", 0)
-  //       .attr("y", (d, i) => `${i * 1.1}em`)
-  //       .style("font-weight", (_, i) => i ? null : "bold")
-  //       .text(d => d));
-  //
-  // const {x, y, width: w, height: h} = text.node().getBBox();
-  //
-  // text.attr("transform", `translate(${-w / 2},${15 - y})`);
-  //console.log("d=",`M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
-  //path.attr("d", `M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
-  trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
-}
-
-  /* функция возвращает  данные для текущего положения курсора
-     mx -  координата х курсора
-  */
+//   callout (g, dataPoint) {
+//     // --- настройки логирования ----
+//     let trace=0; let title="callout("+"):";
+//     trace ? console.log(title,"--- Started ---") : null;
+//
+//   //if (!dataPoint) return g.style("display", "none");
+//   //trace ? console.log(title,"dataPoint= ", dataPoint) : null;
+//
+//   //console.log("value=",value);
+//   //trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
+//   g
+//       .style("display", null)
+//       .style("pointer-events", "none")
+//       .style("font", "10px sans-serif");
+//   //trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
+//   const path = g.selectAll("path")
+//     .data([null])
+//     .join("path")
+//       .attr("fill", "white")
+//       .attr("stroke", "black");
+//   //trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
+//   //let value = "";
+//   // const text = g.selectAll("text")
+//   //   .data([null])
+//   //   .join("text")
+//   //   .call(text => text
+//   //     .selectAll("tspan")
+//   //     .data(( value + "").split(/\n/))
+//   //     .join("tspan")
+//   //       .attr("x", 0)
+//   //       .attr("y", (d, i) => `${i * 1.1}em`)
+//   //       .style("font-weight", (_, i) => i ? null : "bold")
+//   //       .text(d => d));
+//   //
+//   // const {x, y, width: w, height: h} = text.node().getBBox();
+//   //
+//   // text.attr("transform", `translate(${-w / 2},${15 - y})`);
+//   //console.log("d=",`M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
+//   //path.attr("d", `M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
+//   // let x= this.xScale(dataPoint.time);//this.config.y.min,
+//   // let y_top= this.yScale (this.config.y.max * 0.95)
+//   // let y_bottom= this.yScale (this.config.y.min * 1.05)
+//   // path.attr("d", `M${x},${y_top}v${y_bottom-y_top}`);
+//   // trace ? console.log(title,"g=",g) : null;//console.log("g=",g);
+// }
+//
+//   /* функция возвращает  данные для текущего положения курсора
+//      mx -  координата х курсора
+//   */
   bisect(mx)  {
    // --- настройки логирования ----
    let trace=0; let title="bisect("+mx+"):";
@@ -564,7 +608,7 @@ rectang (x1,y1,x2,y2,color){
    trace ? console.log(title,"index=",index) : null;
    // получаем данные слева и справа от текущей даты
    const a = this.data[index - 1]; // слева
-   const b = this.data[index]; // справа
+   const b = this.data[index] ? this.data[index] : a; // справа
    const nearby = (date - a.time > b.time - date) ? b : a; // ищем наиболее близкое к текущему значение
    trace ? console.log(title,"nearby=",nearby) : null;
    // возвращаем его
