@@ -110,6 +110,7 @@ class Chart {
 /**
  * вызов функции приводит к загрузке браузером графика в виде изображения-svg
    имя файла рисунка: config.startDate + ".svg"
+   Пример вызова: document.getElementById("button_downloadSVG").onclick=() => {chart.loadSvg()};
 */
 
 loadSvg(){
@@ -204,18 +205,20 @@ loadSvg(){
    // если трассировка включена - рисуем прямоугольник вокруг легенды
    trace ? this.rectang(this.xScale.range()[0], 0 ,this.xScale.range()[1],this.margin.top,"grey"):null;
    let headers=this.data.columns; // имена колонок данных
-   let xRange= this.xScale.range(); // границы поля по оси Х
-   // вычисляем ширину (по Х) поля под легенду
-   xRange[0]=xRange[0]+margin.left;
-   xRange[1]=xRange[1]-margin.right;
-   let xLength= xRange[1]-xRange[0]; // длина поля по оси Х
-   trace ? console.log(logCaption+"xRange="+JSON.stringify(xRange)+"; xLength="+xLength):null;
    // вычисляем высоту (по Y) поля под легенду
    let yRange= [ 0, this.margin.top ] // границы поля по оси Y: от 0 до верхней кромки графика-поля
    yRange[0]=yRange[0]+margin.top;
    yRange[1]=yRange[1]-margin.bottom;
    let yHeight= yRange[1]-yRange[0]; // высота поля по оси Y
    trace ? console.log(logCaption+"yRange="+JSON.stringify(yRange)+"; yHeight="+yHeight):null;
+   //
+   let xRange= this.xScale.range(); // границы поля по оси Х
+   // вычисляем ширину (по Х) поля под легенду вычитаем отступы
+   xRange[0]=xRange[0]+margin.left;
+   xRange[1]=xRange[1]-margin.right- yHeight-margin.right; // отступаем справа под кнопку загрузки yHeight+margin.right точек
+   let xLength= xRange[1]-xRange[0]; // длина поля по оси Х
+   trace ? console.log(logCaption+"xRange="+JSON.stringify(xRange)+"; xLength="+xLength):null;
+
     //вычисляем высоту шрифта
    this.legend.fontSize=parseInt(yHeight*fontSizeK);
    trace ? console.log(logCaption+"fontSize="+this.legend.fontSize):null;
@@ -254,9 +257,6 @@ loadSvg(){
           .style('font-size', ` ${this.legend.fontSize}px`)
           .text(this.registers[headers[i]].title ? this.registers[headers[i]].title : headers[i])//.text(headers[i]);
    }//for
-
-
-
  } // insertLegend
 
  legendAddValues (obj) {
