@@ -26,7 +26,7 @@
       </td>
       </tr>
     </table>
-
+    <button name="downloadSVG" id="b_downloadSVG"> Загрузить график </button>
 
   <script type="text/javascript">
   // ---------- вспомогательные функции ------------------
@@ -98,6 +98,11 @@
   //   ,3000); // опрос каждые 3 сек
 
 
+  </script>
+
+  <script type="text/javascript">
+    const b_toSvg=document.getElementById("b_downloadSVG"); // получаем кнопку
+    b_toSvg.onclick=() => {chart.loadSvg()};
   </script>
   </body>
 </html>

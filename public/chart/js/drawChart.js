@@ -107,7 +107,33 @@ class Chart {
     this.getData();
   } // constructor
 
+/**
+ * вызов функции приводит к загрузке браузером графика в виде изображения-svg
+   имя файла рисунка: config.startDate + ".svg"
+*/
 
+loadSvg(){
+  // вызов функции приводит к загрузке браузером графика в виде изображения-svg с именем fName
+  let svgEl = this.svg._groups[0][0]; // svg - элемент DOM
+  let name=this.config.startDate+".svg"; // имя файла
+  let trace=1, title="saveSVG():"
+  trace ? console.log(title,"---- Started ----") : null;
+  trace ? console.log(title,"svgEl=",svgEl) : null;
+  trace ? console.log(title,"fName=",name) : null;
+  // устанавливаем атрибут пространства имен картинки svg
+  svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  // получаем код картинки
+  var svgData = svgEl.outerHTML;
+  var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+  var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+  var svgUrl = URL.createObjectURL(svgBlob);
+  var downloadLink = document.createElement("a");
+  downloadLink.href = svgUrl;
+  downloadLink.download = name;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
 
 
 
@@ -167,7 +193,7 @@ class Chart {
    if (! this.data.columns) {return };
    // настройки трасировщика
    let trace=0, logCaption="insertLegend::";
-   let fontSizeK=0.9; // насколько меньше шрифт от высоты поля легенды
+   let fontSizeK=0.8; // насколько меньше шрифт от высоты поля легенды
    // задаем отступы для области легенды
    let margin={
        top:2
@@ -205,7 +231,7 @@ class Chart {
                      .domain(headers.slice(1,headers.length)) // диапазон заглавий ["T1", "T2", "T3", "T4"]
                      .range(xSteps); // диапазон координат
    let ySteps = [
-     yRange[0]+yHeight/2*fontSizeK
+     yRange[0]+(yHeight/2)*1.1
    ];
    this.legend.yScale = d3.scaleOrdinal()
                      .domain(["title"]) // диапазон заглавий
