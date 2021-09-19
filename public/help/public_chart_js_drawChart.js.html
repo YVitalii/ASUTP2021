@@ -1,4 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: public/chart/js/drawChart.js</title>
 
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: public/chart/js/drawChart.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
 
 // ---------------- class Chart (elementId,config) ---------------------------
 
@@ -122,7 +150,7 @@ loadSvg(){
   svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   // получаем код картинки
   var svgData = svgEl.outerHTML;
-  var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+  var preface = '&lt;?xml version="1.0" standalone="no"?>\r\n';
   var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
   var svgUrl = URL.createObjectURL(svgBlob);
   var downloadLink = document.createElement("a");
@@ -151,7 +179,7 @@ loadSvg(){
 
     let data=this.data; // ссылка на данные для сокращения кода, что бы не писать везде this.
     let obj={};
-    for (var i = 1; i < data.columns.length; i++) { //берем с 1, т.к. 0 - время
+    for (var i = 1; i &lt; data.columns.length; i++) { //берем с 1, т.к. 0 - время
       // перебираем все заголовки в таблице данных
       if ( d[data.columns[i]] ) {// если ключ=заголовку во входных данных имеется
         // определяем временную метку
@@ -236,7 +264,7 @@ loadSvg(){
    //определяем центры ячеек по осиХ
    let xStep=parseInt(xLength/(headers.length-1))// шаг надписей
    let xSteps=[];
-   for (var i = 1; i < headers.length; i++) {
+   for (var i = 1; i &lt; headers.length; i++) {
      xSteps.push(xRange[0]+xStep*(i-0.6));
    }
    trace ? console.log(logCaption+"xSteps="+JSON.stringify(xSteps)):null;
@@ -250,7 +278,7 @@ loadSvg(){
    let g=this.svg.append('g').attr('id', 'legend');
    this.legend.DOM=g.node(); // запоминаем в легенде
 
-   for (var i = 1; i < headers.length; i++) {
+   for (var i = 1; i &lt; headers.length; i++) {
      g.append('text')
           .attr("id","legend_"+i)
           .attr("x",this.legend.xScale(headers[i]))
@@ -279,7 +307,7 @@ loadSvg(){
    var trace=0, title="legendAddValues(obj):"
    trace ? console.log(title,"---- Started ----") : null;
    var headers=this.data.columns; // имена колонок данных
-   for (var i = 1; i < headers.length; i++) {
+   for (var i = 1; i &lt; headers.length; i++) {
      let key=headers[i];
      trace ? console.log(title,"key=",key) : null;
      let value=obj[key];
@@ -306,7 +334,7 @@ loadSvg(){
      trace ? console.log(title,"return:color=",color) : null;
      return color
    };
-   for (var i = 0; i < this.data.columns.length; i++) {
+   for (var i = 0; i &lt; this.data.columns.length; i++) {
      if (reg.trim() == this.data.columns[i]) {
        color=this.colorScale(this.data.columns[i])
        trace ? console.log(title,"return:color=",color) : null;
@@ -331,7 +359,7 @@ loadSvg(){
      return obj
    };
    reg=reg.split(";");//return this.getColorRegister(reg)
-   for (var i = 0; i < reg.length; i++) {
+   for (var i = 0; i &lt; reg.length; i++) {
      obj[reg[i]] = this.getColorRegister(reg[i]);
    }// for
    return obj
@@ -346,7 +374,7 @@ loadSvg(){
    let newData=this.data[this.data.length-1];
    trace ? console.log(logCaption+"lastData="+JSON.stringify(lastData)) : null;
    trace ? console.log(logCaption+"newData="+JSON.stringify(newData)) : null;
-   for (var i = 1; i < this.data.columns.length; i++) {
+   for (var i = 1; i &lt; this.data.columns.length; i++) {
      let key=this.data.columns[i];
      let path=d3.path();
      path.moveTo(this.xScale(lastData.time),this.yScale(+lastData[key]));
@@ -469,7 +497,7 @@ refreshTimeDomain() {
     // рисуем линии для каждого столбца
     let d=this.data;
     let columns=d.columns;
-    for (var i = 1; i < columns.length; i++) {// нулевой столбец time
+    for (var i = 1; i &lt; columns.length; i++) {// нулевой столбец time
       let colName=columns[i];
       this.svg
               .append("path")
@@ -479,9 +507,9 @@ refreshTimeDomain() {
               .attr("stroke-width", 1.5)
               .attr("d", d3.line()
                 .x((d) => { return this.xScale(d.time) })
-                .y((d) => { return this.yScale( d[colName]<0 ? 0 : d[colName])})
+                .y((d) => { return this.yScale( d[colName]&lt;0 ? 0 : d[colName])})
                 )
-    } //for (var i = 1; i < columns.length; i++)
+    } //for (var i = 1; i &lt; columns.length; i++)
 
   } //drawData
 
@@ -537,7 +565,7 @@ refreshTimeDomain() {
                     .tickSizeOuter(10)
                     .tickFormat( (d,i) => {
                             //console.log("tickFormat.d["+i+"]="+d.toLocaleString());
-                            return (d<=d3.timeHour(d)) ? (("0"+d.getHours()).slice(-2)+":00"):null
+                            return (d&lt;=d3.timeHour(d)) ? (("0"+d.getHours()).slice(-2)+":00"):null
                             })//tickFormat
      this.svg.append("g")
         .attr('transform', `translate(0,${this.height-this.margin.bottom})`)//переносим 0,0 оси в нижнюю часть графика
@@ -546,7 +574,7 @@ refreshTimeDomain() {
             .attr("stroke-opacity", 0.5)//непрозрачность
             .attr("stroke-dasharray", (d,i) => {
                                           // если отметка "час" линия "7,2" иначе  "2,3"
-                                          let rest=(d<=d3.timeHour(d)) ?  "7,2" : "2,3"
+                                          let rest=(d&lt;=d3.timeHour(d)) ?  "7,2" : "2,3"
                                           return rest
                                         })
           )
@@ -703,7 +731,7 @@ refreshTimeDomain() {
    const nearby = (date - a.time > b.time - date) ? b : a; // ищем наиболее близкое к текущему значение
    trace ? console.log(title,"nearby=",nearby) : null;
    // возвращаем его
-   return nearby // b && (date - a.date > b.date - date) ? b : a; - было так, так и не понял зачем; && - возвращает или последнее значение или первое ложное
+   return nearby // b &amp;&amp; (date - a.date > b.date - date) ? b : a; - было так, так и не понял зачем; &amp;&amp; - возвращает или последнее значение или первое ложное
  }
 
   drawTask(){
@@ -767,7 +795,7 @@ refreshTimeDomain() {
         trace ? console.log(msg.d) : null;
         let task=msg.d;
         if (! task) {return};
-        for (var i=0;i<task.length;i++){
+        for (var i=0;i&lt;task.length;i++){
           console.log(task[i].time);
           task[i].time= new Date(task[i].time);
         };
@@ -807,7 +835,30 @@ function isPair(i) {
 function timeRoundDown(time){
      // округляет время по нижнему пределу с точностью 30 мин
      // например если 12:10 то будет 12:00; если 12:50 то будет 12:30
-     time.setMinutes( (time.getMinutes()<30) ? 0 : 30);
+     time.setMinutes( (time.getMinutes()&lt;30) ? 0 : 30);
      time.setSeconds(0);
      return time
    }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-_db_users.html">/db/users</a></li></ul><h3>Classes</h3><ul><li><a href="Chart.html">Chart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#log">log</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Sep 19 2021 19:14:28 GMT+0300 (за східноєвропейським літнім часом)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

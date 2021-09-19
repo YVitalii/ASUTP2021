@@ -2,8 +2,9 @@
 // конфиг для JSdoc
 module.exports =
   {
+  "plugins": ["plugins/markdown"],
   "source": {
-      "include": [ "./db/users.js", "./tools/log.js" ],
+      "include": [ "./db/users.js", "./tools","./public/chart/js", "./routes"  ],
       "exclude": [ "./node_modules" ],
       "includePattern": ".+\\.js(doc|x)?$",
       "excludePattern": "(^|\\/|\\\\)_"

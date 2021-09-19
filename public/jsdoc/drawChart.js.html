@@ -1,7 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: drawChart.js</title>
 
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: drawChart.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
 
 // ---------------- class Chart (elementId,config) ---------------------------
-
+// где: elementID - контейнер (DOM - елемент div) с графиком
+//      config {} - объект с настройками графика
+//            dataURL: "/logs"  //слеш в конце не ставить!!! корневая папка с файлами таблиц архивных данных, этот URL должен быть в доступном для скачивания месте,как правило это каталог "/public"
+//            startDate:"2021-01-06" // имя файла таблицы данных, расширение ".log" добавляется автоматически
+//                                      таким образом URL для запроса таблицы: /logs/2021-01-06.log
+//            y:{min:0,max:1000} // диапазон отображаемых значений по оси y (например:максимально возможная температура в печи(Тномин+50С))
+//            registers:{} // массив с описанием используемых регистров
+//                        например:
+                            // registers:{
+                            //       "1-T":{ // id регистра
+                            //         title:"T1" // имя для вывода в описании поля
+                            //         ,type:"integer" // тип значения
+                            //         ,units: "\u00b0C" // единицы измерения
+                            //         ,description:"Текущая температура в зоне №1" // описание
+                            //       }
+                            //       ,"2-T":{ // id регистра
+                            //         title:"T2" // имя для вывода в описании поля
+                            //         ,units: "\u00b0C" // тип значения
+                            //         ,type:"integer" // единицы измерения
+                            //         ,description:"Текущая температура в зоне №2" // описание
+                            //       }
+                            //     }//registers
+//
+//      }
 // -----  addData(d)  - добавляет точку данных на график
 // -----            d={
 // -----              time: timestamp, // где timestamp - число милисекунд от 1970г = timestamp,  объект Data c отметкой времени для данных
@@ -10,42 +61,22 @@
 // -----              ....
 // -----            }
 // -----            Например: {time: 1612623935131, 1-T: 231, 2-T: 189}
-// -----  getData() -
+// -----  getData() - вызывается автоматически при создании объекта графика,
+// -----              делает загрузку таблицы данных по URL:  ${config.dataURL}+"/"+${config.startData}+".log"
+// -----              таблица должна быть в виде текстового файла с разделителями TAB="\t" (tsv-формат)
+// -----              первая строка описывает имена регистров, последующие - данные, например:
+// -----              ''' time 1-T 2-T 3-T
+// -----                  2019-10-14T22:12:21	25	30	37
+// -----                  2019-10-14T22:17:11	32	38	41 '''
 // -----  redraw ()  -  полностью перерисовывает график, без запроса таблицы данных, например изменение размеров поля
 // -----  drawData() - отрисовывает таблицу данных
 // -----  drawTask() - отрисовывает задание
 // ----- 2021-09-08 ----- начал делать события мыши на графике с отображением текущих значений ---------------------
-
-
-/** Класс выполняющий построение и отображение графика  */
 class Chart {
-  /** Конструктор инициализирует объект графика
-   * @param {object} elementId - id контейнера (DOM - елемент div) в котором будет отображаться график
-   * @param {object} config - объект с настройками (конфигурацией) графика
-   * @param {string} config.dataURL - корневая папка с файлами таблиц архивных данных,
-   *                              этот URL должен быть в доступном для скачивания месте,как правило это каталог "/public"
-   *                              Например:"/logs" **Внимание!!! Слеш в конце не ставить он добавляется автоматически !!!**
-   * @param {string} config.startDate: имя файла таблицы данных, расширение ".log" добавляется автоматически
-   *                              Например: `startDate="2021-01-06"`, таким образом URL для запроса таблицы будет: /logs/2021-01-06.log
-   * @param {object} config.y         диапазон отображаемых значений по оси y (). Например: `y:{min:0,max:1000}`
-   * @param {Number} config.y.min - минимальное значение по оси y ; например `0`
-   * @param {Number} config.y.max - максимальное значение по оси y; например: максимально возможная температура в печи(Тномин+50С)
-   * @param {object} config.registers - описание регистров
-   * @param {string} config.registers.id - id регистра, точно такое же название какое используется в таблице архива .log *Например:* `"1-T"`
-   * @param {string} config.registers.title - имя регистра, понятное для человека, используется как title  *Например:* `"T1"`
-   * @param {string} config.registers.type - тип значения.*Например:* `"integer"` (пока не используется)
-   * @param {string} config.registers.units - единицы измерения *Например:* `"*С"`
-   * @param {string} config.registers.description - подробное описание регистра *Например:* `"Температура в верхней зоне"`
-   * @param {string} config.registers.legend - используется для подписывания легенды в графике. Среднее по длине описание. *Например:* `"Зона№1.Верх.Задание"`
-   */
-
   constructor(elementId,config){
     // создает объект графика и настраивает его основные свойства
-    /** Задает диапазон цветов для линий графиков */
     this.colors=['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999',"#427220","#bba901","#e5a77e","#b76b4d","#ad2815"];//список цветов для линий графиков
-    /** Задает шкалу цветов для линий графиков */
     this.colorScale; // шкала цвета линий графиков
-    /** Задает функцию масштабирования для оси **x** */
     this.xScale; // масштабирование по оси Х
     this.yScale; // масштабирование по оси Y
     this.data;   // таблица с данными, потрібно розібратися як влаштовано
@@ -122,7 +153,7 @@ loadSvg(){
   svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   // получаем код картинки
   var svgData = svgEl.outerHTML;
-  var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+  var preface = '&lt;?xml version="1.0" standalone="no"?>\r\n';
   var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
   var svgUrl = URL.createObjectURL(svgBlob);
   var downloadLink = document.createElement("a");
@@ -151,7 +182,7 @@ loadSvg(){
 
     let data=this.data; // ссылка на данные для сокращения кода, что бы не писать везде this.
     let obj={};
-    for (var i = 1; i < data.columns.length; i++) { //берем с 1, т.к. 0 - время
+    for (var i = 1; i &lt; data.columns.length; i++) { //берем с 1, т.к. 0 - время
       // перебираем все заголовки в таблице данных
       if ( d[data.columns[i]] ) {// если ключ=заголовку во входных данных имеется
         // определяем временную метку
@@ -236,7 +267,7 @@ loadSvg(){
    //определяем центры ячеек по осиХ
    let xStep=parseInt(xLength/(headers.length-1))// шаг надписей
    let xSteps=[];
-   for (var i = 1; i < headers.length; i++) {
+   for (var i = 1; i &lt; headers.length; i++) {
      xSteps.push(xRange[0]+xStep*(i-0.6));
    }
    trace ? console.log(logCaption+"xSteps="+JSON.stringify(xSteps)):null;
@@ -250,7 +281,7 @@ loadSvg(){
    let g=this.svg.append('g').attr('id', 'legend');
    this.legend.DOM=g.node(); // запоминаем в легенде
 
-   for (var i = 1; i < headers.length; i++) {
+   for (var i = 1; i &lt; headers.length; i++) {
      g.append('text')
           .attr("id","legend_"+i)
           .attr("x",this.legend.xScale(headers[i]))
@@ -279,7 +310,7 @@ loadSvg(){
    var trace=0, title="legendAddValues(obj):"
    trace ? console.log(title,"---- Started ----") : null;
    var headers=this.data.columns; // имена колонок данных
-   for (var i = 1; i < headers.length; i++) {
+   for (var i = 1; i &lt; headers.length; i++) {
      let key=headers[i];
      trace ? console.log(title,"key=",key) : null;
      let value=obj[key];
@@ -306,7 +337,7 @@ loadSvg(){
      trace ? console.log(title,"return:color=",color) : null;
      return color
    };
-   for (var i = 0; i < this.data.columns.length; i++) {
+   for (var i = 0; i &lt; this.data.columns.length; i++) {
      if (reg.trim() == this.data.columns[i]) {
        color=this.colorScale(this.data.columns[i])
        trace ? console.log(title,"return:color=",color) : null;
@@ -331,7 +362,7 @@ loadSvg(){
      return obj
    };
    reg=reg.split(";");//return this.getColorRegister(reg)
-   for (var i = 0; i < reg.length; i++) {
+   for (var i = 0; i &lt; reg.length; i++) {
      obj[reg[i]] = this.getColorRegister(reg[i]);
    }// for
    return obj
@@ -346,7 +377,7 @@ loadSvg(){
    let newData=this.data[this.data.length-1];
    trace ? console.log(logCaption+"lastData="+JSON.stringify(lastData)) : null;
    trace ? console.log(logCaption+"newData="+JSON.stringify(newData)) : null;
-   for (var i = 1; i < this.data.columns.length; i++) {
+   for (var i = 1; i &lt; this.data.columns.length; i++) {
      let key=this.data.columns[i];
      let path=d3.path();
      path.moveTo(this.xScale(lastData.time),this.yScale(+lastData[key]));
@@ -380,78 +411,73 @@ rectang (x1,y1,x2,y2,color){
 }
 
 
-
-  /** делает загрузку таблицы данных по URL:  ${config.dataURL}+"/"+${config.startData}+".log"
-   *  Парсит и сохраняет в свойстве data
-   *  Файл с данными должен быть в виде текстового файла с разделителями TAB="\t" (tsv-формат)
-   *  первая строка описывает имена регистров, последующие - данные, например:
-   *  ''' time 1-T 2-T 3-T \n
-   *      2019-10-14T22:12:21	25	30	37 \n
-   *      2019-10-14T22:17:11	32	38	41 '''
-   * @return {null}  не возвращает ничего,
-   */
-  getData() {
-    let trace=1, logH="drawChart()::"+"getData()"+"::";
-    trace ? console.log(logH,"----- Started -----"):null;
-    //trace ? console.log(logH,):null;
-    //------------------------  getData()  ------------------------
-    // загрузка таблицы данных из сервера (логированных)
+//------------------------  getData()  ------------------------
+  getData(){
+      // загрузка таблицы данных из сервера (логированных)
     let logURL=this.config.dataURL+"/"+this.config.startDate+".log";
+    let trace=1, logH="drawChart()::"+"getData()"+"::";
     trace ? console.log(logH+"Enter: URL="+logURL):0;
     d3.tsv(logURL,(dataLine,i) => {
-          // получаем данные построчно dataLine, номер строки i
-          trace ? console.log(logH,"i="+i+" ;dataLine="):null;
-          trace ? console.dir(dataLine):null;
-          //перебираем все ключи в строке данных
+          //console.log(logH+"i="+i+" ;data="+dataLine);
+          //console.log(dataLine);
+
           for (let key in dataLine) {
               // если свойство не собственное, а унаследовано - берем следующее
               if (! dataLine.hasOwnProperty(key)) continue;
-              // если поле time или Время - преобразуем в дату
+              //console.log(dataLine);
               if (key == "time" | key == "Время") {
+                // если поле time преобразуем в дату
                 dataLine[key]= new Date(dataLine[key]);
+                //если это первая строка данных
+                if (i == 0 ){
+                  // уточняем левую границу для поля графика
+
+                  console.log("start="+this.timeDomain.start.toLocaleString());
+                  console.log("new="+dataLine[key].toLocaleString());
+                  let start=this.timeDomain.start.getTime(); //текущее начало диапазона времени
+                  let current = dataLine[key].getTime();//принятое начало диапазона времени
+                  if (start&lt;current) {
+                    // текущее начало диапазона времени больше принятого
+                    // то запоминаем его как начало диапазона времени
+                    this.timeDomain.start=timeRoundDown(dataLine[key])
+                  }; //if (start>current)
+                };//  if (i == 0 )
                 continue;//next iteration}
               };//  if (key == "time")
               // поле не time, преобразуем в число
               dataLine[key]=parseFloat(dataLine[key])
-              //trace ? console.log(logH,"dataLine[",key,"]=",dataLine[key]):null;
             }//for (let key in dataLine)
-
+              //
           return dataLine
         }
+      ).then ((d)=>{
+          // проверяем  верхнюю границу временного диапазона
+          if ( this.timeDomain.end.getTime() &lt; d[d.length-1].time.getTime()) {
+            // записываем верхнюю границу
+            this.timeDomain.end=d[d.length-1].time
+          }
+
+          return d
+         }
       ).then((d) => {
-        trace ? console.log(logH,"then(1):d="):null
-        trace ? console.dir(d):null;
         let columns=d.columns; //список столбцов ["time", "T1", "T2", "T3", "T4"]
         //создаем шкалу цвета. например  this.colorScale("T1")= '#e41a1c'
         this.colorScale=d3.scaleOrdinal()
                           .domain(columns.slice(1,columns.length)) //["T1", "T2", "T3", "T4"]
                           .range(this.colors.slice(0,columns.length-1)); // диапазон цветов
         this.data=d;
-        this.refreshTimeDomain();
         this.redraw();
       });
 
-}//getData
-
-/**
-  обновляет границы графика по массиву this.data. Определяет min и max и
-  меняет физические границы this.timeDomain.start, this.timeDomain.end
-*/
-refreshTimeDomain() {
-    let trace=1, logH="refreshTimeDomain():";
-    trace ? console.log(logH,"----- Started -----"):null;
-    //trace ? console.log(logH,):null;
+  }
+  refreshTimeDomain() {
     // функция определяет и запоминает границы диапазона времени данных
-    if (! this.data) {trace ? console.log(logH,"this.data=undefined"):null;return};
-    let lim = d3.extent(this.data,(d) => {return d.time}); // определяем минимум и максимум в массиве
-    trace ? console.log(logH,"d3.exten=",lim.toString()):null;
-    let [xMin,xMax] = lim;
-    trace ? console.log(logH," xMin=["+xMin+", xMax="+xMax+"]"):null;
+    if (! this.data) return;
+    let [xMin,xMax] = d3.extent(this.data,(d) => {d.time}); // определяем минимум и максимум в массиве
     xMin = xMin ? xMin : this.timeDomain.start; // если минимум не определен, то берем из настроек
     this.timeDomain.start = xMin; // запоминаем новый минимум
     xMax = xMax ? xMax : this.timeDomain.end; // если максимум не определен, то берем из настроек
     this.timeDomain.end = xMax; // запоминаем новый максимум
-    trace ? console.log(logH,"this.timeDomain={start:"+xMin+", end:"+xMax+"]"):null;
   };
 
   trimData(start,end) {
@@ -469,7 +495,7 @@ refreshTimeDomain() {
     // рисуем линии для каждого столбца
     let d=this.data;
     let columns=d.columns;
-    for (var i = 1; i < columns.length; i++) {// нулевой столбец time
+    for (var i = 1; i &lt; columns.length; i++) {// нулевой столбец time
       let colName=columns[i];
       this.svg
               .append("path")
@@ -479,9 +505,9 @@ refreshTimeDomain() {
               .attr("stroke-width", 1.5)
               .attr("d", d3.line()
                 .x((d) => { return this.xScale(d.time) })
-                .y((d) => { return this.yScale( d[colName]<0 ? 0 : d[colName])})
+                .y((d) => { return this.yScale( d[colName]&lt;0 ? 0 : d[colName])})
                 )
-    } //for (var i = 1; i < columns.length; i++)
+    } //for (var i = 1; i &lt; columns.length; i++)
 
   } //drawData
 
@@ -537,7 +563,7 @@ refreshTimeDomain() {
                     .tickSizeOuter(10)
                     .tickFormat( (d,i) => {
                             //console.log("tickFormat.d["+i+"]="+d.toLocaleString());
-                            return (d<=d3.timeHour(d)) ? (("0"+d.getHours()).slice(-2)+":00"):null
+                            return (d&lt;=d3.timeHour(d)) ? (("0"+d.getHours()).slice(-2)+":00"):null
                             })//tickFormat
      this.svg.append("g")
         .attr('transform', `translate(0,${this.height-this.margin.bottom})`)//переносим 0,0 оси в нижнюю часть графика
@@ -546,7 +572,7 @@ refreshTimeDomain() {
             .attr("stroke-opacity", 0.5)//непрозрачность
             .attr("stroke-dasharray", (d,i) => {
                                           // если отметка "час" линия "7,2" иначе  "2,3"
-                                          let rest=(d<=d3.timeHour(d)) ?  "7,2" : "2,3"
+                                          let rest=(d&lt;=d3.timeHour(d)) ?  "7,2" : "2,3"
                                           return rest
                                         })
           )
@@ -703,7 +729,7 @@ refreshTimeDomain() {
    const nearby = (date - a.time > b.time - date) ? b : a; // ищем наиболее близкое к текущему значение
    trace ? console.log(title,"nearby=",nearby) : null;
    // возвращаем его
-   return nearby // b && (date - a.date > b.date - date) ? b : a; - было так, так и не понял зачем; && - возвращает или последнее значение или первое ложное
+   return nearby // b &amp;&amp; (date - a.date > b.date - date) ? b : a; - было так, так и не понял зачем; &amp;&amp; - возвращает или последнее значение или первое ложное
  }
 
   drawTask(){
@@ -767,7 +793,7 @@ refreshTimeDomain() {
         trace ? console.log(msg.d) : null;
         let task=msg.d;
         if (! task) {return};
-        for (var i=0;i<task.length;i++){
+        for (var i=0;i&lt;task.length;i++){
           console.log(task[i].time);
           task[i].time= new Date(task[i].time);
         };
@@ -807,7 +833,30 @@ function isPair(i) {
 function timeRoundDown(time){
      // округляет время по нижнему пределу с точностью 30 мин
      // например если 12:10 то будет 12:00; если 12:50 то будет 12:30
-     time.setMinutes( (time.getMinutes()<30) ? 0 : 30);
+     time.setMinutes( (time.getMinutes()&lt;30) ? 0 : 30);
      time.setSeconds(0);
      return time
    }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.7</a> on Sun Sep 19 2021 13:22:32 GMT+0300 (за східноєвропейським літнім часом)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
