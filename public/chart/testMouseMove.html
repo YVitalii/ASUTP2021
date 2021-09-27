@@ -1,0 +1,116 @@
+ <!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>d3 - design</title>
+    <!-- <link rel="stylesheet" href="./stylesheets/myStyle.css"> -->
+    <script type="text/javascript" src="./d3/d3.min.js">    </script>
+    <script type="text/javascript" src="./testConfig.js">    </script>
+    <script type="text/javascript" src="./js/drawChart.js"> </script>
+
+  </head>
+  <body>
+    <!--
+    Тестовая страничка для отображения текущих данных
+    Настройки берутся из testConfig.js
+   -->
+    <h3>Тестовая страница с графиком отображающим оперативные данные </h3>
+    <h2 id="furnace"></h2>
+    <table width="100%">
+      <tr>
+        <td> Текущие значения </td>
+        <td>
+          <div style="height:400px" id="myChart" >
+          <!-- Здесь будет график -->
+          </div>
+      </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="text-center">
+          <div id="regDescription" >
+            Заглушка
+          <!-- Здесь будет описание регистров -->
+          </div>
+        </td>
+      </tr>
+    </table>
+    <button name="downloadSVG" id="b_downloadSVG"> Загрузить график </button>
+
+  <script type="text/javascript">
+  // ---------- вспомогательные функции ------------------
+    function getDate (d){
+          // преобразует заданную дату в строку типа: "ГГГГ-ММ-ДД"
+          let now = d ? d : new Date(d);
+          //let timeN=now.toLocaleDateString()
+          let timeN=(now.getFullYear())+"-"+("0"+(now.getMonth()+1)).slice(-2)+"-"+("0"+now.getDate()).slice(-2);
+          return timeN;
+        }
+// ------------------       РАБОТА   ----------------------
+// выводим имя печи
+  furnace.innerHTML=entity.fullName;
+// ----- получаем сегодняшнюю дату для имени лог-файла-----------
+  var today='testLogFile';//getDate(new Date());
+  // var today="2019-10-12";
+  console.log("today=",today);
+// ---- конфигурируем график -----------------
+  const chartConfig = {
+     dataURL:"" // из config.js
+    ,startDate:today // из config.js
+    ,y : yRange
+    ,task:null
+    ,registers:entity.regs
+  }
+
+  // ---- создаем объект графика -------------
+  var chart={};
+  chart= new Chart("#myChart",chartConfig);
+
+  // -------  Создаём новый объект XMLHttpRequest -------------
+  var xhrT = new XMLHttpRequest();
+  const url='/getReg/?list=1-T;2-T'; // список запрашиваемых регистров
+
+  xhrT.onload = function(){
+      // данные приняты
+     //console.log("xhrT.responseText=",xhrT.responseText);
+     let res=JSON.parse(xhrT.responseText);
+     //res['time']=new Date(res['time']);
+     realTimesData=res;
+     console.log("realTimesData=",realTimesData);
+     // преобразуем результат, полученный с сервера к виду требуемому drawChart
+     // {1-T: 828, 2-T: 32, time: 1612724606689}
+     let points={}
+     for (key in res) {
+       points[key]=res[key].value
+       //console.log("res[key]=",res[key]);
+     }
+     points['time']=new Date().getTime();
+     //console.log("Points=",points);
+     // -- добавляем точки на график ------
+     chart.addData(points);
+   }//onload
+
+  xhrT.onerror = function(){
+    console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+  } //  xhrT.onerror
+
+// ------ запускаем периодический запрос текущей температуры  ------------
+  // var askT = setInterval(
+  //   function() {
+  //     // -- URL запроса
+  //
+  //
+  //     // -- создаем запрос
+  //     xhrT.open('POST', realURL, true);
+  //     // -- отправляем запрос
+  //     xhrT.send()}
+  //   ,3000); // опрос каждые 3 сек
+
+
+  </script>
+
+  <script type="text/javascript">
+    //const b_toSvg=document.getElementById("b_downloadSVG"); // получаем кнопку
+    document.getElementById("b_downloadSVG").onclick=() => {chart.loadSvg()};
+  </script>
+  </body>
+</html>
