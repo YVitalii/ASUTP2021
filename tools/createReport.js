@@ -60,7 +60,6 @@ for (let li of logList) {
 };
 let printBtn = document.getElementById("print-btn");
 let comment = document.getElementById("comment");
-let colors=['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999',"#427220","#bba901","#e5a77e","#b76b4d","#ad2815"];
 printBtn.onclick = () => {
   let userTools = document.getElementsByClassName('user-tools')[0];
   userTools.style.display = "none";
@@ -71,7 +70,8 @@ printBtn.onclick = () => {
   comments[1].innerHTML = "";
   let k = 0;
   for (let [key, value] of Object.entries(registers)) {
-    comments[1].innerHTML += `<span style="color: ${colors[k]};">${value.title}</span> - ${value.description}\n`;
+    var txtColor = getColorsRegisters(value);
+    comments[1].innerHTML += `<span style="color: ${txtColor};">${value.title}</span> - ${value.description}\n`;
     k++;
   }
   if(window.confirm("Хотите добавить комментарий?")) {
