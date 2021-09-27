@@ -44,9 +44,14 @@ function drawGraph(log) {
 let logList = document.getElementsByTagName('li');
 let selectedList = logList[0];
 selectedList.classList.add("active");
+
 let downloadBtn = document.getElementById("download-btn");
 downloadBtn.download = furnaceId + " " + selectedList.id + ".txt";
 downloadBtn.href = "/logs/" + furnaceId + "/" + selectedList.id + ".log";
+
+let loadsvg = document.getElementById("load-svg-btn");
+loadsvg.onclick = () => { chart.loadSvg(); };
+
 drawGraph(selectedList.id);
 for (let li of logList) {
   li.onclick = () => {
@@ -70,7 +75,7 @@ printBtn.onclick = () => {
   comments[1].innerHTML = "";
   let k = 0;
   for (let [key, value] of Object.entries(registers)) {
-    var txtColor = getColorsRegisters(value);
+    var txtColor = chart.getColorsRegisters(key)[key];
     comments[1].innerHTML += `<span style="color: ${txtColor};">${value.title}</span> - ${value.description}\n`;
     k++;
   }
