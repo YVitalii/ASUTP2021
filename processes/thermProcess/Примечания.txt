@@ -1,0 +1,3 @@
+-------------- файл для разработки и тестирования модуля  thermStep.js -----------
+Запускать из корневой папки проекта: /ASUTP2021
+supervisor --no-restart-on exit ./processes/thermProcess/_test.js
