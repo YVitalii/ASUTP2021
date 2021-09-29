@@ -42,6 +42,35 @@ router.post('/', function(req, res, next) {
   let path = "./public/logs/" + req.query.folderName + "/" + req.query.fileName;
   trace ?  log('i',logN,"path=",path) : null;
   try {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    var yyyy = today.getFullYear();
+    today = yyyy + '-' + mm + '-' + dd;
+    console.log(req.user);
+    if (! req.user.permissions.userDelete) {
+      res.status(400).send(
+        {err:
+          {
+            en:"You have no rights to delete files."
+            ,ru:"У Вас нет прав на удаление файлов."
+            ,ua:"Ви не маєте прав на видалення файлів."
+          }
+        })
+      return
+    }
+    if (req.query.fileName.slice(0, -4) == today) {
+      // console.log("Попытка удалить файл с сегодняшней датой.");
+      res.status(400).send(
+        {err:
+          {
+            en:"Today file cannot be deleted."
+            ,ru:"Файл с сегодняшней датой не может быть удалён."
+            ,ua:"Файл з сьогоднішньою датою не може бути видалений."
+          }
+        })
+      return
+    }
     // console.log("Попытка удалить файл от пользователя:", req.user);
     fs.unlinkSync(path);
     res.status(200).send("Файл " + path + " удалён.");

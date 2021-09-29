@@ -42,6 +42,13 @@ xhrT.onload = function(){
   //   element.innerHTML = res[regsArr[i]].value;
   // }
 }
+xhrT.onreadystatechange = () => {
+  if (xhrT.readyState === 4) {
+      if (xhrT.status === 0) {
+        alert("Произошла ошибка сервера, пожалуйста, перезагрузите сервер и страницу.");
+      }
+  }
+}
 function addPoints() {
   xhrT.open('POST', url, true);
   xhrT.send();
