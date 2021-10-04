@@ -8,6 +8,6 @@ for (var i = 0; i < config.entities.length; i++) {
   // перебираем все печи в списке и создаем для них записыватели
   let furnace=config.entities[i];
   let path=config.logger.path+'/'+furnace.id; // путь к архиву furnace
-  loggers[furnace.id]=new LogWriter ({"path":path, "listRegs":furnace.listRegs,"server":server});
+  loggers[furnace.id]=new LogWriter ({"path":path, "listRegs":furnace.listLogRegs,"server":server});
 }
 //console.dir(loggers);

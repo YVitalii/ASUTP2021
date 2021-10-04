@@ -135,6 +135,7 @@ regs.set("state", //
                           "data":{value:data,"note":note},"err":err}
                           }
       ,_set:function (data) {
+              // data=17 - пуск; data=1 - стоп
               let err="Недопустимый параметр для записи:"+data+" (можно: 17-Пуск;1 -Стоп)";
               if ((data == 1) | (data == 17)){
                 err=null
@@ -362,6 +363,7 @@ regs.set("tT",
                               "data":{value:data,"note":note},"err":err}
                               }
           ,_set:function (data) {
+                  // data (Number) - минуты
                   let val=toClock(data);
                   let err=null;
                   if ( ! data) {
@@ -381,7 +383,7 @@ regs.set("tT",
 
         /*  ------------------ 0x 01 40 [Y]  Задание времени удержания температуры
                 в приборе: слово ХХ . ХХ – формат часов+BCD, чтение и запись в любом режиме
-                ответ: текущая заданная температура
+                ответ: эхо запроса
         */
 
 regs.set("Y",
@@ -622,7 +624,7 @@ function getReg(iface,id,regName,cb){
                 timestamp:},...],
                 )
     */
-    let trace=0;
+    let trace=1;
     let modul="TRP08.getReg(id="+id+":regName="+regName+"):"
     if (has(regName)) {
       let reg=regs.get(regName); //получаем описание регистра

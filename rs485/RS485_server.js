@@ -33,7 +33,7 @@ function parseName(name) {
 } //parse name
 
 // -------------------------------------------------------------------
-// загружаем драйвера для каждого типа устройства
+// загружаем драйвера для каждого типа устройства bp config.devices=[]
 const deviceDrivers = new Map();
 for (var i = 0; i < config.devices.length; i++) {
   if (i == 0) {
@@ -41,7 +41,7 @@ for (var i = 0; i < config.devices.length; i++) {
   else {
     let dev= config.devices[i].trim();
     if (! deviceDrivers.has(dev)) {
-      // драйвер устройства еще не загружен, загружаем
+      // модуль драйвера устройства еще не загружен, загружаем модуль
       try {
         deviceDrivers.set(dev,require("./"+dev))
       } catch (err) {
@@ -53,7 +53,7 @@ for (var i = 0; i < config.devices.length; i++) {
 
 // -------------------------------------------------------------------
 // таблица сопоставления адреса устройства , типа, а также отметка об активности прибора
-const devices=[]; // массив: индекс - адрес устройства, а значение - объект устройства,
+const devices=[]; // массив: индекс - адрес устройства в сети, а значение - объект устройства,
                   // описание полей смотри ниже
 
 {
@@ -85,8 +85,13 @@ const registers = new Map(); // реестр используемых физич
                             //  здесь хранятся все данные о регистре, значение  и пр.
                             // value, timestamp,buffer,note, err
 // ---------------------------
+/**
+  *  tags = new Map() => {"псевдоним":"имяРегистраДрайвера"} Например {"Т1":"1-T","SP2":"2-tT"...}
+*/
 const aliases = new Map(); // список алиасов т.е. псевдонимов регистров, например: 7SQ1 => DIO1
 {//block
+  let lName="aliases:"
+
   let tags=config.tags;
   for (let each of tags){
     let regName=each[1].trim();

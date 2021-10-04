@@ -8,8 +8,6 @@
 // trace ? log("i",logN,"Started") : null;
 
 
-
-
 var buf=require("./parseBuf.js");
 var colors=require("colors");
 
@@ -35,7 +33,7 @@ function print (line,color){
       );
     }
   };//print
-  
+
 /**
 * Это описание функции log()
 * @param {string | number} level - 0="e"=error; 1="w"-warning; 2="i" - info

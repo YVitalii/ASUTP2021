@@ -1,0 +1,1 @@
+supervisor --no-restart-on exit WAD_DIO24_test.js
