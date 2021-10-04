@@ -4,7 +4,12 @@ module.exports =
   {
   "plugins": ["plugins/markdown"],
   "source": {
-      "include": [ "./db/users.js", "./tools","./public/chart/js", "./routes"  ],
+      "include": [ "./db/users.js", 
+	               "./tools",
+				   "./public/chart/js", 
+				   "./routes",
+				   "./processes/thermProcess"
+				   ],
       "exclude": [ "./node_modules" ],
       "includePattern": ".+\\.js(doc|x)?$",
       "excludePattern": "(^|\\/|\\\\)_"
