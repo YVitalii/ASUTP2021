@@ -1,5 +1,6 @@
 const config = {};
-
+// список регистров ТРП-08ТП с описанием
+var trp08 = require(./rs485/TRP08_registers.js);
 // включает/выключает  эмуляцию обмена по RS485
 config.emulateRS485 = 1; //true;
 
