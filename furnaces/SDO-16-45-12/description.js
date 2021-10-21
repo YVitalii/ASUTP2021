@@ -2,7 +2,7 @@ var trp08 = require("../devices/trp08/registers.js");
 const wad = require('../devices/wad-dio24/registers.js');
 
 var entity = {
-  id: "SDO-16-45-12-10",
+  id: "SDO-16-45-12)10",
   shortName: "СДО-16.45.12/10", // короткое имя печи
   fullName: "Печь отпускная СДО-16.45.12/10", // полное имя печи
   temperature: { min: 0, max: 1000 }, // диапазон рабочих температур
