@@ -3,11 +3,11 @@ function getRegs(addr) {
   // текущая температура addr-T
   regs[`${addr}-T`] = {
     // реальный адрес регистра, по которому нужно делать запрос
-    title: `T${addr}`, // отображаемое имя для вывода в описании поля
+    title: `T${addr},\u00b0C`, // отображаемое имя для вывода в описании поля
     type: "integer", // тип поля
     units: "\u00b0C", //единицы
-    description: `Зона №${addr}.Температура`, // описание
-    legend: `№${addr},\u00b0C`, // Надпись для графика
+    description: `Зона №${addr}`, // описание
+    legend: `Зона№${addr}`, // Надпись для графика
     isOperative: true, //оперативный регистр опрашивается в цикле (быстро изменяющийся)
   };
   // задание
@@ -56,7 +56,7 @@ function getRegs(addr) {
 
 module.exports = getRegs;
 
-if (!module.main) {
+if (!module.parent) {
   console.dir(getRegs(2), { depth: 4 });
   //console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
   //util.inspect(config)

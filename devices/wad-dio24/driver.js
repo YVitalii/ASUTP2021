@@ -20,7 +20,7 @@ const timeout = 2000; //таймаут запроса, по истечению �
 // ------------ логгер  --------------------
 const log = require("../../tools/log.js"); // логер
 let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
-let gTrace = 1; //=1 глобальная трассировка (трассируется все)
+let gTrace = 0; //=1 глобальная трассировка (трассируется все)
 // ------------- загружаем список регистров ------------------
 const regs = require("./driver_regs.js");
 gTrace ? console.log("regs=") : null;
@@ -161,6 +161,7 @@ function setReg(iface, id, regName, value, cb) {
   }
 } // setReg
 
+module.exports.name = "WAD-DIO24";
 module.exports.setReg = setReg;
 module.exports.getReg = getReg;
 module.exports.has = has;

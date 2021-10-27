@@ -72,70 +72,65 @@ const devices = []; // массив: индекс - адрес устройст�
     }
   } //for
 }
-
-// --------------------------------------------------------------------
-// таблица сопоставления тега и имени регистра, например 7SQ1 => 5-DIO1
-// загружаем и проверяем список
+/**
+ * список всех регистров,обслуживаемых сервером здесь хранятся все оперативные данные о регистре, значение  и пр.
+ * тип Map(): '1-H' => {
+ * value: null,
+ * timestamp: 2021-10-27T19:19:22.556Z,
+ * errorsCounter: 0,
+ * note: '',
+ * err: null }
+ */
 
 const registers = new Map(); // реестр используемых физических регистров (названия как в драйвере)
-//  здесь хранятся все данные о регистре, значение  и пр.
-// value, timestamp,buffer,note, err
-// ---------------------------
+
 /**
- *  tags = new Map() => {"псевдоним":"имяРегистраДрайвера"} Например {"Т1":"1-T","SP2":"2-tT"...}
+ * Добавляет регистр в список обслуживаемых регистров
+ * @param {String} regName имя регистра в формате "addr-name" где addr - адрес в сети RS485, name - имя регистра в драйвере
+ * @returns null
  */
-const aliases = new Map(); // список алиасов т.е. псевдонимов регистров, например: 7SQ1 => DIO1
-{
-  //block
-  let lName = "aliases:";
-
-  let tags = config.tags;
-  for (let each of tags) {
-    let regName = each[1].trim();
-    let alias = each[0].trim();
-    let [adr, reg] = parseName(regName);
-
-    let _alias = "Alias = " + alias + ".";
-    let _reg = "Alias = " + reg + ".";
-    let _regName = "regName = " + regName + ".";
-    //console.log("Alias="+alias+"; adr="+adr+"; reg="+reg);
-    if (!aliases.has(alias)) {
-      if (devices[adr]) {
-        if (devices[adr].driver.has(reg)) {
-          aliases.set(alias, regName);
-          if (!registers.has(regName)) {
-            registers.set(regName, {
-              value: null, // значение регистра
-              timestamp: new Date(), // время последнего опроса
-              errorsCounter: 0, // счетчик ошибок
-              note: "", // описание
-              err: null, // ошибка, если есть
-            });
-          } else {
-            log(0, _alias + _regName + " уже имеется в таблице регистров");
-          }
-        } else {
-          log(
-            0,
-            _alias +
-              _regName +
-              "Драйвер не опознал запрашиваемый регистр:" +
-              _reg
-          );
-        }
+function addRegister(regName) {
+  let [adr, reg] = parseName(regName);
+  // есть прибор с таким адресом?
+  if (devices[adr]) {
+    // в драйвере прибора есть такой регистр?
+    if (devices[adr].driver.has(reg)) {
+      // регистр с таким именем еще не зарегистрирован?
+      if (!registers.has(regName)) {
+        // заносим регистр в список
+        registers.set(regName, {
+          value: null, // значение регистра
+          timestamp: new Date(), // время последнего опроса
+          errorsCounter: 0, // счетчик ошибок
+          note: "", // описание
+          err: null, // ошибка, если есть
+        });
       } else {
-        log(
-          0,
-          _alias +
-            _regName +
-            "Указанного адреса в таблице устройств не обнаружено"
-        );
+        log(0, regName + " - уже имеется в таблице регистров");
       }
     } else {
-      log(0, _alias + _regName + "Dublicate alias");
+      log(0, "[ " + regName + " ] - Драйвер не опознал запрашиваемый регистр");
     }
-  } //for
-} //block
+  } else {
+    log(0, regName + " - Указанного адреса в таблице устройств не обнаружено");
+  }
+  return;
+} //function addRegister(regName)
+
+const aliases = new Map(); // устарело, оставил для совместимости; список алиасов т.е. псевдонимов регистров, например: 7SQ1 => DIO1
+
+//log("i", "config=");
+//console.dir(config, { depth: 4 });
+// ------------ заносим все объявленные в конфигурации регистры всех печей -------------------
+let entities = config.entities;
+for (let i = 0; i < entities.length; i++) {
+  let furnace = entities[i];
+  for (const key in furnace.regs) {
+    if (Object.hasOwnProperty.call(furnace.regs, key)) {
+      addRegister(key);
+    }
+  }
+} // for i
 
 function saveRegister(regName, data) {
   // синхронная, обновляет данные в регистре regName, возвращает true после успешной операции
@@ -187,9 +182,6 @@ function getRegName(name) {
   // если не нашла null
   let reg = null; // имя регистра
   name = name.trim();
-  if (aliases.has(name)) {
-    reg = aliases.get(name);
-  }
   if (registers.has(name)) {
     reg = name;
   }
@@ -211,9 +203,9 @@ function read(name, cb) {
     }
     // получаем драйвер
     let device = devices[adr].driver;
+    // если включена эмуляция - то эмулируем данные
     if (config.emulateRS485) {
       let data = emulator(adr, regName);
-
       parseData(data, null);
       return cb(null, registers.get(reg));
     }
@@ -223,7 +215,7 @@ function read(name, cb) {
         // сообщаем об ошибке
         log(0, head, "Error: code=", err.code, "; message= ", err.message);
       }
-      //trace ? log(2,head,"Received data=",data) : null;
+      trace ? log(2, head, "Received data=") : null;
       trace ? console.dir(data) : null;
       parseData(data, err);
       // выходим
@@ -346,43 +338,53 @@ module.exports.get = get; //синхронная
 module.exports.read = read;
 module.exports.write = write;
 module.exports.has = getRegName;
+module.exports.addRegister = addRegister;
+
+//module.exports.regs = regs;
+console.log("---------- RS485_server ---------------");
+console.dir(module.exports);
 
 if (!module.parent) {
+  console.log("============== testing ================");
+  console.log("----------------------- \n Device's drivers = ");
+  console.log(deviceDrivers);
+  console.log("----------------------- \n Device's = ");
+  console.log(devices);
   //console.log("----------------------- \n Aliases = ");
   //console.log(aliases);
-  /*console.log("----------------------- \n Device's drivers = ");
-    console.log(deviceDrivers);
-    console.log("----------------------- \n Device's = ");
-    console.log(devices);
-    console.log("----------------------- \n Aliases = ");
-    console.log(aliases);
-    console.log("----------------------- \n Registers = ");
-    console.log(registers);*/
-  function testRead() {
-    let t = "1-T";
-    read(t, (err, data) => {
-      let logN = logName + " callback read(";
-      if (err) {
-        log("e", logN, t, "): error=");
-        return;
-      }
-      //console.log(err);
-      log("i", logN, t, ") data=");
-      console.log(data);
-    });
-    t = "2-T";
-    read(t, (err, data) => {
-      let logN = logName + " callback read(";
-      if (err) {
-        log("e", logN, t, "): error=");
-        return;
-      }
-      //console.log(err);
-      log("i", logN, t, ") data=");
-      console.log(data);
-    });
-  }
-  setInterval(testRead, 3000);
+  addRegister("1-T");
+  addRegister("2-T");
+  addRegister("3-T");
+  addRegister("5-T");
+
+  console.log("----------------------- \n Registers = ");
+  console.log(registers);
+
+  // function testRead() {
+  //   let t = "1-T";
+  //   read(t, (err, data) => {
+  //     let logN = logName + " callback read(";
+  //     if (err) {
+  //       log("e", logN, t, "): error=");
+  //       return;
+  //     }
+  //     //console.log(err);
+  //     log("i", logN, t, ") data=");
+  //     console.log(data);
+  //   });
+  //   t = "2-T";
+  //   read(t, (err, data) => {
+  //     let logN = logName + " callback read(";
+  //     if (err) {
+  //       log("e", logN, t, "): error=");
+  //       return;
+  //     }
+  //     //console.log(err);
+  //     log("i", logN, t, ") data=");
+  //     console.log(data);
+  //   });
+  // }
+  // setInterval(testRead, 3000);
   /*
     read("taskT1",(err,data) => {});
     read("1-T",(err,data) => {});

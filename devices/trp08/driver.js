@@ -824,6 +824,7 @@ function setReg(iface, id, regName, value, cb) {
   }
 } // setReg
 
+module.exports.name = "TRP08";
 module.exports.setReg = setReg;
 module.exports.getReg = getReg;
 module.exports.has = has;
