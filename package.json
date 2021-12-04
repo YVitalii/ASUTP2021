@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "supervisor --no-restart-on error  --watch ./routes,./,./views,./tools ./bin/www",
-	"jsdoc": "jsdoc --configure ./config_jsdoc.js --recurse"
+    "jsdoc": "jsdoc --configure ./config_jsdoc.js --recurse"
   },
   "proxy": "http://192.168.1.112:3000",
   "dependencies": {
@@ -20,6 +20,7 @@
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "nocache": "^2.1.0",
+    "nodemon": "^2.0.15",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "pug": "^3.0.2",
