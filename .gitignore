@@ -2,9 +2,11 @@
 
 # dependencies
 /node_modules
+/public/logs
 /.pnp
 .pnp.js
 .bak
+package-lock.json
 
 
 # testing

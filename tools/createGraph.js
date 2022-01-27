@@ -22,15 +22,31 @@ let regsArr = regs.split(';');
 var xhrT = new XMLHttpRequest();
 xhrT.onload = function(){
   let res=JSON.parse(xhrT.responseText);
+  // console.log(res);
   let points={}
   for (key in res) {
-    points[key]=res[key].value
+    let element = document.getElementById(key);
+    if (res[key].value === null){
+      element.innerHTML = "Error";
+      points[key]=-5;
+    } else {
+      element.innerHTML = res[key].value;
+      points[key]=res[key].value;
+    }
+    points['time']=res[key].timestamp;
   }
-  points['time']=new Date().getTime();
+  // points['time']=new Date().getTime();
   chart.addData(points);
-  for (let i=0; i<regsArr.length; i++) {
-    let element = document.getElementById(regsArr[i]);
-    element.innerHTML = res[regsArr[i]].value;
+  // for (let i=0; i<regsArr.length; i++) {
+  //   let element = document.getElementById(regsArr[i]);
+  //   element.innerHTML = res[regsArr[i]].value;
+  // }
+}
+xhrT.onreadystatechange = () => {
+  if (xhrT.readyState === 4) {
+      if (xhrT.status === 0) {
+        alert("Произошла ошибка сервера, пожалуйста, перезагрузите сервер и страницу.");
+      }
   }
 }
 function addPoints() {

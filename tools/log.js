@@ -35,6 +35,12 @@ function print (line,color){
       );
     }
   };//print
+  
+/**
+* Это описание функции log()
+* @param {string | number} level - 0="e"=error; 1="w"-warning; 2="i" - info
+*/
+
 function log(level=3) {
     let startPoint=1;
     let type="", item,line="";
@@ -94,6 +100,7 @@ function log(level=3) {
     }//log
 
 module.exports=log;
+
 module.exports.setName=setName;
 module.exports.setFH=setFH;
 

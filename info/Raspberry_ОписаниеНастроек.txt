@@ -1,0 +1,347 @@
+2021-01-20 Установил raspberrypi lite. admin: pi  pwd: bortek
+			MAC: B8:27:EB:9A:97:79
+			MAC: B8-27-EB-C5-3B-44
+			
+Определить Bluetooth:  hcitool dev
+
+free // состояние и распределение памяти
+
+# https://help.ubuntu.ru/wiki/nano
+# https://www.raspberrypi.org/documentation/configuration/config-txt/README.md
+cp ./testPinOut ./buttonPowerBlink  // копирование файла
+chmod +x  ./buttonPowerBlink  // разрешить исполнение файла (скрипта)ж
+sudo i2cdetect -y 1 // проверяет устройства на шине i2c
+dmesg | grep i2c
+dmesg | grep rtc
+sudo nano /boot/config.txt
+sudo nano /etc/modules
+sudo su # открыть консоль с правами администратора
+
+// -------- raspi-gpio ----------------------------
+работа с gpio напрямую: https://github.com/RPi-Distro/raspi-gpio
+raspi-gpio get //просмотр состояния выводов
+
+// ------------------------------------------------------------------------------------------------------
+// ----------- Обновление Raspberry OS ---- -------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------
+sudo apt update
+sudo apt dist-upgrade
+sudo apt clean
+sudo reboot
+
+// ------------------------------------------------------------------------------------------------------
+// ----------- Установка pm2 ---- -------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------
+sudo npm install pm2 -g // установка
+pm2 start /home/pi/RS485server/bin/www   // запускаем процесс
+pm2 startup // генерируем скрипт для установки pm2 в автозапуск
+//копируем скрипт и запускаем в командной строке
+pm2 monit // просмотр вывода в консоль
+pm2 stop all // остановка всех потоков
+pm2 delete app1 app2 app3 // удаление приложения 
+//---------создаем файл с настройками в папке проекта  
+cd [project-home]
+pm2  ecosystem
+nano ecosystem.config.js
+/// пишем настройки детально: https://pm2.keymetrics.io/docs/usage/pm2-doc-single-page/
+module.exports = {
+  apps : [
+    {
+      name:"rs485server"
+     ,script: 'npm'
+     ,args: 'start'
+     ,watch:'.'
+     ,ignore_watch:['./public/logs',"node_modules"]
+    }
+  ],
+};
+
+pm2 start ecosystem.config.js  //запускаем рм2 с настройками в ecosystem.config.js
+pm2 save // сохраняем задачи
+
+
+// -----------  автоматический перезапуск Raspberry каждый день в полночь -------------------------------
+// -----------  crontab ---- https://1cloud.ru/help/linux/kak-nastroit-planirovshchik-cron-na-crontab-linux
+crontab -e
+@midnight /sbin/shutdown -r now
+
+
+// ------------------------------------------------------------------------------------------------------
+// ----------- Установка Node.js ---- -------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------
+curl -sL https://deb.nodesource.com/setup_15.x | sudo -E bash -   # регистрируем репозиторий с новыми версиями node.js
+sudo apt install -y nodejs   # устанавливаем Node.js
+node -v # проверяем работу
+// ------------------------------------------------------------------------------------------------------
+// ----------- расшарить диск для  Windows ---- ---------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------
+sudo apt install -y samba  # ставим Samba, на вопрос Modify smb.conf to use WINS settings from DHCP? отвечаем - нет
+mkdir -p /home/pi/RS485server  # создаем папку для расшаривания
+sudo nano /etc/samba/smb.conf
+добавляем в конец файла:
+[Raspi]
+   # This share allows anonymous (guest)
+   # Read-Write access without authentication!
+   comment = Raspberry Pi File Server
+   path = /home/pi/RS485server
+   writable = yes
+   force user = pi
+   guest ok = yes
+   guest only = yes
+Перезапускаем сурвер Samba: sudo systemctl restart smbd
+В проводнике Windows заходим по IP-адресу Raspberry: \\192.168.2.58 , видим нашу папку
+
+
+
+// ------------------------------------------------------------------------------------------------------
+// ----------- НАСТРОЙКА ЧАСОВ ds3231 -------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------
+// -----------настройка по https://learn.adafruit.com/adding-a-real-time-clock-to-raspberry-pi/overview
+// ---------- тоже нормально + на русском https://arduinoplus.ru/rtc-raspberry-pi/
+# ---------  включаем i2c -----------
+# -- вариант 1
+sudo raspi-config  
+-> interfaces -> i2c -> On
+#---вариант 2
+sudo nano /boot/config.txt
+вносим строку :         dtparam=i2c_arm=on
+Перезагрузка
+
+#  -------- устанавливаем  python-smbus ------------ 
+sudo apt-get install -y python-smbus
+# sudo apt-get install -y i2c-tools - можно не делать т.к. предыдущая команда устанавливает и этот пакет
+sudo i2cdetect -y 1 # проверяем шину i2c, должны быть все прочерки, т.к. устройств - еще  нет
+		Пример:
+		pi@raspberrypi:~ $ sudo i2cdetect -y 1
+			0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+		00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+		10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		60: -- -- -- -- -- -- -- -- -
+После подключения ві3231:
+ sudo i2cdetect -y 1
+			 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+		00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+		10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		50: -- -- -- -- -- -- -- 57 -- -- -- -- -- -- -- --
+		60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- --
+		70: -- -- -- -- -- -- -- --
+
+# ---------  устанавливаем поддержку ds3231
+sudo nano /boot/config.txt
+добавляем в конец файла:  dtoverlay=i2c-rtc,ds3231
+Перезагрузка
+		 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+		00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+		10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+		50: -- -- -- -- -- -- -- 57 -- -- -- -- -- -- -- --
+		60: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- --
+		70: -- -- -- -- -- -- -- --
+
+# ------------  удаляем fake-hwclock  ----------------------
+	sudo apt-get -y remove fake-hwclock
+	sudo update-rc.d -f fake-hwclock remove
+	sudo systemctl disable fake-hwclock
+# ---------  запускаем в качестве часов ds3231 ---------------
+sudo nano /lib/udev/hwclock-set
+комментируем строки:
+	dev=$1
+	
+	#if [ -e /run/systemd/system ] ; then
+	# exit 0
+	#fi
+комментируем строки:
+	#/sbin/hwclock --rtc=$dev --systz --badyear
+	и
+	#/sbin/hwclock --rtc=$dev --systz
+# ---------   проверяем работу часов --------------
+		sudo hwclock -r   # читаем время из часов, по умолчанию в UTC формате, поэтому 
+нужно установить  правильно timezone
+		sudo raspi-config  -> Localization options -> Timezone -> Kiev +2GMT
+
+
+// ------------------------------------------------------------------------------------------------------
+// ----------- Кнопка выключения      -------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------
+В ядре системы предусмотрен узел, автоматически выключающий (shutdown) компьютер при появлении спадающего/возрастающего уровня
+Этот узел  включается и настраивается в /boot/config.txt:
+	sudo nano /boot/config.txt
+	вставляем текст
+	# ----------- shutdown button -------------
+	dtoverlay=gpio-shutdown,gpio_pin=14,active_low=0,gpio_pull=up
+	описание см. в /boot/overlays/README
+	
+// ------------------------------------------------------------------------------------------------------
+// ----------- Мигание светодиодом кнопки питания вкл. питания    ---------------------------------------
+// ---это плохой вариант - не видно когда включился/выключился raspberry, т.к. сразу останавливаются скрипты, 
+// --- выключается ядро, и эти несколько секунд лампа уже погашена, хотя в этот момент идет интенсивная работа с картой
+// --- припаялся к  act-led (ножка со стороны power led), все работает, скрипт снес ---------------------
+1. Создаем в домашней папке скрипт /home/pi/buttonPowerBlink:
+		#/bin/bash
+		# pin number
+		pin=15
+		# ----------
+
+		home=/sys/class/gpio/
+		gpioPin="${home}gpio${pin}"
+		echo "Current gpio_pin=$pin, path=$gpioPin"
+
+		# ---- registering ---------
+		echo "Registering gpio$pin"
+		echo $pin  > "${home}export"
+
+		# ---- set as output -----
+		echo "Set as output"
+		echo "out"  > "${gpioPin}/direction"
+		echo "Read direction:"; cat "${gpioPin}/direction"
+
+		# --- blinking -------
+		while :
+		do
+		echo "1" > "${gpioPin}/value"
+		sleep 1
+		echo "0" > "${gpioPin}/value"
+		sleep 1
+		done
+2. Делаем его исполняемым
+	sudo chmod +x /home/pi/buttonPowerBlink
+3. Включаем в автозагрузку наш скрипт:
+	nano /etc/rc.local
+	      Перед строкой exit 0 вставляем строку:
+	sudo /home/pi/buttonPowerBlink
+4. reboot   # перезагрузка, все работает
+
+// ------------------------------------------------------------------------------------------------------
+// ----------- Работа c GPIO в Bash   -------------- https://cxem.net/arduino/arduino43.php -------------
+// ---------------------------------------- https://codeandlife.com/2012/07/03/benchmarking-raspberry-pi-gpio-speed/ 
+// --------------------------------------------------------------
+# подключаем Pin17
+echo "17" > /sys/class/gpio/export
+# Задаем направление "in" or "out"
+echo "out" > /sys/class/gpio/gpio17/direction
+# читаем направление 
+cat /sys/class/gpio/gpio17/direction
+# читаем состояние
+cat /sys/class/gpio/gpio17/value
+# устанавливаем  состояние пина
+echo "1	" > /sys/class/gpio/gpio18/value
+// ---- проверка исправности Pin как выхода----------
+1. Подключаем светодиод к порту.
+2. Запускаем скрипт: testPinOut 26 # (для gpio_pin=26) 
+		#/bin/bash
+		pin=$1
+		home=/sys/class/gpio/
+		gpioPin="${home}gpio${pin}"
+		echo "Current gpio_pin=$pin, path=$gpioPin"
+		# ---- registering ---------
+		echo "Registering gpio$pin"
+		echo $pin  > "${home}export"
+		# ---- set as output -----
+		echo "Set as output"
+		echo "out"  > "${gpioPin}/direction"
+		echo "Read direction:"; cat "${gpioPin}/direction"
+
+		# --- blink -------
+		times=5
+		echo "Blinking $times times"
+		for ((i=1; i<$times; i++))
+		do
+		echo "Blink $i"
+		echo "1" > "${gpioPin}/value"
+		sleep 1
+		echo "0" > "${gpioPin}/value"
+		sleep 1
+		done
+
+		# --- set 1 ----------
+		echo "Set gpio_pin$pin to 1"
+		echo "1" > "${gpioPin}/value"
+		read -sn1 -p "Press any key to continue..."; echo
+		# --- set 0 ----------
+		echo "0" > "${gpioPin}/value"
+		echo "Set to 0"
+3. Светодиод должен мигать. Если не мигает - порт сожженный
+// ---------- проверка gpio_pin как  входа (обычно если он не работает как вход, то не работает икак выход) ---------
+1. Подключаем к нужному pin  проводок с резистором около 1000 Ом (1кОм).
+2. Запускаем скрипт testPinIn 26 # (для gpio_pin=26)
+		#/bin/bash
+		pin=$1
+		home=/sys/class/gpio/
+		gpioPin="${home}gpio${pin}"
+		echo "Current gpio_pin=$pin, path=$gpioPin"
+		echo "Registering gpio$pin"
+		echo $pin  > "${home}export"
+		echo "Set as input"
+		echo "in"  > "${gpioPin}/direction"
+		echo "Read direction:"; cat "${gpioPin}/direction"
+
+		echo "Read  gpio_pin$pin"
+		echo "Click [Ctrl+C] for exit"
+		while :
+		do
+		cat "${gpioPin}/value"
+		sleep 1
+		done
+3. Скрипт выдает "0"
+4. Подсоединяем проводок к +3.3V (Внимание! Не к 5V !!!). Скрипт выдает "1" Если состояние пина не изменяется - порт неисправен.
+
+	
+# ------------------------
+/boot/overlays/README
+-------------------------------
+Name:   gpio-poweroff
+Info:   Drives a GPIO high or low on poweroff (including halt). Enabling this
+        overlay will prevent the ability to boot by driving GPIO3 low.
+Load:   dtoverlay=gpio-poweroff,<param>=<val>
+Params: gpiopin                 GPIO for signalling (default 26)
+
+        active_low              Set if the power control device requires a
+                                high->low transition to trigger a power-down.
+                                Note that this will require the support of a
+                                custom dt-blob.bin to prevent a power-down
+                                during the boot process, and that a reboot
+                                will also cause the pin to go low.
+        input                   Set if the gpio pin should be configured as
+                                an input.
+        export                  Set to export the configured pin to sysfs
+
+
+Name:   gpio-shutdown
+Info:   Initiates a shutdown when GPIO pin changes. The given GPIO pin
+        is configured as an input key that generates KEY_POWER events.
+        This event is handled by systemd-logind by initiating a
+        shutdown. Systemd versions older than 225 need an udev rule
+        enable listening to the input device:
+
+                ACTION!="REMOVE", SUBSYSTEM=="input", KERNEL=="event*", \
+                        SUBSYSTEMS=="platform", DRIVERS=="gpio-keys", \
+                        ATTRS{keys}=="116", TAG+="power-switch"
+
+        This overlay only handles shutdown. After shutdown, the system
+        can be powered up again by driving GPIO3 low. The default
+        configuration uses GPIO3 with a pullup, so if you connect a
+        button between GPIO3 and GND (pin 5 and 6 on the 40-pin header),
+        you get a shutdown and power-up button.
+Load:   dtoverlay=gpio-shutdown,<param>=<val>
+Params: gpio_pin                GPIO pin to trigger on (default 3)
+
+        active_low              When this is 1 (active low), a falling
+                                edge generates a key down event and a
+                                rising edge generates a key up event.
+                                When this is 0 (active high), this is
+                                reversed. The default is 1 (active low).
+
+        gpio_pull               Desired pull-up/down state (off, down, up)
+                                Default is "up".
+
+                                Note that the default pin (GPIO3) has an
+                                external pullup.
