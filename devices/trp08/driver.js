@@ -21,7 +21,7 @@
 
 */
 
-const log = require("../tools/log.js");
+const log = require("../../tools/log.js");
 //log.setName("TRP08.js");
 
 const timeout = 2000; //таймаут запроса
@@ -827,7 +827,7 @@ module.exports.getReg = getReg;
 module.exports.has = has;
 
 if (!module.parent) {
-  const iface = require("./RS485_v200.js");
+  const iface = require("../../rs485/RS485_v200.js");
   /*
       console.log("----------------------- \n Device's drivers = ");
       console.log("_get:");

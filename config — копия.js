@@ -1,8 +1,3 @@
-// ------------ логгер  --------------------
-const log = require("./tools/log.js"); // логер
-let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
-let trace = 1; //=1 глобальная трассировка (трассируется все)
-
 const config = {};
 
 // включает/выключает  эмуляцию обмена по RS485
@@ -135,34 +130,15 @@ config.connection = require("./conf_iface.js");
 //   listRegs: "1-SP;1-T;2-T;2-SP", // список регистров для запроса, что бы их не генерировать каждый раз
 // });
 
-config.devices = ["all"]; // таблица сопоставления адреса устройства и типа (массив где индекс - адрес устройства, а значение - имя файла драйвера)
-//async () => {
-//let getEntities = require("./entities");
-let entities = require("./entities"); //await getEntities();
-//trace ? log("i", logName, "---------- Entities ---------") : null;
-//trace ? console.dir(entities, { depth: 4 }) : null;
 config.entities = entities;
-for (let i = 0; i < entities.length; i++) {
-  for (let j = 0; j < entities[i].devices.length; j++) {
-    let dev = entities[i].devices[j];
-    if (config.devices[dev.addr]) {
-      //if (config.devices[dev.addr])
-      let msg = `Ошибка: одинаковый адрес у двух приборов на одной линии`;
-      log("e", logName, msg);
-      throw new Error(msg);
-    }
-    config.devices.push(dev.type);
-  }
-}
-//};
 
-// config.devices = [
-//   "all", //0
-//   "TRP08", //1
-//   "TRM210", //2
-//   "TRP08", //3
-// ];
-
+// таблица сопоставления адреса устройства и типа (массив где индекс - адрес устройства, а значение - имя файла драйвера)
+config.devices = [
+  "all", //0
+  "TRP08", //1
+  "TRM210", //2
+  "TRP08", //3
+];
 // список используемых алиасов с указанием физического имени регистра
 // (т.е. адрес ModBus + сигнатура в драйвере устройства, например 7SQ1 => 5-DIO1 )
 var tags = new Map();
@@ -190,12 +166,12 @@ config.logger = {
 config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
-config.queue.work = ["1-T", "2-T", "3-T", "4-T", "2-SP", "3-tT"];
+config.queue.work = ["1-T", "2-T", "3-T", "1-SP", "2-SP", "3-tT"];
 
 module.exports = config;
 
 if (!module.parent) {
   console.dir(config, { depth: 4 });
-  //console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
+  console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
   //util.inspect(config)
 }
