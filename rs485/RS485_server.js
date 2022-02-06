@@ -10,128 +10,218 @@ function read (name,cb) // считывает значение регистра 
 function write(name,value,cb) // записывает значение регистра name=value по RS-485 и заносит ответ в registers
 function has(name) // находит имя регистра по алиасу или имени и возвращает его если не нашла null
 ------------ 2019-10-07 -----------------------------------
-
+------------ 2022-02-05 -----------------------------------
+1. Удалил Aliases. Они работают только если у нас 1 печь, например 7SQ1, когда есть 3 печи с этими КВ
+  то в алиасе нет смысла. Эту функциональность, вероятно, нужно перенести в настройку печи (entities) каждый менеджер пройцесса
+  может делать себе ссылки в виде {"7SQ1" : "1-DIO3"} и работать с ними локально 
+2. Добавил функцию addReg({}); которая регистрирует регистр на сервере. 
+3. Добавил функцию addDevices("addr-name"); которая добавляет устройство в линию
 */
+
+// ------------ логгер  --------------------
 const log = require("../tools/log.js"); // логер
 let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
-let gTrace = 0; //глобальная трассировка (трассируется все)
+let gTrace = 1; //=1 глобальная трассировка (трассируется все)
+gTrace ? log("w", logName, "Started") : null;
 
-const config = require("../config.js");
+/**
+ * registers реестр используемых физических регистров  (названия как в драйвере)
+ * здесь хранятся все данные о регистре, значение  и пр.
+ * value, timestamp, buffer,note, err
+ */
+const registers = new Map();
+const { isInteger } = require("../tools/general.js");
+const { emulateRS485, priority } = require("../config.js");
+
+/**
+ * Допустимое количество повторов опроса, после которого считается что данных нет
+ */
+const ERRORS_COUNT = 5;
 
 const iface = require("./RS485_v200.js"); // параметры порта в  config.js
 
+/**
+ * парсит имя регистра "1-tT" → [1,"tT"]
+ * @param {String} name имя регистра в формате "address-registerName", например "1-tT"
+ * @returns {Boolean | Array} false | [{integer} адрес, {String} имя]
+ */
 function parseName(name) {
-  // парсим имя регистра for example: name="1-T"
+  //  for example: name="1-T"
   let p = name.split("-");
+  if (p.length != 2) {
+    return false;
+  }
+  if (!isInteger(p[0])) {
+    return false;
+  }
   let answ = [parseInt(p[0], 10), p[1].trim()];
   //log("parseName: ",answ);
   return answ; //  ответ [адрес(int),имя(string)]
 } //parse name
 
-// -------------------------------------------------------------------
-// загружаем драйвера для каждого типа устройства
+// список драйверов устройств
 const deviceDrivers = new Map();
-for (var i = 0; i < config.devices.length; i++) {
-  if (i == 0) {
-    deviceDrivers.set("all", undefined);
-  } // 0 = широковещательный адрес require("./allDevices.js")
-  else {
-    let dev = config.devices[i].trim();
-    if (!deviceDrivers.has(dev)) {
-      // драйвер устройства еще не загружен, загружаем
-      try {
-        deviceDrivers.set(dev, require("../devices/" + dev + "/driver.js"));
-      } catch (err) {
-        log(0, "Ошибка загрузки модуля:" + dev + " => " + err.message);
-      }
-    }
-  } //else
-} //for
+// широковещательный адрес, пока не используется.
+deviceDrivers.set("all", undefined);
 
-// -------------------------------------------------------------------
-// таблица сопоставления адреса устройства , типа, а также отметка об активности прибора
-const devices = []; // массив: индекс - адрес устройства, а значение - объект устройства,
-// описание полей смотри ниже
+/**
+ * загружает драйвер по адресу: /devices/${dev}/driver.js  для каждого типа устройства
+ * и добавляет в deviceDrivers
+ * @param {String} dev тип прибора, например "trp08"
+ * @returns
+ */
+function loadDriver(dev) {
+  // ----------- настройки логгера локальные --------------
+  let logN = logName + "loadDriver(" + dev + "):";
+  let trace = 1;
+  trace = gTrace != 0 ? gTrace : trace;
+  trace ? log("w", logN, "Started") : null;
 
-{
-  let dev = config.devices;
-  for (var i = 0; i < dev.length; i++) {
-    let d = dev[i].trim();
-    if (deviceDrivers.has(d)) {
-      // драйвер устройства загружен
-      devices[i] = {
-        driver: deviceDrivers.get(d), // драйвер устройства
-        active: true, // есть ли связь с прибором т.к. если часто опрашивать отсутствующий прибор,
-        // то очень большие задержки на таймаутах
-        tryReq: 0, // количество неотвеченных запросов с момента последнего опроса прибора
-        lastReq: new Date(), // отметка времени последней попытки опроса тип Date()
-      };
+  if (!dev) {
+    log("e", "Устройство не указано");
+    return false;
+  }
+  if (typeof dev != "string") return false;
+  dev = dev.trim();
+  // если драйвер уже загружен, успех, выходим
+  if (deviceDrivers.has(dev)) return true;
+  let msg = "Driver";
+  // драйвер устройства еще не загружен, загружаем
+  try {
+    if (emulateRS485) {
+      deviceDrivers.set(dev, require("../devices/" + dev + "/simulator.js"));
+      msg = "Simulator";
     } else {
-      log(0, "Для устройства:" + d + " не загружен драйвер, пропускаем");
-      devices[i] = undefined;
+      deviceDrivers.set(dev, require("../devices/" + dev + "/driver.js"));
     }
-  } //for
-}
+    log("i", "Загружен " + msg + " драйвер для прибора:" + dev);
+    return true;
+  } catch (err) {
+    log(0, "Ошибка загрузки модуля:" + dev + " => " + err.message);
+    return false;
+  }
+} // loadDriver
 
-// --------------------------------------------------------------------
-// таблица сопоставления тега и имени регистра, например 7SQ1 => 5-DIO1
-// загружаем и проверяем список
+/**
+ * массив: индекс - адрес устройства, а значение - объект устройства,
+ * таблица сопоставления адреса устройства , типа, а также отметка об активности прибора
+ */
+const devices = [];
 
-const registers = new Map(); // реестр используемых физических регистров (названия как в драйвере)
-//  здесь хранятся все данные о регистре, значение  и пр.
-// value, timestamp,buffer,note, err
-// ---------------------------
-const aliases = new Map(); // список алиасов т.е. псевдонимов регистров, например: 7SQ1 => DIO1
-{
-  //block
-  let tags = config.tags;
-  for (let each of tags) {
-    let regName = each[1].trim();
-    let alias = each[0].trim();
-    let [adr, reg] = parseName(regName);
+/**
+ * добавляет устройство таблицу устройств devices
+ * @param {Integer} addr адресс в сети rs485
+ * @param {String} type тип
+ * @param {String} simulator=null симулятор прибора, используется при разработке
+ * @returns
+ */
+function addDevice(addr, type, simOptions = null) {
+  // ----------- настройки логгера локальные --------------
+  let logN = logName + `addDevice(${addr},${type},${simOptions}):`;
+  let trace = 1;
+  trace = gTrace != 0 ? gTrace : trace;
+  trace ? log("w", logN, "Started") : null;
 
-    let _alias = "Alias = " + alias + ".";
-    let _reg = "Alias = " + reg + ".";
-    let _regName = "regName = " + regName + ".";
-    //console.log("Alias="+alias+"; adr="+adr+"; reg="+reg);
-    if (!aliases.has(alias)) {
-      if (devices[adr]) {
-        if (devices[adr].driver.has(reg)) {
-          aliases.set(alias, regName);
-          if (!registers.has(regName)) {
-            registers.set(regName, {
-              value: null, // значение регистра
-              timestamp: new Date(), // время последнего опроса
-              errorsCounter: 0, // счетчик ошибок
-              note: "", // описание
-              err: null, // ошибка, если есть
-            });
-          } else {
-            log(0, _alias + _regName + " уже имеется в таблице регистров");
-          }
-        } else {
-          log(
-            0,
-            _alias +
-              _regName +
-              "Драйвер не опознал запрашиваемый регистр:" +
-              _reg
-          );
-        }
-      } else {
-        log(
-          0,
-          _alias +
-            _regName +
-            "Указанного адреса в таблице устройств не обнаружено"
-        );
-      }
-    } else {
-      log(0, _alias + _regName + "Dublicate alias");
-    }
-  } //for
-} //block
+  if (typeof type != "string") {
+    log("e", `Тип устройства должен быть строкой type=${type}`);
+    return false;
+  }
+  type = type.trim();
+  addr = parseInt(addr);
+  if ((addr < 1) | (addr > 254)) {
+    log("e", `Адрес прибора [${addr}] вне допустимого диапазона`);
+    return false;
+  }
+  if (!loadDriver(type)) {
+    log("e", `Невозможно загрузить драйвер прибора [${type}]`);
+    return false;
+  }
+  if (devices[addr]) {
+    log("e", `Прибор с таким адресом [${addr}] уже зарегистрирован`);
+    return false;
+  }
+  let driver = deviceDrivers.get(type);
+  if (emulateRS485) {
+    driver = new driver(simOptions);
+  }
+  devices[addr] = {
+    driver: driver, // драйвер устройства emulateRS485 ? simulator :
+    active: true, // есть ли связь с прибором т.к. если часто опрашивать отсутствующий прибор,
+    // то очень большие задержки на таймаутах
+    tryReq: 0, // количество неотвеченных запросов с момента последнего опроса прибора
+    lastReq: new Date(), // отметка времени последней попытки опроса тип Date()
+  };
+  trace ? log("w", logN, ` Devices[${addr}]=`, devices[addr]) : null;
+  return true;
+} //addDevice(addr, type)
 
+/**
+ * добавляет регистр в реестр
+ * @param {Object} reg
+ * @param {String} reg.id //  например "1-tT", обязательное поле адрес-имя, имя точно такое как в драйвере прибора
+ * @param {Number} reg.priority // приоритет опроса прибора
+ *
+ */
+function addReg(reg = {}) {
+  // ----------- настройки логгера локальные --------------
+  let logN = logName + "addReg(reg):";
+  let trace = 0;
+  trace = gTrace != 0 ? gTrace : trace;
+  trace ? log("i", logN, "Started") : null;
+  // -------
+  let param = " reg=( " + JSON.stringify(reg) + " )"; // для вывода параметра ф-и в описании ошибки
+  // ------ проверяем корректность полученных данных -----
+  if (!reg.id) {
+    log("e", logN, "Нет адреса регистра!" + param);
+    return false;
+  }
+  let arr = parseName(reg.id); //парсим имя регистра
+  if (!arr) {
+    log("e", logN, "Не могу определить адрес и имя регистра:" + reg.id);
+    return false;
+  }
+  let [addr, regName] = arr;
+  if (!devices[addr]) {
+    log("e", logN, "Указанного устройства не обнаружено." + param);
+    return false;
+  }
+  // trace ? log("i", logN, "regName=", regName) : null;
+  // trace ? log("i",logN,"devices[addr].driver.has(regName)=",devices[addr].driver.has(regName)): null;
+  if (!devices[addr].driver.has(regName)) {
+    log("e", logN, "Драйвер не опознал запрашиваемый регистр." + param);
+    return false;
+  }
+  if (registers.has(reg.id)) {
+    log("e", logN, "Запрашиваемый регистр уже зарегистрирован." + param);
+    return false;
+  }
+  // --- все нормально, регистрируем ---------
+  reg.priority = reg.priority ? reg.priority : priority.LOW;
+  reg.value = null; // значение регистра
+  reg.timestamp = new Date(); // время последнего опроса
+  reg.errorsCounter = 0; // счетчик ошибок
+  reg.err = null; // последняя ошибка
+  reg.note = ""; // описание
+  registers.set(reg.id, reg);
+  trace ? log("w", logName, "---------- added reg=  -------------") : null;
+  trace ? console.dir(reg) : null;
+  return true;
+} //addReg(reg)
+
+/**
+ * Обновляет значение регистра в таблице регистров. Синхронная.
+ * @param {String} regName пример:"1-T", регистр в формате "адрес-имя"
+ * @param {Object} data обьект данных
+ * @param {Date} data.timestamp отметка времени
+ * @param {Date} data.note описание регистра, полученное от драйвера
+ * @param {Date} data.req запрос в линию rs485
+ * @param {Date} data.buf буфер ответа из линии rs485
+ * @param {Date} data.value значение регистра
+ * @param {Date} data.err описание ошибки, полученное от драйвера
+ * @param {Date} data.err.message текстовое описание ошибки, полученное от драйвера
+ * @param {Date} data.err.code код ошибки, полученное от драйвера
+ * @returns {Boolean} результат операции обновления
+ */
 function saveRegister(regName, data) {
   // синхронная, обновляет данные в регистре regName, возвращает true после успешной операции
   let trace = 0;
@@ -161,10 +251,10 @@ function saveRegister(regName, data) {
     regData.err.code = data.err.code;
     regData.err.req = data.req; // сохраняем запрос
     regData.err.buf = data.buf; // сохраняем буфер ответа
-    if (regData.errorsCounter > 5) {
+    if (regData.errorsCounter > ERRORS_COUNT) {
       // если больше 5 ошибок
       regData.value = null; // пишем: значение не определено
-      regData.errorsCounter = 5; // останавливаем счетчик
+      regData.errorsCounter = ERRORS_COUNT; // останавливаем счетчик
     }
   }
   if (!data.err) {
@@ -175,6 +265,7 @@ function saveRegister(regName, data) {
   }
   trace ? log(1, head, "\n\t after regData=", regData) : null;
   registers.set(regName, regData); // пишем в таблицу регистров
+  return true;
 }
 
 function getRegName(name) {
@@ -182,17 +273,22 @@ function getRegName(name) {
   // если не нашла null
   let reg = null; // имя регистра
   name = name.trim();
-  if (aliases.has(name)) {
-    reg = aliases.get(name);
-  }
+  // if (aliases.has(name)) {
+  //   reg = aliases.get(name);
+  // }
   if (registers.has(name)) {
     reg = name;
   }
   return reg;
 } //function getReg
 
+/**
+ * считывает значение регистра по RS-485 и заносит ответ в registers
+ * @param {*} name имя регистра в формате "адресс-имя"
+ * @param {requestCallback} cb коллбэк
+ */
 function read(name, cb) {
-  // считывает значение регистра по RS-485 и заносит ответ в registers
+  // настройки логгера
   let trace = 0;
   let head = "server_RS485:read(" + name + "):";
   // нормализуем имя регистра
@@ -206,9 +302,10 @@ function read(name, cb) {
     }
     // получаем драйвер
     let device = devices[adr].driver;
-    if (config.emulateRS485) {
-      let data = emulator(adr, regName);
 
+    if (config.emulateRS485) {
+      // если режим эмуляции
+      let data = emulator(adr, regName);
       parseData(data, null);
       return cb(null, registers.get(reg));
     }
@@ -263,11 +360,10 @@ function emulator(addr, name) {
 }
 
 function parseData(data, err) {
-  //обрабатываем принятые данные
-  // т.к. при ошибке может возвращаться одиночный объект, то проверяем на массив
   let trace = 0;
   let head = "RS485_server:parseData():";
-
+  //обрабатываем принятые данные
+  // т.к. при ошибке может возвращаться одиночный объект, то проверяем на массив
   if (Array.isArray(data)) {
     // для каждого элемента в массиве ответов
     for (var i = 0; i < data.length; i++) {
@@ -293,9 +389,15 @@ function parseData(data, err) {
   }
 } //function parseData(data)
 
+/**
+ * записывает значение регистра  по RS-485 и заносит ответ в registers
+ * @param {String} args принимает одно значение в формате "regName=value"
+ * @param {*} cb (err,data) , где data - ответ драйвера прибора
+ * @returns
+ */
 function write(args, cb) {
-  // записывает значение регистра  по RS-485 и заносит ответ в registers
-  // принимает args="regName=value"
+  //
+  //
   // возвращает (err,data)
   let trace = 0;
   let head = "server_RS485:write(" + args + "):";
@@ -325,8 +427,13 @@ function write(args, cb) {
   }
 }
 
+/**
+ * синхронная, возвращает из таблицы регистров данные регистра name
+ * @param {String} name имя регистра
+ * @returns null | значение регистра
+ */
 function get(name) {
-  // возвращает из таблицы данные требуемого регистра name
+  //
   // синхронная
   let regName = getRegName(name);
   let head = "server_RS485:get(" + name + "):";
@@ -341,8 +448,11 @@ module.exports.get = get; //синхронная
 module.exports.read = read;
 module.exports.write = write;
 module.exports.has = getRegName;
+module.exports.addReg = addReg; //синхронная
+module.exports.addDevice = addDevice; //синхронная
 
 if (!module.parent) {
+  //addReg({});
   //console.log("----------------------- \n Aliases = ");
   //console.log(aliases);
   /*console.log("----------------------- \n Device's drivers = ");
@@ -353,31 +463,31 @@ if (!module.parent) {
     console.log(aliases);
     console.log("----------------------- \n Registers = ");
     console.log(registers);*/
-  function testRead() {
-    let t = "1-T";
-    read(t, (err, data) => {
-      let logN = logName + " callback read(";
-      if (err) {
-        log("e", logN, t, "): error=");
-        return;
-      }
-      //console.log(err);
-      log("i", logN, t, ") data=");
-      console.log(data);
-    });
-    t = "2-T";
-    read(t, (err, data) => {
-      let logN = logName + " callback read(";
-      if (err) {
-        log("e", logN, t, "): error=");
-        return;
-      }
-      //console.log(err);
-      log("i", logN, t, ") data=");
-      console.log(data);
-    });
-  }
-  setInterval(testRead, 3000);
+  // function testRead() {
+  //   let t = "1-T";
+  //   read(t, (err, data) => {
+  //     let logN = logName + " callback read(";
+  //     if (err) {
+  //       log("e", logN, t, "): error=");
+  //       return;
+  //     }
+  //     //console.log(err);
+  //     log("i", logN, t, ") data=");
+  //     console.log(data);
+  //   });
+  //   t = "2-T";
+  //   read(t, (err, data) => {
+  //     let logN = logName + " callback read(";
+  //     if (err) {
+  //       log("e", logN, t, "): error=");
+  //       return;
+  //     }
+  //     //console.log(err);
+  //     log("i", logN, t, ") data=");
+  //     console.log(data);
+  //   });
+  // }
+  // setInterval(testRead, 3000);
   /*
     read("taskT1",(err,data) => {});
     read("1-T",(err,data) => {});

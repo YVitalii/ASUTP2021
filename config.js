@@ -7,6 +7,15 @@ const config = {};
 
 // включает/выключает  эмуляцию обмена по RS485
 config.emulateRS485 = 1; //true;
+/**
+ * список констант приоритетов REAL_TIME=0,HIGHT=1,MIDDLE=2,LOW=3
+ */
+config.priority = {
+  REAL_TIME: 0,
+  HIGHT: 1,
+  MIDDLE: 2,
+  LOW: 3,
+};
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -135,26 +144,30 @@ config.connection = require("./conf_iface.js");
 //   listRegs: "1-SP;1-T;2-T;2-SP", // список регистров для запроса, что бы их не генерировать каждый раз
 // });
 
-config.devices = ["all"]; // таблица сопоставления адреса устройства и типа (массив где индекс - адрес устройства, а значение - имя файла драйвера)
-//async () => {
-//let getEntities = require("./entities");
-let entities = require("./entities"); //await getEntities();
-//trace ? log("i", logName, "---------- Entities ---------") : null;
-//trace ? console.dir(entities, { depth: 4 }) : null;
-config.entities = entities;
-for (let i = 0; i < entities.length; i++) {
-  for (let j = 0; j < entities[i].devices.length; j++) {
-    let dev = entities[i].devices[j];
-    if (config.devices[dev.addr]) {
-      //if (config.devices[dev.addr])
-      let msg = `Ошибка: одинаковый адрес у двух приборов на одной линии`;
-      log("e", logName, msg);
-      throw new Error(msg);
-    }
-    config.devices.push(dev.type);
-  }
-}
+// config.devices = ["all"]; // таблица сопоставления адреса устройства и типа (массив где индекс - адрес устройства, а значение - имя файла драйвера)
+// //async () => {
+// //let getEntities = require("./entities");
+// let entities = require("./entities"); //await getEntities();
+// //trace ? log("i", logName, "---------- Entities ---------") : null;
+// //trace ? console.dir(entities, { depth: 4 }) : null;
+// config.entities = entities;
+// for (let i = 0; i < entities.length; i++) {
+//   // перебираем печи
+//   for (let j = 0; j < entities[i].devices.length; j++) {
+//     // перебираем устройства
+//     let dev = entities[i].devices[j];
+//     if (config.devices[dev.addr]) {
+//       // два устройства с одинаковым адресом
+//       let msg = `Ошибка: одинаковый адрес у двух приборов на одной линии`;
+//       log("e", logName, msg);
+//       throw new Error(msg);
+//     }
+//     // добавляем устройство в список
+//     config.devices.push(dev.type);
+//   }
+// }
 //};
+config.entities = require("./entities");
 
 // config.devices = [
 //   "all", //0

@@ -16,7 +16,8 @@
   -------- 2019-08-14   -----------------------
   работающая версия
   -------- 2019-10-06 --------------------------
-  setReg, убрал эхо-запрос значения регистра, т.к. очередь - возвращается последнее установленное значение,
+  setReg, убрал эхо-запрос значения регистра, т.к. очередь - возвращается последнее 
+  установленное значение,
   логика обработки ошибки должна быть в управл.программе
 
 */
@@ -254,7 +255,7 @@ regs.set("timer", {
   },
 }); ///regs.set("timer")
 
-/*  ------------------ 0x 00 03 [REG] закон регулирования ,
+/*  ------------------ 0x 00 03 [regMode] закон регулирования ,
     в приборе:
         "0"- выключение регулирования;
         "1"- ПИД – закон;
@@ -264,7 +265,7 @@ regs.set("timer", {
         Запись в режиме "стоп"
     ответ: число с номером регистра
 */
-regs.set("REG", {
+regs.set("regMode", {
   addr: 0x0003,
   _get: function () {
     return {
@@ -827,7 +828,7 @@ module.exports.getReg = getReg;
 module.exports.has = has;
 
 if (!module.parent) {
-  const iface = require("../../rs485/RS485_v200.js");
+  //const iface = require("../../rs485/RS485_v200.js");
   /*
       console.log("----------------------- \n Device's drivers = ");
       console.log("_get:");
@@ -873,20 +874,20 @@ if (!module.parent) {
         log(caption,data)
       })*/
 
-  setReg(iface, 1, "H", 11, (err, data) => {
-    let caption = "set H=180 minutes >> ";
-    if (err) {
-      log(0, caption, "err=", err.message, "; code=", err.code);
-    }
-    log(caption, data);
-  });
-  setReg(iface, 1, "Y", 11 * 60 + 11, (err, data) => {
-    let caption = "set Y=11:11  >> ";
-    if (err) {
-      log(0, caption, "err=", err.message, "; code=", err.code);
-    }
-    log(caption, data);
-  });
+  // setReg(iface, 1, "H", 11, (err, data) => {
+  //   let caption = "set H=180 minutes >> ";
+  //   if (err) {
+  //     log(0, caption, "err=", err.message, "; code=", err.code);
+  //   }
+  //   log(caption, data);
+  // });
+  // setReg(iface, 1, "Y", 11 * 60 + 11, (err, data) => {
+  //   let caption = "set Y=11:11  >> ";
+  //   if (err) {
+  //     log(0, caption, "err=", err.message, "; code=", err.code);
+  //   }
+  //   log(caption, data);
+  // });
 
   /*  setInterval(()=>{
         log (2,(new Date()).toTimeString());
@@ -931,8 +932,10 @@ if (!module.parent) {
       }, 5000)
 */
 
-  console.log("----------------------- \n regs = ");
+  console.log("----------------------- \n regs.keys = ");
   for (let key of regs.keys()) {
-    log("i", key);
+    log("i", key); //+ " -> "
   }
+  console.log("----------------------- \n regs = ");
+  console.dir(regs, { depth: 4 });
 }

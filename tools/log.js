@@ -6,6 +6,8 @@
 // let logN=logName+"описание:";
 // let trace=0;   trace = (gTrace!=0) ? gTrace : trace;
 // trace ? log("i",logN,"Started") : null;
+// trace ? log("i",logN,"--- ---") : null;
+// trace ? console.dir() : null;
 
 var buf = require("./parseBuf.js");
 var colors = require("colors");
