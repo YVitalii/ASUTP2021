@@ -167,7 +167,7 @@ config.connection = require("./conf_iface.js");
 //   }
 // }
 //};
-config.entities = require("./entities");
+// config.entities = require("./entities");
 
 // config.devices = [
 //   "all", //0
@@ -178,15 +178,15 @@ config.entities = require("./entities");
 
 // список используемых алиасов с указанием физического имени регистра
 // (т.е. адрес ModBus + сигнатура в драйвере устройства, например 7SQ1 => 5-DIO1 )
-var tags = new Map();
-for (var i = 1; i <= 2; i++) {
-  tags.set("tT" + i, i + "-Tt");
-  tags.set("SP" + i, i + "-SP");
-}
-tags.set("T3", "3-T");
-tags.set("SP3", "3-tT");
+// var tags = new Map();
+// for (var i = 1; i <= 2; i++) {
+//   tags.set("tT" + i, i + "-Tt");
+//   tags.set("SP" + i, i + "-SP");
+// }
+// tags.set("T3", "3-T");
+// tags.set("SP3", "3-tT");
 
-config.tags = tags;
+//config.tags = tags;
 //tags.set("sT"+i,i+"-T");
 // настройки логгера
 config.logger = {
@@ -200,10 +200,10 @@ config.logger = {
 };
 
 // ------------  очереди опроса  -----------------------
-config.queue = {};
+//config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
-config.queue.work = ["1-T", "2-T", "3-T", "4-T", "2-SP", "3-tT"];
+//config.queue.work = ["1-T", "2-T", "3-T", "4-T", "2-SP", "3-tT"];
 
 module.exports = config;
 

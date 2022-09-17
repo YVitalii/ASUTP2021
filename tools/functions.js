@@ -25,7 +25,7 @@ function getParabolicRelation(x0, y0, x1, y1) {
     `getParabolicRelation(${x0.toFixed(2)},${y0.toFixed(2)},${x1.toFixed(
       2
     )},${y1.toFixed(2)}):`;
-  let trace = 1;
+  let trace = 0;
   // -----------------------------
 
   let a = -(y0 - y1) / (x0 * x0 + x1 * x1 - 2 * x0 * x1);
@@ -64,7 +64,7 @@ function getLinearRelation(x0, y0, x1, y1) {
     `getLinearRelation(${x0.toFixed(2)},${y0.toFixed(2)},${x1.toFixed(
       2
     )},${y1.toFixed(2)}):`;
-  let trace = 1;
+  let trace = 0;
   // -----------------------------
   var k = (y1 - y0) / (x1 - x0);
   var b = y0 - k * x0;
