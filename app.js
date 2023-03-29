@@ -12,12 +12,14 @@ var passport = require('./tools/passport-loc.js');
 
 var indexRouter = require('./routes/index');
 var graphRouter = require('./routes/graph');
+var parameterSettingRouter = require('./routes/parameterSetting');
 var loginRouter = require('./routes/login');
 var reportRouter = require('./routes/report');
 var usersRouter = require('./routes/users');
 var setTimeRouter= require('./routes/setTime.js');
 var entitiesRouter = require('./routes/entities.js'); //  список печей
 const deleteFileRouter=require('./routes/deleteFile.js'); // удаление файла
+const saveProgramRouter=require('./routes/saveProgram.js'); // Запись программы
 const getRouter=require('./routes/getReg.js'); // получение оперативных данных
 const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
 const { session } = require('./tools/passport-loc.js');
@@ -74,9 +76,11 @@ app.use(passport.testLogin); // проверяем авторизованный 
 app.use("/",indexRouter);
 app.use("/setTime",setTimeRouter); //страница установки времени
 app.use('/graph', graphRouter); // страница с графиком
+app.use('/parameterSetting', parameterSettingRouter); // страница с установкой параметров терморегулятора
 app.use('/report', reportRouter); // страница с отчётом
 app.use('/entyties', entitiesRouter); // возвращает список всех печей с их характеристиками
 app.use('/deleteFile', deleteFileRouter); // удаляет файл
+app.use('/saveProgram', saveProgramRouter); // Сохраняет новую программу
 app.use('/getReg', getRouter); // возвращает текущие значения регистров
 app.use('/getLog', logsRouter); // работа с логами печей
 //app.use('/users', usersRouter);
