@@ -1,7 +1,7 @@
 const config = {};
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 0; //true;
+config.emulateRS485 = 0; //false;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -9,23 +9,23 @@ config.connection = require("./conf_iface.js");
 let entities = [];
 
 entities.push({
-  id: "SSHCM-8-15-10",
-  shortName: "СШЦМ-8.15/10", //
-  fullName: "Печь камерная СНОл-2.3.1,3", //
-  temperature: { min: 0, max: 1000 }, // диапазон рабочих температур
+  id: "SDO-151515-55",
+  shortName: "СДО-15.15.15/5,5ВЦ", //
+  fullName: "Електропіч СДО-15.15.15/5,5ВЦ", //
+  temperature: { min: 0, max: 600 }, // диапазон рабочих температур
   regs: {
     "1-tT": {
-      title: "SP1", // имя для вывода в описании поля
+      title: "SP", // имя для вывода в описании поля
       units: "\u00b0C",
       type: "integer",
-      description: "Заданная температура в верхней зоне",
+      description: "Заданная температура",
       legend: "Верх.Задание", // Надпись для графика
     },
     "1-T": {
-      title: "T1", // имя для вывода в описании поля
+      title: "T", // имя для вывода в описании поля
       type: "integer",
       units: "\u00b0C",
-      description: "Текущая температура в верхней зоне",
+      description: "Текущая температура",
       legend: "Верх.Температура", // Надпись для графика
     },
   }, //regs

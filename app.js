@@ -48,7 +48,7 @@ app.use(require('express-session')({ secret: 'furnaceBortek', resave: false, sav
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req,res,next){
-  res.set("Acess-Control-Allow-Origin","http://192.168.1.112:3001");
+  res.set("Acess-Control-Allow-Origin","http://192.168.1.132:3001");
   res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type');
   // console.log('------req.query-------');
