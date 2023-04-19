@@ -1,18 +1,37 @@
 /* -------------- драйвер прибора ТРП-08ТП
 
   function getReg(iface,id,regName,cb) - (err,data) где data -  массив объектов
+                cb (err,
+                    data:[{
+                        regName:
+                        value:,
+                        note:,
+                        req: буфер запроса,
+                        buf: буффер ответа ,
+                        timestamp:},...],
+                        )
   function setReg(iface,id,regName,value,cb) - (err,data) где data -  объект
-  function has(regName)
 
-  cb (err,
-      data:[{
-           regName:
-           value:,
-           note:,
-           req: буфер запроса,
-           buf: буффер ответа ,
-           timestamp:},...],
-           )
+  function has(regName) - повертає true, якщо є такий регістр
+
+  iface - интерфейс, который имеет функцию
+    send (req,cb),
+    req={
+          id-адрес ведомого устройства
+          FC-функция
+          addr-адрес стартового регистра,
+          data - данные
+          timeout - таймаут
+      }, cb (err,
+             data:[{
+                regName:
+                value:,
+                note:,
+                req: буфер запроса,
+                buf: буффер ответа ,
+                timestamp:},...],
+                )
+              
   -------- 2019-08-14   -----------------------
   работающая версия
   -------- 2019-10-06 --------------------------
@@ -700,24 +719,8 @@ function has(regName) {
 }
 
 function getReg(iface, id, regName, cb) {
-  /* считывает данные по iface - интерфейс, который имеет функцию
-    send (req,cb),
-    req={
-          id-адрес ведомого устройства
-          FC-функция
-          addr-адрес стартового регистра,
-          data - данные
-          timeout - таймаут
-      }, cb (err,
-             data:[{
-                regName:
-                value:,
-                note:,
-                req: буфер запроса,
-                buf: буффер ответа ,
-                timestamp:},...],
-                )
-    */
+  /* считывает данные по iface
+   */
   let trace = 0;
   let modul = "TRP08.getReg(id=" + id + ":regName=" + regName + "):";
   if (has(regName)) {
