@@ -13,34 +13,23 @@ gTrace ?  log('i',logName) : null;
 router.post('/', function(req, res, next) {
   // -- настройки логгера --------------
    let trace=1;
-   let logN=logName+"POST:/saveProgram => ";
+   let logN=logName+"POST:/newAkonOutputSignal => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-----------------------------------------
   trace ? log('i', logN, req.query) : null;
-   if (! req.query.folderName) {
+   if (! req.query.newSignal) {
      res.status(400).send(
          {err:
            {
-             en:"Request don't have the folder name. Like this: folderName='SSHCM-8-15-10'"
-             ,ru:"В теле запроса нет имени папки с файлом. Например:  folderName='SSHCM-8-15-10'"
-             ,ua:"В тілі запиту не вказано імені папки з файлом. Наприклад: folderName='SSHCM-8-15-10'"
+             en:'Request doesn`t have new signal data. Like this: newSignal=[{"AO":"6.75"},{"IO":"on"}]'
+             ,ru:'В теле запроса нет нового сигнала. Например: newSignal=[{"AO":"6.75"},{"IO":"on"}]'
+             ,ua:'В тілі запиту не вказано новий сигнал. Наприклад: newSignal=[{"AO":"6.75"},{"IO":"on"}]'
            }
          })
     return
    }//if
-   if (! req.query.id) {
-    res.status(400).send(
-        {err:
-          {
-            en:"Request doesn't have program id. Like this: id='PR1.log'"
-            ,ru:"В теле запроса нет id программы. Например:  id='PR1.log'"
-            ,ua:"В тілі запиту не вказано id програми. Наприклад: id='PR1.log'"
-          }
-        })
-   return
-  }//if
-  let path = "./public/logs/" + req.query.folderName + "/" + req.query.id;
-  trace ?  log('i',logN,"path=",path) : null;
+  // let path = "./public/logs/" + req.query.folderName + "/" + req.query.id;
+  // trace ?  log('i',logN,"path=",path) : null;
   try {
     var today = new Date();
     var dd = String(today.getDate()).padStart(2, '0');
@@ -48,14 +37,14 @@ router.post('/', function(req, res, next) {
     var yyyy = today.getFullYear();
     today = yyyy + '-' + mm + '-' + dd;
     // console.log(req.user);
-    console.log("Спроба завнтажити програму в прилад від користувача:", req.user);
+    console.log("Спроба завнтажити новий сигнал в прилад Акон від користувача:", req.user);
     // fs.unlinkSync(path);
-    console.log("JSON.parse(req.query.newParameters):");
-    console.log(JSON.parse(req.query.newParameters));
-    res.status(200).send("Програма " + req.query.id + " успішно завантажена в прилад.");
+    console.log("JSON.parse(req.query.newSignal):");
+    console.log(JSON.parse(req.query.newSignal));
+    res.status(200).send("Новий сигнал успішно завантажений в прилад.");
     return
   } catch(err) {
-    res.status(500).send("Програма " + req.query.id + " не була завантажена в прилад.");
+    res.status(500).send("Новий сигнал не був завантажений в прилад.");
     // trace ? log('i',logN,"err=",err) : null;
     console.error(err);
   }

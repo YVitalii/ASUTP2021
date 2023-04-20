@@ -1,0 +1,27 @@
+extends layout
+block content
+	div(class="container-fluid card border-info mt-5")
+		//- h1(class="card-header") #{furnace.fullName}
+		h1(class="card-header") WAD-MIO-MAXPro-645
+		div(class="row card-body")
+			div(class="d-flex")
+				div(class="p-1" style="width: 50%")
+					h2 AI
+					div(class="container p-0")
+						lable Аналоговий вхід 4-20 мА
+						div(class="progress")
+							div(id="analog-input" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuemin="0" aria-valuemax="20" style="width: 80%") 16 mA
+						lable(class="form-label" id="discrete-input") Статус дискретного входу
+						//- button(type="button" class="btn btn-outline-success") Зчитати
+				div(class="p-1" style="width: 50%")
+					h2 AO
+					div(class="container p-0")
+						lable.form-label Аналоговий вихід 4-20 мА
+						input(type="range" class="form-range" min="4" max="20" step="0.25" value="6" id="analog-output")
+						lable(class="form-label" id="analog-output-value") Нове значення: 6 мА.
+						div(class="form-check form-switch")
+							input(class="form-check-input" type="checkbox"  id="discrete-output")
+							label(class="form-check-label" for="discrete-output") Дискретний вихід
+					button(type="button" class="btn btn-outline-success" id="new-output-signal") Встановити
+	script
+		include ../tools/akon.js

@@ -12,6 +12,7 @@ var passport = require('./tools/passport-loc.js');
 
 var indexRouter = require('./routes/index');
 var graphRouter = require('./routes/graph');
+var akonRouter = require('./routes/akon');
 var parameterSettingRouter = require('./routes/parameterSetting');
 var loginRouter = require('./routes/login');
 var reportRouter = require('./routes/report');
@@ -20,6 +21,8 @@ var setTimeRouter= require('./routes/setTime.js');
 var entitiesRouter = require('./routes/entities.js'); //  список печей
 const deleteFileRouter=require('./routes/deleteFile.js'); // удаление файла
 const saveProgramRouter=require('./routes/saveProgram.js'); // Запись программы
+const getProgramRouter=require('./routes/program/getProgram.js'); // Читання програми
+const newAkonOutputSignalRouter=require('./routes/newAkonOutputSignal.js'); // Запись еовых данных в прибор Акон
 const getRouter=require('./routes/getReg.js'); // получение оперативных данных
 const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
 const { session } = require('./tools/passport-loc.js');
@@ -50,7 +53,7 @@ app.use(require('express-session')({ secret: 'furnaceBortek', resave: false, sav
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req,res,next){
-  res.set("Acess-Control-Allow-Origin","http://192.168.1.132:3001");
+  res.set("Acess-Control-Allow-Origin","http://192.168.1.143:3001");
   res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type');
   // console.log('------req.query-------');
@@ -76,11 +79,14 @@ app.use(passport.testLogin); // проверяем авторизованный 
 app.use("/",indexRouter);
 app.use("/setTime",setTimeRouter); //страница установки времени
 app.use('/graph', graphRouter); // страница с графиком
+app.use('/akon', akonRouter); // страница с настройками AKON
 app.use('/parameterSetting', parameterSettingRouter); // страница с установкой параметров терморегулятора
 app.use('/report', reportRouter); // страница с отчётом
 app.use('/entyties', entitiesRouter); // возвращает список всех печей с их характеристиками
 app.use('/deleteFile', deleteFileRouter); // удаляет файл
 app.use('/saveProgram', saveProgramRouter); // Сохраняет новую программу
+app.use('/getProgram', getProgramRouter); // Зчитує існуючу програму
+app.use('/newAkonOutputSignal', newAkonOutputSignalRouter); // Сохраняет новые данные в прибор Акон
 app.use('/getReg', getRouter); // возвращает текущие значения регистров
 app.use('/getLog', logsRouter); // работа с логами печей
 //app.use('/users', usersRouter);
