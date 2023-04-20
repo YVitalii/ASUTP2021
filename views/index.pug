@@ -12,6 +12,8 @@ mixin Card(thisFurnace)
             h2(class="col-md-4 w-auto")= thisFurnace.regs[key].units
         a( href="/graph/"+thisFurnace.id)
           button(type="button" class="btn btn-outline-info") Детали
+        a( href="/parameterSetting/"+thisFurnace.id)
+          button(type="button" class="btn btn-outline-info") Параметры
 block content
   div(class="container mt-5")
     div(class="row justify-content-around")

@@ -6,7 +6,7 @@ const dataURL = "/logs/" + furnaceId;
 let chartConfig = {
   dataURL,
   // startDate,
-  y: { min: 0, max: 1000 },
+  y: { min: 0, max: 600 },
   task:null,
   registers, // берётся из report.pug
 }
