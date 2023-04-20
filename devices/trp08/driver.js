@@ -38,6 +38,8 @@
   setReg, убрал эхо-запрос значения регистра, т.к. очередь - возвращается последнее 
   установленное значение,
   логика обработки ошибки должна быть в управл.программе
+  ----- 2023-04-19 --------------------------------
+  потрібно додати функцію, яка буде виводити дані  про регістри, опис, адресу, формат даних в консоль при запуску driver.js
 
 */
 
@@ -126,6 +128,13 @@ regs.set(
           FC: 3,
           addr: this.addr,
           data: 0x1,
+          note: `Читання: 07Н=7- датчик в норме в режиме "стоп"
+          17Н=23- датчик в норме в режиме "пуск"
+          47Н=71- авария датчика в режиме "стоп"
+          57Н=87- авария датчика в режиме "пуск"
+          Запись: пуск /останов прибора
+          11Н=17-пуск прибора (выход в режим "пуск")
+          01Н=1 -останов прибора (выход в режим "стоп")`,
         },
         err: null,
       };
@@ -203,6 +212,7 @@ regs.set("T", {
         FC: 3,
         addr: this.addr,
         data: 0x1,
+        note: "Температура на даний момент",
       },
       err: null,
     };
@@ -608,10 +618,12 @@ regs.set("ti", {
     return this.get_(buf);
   },
 }); ///regs.set("ti"
+
 /*  ------------------ 0x 01 A0 [td] Задание времени дифференцирования в случае выбранного ПИД закона
         в приборе:слово, формат ВСDб (0х0000..0х9999)
         ответ: число
     */
+
 regs.set("td", {
   addr: 0x01a0,
   _get: function () {
@@ -718,14 +730,21 @@ function has(regName) {
   return regs.has(regName);
 }
 
+// -------------------------- setReg callback ---------------------------
+/** Функція зчитування регістру з приладу
+ * @param iface {module} -  налаштований та підготовлений об'єкт, який займається взаємодією з фізичними приладами має містити функції send = addTask (див RS485_v200.js)
+ * @param id {integer} - адрес приладу в iface
+ * @param regName {String} - назва регистру, як визначено в regs
+ * @returns cb {callback} (err,data), де data = Array [{regName,value,note,timestamp},...]
+ */
+
 function getReg(iface, id, regName, cb) {
-  /* считывает данные по iface
-   */
   let trace = 0;
+  regName = regName.trim();
   let modul = "TRP08.getReg(id=" + id + ":regName=" + regName + "):";
+  trace ? log(3, modul) : null;
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
-    trace ? log(3, modul) : null;
     let res = { regName: regName, value: null }; //объект ответа
     let req; //объект запроса
     let { data, err } = reg._get();
@@ -733,8 +752,8 @@ function getReg(iface, id, regName, cb) {
       req = data;
       req["timeout"] = timeout;
       req["id"] = id;
-      trace ? log(2, modul, "req=", req) : null;
       res["req"] = req;
+      trace ? log(2, modul, "req=", req) : null;
       iface.send(req, function (err, buf) {
         res["timestamp"] = new Date(); //отметка времени
         res["buf"] = buf;
@@ -753,8 +772,49 @@ function getReg(iface, id, regName, cb) {
         }
       });
     }
-  }
+  } else cb(new Error(modul + "Не знайдено регістра:" + regName), null);
 } //getReg
+
+/** Промісифікована функція getReg() - див. її опис
+ * @prop {Object} props - дані, що передаються в асинхронну функцію (props.iface, props.id .. )
+ * @returns {Ppomise}
+ */
+function getRegPromise(props) {
+  let trace = 0,
+    ln = "getRegPromise(" + props.id + "-" + props.regName + ")";
+  trace ? log(1, ln) : null;
+  return new Promise(function (resolve, reject) {
+    trace ? log(1, ln + "in Promise") : null;
+    trace ? log(1, ln, props) : null;
+
+    getReg(props.iface, props.id, props.regName, (err, data) => {
+      let trace = 1;
+      if (trace) {
+        console.log(ln, "err=");
+        console.dir(err);
+      }
+      if (trace) {
+        console.log(ln, "data=");
+        console.dir(data);
+      }
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data);
+      return;
+    });
+  });
+}
+
+// -------------------------- setReg callback ---------------------------
+/** Функція запису регістру в прилад
+ * @param iface {module} -  налаштований та підготовлений об'єкт, який займається взаємодією з фізичними приладами має містити функції send = addTask (див RS485_v200.js)
+ * @param id {integer} - адрес приладу в iface
+ * @param regName {String} - назва регистру, як визначено в regs
+ * @param value {integer} - валідне значення, що потрібно записати
+ * @returns cb {callback} (err,data), де data = {regName,value,note,timestamp}
+ */
 
 function setReg(iface, id, regName, value, cb) {
   // функция осуществляет запись регистра по Modbus,
@@ -826,8 +886,26 @@ function setReg(iface, id, regName, value, cb) {
   }
 } // setReg
 
+/** Промісифікована функція setReg() - див. опис параметрів вище
+ *  @returns {Ppomise}
+ */
+function setRegPromise(iface, id, regName, value) {
+  return new Promise(function (resolve, reject) {
+    setReg(iface, id, regName, value, (err, data) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(data);
+      return;
+    });
+  });
+}
+
 module.exports.setReg = setReg;
+module.exports.setRegPromise = setRegPromise;
 module.exports.getReg = getReg;
+module.exports.getRegPromise = getRegPromise;
 module.exports.has = has;
 
 if (!module.parent) {
