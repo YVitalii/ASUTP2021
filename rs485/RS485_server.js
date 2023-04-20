@@ -21,7 +21,7 @@ function has(name) // находит имя регистра по алиасу �
 // ------------ логгер  --------------------
 const log = require("../tools/log.js"); // логер
 let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
-let gTrace = 1; //=1 глобальная трассировка (трассируется все)
+let gTrace = 0; //=1 глобальная трассировка (трассируется все)
 gTrace ? log("w", logName, "Started") : null;
 
 /**
@@ -203,7 +203,9 @@ function addReg(reg = {}) {
   reg.err = null; // последняя ошибка
   reg.note = ""; // описание
   registers.set(reg.id, reg);
-  trace ? log("w", logName, "---------- added reg=  -------------") : null;
+  trace
+    ? log("w", logName, "---------- added reg='", reg.id, "' -------------")
+    : null;
   trace ? console.dir(reg) : null;
   return true;
 } //addReg(reg)
@@ -327,37 +329,37 @@ function read(name, cb) {
   } //else
 } //function read
 
-// ------------ эмулирует получение температуры по RS485 -----
-const start = new Date().getTime(); //запоминаем время первого запуска - єто будет 0
-function emulator(addr, name) {
-  let trace = 0;
-  let furnace = config.entities[0]; // выбираем первую печь в списке
-  // функция отвечает на запросы эмулируя физические величины
-  let max = furnace.temperature.max; //максимальная температура
-  let min = furnace.temperature.min; //минимальная температрура
-  let period = 3 * 60 * 1000 * addr; //длительность периода колебаний (3 минут * addr)
-  let x = (new Date().getTime() - start) / period; // текущий х
-  let y = (Math.sin(x) * (max - min)) / 2 + (max - min) / 2;
-  y = Math.round(y);
-  let res = [];
-  res.push({
-    regName: name,
-    value: y,
-    req: {
-      FC: 3,
-      addr: 05,
-      data: 1,
-      timeout: 2000,
-      id: addr,
-    },
-    timestamp: new Date(),
-    buf: new Buffer([0, 37]),
-    note: "Текущая температура",
-  }); //push
-  trace ? console.log("emulator(" + addr + "," + name + ")=") : null;
-  trace ? console.dir(res) : null;
-  return res;
-}
+// // ------------ эмулирует получение температуры по RS485 -----
+// const start = new Date().getTime(); //запоминаем время первого запуска - єто будет 0
+// function emulator(addr, name) {
+//   let trace = 0;
+//   let furnace = config.entities[0]; // выбираем первую печь в списке
+//   // функция отвечает на запросы эмулируя физические величины
+//   let max = furnace.temperature.max; //максимальная температура
+//   let min = furnace.temperature.min; //минимальная температрура
+//   let period = 3 * 60 * 1000 * addr; //длительность периода колебаний (3 минут * addr)
+//   let x = (new Date().getTime() - start) / period; // текущий х
+//   let y = (Math.sin(x) * (max - min)) / 2 + (max - min) / 2;
+//   y = Math.round(y);
+//   let res = [];
+//   res.push({
+//     regName: name,
+//     value: y,
+//     req: {
+//       FC: 3,
+//       addr: 05,
+//       data: 1,
+//       timeout: 2000,
+//       id: addr,
+//     },
+//     timestamp: new Date(),
+//     buf: new Buffer([0, 37]),
+//     note: "Текущая температура",
+//   }); //push
+//   trace ? console.log("emulator(" + addr + "," + name + ")=") : null;
+//   trace ? console.dir(res) : null;
+//   return res;
+// }
 
 function parseData(data, err) {
   let trace = 0;
@@ -393,12 +395,9 @@ function parseData(data, err) {
  * записывает значение регистра  по RS-485 и заносит ответ в registers
  * @param {String} args принимает одно значение в формате "regName=value"
  * @param {*} cb (err,data) , где data - ответ драйвера прибора
- * @returns
+ * @returns callback  возвращает (err,data)
  */
 function write(args, cb) {
-  //
-  //
-  // возвращает (err,data)
   let trace = 0;
   let head = "server_RS485:write(" + args + "):";
   // парсим аргументы

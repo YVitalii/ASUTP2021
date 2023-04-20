@@ -38,11 +38,16 @@ function regDevices(devices) {
   let regs = [];
   for (let i = 0; i < devices.length; i++) {
     let dev = devices[i];
-    console.dir(dev);
-    trace ? log("i", logN, "dev=", dev.addr) : null;
+    trace
+      ? log("i", logN, "------------ dev=", dev.addr, "-------------")
+      : null;
+    trace ? console.dir(dev) : null;
+    // добавляем устройство на сервер
     server.addDevice(dev.addr, dev.type, dev.simulator);
-    regs.push(regRegisters(dev.regs));
+    // добавляем регистры
+    regs = regs.concat(regRegisters(dev.regs));
   }
+
   return regs;
 }
 
@@ -72,23 +77,30 @@ function regRegisters(registers) {
 function getEntities() {
   // ----------- настройки логгера локальные --------------
   let logN = logName + "работа:";
-  let trace = 0;
+  let trace = 1;
   trace = gTrace != 0 ? gTrace : trace;
   trace ? log("i", logN, "Started") : null;
   try {
     const files = readdirSync(path, { withFileTypes: 1 });
     for (const file of files) {
-      if (file.isDirectory()) {
-        trace ? log("i", logN, "Found folder:", file.name) : null;
-        let conf = require(".\\" + file.name + "\\config.js");
-        // проверяем есть, ли поле id в объекте, если есть принимаем объект, если нет - пропускаем
-        if (conf.id) {
-          if (!conf.devices) continue;
-          if (!conf.devices[0].regs) continue;
-          conf.regs = regDevices(conf.devices);
-          entities.push(conf);
-        }
-      }
+      // если файл не директория - следующий
+      if (!file.isDirectory()) continue;
+      trace ? log("i", logN, "Found folder:", file.name) : null;
+      let conf = require(".\\" + file.name + "\\config.js");
+      // проверяем есть, ли поле id в объекте, если есть принимаем объект, если нет - пропускаем
+      if (!conf.id) continue;
+      // если в объекте нет приборов - пропускаем
+      if (!conf.devices) continue;
+      // если в первом приборе нет регистров - пропускаем
+      if (!conf.devices[0].regs) continue;
+      // регистрируем устройства и регистры на сервере + записываем в общий список всех регистров
+      conf.regs = regDevices(conf.devices);
+      // trace
+      //   ? log("i", logN, "------------ device.regs=", conf.id, "-------------")
+      //   : null;
+      // trace ? console.dir(conf.regs) : null;
+      // добавляем в массив сущностей обработанную сущность
+      entities.push(conf);
     } // for
     trace ? log("i", logN, "---------- Entities ---------") : null;
     trace ? console.dir(entities, { depth: 4 }) : null;
@@ -101,7 +113,7 @@ function getEntities() {
 module.exports = getEntities();
 
 if (!module.parent) {
-  //console.dir(getEntities(), { depth: 6 });
+  console.dir(getEntities(), { depth: 6 });
   //console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
   //util.inspect(config)
 }
