@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
-// const fs = require('fs');
+const fs = require('fs');
 // const rs485 = require('../rs485/RS485_driver_get.js'); // клиент
 // ------------ логгер  --------------------
-let log = require('../tools/log.js'); // логер
+let log = require('../../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
 let gTrace=0; //=1 глобальная трассировка (трассируется все)
 gTrace ?  log('i',logName) : null;
@@ -13,7 +13,7 @@ gTrace ?  log('i',logName) : null;
 router.post('/', function(req, res, next) {
   // -- настройки логгера --------------
    let trace=1;
-   let logN=logName+"POST:/saveProgram => ";
+   let logN=logName+"POST:/saveProgramChanges => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-----------------------------------------
   trace ? log('i', logN, req.query) : null;
@@ -39,36 +39,33 @@ router.post('/', function(req, res, next) {
         })
    return
   }//if
-  let path = "./public/logs/" + req.query.folderName + "/" + req.query.id;
+  if (! req.query.newData) {
+    res.status(400).send(
+        {err:
+          {
+            en:"Request doesn't have new program data."
+            ,ru:"В теле запроса нет новой программы."
+            ,ua:"В тілі запиту немає нової програми."
+          }
+        })
+   return
+  }//if
+  let path = "./public/params/" + req.query.folderName + "/" + req.query.id;
+  let newData = req.query.newData;
   trace ?  log('i',logN,"path=",path) : null;
   try {
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    var yyyy = today.getFullYear();
-    today = yyyy + '-' + mm + '-' + dd;
-    // console.log(req.user);
-    console.log("Спроба завантажити програму в прилад від користувача:", req.user);
-    // fs.unlinkSync(path);
-    console.log("JSON.parse(req.query.newParameters):");
-    console.log(JSON.parse(req.query.newParameters));
-    res.status(200).send("Програма " + req.query.id + " успішно завантажена в прилад.");
+    console.log("Спроба зберегти зміни в програмі від користувача:", req.user);
+    fs.truncate(path, 0, function(){console.log("Попередні дані з файлу видалено.")});
+    fs.writeFile(path, newData, err => {
+      if (err) console.log(err);
+      res.status(200).send("Зміни до програми " + req.query.id + " успішно збережені в файлі.");
+    });
     return
   } catch(err) {
-    res.status(500).send("Програма " + req.query.id + " не була завантажена в прилад.");
+    res.status(500).send("Зміни до програми " + req.query.id + " не вийшло зберегти в файлі.");
     // trace ? log('i',logN,"err=",err) : null;
     console.error(err);
   }
-
-
-  //let list=req.query.list.trim().split(";");
-  // let list=req.query.list;
-  // trace ?  log('i',logN,"list=",list) : null;
-  // let response=rs485.getValues(list);
-  // trace ?  console.log("----- >response") : null;
-  // trace ?  console.dir(response) : null;
-
-  
 });
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const pathArr = window.location.href.split('/');
 const furnaceId = pathArr[pathArr.length-1];
+const programFileList = document.getElementById("file-list");
 // console.log("Список файлов:");
 // console.log(fileList);
 // console.log(typeof fileList);
@@ -11,13 +12,13 @@ let programObject = [
     date: new Date(),
   },
   {
-    r: 1,
-    T: 470,
-    H: 120,
-    Y: 30,
-    o: 35,
-    i: 15,
-    d: 45,
+    r: 2,
+    T: 0,
+    H: 0,
+    Y: 0,
+    o: 0,
+    i: 0,
+    d: 0,
     u: 0
   }
 ]
@@ -29,14 +30,14 @@ let getProgram = (fileName) => {
   const geturl="/getProgram?folderName="+furnaceId+"&id="+fileName+".log";
   // const geturl="/getProgram?folderName="+furnaceId+"&id="+programObject[0].id+".log"+"&newParameters="+JSON.stringify(programObject);
   xhrT.onload = function(){
-    // данные приняты
-    let res = JSON.parse(xhrT.responseText);
-    // console.log("Дані отримані з файлу:");
-    // console.log(res);
-    // console.log("Тип даних:");
-    // console.log(typeof res);
-    programObject = res;
-    buildTable();
+  // данные приняты
+  let res = JSON.parse(xhrT.responseText);
+  // console.log("Дані отримані з файлу:");
+  // console.log(res);
+  // console.log("Тип даних:");
+  // console.log(typeof res);
+  programObject = res;
+  buildTable();
   }
 
   xhrT.onerror = function(){
@@ -84,11 +85,134 @@ newValue = (id, newValue) => {
 
 let myTableBody = document.getElementById("paramTableBody");
 
-let clearBtn = document.getElementById("clear-parameters");
-clearBtn.onclick = () => {
-  programObject.splice(1);
-  buildTable();
+let programSaveChangesBtn = document.getElementById("program-save-changes-btn");
+programSaveChangesBtn.onclick = () => {
+  if (window.confirm(`Ви точно хочете перезаписати файл?`)) {
+    programObject[0].title=title.innerText;
+    programObject[0].description=description.innerText;
+    // console.log(JSON.stringify(programObject));
+
+    var msgN = 1;
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (this.status == 200) {
+        if (msgN == 2) {
+          alert(this.responseText);
+        }
+        msgN++;
+      }
+      if (this.status == 400) {
+        if (msgN == 2) {
+          alert(JSON.parse(this.responseText).err.ua);
+        }
+        msgN++;
+      }
+    }
+    let url = "/saveProgramChanges?folderName="+furnaceId+"&id="+programObject[0].id+".log"+"&newData="+JSON.stringify(programObject);
+    console.log(url);
+    xhr.open("POST", url, true);
+    xhr.send();
+  }
 }
+function findMissingNumber(files) {
+  // Функція пошуку першого незайнятого числа в списку файлів, якщо всі числа зайняті створює наступне
+  for (let i = 0; i < files.length - 1; i++) {
+    if (parseInt(files[i + 1].slice(0, -4)) - parseInt(files[i].slice(0, -4)) !== 1) {
+      return parseInt(files[i].slice(0, -4)) + 1;
+    }
+  }
+  return parseInt(files[files.length - 1].slice(0, -4)) + 1;
+}
+function addListItem(index, text) {
+  const newItem = document.createElement("li");
+  // newItem.classList.add("list-group-item list-group-item-action list-group-item-info");
+  newItem.className = "list-group-item list-group-item-action list-group-item-info";
+  newItem.id=text;
+  const textNode = document.createTextNode(text);
+  newItem.appendChild(textNode);
+  newItem.onclick = () => {
+    selectedList.classList.remove("active");
+    selectedList = newItem;
+    selectedList.classList.add("active");
+    getProgram(selectedList.id);
+  }
+  selectedList.classList.remove("active");
+  selectedList = newItem;
+  selectedList.classList.add("active");
+  programFileList.insertBefore(newItem, programFileList.childNodes[index-1]);
+  fileList.splice(index-1, 0, text+".log");
+}
+let programSaveNewBtn = document.getElementById("program-save-new-btn");
+programSaveNewBtn.onclick = () => {
+  // console.log(`Ім'я першого незайнятого файлу: ${findMissingNumber(fileList)}.log`);
+  var fileId = findMissingNumber(fileList);
+  programObject[0].id = fileId.toString();
+  programObject[0].title=title.innerText;
+  programObject[0].description=description.innerText;
+  var msgN = 1;
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (this.status == 200) {
+      if (msgN == 2) {
+        alert(this.responseText);
+        addListItem(fileId, fileId);
+      }
+      msgN++;
+    }
+    if (this.status == 400) {
+      if (msgN == 2) {
+        alert(JSON.parse(this.responseText).err.ua);
+      }
+      msgN++;
+    }
+  }
+  let url = "/saveProgramNew?folderName="+furnaceId+"&id="+programObject[0].id+".log"+"&newData="+JSON.stringify(programObject);
+  // console.log(url);
+  xhr.open("POST", url, true);
+  xhr.send();
+}
+let deleteProgramBtn = document.getElementById("delete-program-btn");
+deleteProgramBtn.onclick = () => {
+  // if (role != "admin") {
+  //   alert("У Вас нет прав на удаление файлов.")
+  // } else {
+    var fileName = selectedList.id;
+    if (window.confirm(`Ви точно хочете видалити програму ${fileName}.log?`)) {
+      var msgN = 1;
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function () {
+        if (this.status == 200) {
+          if (msgN == 2) {
+            alert(this.responseText);
+            // console.log(document.getElementById(fileName));
+            document.getElementById(fileName).remove();
+            fileList.splice(parseInt(fileName)-1, 1);
+            // console.log(fileList);
+            selectedList = document.getElementById(fileList[0].slice(0, -4));
+            selectedList.classList.add("active");
+            getProgram(selectedList.id);
+          }
+          msgN++;
+        }
+        if (this.status == 400) {
+          if (msgN == 2) {
+            alert(JSON.parse(this.responseText).err.ua);
+          }
+          msgN++;
+        }
+      }
+      let url = "/deleteProgram?folderName="+furnaceId+"&id="+fileName+".log";
+      // console.log(url);
+      xhr.open("POST", url, true);
+      xhr.send();
+    }
+  // }
+}
+let clearBtn = document.getElementById("clear-parameters");
+  clearBtn.onclick = () => {
+    programObject.splice(1);
+    buildTable();
+  }
 let sendBtn = document.getElementById("send-new-parameters");
 sendBtn.onclick = () => {
   programObject[0].title=title.innerText;
@@ -106,7 +230,7 @@ sendBtn.onclick = () => {
     }
     if (this.status == 400) {
       if (msgN == 2) {
-        alert(JSON.parse(this.responseText).err.ru);
+        alert(JSON.parse(this.responseText).err.ua);
       }
       msgN++;
     }

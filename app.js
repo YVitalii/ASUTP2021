@@ -21,8 +21,11 @@ var setTimeRouter= require('./routes/setTime.js');
 var entitiesRouter = require('./routes/entities.js'); //  список печей
 const deleteFileRouter=require('./routes/deleteFile.js'); // удаление файла
 const saveProgramRouter=require('./routes/saveProgram.js'); // Запись программы
+const saveProgramChangesRouter=require('./routes/program/saveProgramChanges.js'); // Зберігання змін до файлу з програмою
+const saveProgramNewRouter=require('./routes/program/saveProgramNew.js'); // Зберігання програми до нового файлу
+const deleteProgramRouter=require('./routes/program/deleteProgram.js'); // Видалення файлу з програмою
 const getProgramRouter=require('./routes/program/getProgram.js'); // Читання програми
-const newAkonOutputSignalRouter=require('./routes/newAkonOutputSignal.js'); // Запись еовых данных в прибор Акон
+const newAkonOutputSignalRouter=require('./routes/newAkonOutputSignal.js'); // Запись новых данных в прибор Акон
 const getRouter=require('./routes/getReg.js'); // получение оперативных данных
 const logsRouter=require('./routes/getLog.js'); // получение оперативных данных
 const { session } = require('./tools/passport-loc.js');
@@ -85,7 +88,10 @@ app.use('/report', reportRouter); // страница с отчётом
 app.use('/entyties', entitiesRouter); // возвращает список всех печей с их характеристиками
 app.use('/deleteFile', deleteFileRouter); // удаляет файл
 app.use('/saveProgram', saveProgramRouter); // Сохраняет новую программу
-app.use('/getProgram', getProgramRouter); // Зчитує існуючу програму
+app.use('/saveProgramChanges', saveProgramChangesRouter); // Зберігає зміни в файлі з програмою
+app.use('/saveProgramNew', saveProgramNewRouter); // Зберігає програму в новому файлі
+app.use('/deleteProgram', deleteProgramRouter); // Видаляє файл з програмою
+app.use('/getProgram', getProgramRouter); // Зчитує з файлу існуючу програму
 app.use('/newAkonOutputSignal', newAkonOutputSignalRouter); // Сохраняет новые данные в прибор Акон
 app.use('/getReg', getRouter); // возвращает текущие значения регистров
 app.use('/getLog', logsRouter); // работа с логами печей

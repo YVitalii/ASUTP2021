@@ -6,16 +6,16 @@ block content
 
 			div(id="param-left-menu" style="width: 235px; display: flex" class="flex-column justify-content-between")
 				div.p-2
-					ul(class="list-group" style="max-height:300px; overflow:hidden; overflow-y:scroll")
-						- fileList.reverse();
+					ul(class="list-group" id="file-list" style="max-height:240px; overflow:hidden; overflow-y:scroll")
+						//- - fileList.reverse();
 						each fileName in fileList
 							li(class="list-group-item list-group-item-action list-group-item-info" id=fileName.slice(0, -4)) #{fileName.slice(0, -4)}
 				div
 					div(class="btn-group-vertical w-100 p-2")
-						button(type="button" class="btn btn-outline-info" id="param-save-changes-btn") Зберегти зміни
-						a(id ="param-save-new-btn" class="btn btn-outline-info") Зберегти як
+						button(type="button" class="btn btn-outline-info" id="program-save-changes-btn") Зберегти зміни
+						a(id ="program-save-new-btn" class="btn btn-outline-info") Зберегти як нову програму
 						//- button(type="button" class="btn btn-outline-success" id="send-new-parameters") Записать в прибор
-						button(id ="param-delete-btn" type="button" class="btn btn-outline-danger") Видалити
+						button(id ="delete-program-btn" type="button" class="btn btn-outline-danger") Видалити
 					div(class="btn-group-vertical w-100 p-2")
 						a(href="/graph/"+furnace.id class="btn btn-outline-dark w-100") Графік
 						a(href="/" class="btn btn-outline-dark w-100") Головна

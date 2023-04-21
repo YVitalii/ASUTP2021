@@ -41,12 +41,8 @@ router.post('/', function(req, res, next) {
   trace ?  log('i',logN,"path=",path) : null;
   try {
     console.log("Спроба зчитати програму з файлу від користувача:", req.user);
-    // let fileData = fs.readFileSync(path);
-    let result = "";
     fs.readFile(path, (err, data) => {
         if (err) throw err;
-        // result = JSON.stringify(data);
-        // console.log(JSON.parse(result));
         // console.log(data);
         res.status(200).send(data);
     });

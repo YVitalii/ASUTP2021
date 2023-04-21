@@ -1,19 +1,17 @@
 var express = require('express');
 var router = express.Router();
-// const fs = require('fs');
-// const rs485 = require('../rs485/RS485_driver_get.js'); // клиент
+const fs = require('fs');
 // ------------ логгер  --------------------
-let log = require('../tools/log.js'); // логер
+let log = require('../../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
 let gTrace=0; //=1 глобальная трассировка (трассируется все)
 gTrace ?  log('i',logName) : null;
 
 // ---------------
-/* GET users listing. */
 router.post('/', function(req, res, next) {
   // -- настройки логгера --------------
    let trace=1;
-   let logN=logName+"POST:/saveProgram => ";
+   let logN=logName+"POST:/deleteProgram => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
   //-----------------------------------------
   trace ? log('i', logN, req.query) : null;
@@ -32,30 +30,22 @@ router.post('/', function(req, res, next) {
     res.status(400).send(
         {err:
           {
-            en:"Request doesn't have program id. Like this: id='PR1.log'"
-            ,ru:"В теле запроса нет id программы. Например:  id='PR1.log'"
-            ,ua:"В тілі запиту не вказано id програми. Наприклад: id='PR1.log'"
+            en:"Request doesn't have program id. Like this: id='1.log'"
+            ,ru:"В теле запроса нет id программы. Например:  id='1.log'"
+            ,ua:"В тілі запиту не вказано id програми. Наприклад: id='1.log'"
           }
         })
    return
   }//if
-  let path = "./public/logs/" + req.query.folderName + "/" + req.query.id;
+  let path = "./public/params/" + req.query.folderName + "/" + req.query.id;
   trace ?  log('i',logN,"path=",path) : null;
   try {
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, '0');
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    var yyyy = today.getFullYear();
-    today = yyyy + '-' + mm + '-' + dd;
-    // console.log(req.user);
-    console.log("Спроба завантажити програму в прилад від користувача:", req.user);
-    // fs.unlinkSync(path);
-    console.log("JSON.parse(req.query.newParameters):");
-    console.log(JSON.parse(req.query.newParameters));
-    res.status(200).send("Програма " + req.query.id + " успішно завантажена в прилад.");
+    console.log("Спроба видалити файл з програмою від користувача:", req.user);
+    fs.unlinkSync(path);
+    res.status(200).send("Файл " + path + " видалено.");
     return
   } catch(err) {
-    res.status(500).send("Програма " + req.query.id + " не була завантажена в прилад.");
+    res.status(500).send("Файл з програмою " + req.query.id + " не вдалося видалити.");
     // trace ? log('i',logN,"err=",err) : null;
     console.error(err);
   }
