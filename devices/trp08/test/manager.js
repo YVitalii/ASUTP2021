@@ -15,7 +15,7 @@ async function test() {
   await device1.getParams("tT;o;H;Y;ti;td");
   setTimeout(() => {
     device1.stop();
-  }, 20000);
+  }, 30000);
   setInterval(async () => {
     await device1.getT();
   }, 5000);

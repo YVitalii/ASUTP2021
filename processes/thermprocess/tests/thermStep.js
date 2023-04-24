@@ -1,7 +1,28 @@
 const ThermStep = require("../ThermStep.js");
 const iface = require("../../../rs485/RS485_v200.js");
 
-const device = require("../../../devices/trp08/manager.js");
+const ManagerTRP08 = require("../../../devices/trp08/Manager.js");
 
-let step = {};
-var task = new ThermStep(step, device, { addT: 5 });
+let device = new ManagerTRP08(iface, 1, { addT: 5 });
+let step = {
+  reg: 1,
+  tT: 30,
+  dTmin: -5,
+  dTmax: +5,
+  H: 10,
+  errH: 10,
+  Y: 30,
+  errY: 30,
+  o: 35,
+  di: 0,
+  dt: 0,
+};
+
+async function start() {
+  const task = new ThermStep(device, step);
+  await task.go();
+}
+
+setTimeout(() => {
+  start();
+}, 10000);

@@ -888,7 +888,7 @@ function setReg(iface, id, regName, value, cb) {
   } else {
     let caption =
       "Указанный регистр отсутствует в списке регистров устройства:" + regName;
-    log(0, modul, err, data);
+    log(0, modul, caption);
     return cb(new Error(caption), res);
   }
 } // setReg

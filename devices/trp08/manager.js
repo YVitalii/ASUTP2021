@@ -1,15 +1,6 @@
 //const { forEach } = require("core-js/core/array");
 const device = require("./driver.js");
 const log = require("../../tools/log.js");
-/** Асинхронна заглушка для імітації асинхронних операцій */
-async function dummy() {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      //console.log(ln, "Dummy(): Task complete");
-      resolve();
-    }, parseInt(Math.random() * 1000));
-  });
-}
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор
@@ -29,16 +20,20 @@ class Manager {
     this.ln = `managerTRP08(id=${id}):`; // заголовок трасування
     this.iface = iface;
     // ----- перевіряємо id ----------------
+    if (!id) {
+      throw new Error("Не вказана адреса приладу id=" + id);
+    }
+    if (this.id < 1 || this.id > 32) {
+      throw new Error("id виходить з дозволеного діапазону адрес:" + this.id);
+    }
     try {
       this.id = parseInt(id);
     } catch (error) {
       throw new Error("id неможливо перетворити в цифру:" + error.message);
     }
-    if (this.id < 0 || this.id > 32) {
-      throw new Error("id виходить з дозволеного діапазону адрес:" + this.id);
-    }
-    this.setReg = device.setRegPromise; // привязуємо драйвер
-    this.getReg = device.getRegPromise; // для скорочення коду
+    // // привязуємо драйвер для скорочення коду
+    // this.setReg = device.setRegPromise;
+    // this.getReg = device.getRegPromise; //
     // добавка температури
     this.addT = params.addT ? params.addT : 0;
     /** лічильник помилок звязку, якщо кількість помилок звязку більше 10, розуміємо що звязку з приладом немає
@@ -282,9 +277,10 @@ class Manager {
    * @returns Promise
    */
   trySomeTimes(item, params) {
+    // додати перевірку на тип помилки, бо коли помилка в назві регистра не потрібно повторювати тричі
     return new Promise(async (resolve, reject) => {
       let trace = 0,
-        ln = this.ln + "trySomeTimes(" + params.regName + ")::";
+        ln = this.ln + `trySomeTimes(${params.regName}=${params.value})::`;
       let res = null;
       let err = null;
       for (let i = 0; i < 3; i++) {
