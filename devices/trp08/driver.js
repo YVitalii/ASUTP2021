@@ -45,7 +45,7 @@
 
 const log = require("../../tools/log.js");
 //log.setName("TRP08.js");
-
+const ln = "driver.js::";
 const timeout = 2000; //таймаут запроса
 
 //var values=[];// хранит текущие значения  регистров, номер элемента массива = адрес прибора в сети RS485 (id)
@@ -65,7 +65,13 @@ function fromBCD(buf) {
 
 function toBCD(val) {
   let line = ("0000" + String(val)).slice(-4);
-  let arr = parseInt(line, 16);
+  let arr;
+  try {
+    arr = parseInt(line, 16);
+  } catch (error) {
+    arr = null;
+  }
+
   //console.log("toBCD:"+line);
   return arr;
 }
@@ -394,8 +400,8 @@ regs.set("tT", {
   _set: function (data) {
     let val = toBCD(data);
     let err = null;
-    if (!val) {
-      err = "Не могу преобразовать в BCD:" + data;
+    if (val === null) {
+      err = ln + "Не могу преобразовать в BCD:" + data;
     }
     return {
       data: {
@@ -447,7 +453,7 @@ regs.set("H", {
     let val = toClock(data);
     let err = null;
     if (!data) {
-      err = "_set: Не могу преобразовать :[" + data + "] в буфер";
+      err = ln + "_set: Не могу преобразовать :[" + data + "] в буфер";
     }
     return {
       data: {
@@ -500,7 +506,7 @@ regs.set("Y", {
     let val = toClock(data);
     let err = null;
     if (!data) {
-      err = "_set: Не могу преобразовать :[" + data + "] в буфер";
+      err = ln + "_set: Не могу преобразовать :[" + data + "] в буфер";
     }
     return {
       data: {
@@ -552,8 +558,8 @@ regs.set("o", {
   _set: function (data) {
     let val = toBCD(data);
     let err = null;
-    if (!val) {
-      err = "Не могу преобразовать в BCD:" + data;
+    if (val === null) {
+      err = ln + "Не могу преобразовать в BCD:" + data;
     }
     return {
       data: {
@@ -569,7 +575,7 @@ regs.set("o", {
   },
 }); ///regs.set("o"
 /*  ------------------ 0x 01 80 [ti] Задание времени интегрирования в случае выбранного ПИД закона
-        в приборе:слово, формат ВСDб (0х0000..0х9999)
+        в приборе:слово, формат ВСD: (0х0000..0х9999)
         ответ: число
     */
 regs.set("ti", {
@@ -602,8 +608,8 @@ regs.set("ti", {
   _set: function (data) {
     let val = toBCD(data);
     let err = null;
-    if (!val) {
-      err = "Не могу преобразовать в BCD:" + data;
+    if (val === null) {
+      err = ln + "Не могу преобразовать в BCD:" + data;
     }
     return {
       data: {
@@ -654,8 +660,8 @@ regs.set("td", {
   _set: function (data) {
     let val = toBCD(data);
     let err = null;
-    if (!val) {
-      err = "Не могу преобразовать в BCD:" + data;
+    if (val === null) {
+      err = ln + "Не могу преобразовать в BCD:" + data;
     }
     return {
       data: {
@@ -707,10 +713,10 @@ regs.set("u", {
     let val = toBCD(data);
     let err = null;
     if (data > 0x99) {
-      err = "выход за пределы диапазона (0..0x99=153):" + data;
+      err = ln + "выход за пределы диапазона (0..0x99=153):" + data;
     }
-    if (!val) {
-      err = "Не могу преобразовать в BCD:" + data;
+    if (val === null) {
+      err = ln + "Не могу преобразовать в BCD:" + data;
     }
     return {
       data: {
@@ -776,7 +782,7 @@ function getReg(iface, id, regName, cb) {
 } //getReg
 
 /** Промісифікована функція getReg() - див. її опис
- * @prop {Object} props - дані, що передаються в асинхронну функцію (props.iface, props.id .. )
+ * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,id,regName}
  * @returns {Ppomise}
  */
 function getRegPromise(props) {
@@ -788,7 +794,7 @@ function getRegPromise(props) {
     trace ? log(1, ln, props) : null;
 
     getReg(props.iface, props.id, props.regName, (err, data) => {
-      let trace = 1;
+      let trace = 0;
       if (trace) {
         console.log(ln, "err=");
         console.dir(err);
@@ -823,6 +829,7 @@ function setReg(iface, id, regName, value, cb) {
   let trace = 0;
   let modul =
     "TRP08.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
+  regName = regName.trim();
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
     trace ? log(2, modul, "started") : null;
@@ -886,12 +893,14 @@ function setReg(iface, id, regName, value, cb) {
   }
 } // setReg
 
-/** Промісифікована функція setReg() - див. опис параметрів вище
- *  @returns {Ppomise}
+/** Промісифікована функція setReg() - див. її опис
+ * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,id,regName,value}
+ * @returns {Ppomise}
  */
-function setRegPromise(iface, id, regName, value) {
+
+function setRegPromise(props) {
   return new Promise(function (resolve, reject) {
-    setReg(iface, id, regName, value, (err, data) => {
+    setReg(props.iface, props.id, props.regName, props.value, (err, data) => {
       if (err) {
         reject(err);
         return;
