@@ -12,6 +12,7 @@ const { dummyPromise } = require("../../tools/dummy.js");
  */
 class ThermStep {
   /**
+   * @param {object} device - об'єкт налаштованого приладу див. /devices/trp08/Manager.js
    * @param {object} step шаг программы в виде объекта
    * @param {number} step.reg=1    - *С, закон регулювання 1 -  ПІД; 2 - позиційний;
    * @param {number} step.tT=50    - *С, заданная температура
@@ -24,7 +25,7 @@ class ThermStep {
    * @param {number} step.o=2   - зона пропорційності
    * @param {number} step.ti=0  - інтегральний коефіцієнт ПІД
    * @param {number} step.td=0  - диференціальний коефіцієнт ПІД
-   * @param {*} options настройки
+   * @param {*} options - додаткові налаштування
    */
 
   constructor(device, step = {}) {
@@ -108,7 +109,7 @@ class ThermStep {
     this.state.timestamp = new Date(); //
     // 1.4. Очікуємо розігріву печі
     await this.waitHeating();
-    //log("w", "Нагрівання завершено");
+    log("e", "Нагрівання завершено");
     // 1.5.
   }
 
@@ -116,13 +117,85 @@ class ThermStep {
     let ln =
       this.ln + `waitHeating(taskT=${this.step.tT}; taskTime=${this.step.H}):`;
     log("w", ln, "Started!!");
-    return new Promise(function (resolve, reject) {
-      setTimeout(async () => {
-        await dummyPromise();
-        log("w", ln, "Finished!!");
-        resolve(1);
-      }, 5000);
-    });
+    let promis = Promise.resolve();
+    let item = this;
+    let err = null;
+    let finished = false;
+    while (!finished) {
+      try {
+        this.currT = await this.device.getT();
+      } catch (error) {
+        log("e", ln, "Помилка зчитування температури", error);
+      }
+      if (this.currT > this.step.tT) {
+        log("w", ln, "Затана температура досягнута!! ");
+        finished = true;
+        continue;
+      }
+      // розраховуємо час, що пройшов від початку процесу
+      time = (new Date().getTime() - this.startHeating.getTime()) / 1000 / 60;
+      // перевіряємо чи не сплив час
+      if (time > this.step.H + this.step.errH) {
+        finished = true;
+        err = ln + "Помилка! Перевищено час розігріву печі.";
+        continue;
+      }
+      if (err !== null) {
+        log("e", "Процесс завершився з помилкою:" + err);
+        return Promise.reject(new Error(err));
+      }
+      return Promise.resolve(ln + "Нагрівання закінчено");
+    }
+    // function wait(promis, item) {
+    //   return new Promise((resolve, reject) => {
+    //     promis
+    //       .then(() => {
+    //         return dummyPromise(1500);
+    //       })
+    //       .then(() => {
+    //         return item.device.getT();
+    //       })
+    //       .then((val) => {
+    //         log("Current T=", val);
+    //         if (val > 30) {
+    //           log("w", "Температура досягнута");
+    //           resolve(val);
+    //           return val;
+    //         }
+    //         return wait(promis, item);
+    //       });
+    //   });
+    // }
+    // wait(promis, item).then((val) => {
+    //   resolve(val);
+    //   return;
+    // });
+
+    // wait(promis, this).then((val) => {
+
+    //   return resolve();
+    // });
+
+    // return new Promise(
+    //   function wait(resolve, reject) {
+    //     setTimeout(async () => {
+    //       let trace = 1;
+    //       await dummyPromise();
+    //       if (trace) {
+    //         console.log(ln, "this=");
+    //         console.dir(this);
+    //       }
+    //       //this.currT = this.device.getT();
+    //       setTimeout(() => {
+    //         this.waitHeating;
+    //       }, 1000);
+    //       //log("i", ln, `currT=${this.currT}`);
+    //       // log("w", ln, "Finished!!");
+
+    //       //resolve(1);
+    //     }, 5000);
+    //   }.bind(this)
+    // );
 
     // let trace = 1,
     //   traceTime = 0,

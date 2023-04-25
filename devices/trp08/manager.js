@@ -199,7 +199,7 @@ class Manager {
       : null;
     await this.getParams("T"); //заглушка
     trace ? console.log(ln, "Completed t=" + this.state.T.value) : null;
-    return this.state.T;
+    return this.state.T.value;
   }
 
   /**
