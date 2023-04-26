@@ -452,9 +452,9 @@ regs.set("H", {
   _set: function (data) {
     let val = toClock(data);
     let err = null;
-    if (!data) {
-      err = ln + "_set: Не могу преобразовать :[" + data + "] в буфер";
-    }
+    // if (!data) {
+    //   err = ln + "_set: Не могу преобразовать :[" + data + "] в буфер";
+    // }
     return {
       data: {
         FC: 6,

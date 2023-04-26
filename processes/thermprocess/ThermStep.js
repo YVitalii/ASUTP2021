@@ -116,36 +116,58 @@ class ThermStep {
   async waitHeating() {
     let ln =
       this.ln + `waitHeating(taskT=${this.step.tT}; taskTime=${this.step.H}):`;
+    let trace = 1;
     log("w", ln, "Started!!");
     let promis = Promise.resolve();
     let item = this;
     let err = null;
     let finished = false;
+    let time;
+    trace ? log("i", ln, "this.step=", this.step) : null;
     while (!finished) {
+      await dummyPromise(1 * 1000);
       try {
+        // робимо запит в прилад
         this.currT = await this.device.getT();
+        // розраховуємо час, що пройшов від початку процесу
+        time = (new Date().getTime() - this.startHeating.getTime()) / 1000 / 60;
+        trace
+          ? log(
+              "i",
+              ln,
+              "currentT=",
+              this.currT.value,
+              "*C",
+              "; time=",
+              time.toFixed(2),
+              " min"
+            )
+          : null;
       } catch (error) {
         log("e", ln, "Помилка зчитування температури", error);
       }
-      if (this.currT > this.step.tT) {
-        log("w", ln, "Затана температура досягнута!! ");
+      if (this.currT.value > this.step.tT) {
+        log("w", ln, "Температура досягнута!! ");
         finished = true;
         continue;
       }
-      // розраховуємо час, що пройшов від початку процесу
-      time = (new Date().getTime() - this.startHeating.getTime()) / 1000 / 60;
+      if (this.step.H == 0) {
+        continue;
+      }
       // перевіряємо чи не сплив час
       if (time > this.step.H + this.step.errH) {
         finished = true;
         err = ln + "Помилка! Перевищено час розігріву печі.";
         continue;
       }
-      if (err !== null) {
-        log("e", "Процесс завершився з помилкою:" + err);
-        return Promise.reject(new Error(err));
-      }
-      return Promise.resolve(ln + "Нагрівання закінчено");
+    } // while loop
+
+    if (err !== null) {
+      log("e", "Процесс завершився з помилкою:" + err);
+      return Promise.reject(new Error(err));
     }
+    return Promise.resolve(ln + "Нагрівання закінчено");
+
     // function wait(promis, item) {
     //   return new Promise((resolve, reject) => {
     //     promis

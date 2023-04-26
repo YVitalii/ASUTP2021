@@ -197,9 +197,9 @@ class Manager {
     trace
       ? console.log(ln, `Started at ${new Date().toLocaleTimeString()}`)
       : null;
-    await this.getParams("T"); //заглушка
+    await this.getParams("T");
     trace ? console.log(ln, "Completed t=" + this.state.T.value) : null;
-    return this.state.T.value;
+    return this.state.T;
   }
 
   /**
@@ -266,7 +266,7 @@ class Manager {
     if (trace) {
       console.log(ln, new Date().toLocaleTimeString(), "response=", resString);
     }
-    log("i", resString);
+    trace ? log("i", resString) : null;
     return response;
   }
 
