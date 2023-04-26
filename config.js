@@ -1,7 +1,21 @@
+// ------------ логгер  --------------------
+const log = require("./tools/log.js"); // логер
+let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
+let trace = 1; //=1 глобальная трассировка (трассируется все)
+
 const config = {};
 
 // включает/выключает  эмуляцию обмена по RS485
 config.emulateRS485 = 1; //true;
+/**
+ * список констант приоритетов REAL_TIME=0,HIGHT=1,MIDDLE=2,LOW=3
+ */
+config.priority = {
+  REAL_TIME: 0,
+  HIGHT: 1,
+  MIDDLE: 2,
+  LOW: 3,
+};
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -45,7 +59,7 @@ var tags = new Map();
 tags.set("T1", "1-T");
 tags.set("SP1", "1-tT");
 
-config.tags = tags;
+//config.tags = tags;
 //tags.set("sT"+i,i+"-T");
 // настройки логгера
 config.logger = {
@@ -59,7 +73,7 @@ config.logger = {
 };
 
 // ------------  очереди опроса  -----------------------
-config.queue = {};
+//config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
 config.queue.work = ["1-T", "1-tT"];
@@ -68,6 +82,6 @@ module.exports = config;
 
 if (!module.parent) {
   console.dir(config, { depth: 4 });
-  console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
+  //console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
   //util.inspect(config)
 }

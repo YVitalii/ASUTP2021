@@ -1,0 +1,6 @@
+mocha -w --watch-list ["rs485"] -c --node
+
+supervisor --no-restart-on exit ./rs485/RS485_server.js
+
+cd rs485
+mocha -w --watch-list ["./"] -c --node

@@ -14,6 +14,7 @@ router.post('/', function(req, res, next) {
    let trace=0;
    let logN=logName+"POST:/getReg => ";
    trace = ((gTrace !== 0) ? gTrace : trace);
+   trace ? console.log(lN,'=',) : null;
   //-----------------------------------------
    if (! req.query.list) {
      res.status(400).send(
