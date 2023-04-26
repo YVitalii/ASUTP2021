@@ -1,0 +1,50 @@
+extends layout
+block content
+	div(class="container-fluid card border-info mt-5")
+		h1(class="card-header") #{furnace.fullName}
+		div(class="row card-body")
+
+			div(id="param-left-menu" style="width: 235px; display: flex" class="flex-column justify-content-between")
+				div.p-2
+					ul(class="list-group" id="file-list" style="max-height:240px; overflow:hidden; overflow-y:scroll")
+						//- - fileList.reverse();
+						each fileName in fileList
+							li(class="list-group-item list-group-item-action list-group-item-info" id=fileName.slice(0, -4)) #{fileName.slice(0, -4)}
+				div
+					div(class="btn-group-vertical w-100 p-2")
+						button(type="button" class="btn btn-outline-info" id="program-save-changes-btn") Зберегти зміни
+						a(id ="program-save-new-btn" class="btn btn-outline-info") Зберегти як нову програму
+						//- button(type="button" class="btn btn-outline-success" id="send-new-parameters") Записать в прибор
+						button(id ="delete-program-btn" type="button" class="btn btn-outline-danger") Видалити
+					div(class="btn-group-vertical w-100 p-2")
+						a(href="/graph/"+furnace.id class="btn btn-outline-dark w-100") Графік
+						a(href="/" class="btn btn-outline-dark w-100") Головна
+			div(id="param-right-side" style="height: 500px; width: calc(100% - 235px)")
+				h1(id="title")
+				h2(id="description")
+				div(style="max-height:334px; overflow:hidden; overflow-y:scroll; border: solid 1px #0dcaf0")
+					table(class="table table-bordered table-striped table-hover table-info" style="margin-bottom: 0")
+						thead(class="thead-dark")
+							tr
+								th(title="№ Кроку") №
+								th(title="Закон регулювання: Рег=1 для пропорційного закону регулювання, Рег=2 для позиційного прямого закону (ti, td не використовуються)" style="min-width: 180px") Закон регулювання
+								th(title="Цілева температура") Т, &#176;C
+								th(title="Час набору") H, хв
+								th(title="Час витримки") Y, хв
+								th(title="При Рег=1 задає діапазон пропорційного регулювання, при Рег=2 задає розбіжність температури") &#9633;
+								th(title="Постійна інтегрування") ti
+								th(title="Постійна диференціювання") td
+								th(title="Потужність при досягненні цілевої температури") u
+								th(title="Редагування таблиці" style="min-width: 140px") Інструменти
+						tbody(id="paramTableBody")
+
+				div(class="btn-group-horizontal d-flex justify-content-between" style="margin-top: 20px")
+					button(type="button" class="btn btn-outline-danger" id="clear-parameters") Очистити таблицю
+					button(type="button" class="btn btn-outline-success" id="send-new-parameters") Застосувати
+					//- a(href="/" class="btn btn-outline-dark") Отменить
+		
+	script
+		- var fileList = JSON.stringify(fileList);
+		!= `var fileList = ${fileList};`
+		include ../tools/changeParameters.js
+	

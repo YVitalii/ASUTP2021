@@ -80,3 +80,12 @@ a {
   font-size: 15px;
   font-weight: bold;
 }
+
+table img:hover {
+  transform: scale(1.2);
+}
+table img {
+  margin-right: 5px;
+  transition: all .3s;
+  transform-origin: 50% 50%;
+}

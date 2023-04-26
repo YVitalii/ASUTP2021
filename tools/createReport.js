@@ -6,7 +6,7 @@ const dataURL = "/logs/" + furnaceId;
 let chartConfig = {
   dataURL,
   // startDate,
-  y: { min: 0, max: 1000 },
+  y: { min: 0, max: 600 },
   task:null,
   registers, // берётся из report.pug
 }
@@ -127,7 +127,7 @@ deleteBtn.onclick = () => {
   //   alert("У Вас нет прав на удаление файлов.")
   // } else {
     var fileName = selectedList.id;
-    if (window.confirm(`Файл точно хотите удалить файл ${fileName}.`)) {
+    if (window.confirm(`Вы точно хотите удалить файл ${fileName}?`)) {
       var msgN = 1;
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function () {
