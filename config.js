@@ -46,37 +46,7 @@ entities.push({
   listRegs: "1-tT;1-T", // список регистров для запроса, что бы их не генерировать каждый раз
 });
 
-// config.devices = ["all"]; // таблица сопоставления адреса устройства и типа (массив где индекс - адрес устройства, а значение - имя файла драйвера)
-// //async () => {
-// //let getEntities = require("./entities");
-// let entities = require("./entities"); //await getEntities();
-// //trace ? log("i", logName, "---------- Entities ---------") : null;
-// //trace ? console.dir(entities, { depth: 4 }) : null;
-// config.entities = entities;
-// for (let i = 0; i < entities.length; i++) {
-//   // перебираем печи
-//   for (let j = 0; j < entities[i].devices.length; j++) {
-//     // перебираем устройства
-//     let dev = entities[i].devices[j];
-//     if (config.devices[dev.addr]) {
-//       // два устройства с одинаковым адресом
-//       let msg = `Ошибка: одинаковый адрес у двух приборов на одной линии`;
-//       log("e", logName, msg);
-//       throw new Error(msg);
-//     }
-//     // добавляем устройство в список
-//     config.devices.push(dev.type);
-//   }
-// }
-//};
-// config.entities = require("./entities");
-
-// config.devices = [
-//   "all", //0
-//   "TRP08", //1
-//   "TRM210", //2
-//   "TRP08", //3
-// ];
+config.entities = entities;
 
 // таблица сопоставления адреса устройства и типа (массив где индекс - адрес устройства, а значение - имя файла драйвера)
 config.devices = [
