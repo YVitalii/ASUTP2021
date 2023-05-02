@@ -1,7 +1,10 @@
 const config = {};
+const TRP08 = require("./devices/trp08/manager.js");
+const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
+const iface = require("./rs485/RS485_v200.js");
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 1; //true;
+config.emulateRS485 = 0; //true;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -30,7 +33,10 @@ entities.push({
     },
   }, //regs
   listRegs: "1-tT;1-T", // список регистров для запроса, что бы их не генерировать каждый раз
+  devicesList: [new TRP08(iface, 1, { addT: 0 })], //список приладів печі
 });
+// костиль з термопроцессом
+entities[0].thermProcess = new ThermProcess(entities[0].devicesList);
 
 config.entities = entities;
 
@@ -53,7 +59,7 @@ config.logger = {
   period: 20, // период между записями 30 секунд
   separator: "\t", // разделитель значений в строке
   deviation: 1, //  коридор нечуствительности изменения температуры,
-  //  т.е. если предыдущее и последующие значения отличаются менее чем на 2 С,
+  //  т.е. если предыдущее и последующие значения отличаются менее чем на deviation сек,
   //  запись в файл не делается.
   errValue: -20, // записывается в лог-файл если ошибка
 };
