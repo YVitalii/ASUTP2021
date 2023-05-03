@@ -62,7 +62,7 @@ class ThermProcess {
       log("i", ln, "this.program=");
       console.dir(this.program);
     }
-    this.state.stop = false;
+    this.state.stop = true;
     this.state.currStep = 0;
     this.state.programStartTime = new Date();
     this.state.tasks = [];
@@ -83,7 +83,7 @@ class ThermProcess {
       ln = this.ln + "start(" + step + ")::";
 
     // якщо программа вже запущена  - повертаємо помилку
-    if (this.state.stop) {
+    if (!this.state.stop) {
       let err =
         "Виконується програма! Спочатку потрібно зупинити виконання поточної програми!";
       log("e", ln + err);
@@ -152,6 +152,8 @@ class ThermProcess {
   async stop() {
     this.state.stop = true;
     this.state.timestamp = new Date();
+    this.state.note =
+      "Програма зупинена: " + this.state.timestamp.toLocaleString();
     // зупиняє виконання термічних кроків
     for (let i = 0; i < this.state.tasks.length; i++) {
       this.state.tasks[i].stop();
