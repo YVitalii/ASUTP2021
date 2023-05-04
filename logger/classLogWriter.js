@@ -11,10 +11,19 @@ gTrace ? log("i", logName) : null;
 const getDate = require("../tools/general.js").getDateString;
 
 class LogWriter {
+  /**
+   *
+   * @param {Object} options
+   * @param {Object} options.server - об'єкт до якого будуть отримуватися поточні значення регістрів
+   * @param {String} options.listRegs - список регістрів для запису розділених крапкою з комою "1-tT;1-T..."
+   * @param {String} options.path = (config.js).logger.path - абс. шлях до теки зберігання лог-файлів, якщо не вказано - береться з config.js
+   */
   constructor(options) {
-    var trace = 1,
-      logN = "LogWriter.constructor: ";
+    this.ln = `LogWriter(${options.listRegs}).`; // для напису в логи консолі
+    var trace = 0,
+      logN = this.ln + "constructor(): ";
     trace ? log("i", logN, "Enter.") : null;
+
     // --------- сервер ----------------------------
     if (!options.server) {
       let err = "options.server=" + options.server;
@@ -67,14 +76,29 @@ class LogWriter {
           //console.log("setInterval");
           setInterval(iterate.bind(this), config.logger.period * 1000);
         }
-      );
+      )
+      .catch((err) => {
+        log("e", logN, err);
+      });
   } //constructor
 } //class Chart
 
 module.exports = LogWriter;
 
+/**
+ * Перетворює вхідний детальний об'єкт { '1-tT': {value: 300, timestamp...},..}
+ * в об'єкт виду { '1-tT': { value: -5 }, '1-T': { value: -5 } }
+ * якщо в нас на вході null, то він замінюється на -5
+ * @param {Object} values
+ * @returns
+ */
 function modifyValues(values) {
-  // читаем с сервера данные
+  let trace = 0,
+    ln = this.ln + "modifyValues()::";
+  if (trace) {
+    log("i", ln, `values=`);
+    console.dir(values);
+  }
   let newValues = {};
   for (each in values) {
     newValues[each] = { value: values[each].value };
@@ -84,30 +108,38 @@ function modifyValues(values) {
       newValues[each].value = -5;
     }
   } //  for (each in values)
+  if (trace) {
+    log("i", ln, `newValues=`);
+    console.dir(newValues);
+  }
   return newValues;
 }
 
 function iterate() {
   // -- настройки логгера --------------
   let trace = 1;
-  let logN = logName + "iterate() => ";
-  trace = gTrace !== 0 ? gTrace : trace;
+  let logN = this.ln + "iterate() => ";
   //-----------------------------------------
   let values = this.server.getValues(this.listRegs);
   values = modifyValues(values);
   if (!this.beforeValues) {
-    // предыдущих значений еще нет, запоминаем их и выходим
-    this.beforeValues = values;
+    // попередніх значень - немає, отже перша ітерація
+    // створюємо нульову точку
+    this.beforeValues = {};
+    for (each in values) {
+      this.beforeValues[each] = { value: 0 };
+    }
+    //this.beforeValues = values;
     trace
       ? log("i", logN, "First time: beforeValues=", this.beforeValues)
       : null;
     return;
   }
-
+  //trace ? log("i", logN, `values=`, values) : null;
   // Проверка изменилось ли хоть одно значение больше чем на 'deviation' из config.js:
   var valuesDidNotChange = true;
   for (key in values) {
-    // console.log([this.beforeValues[key], values[key], config.logger.deviation]);
+    //console.log([this.beforeValues[key], values[key], config.logger.deviation]);
     if (
       Math.abs(this.beforeValues[key].value - values[key].value) >
       config.logger.deviation
@@ -118,7 +150,10 @@ function iterate() {
   // console.log(valuesDidNotChange);
   // Если значения не менялись - выход из функции:
   if (valuesDidNotChange) return;
-
+  // значення змінилось
+  //запамятовуємо поточні значення , як попередні
+  this.beforeValues = values;
+  // створюємо рядок для запису
   let sep = config.logger.separator;
   //console.log(values);
   let line = new Date().toJSON();
@@ -126,13 +161,14 @@ function iterate() {
     line += sep + values[this.regsArray[i]].value;
   }
   line += "\r\n";
-  //trace ? log("i",logN,"this.fName=",this.fName,"; line=",line) : null;
-  // записываем данные
+
+  // записуємо в файл
   tools.writeLine(this.fName, line, (err) => {
     if (err) {
       log("e", logN, "writeLine error:", err);
       throw err;
     }
+    trace ? log("i", logN, "Saved to file: ", line.slice(0, -1)) : null;
   });
 }
 
