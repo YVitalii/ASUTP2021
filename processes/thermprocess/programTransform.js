@@ -92,14 +92,14 @@ function generateProgram(arr) {
     step.tT = parsed.tT ? parsed.tT : 0;
     step.time = parsed.H ? parsed.H : 0;
     step.errTime = parsed.errTime ? parsed.errTime : 60;
-    step.note = `Крок ${i}:1.Нагрівання ${step.startT}->${parsed.tT}&degC;H=${
-      parsed.H ? parsed.H : "&infin;"
+    step.note = `Крок ${i}:1.Нагрівання ${step.startT}->${parsed.tT}\u00b0C; H=${
+      parsed.H ? parsed.H : "\u221E"
     }хв`;
 
     program.push({ ...step }); //записуємо клонований крок
     // ------------ другий під-крок - Витримка
-    step.note = `Крок ${i}:2. Витримка T=${parsed.tT}&degC;Y=${
-      parsed.Y ? parsed.Y : "&infin;"
+    step.note = `Крок ${i}:2. Витримка T=${parsed.tT}\u00b0C; Y=${
+      parsed.Y ? parsed.Y : "\u221E"
     }хв`;
     step.startT = step.tT;
     step.time = parsed.Y ? parsed.Y : 0;

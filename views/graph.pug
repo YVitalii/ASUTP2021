@@ -1,6 +1,6 @@
 extends layout
 block content
-	div(class="container-fluid card border-info mt-5")
+	div(class="container-fluid card border-info mt-5 p-0")
 		h1(class="card-header") #{furnace.fullName}
 		div(class="row card-body")
 			div(class="d-flex flex-column justify-content-between p-2" style="width: 215px")
@@ -18,6 +18,9 @@ block content
 					a(href="/report/"+furnace.id class="btn btn-outline-dark w-100") Отчёты
 					a(href="/" class="btn btn-outline-dark w-100") Главная
 			div(class="col-9" style="height: 400px; width: calc(100% - 215px)" id="myChart")
+	div(class="card border-info mt-1" style="width:450px")
+		div(class="card-header") Поточна програма
+		ul(class="list-group listgroup-flush overflow-auto p-1" style="max-height: 240px" id="process-program-list")
 	script
 		- var regs = '\"' + furnace.listRegs + '\"';
 		!= `var regs = ${regs};`
