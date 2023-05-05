@@ -29,14 +29,15 @@ router.post("/stop", async function (req, res, next) {
   }
 
   // добуваємо з запиту номер кроку програми
-  let step = 1;
+  // let step = 1;
   // --- тут має бути код -------
 
   // запускаємо програму на виконання
   let prName = thermProcess.getProgram()[0].title;
   try {
     // пробуємо запустити програму на виконання
-    thermProcess.stop(step);
+    // thermProcess.stop(step);
+    thermProcess.stop();
     // програма запущена вдало , відсилаємо відповідь
     let response = {
       ua: `Програма ${prName} зупинена`,
@@ -79,7 +80,8 @@ router.post("/start", async function (req, res, next) {
   }
   // добуваємо з запиту номер кроку програми
 
-  let step = 1;
+  // let step = 1;
+  let step = req.query.stepID;
   // --- тут має бути код -------
   // запускаємо програму на виконання
   let prName = thermProcess.getProgram()[0].title;
@@ -158,7 +160,8 @@ router.post("/setProgram", function (req, res, next) {
   //trace ? console.log(ln, "req=") : null;
   // ----- завантажуємо програму, вона приходить з браузера  -----
   // --- тестова програма -------
-  let incomeProgram = require("../tests/testProgram.js");
+  let incomeProgram = JSON.parse(req.query.newParameters);
+  // let incomeProgram = require("../tests/testProgram.js");
   // if (trace) {
   //   log("i", ln, `incomeProgram=`);
   //   console.dir(incomeProgram);

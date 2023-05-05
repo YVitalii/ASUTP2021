@@ -235,7 +235,8 @@ sendBtn.onclick = () => {
       msgN++;
     }
   }
-  let url = "/saveProgram?folderName="+furnaceId+"&id="+programObject[0].id+".log"+"&newParameters="+JSON.stringify(programObject);
+  let url = "/process/setProgram?newParameters="+JSON.stringify(programObject);
+  // let url = "/saveProgram?folderName="+furnaceId+"&id="+programObject[0].id+".log"+"&newParameters="+JSON.stringify(programObject);
   console.log(url);
   xhr.open("POST", url, true);
   xhr.send();

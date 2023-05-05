@@ -1,6 +1,6 @@
 const ThermStep = require("../ThermStep.js");
 const iface = require("../../../rs485/RS485_v200.js");
-const ManagerTRP08 = require("../../../devices/trp08/Manager.js");
+const ManagerTRP08 = require("../../../devices/trp08/manager.js");
 const ThermProcess = require("../ThermProcess.js");
 
 let program = require("./testProgram.js");
