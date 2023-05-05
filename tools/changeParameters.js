@@ -87,7 +87,7 @@ let myTableBody = document.getElementById("paramTableBody");
 
 let programSaveChangesBtn = document.getElementById("program-save-changes-btn");
 programSaveChangesBtn.onclick = () => {
-  if (window.confirm(`Ви точно хочете перезаписати файл?`)) {
+  if (window.confirm(`Ви точно бажаєте перезаписати файл?`)) {
     programObject[0].title=title.innerText;
     programObject[0].description=description.innerText;
     // console.log(JSON.stringify(programObject));
@@ -177,7 +177,7 @@ deleteProgramBtn.onclick = () => {
   //   alert("У Вас нет прав на удаление файлов.")
   // } else {
     var fileName = selectedList.id;
-    if (window.confirm(`Ви точно хочете видалити програму ${fileName}.log?`)) {
+    if (window.confirm(`Ви точно бажаєте видалити програму ${fileName}.log?`)) {
       var msgN = 1;
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function () {

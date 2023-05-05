@@ -21,7 +21,7 @@ function drawGraph(log) {
   chart={};
   chartConfig["startDate"] = log;
   chart = new Chart("#myChart", chartConfig);
-  titleHeader.innerHTML = `Отчёт печи ${furnaceName} за ${log}`;
+  titleHeader.innerHTML = `Звіт печі ${furnaceName} за ${log}`;
   setTimeout(() => {
     var valueTime = new Date(chart.data[0].time);
     var h =  valueTime.getHours();
@@ -79,8 +79,8 @@ printBtn.onclick = () => {
     comments[1].innerHTML += `<span style="color: ${txtColor};">${value.title}</span> - ${value.description}\n`;
     k++;
   }
-  if(window.confirm("Хотите добавить комментарий?")) {
-    comments[0].innerHTML = prompt("Введите комментарий:");
+  if(window.confirm("Бажаєте додати коментар?")) {
+    comments[0].innerHTML = prompt("Введіть коментар:");
     comments[0].style.width = "50%";
     comments[1].style.width = "50%";
   } else {
@@ -127,7 +127,7 @@ deleteBtn.onclick = () => {
   //   alert("У Вас нет прав на удаление файлов.")
   // } else {
     var fileName = selectedList.id;
-    if (window.confirm(`Вы точно хотите удалить файл ${fileName}?`)) {
+    if (window.confirm(`Ви точно бажаєте видалити файл ${fileName}?`)) {
       var msgN = 1;
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function () {

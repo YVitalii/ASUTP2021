@@ -7,7 +7,7 @@ let setNewTimeBtn = document.getElementById("setNewTime");
 setNewTimeBtn.onclick = () => {
   let timeStr = document.getElementById("timeStr");
   if(timeStr.value == "") {
-    alert("Неправильное значение.");
+    alert("Неправильне значення.");
   } else {
     let newTime = new Date(timeStr.value);
     // alert(newTime.toISOString());

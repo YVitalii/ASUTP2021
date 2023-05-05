@@ -98,7 +98,7 @@ getReg_xhrT.onload = function(){
 getReg_xhrT.onreadystatechange = () => {
   if (getReg_xhrT.readyState === 4) {
       if (getReg_xhrT.status === 0) {
-        alert("Произошла ошибка сервера, пожалуйста, перезагрузите сервер и страницу.");
+        alert("Виникла помилка сервера, будь ласка, перезавантажте сервер та сторінку.");
       }
   }
 }
