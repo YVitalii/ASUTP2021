@@ -180,7 +180,7 @@ function addTask(req,cb){
         if(trace) {
           console.log("Task created:>>");
           console.log(msg);
-        };
+        };serial
         // ставим в очередь
         queue.push(msg);
         //let line="RS485-v200>addTask>queue.length="+queue.length+"; req="+parseBuf(msg.buf);

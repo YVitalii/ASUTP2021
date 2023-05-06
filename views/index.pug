@@ -11,13 +11,17 @@ mixin Card(thisFurnace)
             h2(class="col-md-4 w-auto" id=key)= '0'
             h2(class="col-md-4 w-auto")= thisFurnace.regs[key].units
         a( href="/graph/"+thisFurnace.id)
-          button(type="button" class="btn btn-outline-info") Детали
+          button(type="button" class="btn btn-outline-info") Робота
+        a( href="/parameterSetting/"+thisFurnace.id)
+          button(type="button" class="btn btn-outline-info") Програма
+        //- a( href="/akon")
+        //-   button(type="button" class="btn btn-outline-info") Akon
 block content
   div(class="container mt-5")
     div(class="row justify-content-around")
       each furnace in entities
         +Card(furnace)
-    button(id="settings" type="button" class="btn btn-outline-dark" style="position: fixed; right: 15vw; bottom: 50px") Настройка
+    button(id="settings" type="button" class="btn btn-outline-dark" style="position: fixed; right: 15vw; bottom: 50px") Налаштування
     div(id="modalWindow" style="display: none; width: 100vw; height: 100vh; position: fixed; left: 0; top: 0; background: rgba(46, 49, 49, .9)")
       div(class="card border-info m-3" style="width: 450px; height: 180px; position: fixed; left: calc(50% - 225px); top: calc(50% - 90px)")
         div(class="card-header")
@@ -26,8 +30,8 @@ block content
           div(class="row d-flex justify-content-around p-2")
             input(id="timeStr" type="datetime-local" style="width: 300px")
           div(class="row d-flex justify-content-around p-2")
-            button(id="setNewTime" type="button" class="btn btn-outline-success col-md-4") Установить
-            button(id="closeModal" type="button" class="btn btn-outline-danger col-md-4") Отменить
+            button(id="setNewTime" type="button" class="btn btn-outline-success col-md-4") Встановити
+            button(id="closeModal" type="button" class="btn btn-outline-danger col-md-4") Відмінити
   script
     - var keys = '\"';
     each furnace in entities
