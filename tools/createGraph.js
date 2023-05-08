@@ -8,7 +8,7 @@ const furnaceId = pathArr[pathArr.length-1];
 const chartConfig = {
   dataURL: "/logs/" + furnaceId,
   startDate: today,
-  y: { min: 0, max: 600 },
+  y: { min: temperature.min, max: temperature.max }, // берётся из graph.pug
   task:null,
   registers, // берётся из graph.pug
 }

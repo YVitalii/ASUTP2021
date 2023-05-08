@@ -27,5 +27,6 @@ block content
 		!= `var regs = ${regs};`
 		- var registers = JSON.stringify(furnace.regs);
 		!= `var registers = ${registers};`
+		- var temperature = JSON.stringify(furnace.temperature);
+		!= `var temperature = ${temperature};`
 		include ../tools/createGraph.js
-	

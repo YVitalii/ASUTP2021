@@ -38,4 +38,6 @@ block content
 		!= `var registers = ${registers};`
 		!= `var furnaceName = ${JSON.stringify(furnace.shortName)};`
 		!= `var role = \'${userData.username}\';`
+		- var temperature = JSON.stringify(furnace.temperature);
+		!= `var temperature = ${temperature};`
 		include ../tools/createReport.js
