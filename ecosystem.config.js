@@ -8,3 +8,4 @@ module.exports = {
      ,ignore_watch:['./public/logs',"node_modules"]
     }
   ]
+}
