@@ -1,6 +1,6 @@
 class APIerror extends Error {
   constructor(msg) {
-    super(msg.ru); // (1)
+    super(msg.ua); // (1)
     this.name = "apiError"; // (2)
     this.msg=msg;
     this.stack="";

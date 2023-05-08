@@ -32,13 +32,13 @@ const users = {};
 const defaultAdmin = {
   username: "admin",
   password: "$2b$10$ehdyX/6RNtgel/JVI7jvO.2gE1EMP8Ub2x.qvk0WmXVYDDran6Isq", // password="bortek"
-  displayName: "Администратор",
+  displayName: "Адміністратор",
   role: "admin",
 }; // defaultUser
 const defaultGuest = {
-  username: "Гость",
+  username: "Гість",
   password: "$2b$10$EtM1rFVCvg7U/t1ih5oNAOisOGWfRdNlgBbjgppxODN9sxgqrTMlG", // password="12345"
-  displayName: "Гость",
+  displayName: "Гість",
   role: "guest",
 }; // defaultUser
 
@@ -57,7 +57,7 @@ startData[defaultGuest.username] = defaultGuest;
 */
 const roles = {
   admin: {
-    display: "Администратор",
+    display: "Адміністратор",
     userAddNew: true,
     userDelete: true,
     logDelete: true,
@@ -68,7 +68,7 @@ const roles = {
     programEdit: true,
   },
   guest: {
-    display: "Гость",
+    display: "Гість",
   },
 };
 
@@ -222,7 +222,7 @@ function findByUsername(username, cb) {
     let err = new Err({
       en: 'User "' + username + '" does not exist.',
       ru: 'Пользователь "' + username + '" не существует.',
-      ua: "Користувач " + username + '" не існує.',
+      ua: 'Користувач "' + username + '" не існує.',
     });
     return cb(err, null);
   });

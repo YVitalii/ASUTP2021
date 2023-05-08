@@ -15,6 +15,7 @@ block content
 								td
 									h2(class="col-md-4 w-auto")= furnace.regs[key].units
 				div(class="btn-group-vertical w-100 p-2")
+					a(href="/parameterSetting/"+furnace.id class="btn btn-outline-dark w-100") Програма
 					a(href="/report/"+furnace.id class="btn btn-outline-dark w-100") Звіти
 					a(href="/" class="btn btn-outline-dark w-100") Головна
 			div(class="col-9" style="height: 400px; width: calc(100% - 215px)" id="myChart")
