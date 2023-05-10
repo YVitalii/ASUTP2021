@@ -253,6 +253,7 @@ class ThermStep {
       return Promise.reject(new Error(error));
     }
     log("w", ln, "Витримку закінчено!!! ");
+    finished = true;
     return Promise.resolve("Ok");
   } // holding
 
