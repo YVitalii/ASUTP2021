@@ -21,7 +21,7 @@
    1. Оновив визначення буферу, так як воно застаріло 
 
 */
-
+const log = require("../tools/log");
 /** buffer - місце для зберігання даних */
 // застаріло var buffer = new Buffer(0); // буфер приема данных
 let buffer = Buffer.from("");
@@ -124,7 +124,7 @@ function addTask(req, cb) {
                 id-адрес ведомого устройства
                 FC-функция
                 addr-адрес стартового регистра,
-                data - данные
+                data - данные число или Buffer 
                 timeout - таймаут
             }
           cb - callback
@@ -136,10 +136,14 @@ function addTask(req, cb) {
         и ставит ее в  очередь опроса queue
         */
 
-  let trace = 0; // трассировка
-
+  let trace = 1; // трассировка
+  let ln = "RS485_v200::addTask()::";
+  if (trace) {
+    log("i", ln, `req=`);
+    console.dir(req);
+  }
   let msg = { timeout: req.timeout ? req.timeout : 1000, cb: cb };
-  // расчет длины ожидаемого сообщения
+  // расчет длины ожидаемого ответа
   let length = 8;
   //log('length='+length);
   switch (req.FC) {
@@ -150,13 +154,26 @@ function addTask(req, cb) {
       break;
     case 6:
       length = 8; //ответ = эхо запроса
+    case 10:
+      //[адрес]+[функция]+[startRegister_H]+[startRegister_L]+[registerNumber_H]+[registerNumber_L]+CRC_H+CRC_L
+      length = 1 + 1 + 2 + 2 + 2; //8
   }
   msg.resLength = length; // ожидаемая длина ответа
 
   // -------   буфер запроса  ---------------------
   let addr = toTetrad(req.addr);
-  let data = toTetrad(req.data);
-  let arr = [req.id, req.FC, addr[0], addr[1], data[0], data[1]];
+  let arr = [req.id, req.FC, addr[0], addr[1]];
+  if (Buffer.isBuffer(req.data)) {
+    console.log("req.data is a buffer");
+    for (let i = 0; i < req.data.length; i++) {
+      arr.push(req.data[i]);
+    }
+  }
+  if (Number.isInteger(req.data)) {
+    let data = toTetrad(req.data);
+    arr.push(data[0], data[1]);
+  }
+  // let arr = [req.id, req.FC, addr[0], addr[1], data[0], data[1]];
   let buf = new Buffer.from(arr);
   let crc = getCRC(buf);
   arr.push(crc[0]);
@@ -203,7 +220,7 @@ function iterate() {
 } //iterate
 
 function transaction(req, cb) {
-  let trace = 0;
+  let trace = 1;
   /*
   req={    buf: Buffer // запрос
           ,timeout:1000 //ms
