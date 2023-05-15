@@ -26,7 +26,7 @@ start = () => {
     log("i", `Серийный номер устройства: ${data.readUInt32BE(0)}.`);
   });
   WAD_MIO.send({ id: 1, FC: 0x03, addr: 0x0510, data: 2 }, (err, data) => {
-    console.log(`- - - Запрос по адресу 0x0002 - - -`);
+    console.log(`- - - Запрос по адресу 0x0510 - - -`);
     if (err) console.log(`err: ${err}`);
     // console.log(data);
     let d = data.readUInt32BE(0);
@@ -46,12 +46,13 @@ start = () => {
     {
       id: 1,
       FC: 0x10,
-      addr: 0x0413,
-      data: Buffer.from([0x00, 0x01, 0x00, 0x01, 0x00, 0x00]),
+      addr: 0x0710,
+      data: Buffer.from([0x00, 0x02, 0x04, 0x30, 0x80]), // 4 mA
+      // data: Buffer.from([0x00, 0x02, 0x04, 0x41, 0xa0]), // 20 mA
       timeout: 2000,
     },
     (err, data) => {
-      console.log(`- - - Запись регистра по адресу 0x4013 - - -`);
+      console.log(`- - - Запись регистра по адресу 0x0710 - - -`);
       if (err) console.log(`err: ${err}`);
       console.log(`Ответ: ${data}`);
       console.log(data);
