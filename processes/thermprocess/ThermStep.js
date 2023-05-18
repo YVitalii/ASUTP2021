@@ -253,6 +253,7 @@ class ThermStep {
       return Promise.reject(new Error(error));
     }
     log("w", ln, "Витримку закінчено!!! ");
+    finished = true;
     return Promise.resolve("Ok");
   } // holding
 
@@ -262,7 +263,8 @@ class ThermStep {
    *  */
 
   async heating() {
-    let minT = this.step.tT + this.step.dTmin;
+    let minT = this.step.tT;
+    // let minT = this.step.tT + this.step.dTmin;
     let ln =
       this.ln +
       `heating(minT=${minT};H=${this.step.H ? 0 : this.step.H};Y=${

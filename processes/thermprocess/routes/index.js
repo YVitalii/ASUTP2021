@@ -123,7 +123,7 @@ router.post("/getState", function (req, res, next) {
   // -- настройки логгера --------------
   let trace = 0;
   let ln = logName + "POST:/getState => ";
-  trace = gTrace !== 0 ? gTrace : trace;
+
   let state = thermProcess.getState();
   //trace ? console.log(ln, "req=") : null;
   if (trace) {
@@ -139,7 +139,6 @@ router.post("/getProgram", function (req, res, next) {
   // -- настройки логгера --------------
   let trace = 0;
   let ln = logName + "POST:/getReg => ";
-  trace = gTrace !== 0 ? gTrace : trace;
   let program = thermProcess.getProgram();
   //trace ? console.log(ln, "req=") : null;
   if (trace) {
@@ -153,9 +152,8 @@ router.post("/getProgram", function (req, res, next) {
 /** Завантаження поточної програми для виконання */
 router.post("/setProgram", function (req, res, next) {
   // -- настройки логгера --------------
-  let trace = 1;
+  let trace = 0;
   let ln = logName + "POST:/setReg => ";
-  trace = gTrace !== 0 ? gTrace : trace;
 
   //trace ? console.log(ln, "req=") : null;
   // ----- завантажуємо програму, вона приходить з браузера  -----

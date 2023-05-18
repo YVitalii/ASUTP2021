@@ -19,7 +19,7 @@ block content
 						button(type="button" class="btn btn-outline-info" id="load-svg-btn") Завантажити SVG
 						button(id ="delete-btn" type="button" class="btn btn-outline-danger") Видалити
 					div(class="btn-group-vertical w-100 p-2")
-						a(href="/graph/"+furnace.id class="btn btn-outline-dark w-100") Назад
+						a(href="/graph/"+furnace.id class="btn btn-outline-dark w-100") Робота
 						a(href="/" class="btn btn-outline-dark w-100") Головна
 			div(id="right-side" style="height: 460px; width: calc(100% - 215px)")
 				div(id="myChart" style="height: 400px; width: 100%")
@@ -38,4 +38,6 @@ block content
 		!= `var registers = ${registers};`
 		!= `var furnaceName = ${JSON.stringify(furnace.shortName)};`
 		!= `var role = \'${userData.username}\';`
+		- var temperature = JSON.stringify(furnace.temperature);
+		!= `var temperature = ${temperature};`
 		include ../tools/createReport.js

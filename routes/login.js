@@ -49,7 +49,7 @@ router.post(
 router.get("/logout", function (req, res) {
   console.log("------------------------------");
   console.log("req.logout=" + req.logout);
-  req.logout();
+  req.logout((err, data) => {console.log(data)});
   res.redirect("/");
 });
 

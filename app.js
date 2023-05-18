@@ -6,6 +6,8 @@ var logger = require("morgan");
 const logWriter = require("./logger/logWriter.js");
 const nocache = require("nocache");
 
+const ipAddr = require("./config.js").ipAddr;
+
 var passport = require("./tools/passport-loc.js");
 
 // var flash = require('express-flash');
@@ -63,7 +65,7 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(function (req, res, next) {
-  res.set("Acess-Control-Allow-Origin", "http://192.168.1.143:3001");
+  res.set("Acess-Control-Allow-Origin", `http://${ipAddr}:3001`);
   res.set("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type");
   // console.log('------req.query-------');

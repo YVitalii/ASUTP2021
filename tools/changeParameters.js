@@ -224,7 +224,7 @@ sendBtn.onclick = () => {
   xhr.onreadystatechange = function () {
     if (this.status == 200) {
       if (msgN == 2) {
-        alert(this.responseText);
+        alert(JSON.parse(this.responseText).data.ua);
       }
       msgN++;
     }
@@ -237,7 +237,7 @@ sendBtn.onclick = () => {
   }
   let url = "/process/setProgram?newParameters="+JSON.stringify(programObject);
   // let url = "/saveProgram?folderName="+furnaceId+"&id="+programObject[0].id+".log"+"&newParameters="+JSON.stringify(programObject);
-  console.log(url);
+  // console.log(url);
   xhr.open("POST", url, true);
   xhr.send();
 }

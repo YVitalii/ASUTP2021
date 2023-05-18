@@ -70,7 +70,7 @@ function generateProgram(arr) {
   let descr = { ...arr[0] };
   descr.startTime;
   program.push(descr);
-  // створюємо перший пустий крок
+
   //program.push(generateFirstEmptyStep("Очікування"));
   for (let i = 1; i < arr.length; i++) {
     const parsed = parseStep(arr[i]);
@@ -88,13 +88,14 @@ function generateProgram(arr) {
     // для зручності розбиваємо кожний крок на підкроки: нагрівання + витримка
     // ---------- перший під-крок - Нагрівання
 
-    step.startT = i == 1 ? 0 : program[i].tT; // попередній крок
+    step.startT = i == 1 ? 0 : program[(i - 1) * 2].tT; // попередній крок
     step.tT = parsed.tT ? parsed.tT : 0;
+
     step.time = parsed.H ? parsed.H : 0;
     step.errTime = parsed.errTime ? parsed.errTime : 60;
-    step.note = `Крок ${i}:1.Нагрівання ${step.startT}->${parsed.tT}\u00b0C; H=${
-      parsed.H ? parsed.H : "\u221E"
-    }хв`;
+    step.note = `Крок ${i}:1.Нагрівання ${step.startT}->${
+      parsed.tT
+    }\u00b0C; H=${parsed.H ? parsed.H : "\u221E"}хв`;
 
     program.push({ ...step }); //записуємо клонований крок
     // ------------ другий під-крок - Витримка

@@ -3,6 +3,7 @@
 # dependencies
 /node_modules
 /public/logs
+/public/params
 /.pnp
 .pnp.js
 .bak

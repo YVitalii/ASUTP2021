@@ -14,7 +14,7 @@ describe("users",function() {
     });//it
     it('при username="wrong", результат: err',function(done){
       users.findByUsername("wrong",(err,data) =>{
-        if (err) {done();console.log(err.msg.ru);return};
+        if (err) {done();console.log(err.msg.ua);return};
         done(data.user);
       })
     });//it
@@ -26,7 +26,7 @@ describe("users",function() {
     it('при несуществующем пользователе (undefined), ошибка',function(done){
       let user;
       users.addNewUser(user,(err,data) =>{
-        if (err) {console.log(err.msg.ru);done();return};
+        if (err) {console.log(err.msg.ua);done();return};
         done(data);
         return
       })
@@ -35,7 +35,7 @@ describe("users",function() {
     it('при пустом пользователе {}, ошибка',function(done){
       let user={};
       users.addNewUser(user,(err,data) =>{
-        if (err) {console.dir(err.msg.ru);done();return};
+        if (err) {console.dir(err.msg.ua);done();return};
         done(data);
         return
       })
@@ -44,7 +44,7 @@ describe("users",function() {
     it('при отсутствии пароля user={username:"vasya"} → ошибка',function(done){
       let user={username:"vasya"};
       users.addNewUser(user,(err,data) =>{
-        if (err) {console.dir(err.msg.ru);done();return};
+        if (err) {console.dir(err.msg.ua);done();return};
         done(data);
         return
       })
@@ -53,7 +53,7 @@ describe("users",function() {
     it('при коротком пароле 1234 → ошибка',function(done){
       let user={username:"vasya", password:"1234"};
       users.addNewUser(user,(err,data) =>{
-        if (err) {console.dir(err.msg.ru);done();return};
+        if (err) {console.dir(err.msg.ua);done();return};
         done(data);
         return
       })
@@ -62,7 +62,7 @@ describe("users",function() {
     it('при несуществующей роли (role="stupid") → ошибка',function(done){
       let user={username:"vasya", password:"123456789", role:"stupid"};
       users.addNewUser(user,(err,data) =>{
-        if (err) {console.dir(err.msg.ru);done();return};
+        if (err) {console.dir(err.msg.ua);done();return};
         done(data);
         return
       })
@@ -73,7 +73,7 @@ describe("users",function() {
       let user={username:"admin", password:"123456789", role:"admin"};
       users.addNewUser(user,(err,data) =>{
         //console.dir(err);
-        if (err) {console.dir(err.msg.ru);done();return};
+        if (err) {console.dir(err.msg.ua);done();return};
         done(data);
         return
       })
@@ -84,7 +84,7 @@ describe("users",function() {
       let user={username:"vasya", password:"123456789", role:"guest"};
       users.addNewUser(user,(err,data) =>{
         //console.dir(err);
-        if (err) {done(err.msg.ru);return};
+        if (err) {done(err.msg.ua);return};
         done();
         return
       })
@@ -117,8 +117,8 @@ describe("users",function() {
         return
       }); // verifyUser
     });//it
-    it('при правильном пароле и существующем username=Гость:passport=12345 → пользователь',function(done){
-      let username="Гость",password="12345";
+    it('при правильном пароле и существующем username=Гість:passport=12345 → пользователь',function(done){
+      let username="Гість",password="12345";
       users.verifyUser(username, password, (err,data) => {
         if (err) {done(err);   return };
         assert.equal(data.username, username);
@@ -158,7 +158,7 @@ describe("users",function() {
     it('при попытке удаления существующего пользователя vasya → Ok',function(done){
       let id;
       users.deleteUser("vasya", (err,data) => {
-        if (err) {done(err.msg.ru); return };
+        if (err) {done(err.msg.ua); return };
         done();
         return
       }); // deleteUser

@@ -1,4 +1,5 @@
 const config = {};
+config.ipAddr = "192.168.1.143"; // IP адреса в локальній мережі
 const TRP08 = require("./devices/trp08/manager.js");
 const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
@@ -21,15 +22,15 @@ entities.push({
       title: "SP", // имя для вывода в описании поля
       units: "\u00b0C",
       type: "integer",
-      description: "Заданная температура",
-      legend: "Верх.Задание", // Надпись для графика
+      description: "Задана температура",
+      legend: "Завдання", // Надпись для графика
     },
     "1-T": {
       title: "T", // имя для вывода в описании поля
       type: "integer",
       units: "\u00b0C",
-      description: "Текущая температура",
-      legend: "Верх.Температура", // Надпись для графика
+      description: "Поточна температура",
+      legend: "Температура", // Надпись для графика
     },
   }, //regs
   listRegs: "1-tT;1-T", // список регистров для запроса, что бы их не генерировать каждый раз
@@ -58,7 +59,7 @@ config.logger = {
   path: __dirname + "/public/logs",
   period: 20, // период между записями 30 секунд
   separator: "\t", // разделитель значений в строке
-  deviation: 1, //  коридор нечуствительности изменения температуры,
+  deviation: -1, //  коридор нечуствительности изменения температуры,
   //  т.е. если предыдущее и последующие значения отличаются менее чем на deviation сек,
   //  запись в файл не делается.
   errValue: -20, // записывается в лог-файл если ошибка
