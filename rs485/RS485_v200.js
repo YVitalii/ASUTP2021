@@ -136,7 +136,7 @@ function addTask(req, cb) {
         и ставит ее в  очередь опроса queue
         */
 
-  let trace = 1; // трассировка
+  let trace = 0; // трассировка
   let ln = "RS485_v200::addTask()::";
   if (trace) {
     log("i", ln, `req=`);
@@ -164,7 +164,7 @@ function addTask(req, cb) {
   let addr = toTetrad(req.addr);
   let arr = [req.id, req.FC, addr[0], addr[1]];
   if (Buffer.isBuffer(req.data)) {
-    console.log("req.data is a buffer");
+    // console.log("req.data is a buffer");
     for (let i = 0; i < req.data.length; i++) {
       arr.push(req.data[i]);
     }
@@ -220,7 +220,7 @@ function iterate() {
 } //iterate
 
 function transaction(req, cb) {
-  let trace = 1;
+  let trace = 0;
   /*
   req={    buf: Buffer // запрос
           ,timeout:1000 //ms
@@ -312,6 +312,9 @@ function extractData(buf) {
       break;
     case 6:
       _data = buf.slice(4, buf.length - 2);
+      break;
+    case 0x10:
+      _data = buf.slice(7, buf.length - 2);
       break;
     default:
       console.log(

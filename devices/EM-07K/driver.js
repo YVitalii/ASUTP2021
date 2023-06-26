@@ -33,34 +33,33 @@
                 )
 */
 const WAD_MIO = require("../../rs485/RS485_v200.js");
-const log = require("../../tools/log");
+const log = require("../../tools/log.js");
+const parseBuf = require("../../tools/parseBuf.js");
 
-const ln = "AKON:: driver.js::";
+const ln = "EM-07K:: driver.js::";
 const timeout = 1000; //таймаут запроса
 
 const regs = new Map(); //список регистров прибора
 
 regs.set(
-  "SN", // - серійний номер
+  "CTR", // - коефіцієнт множення струму
   {
-    // addr: 0x0003,
-    addr: 0x0002,
+    addr: 0x0FA0,
     _get: function () {
       return {
         data: {
           FC: 3,
           addr: this.addr,
-          data: 1,
-          // data: 2,
-          note: `Зчитування серійного номеру приладу`,
+          data: 2,
+          note: `Зчитування коефіцієнту множення струму [0x0FA0]`,
         },
         err: null,
       };
     },
     get_: (buf) => {
-      let note = "Серійний номер приладу";
+      let note = "Коефіцієнт множення струму";
       console.log(buf);
-      let data = buf.readUInt32BE(0);
+      let data = buf.readUInt16BE();
       let err = null;
       return {
         data: { value: data, note: note },
@@ -70,7 +69,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0002 [SN] - тільки для читання",
+        err: "_Set: Регістр 0x0FA0 [CTR] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -78,195 +77,387 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("SN"
+); ///regs.set("CTR")
 
-regs.set("AI", { // - аналоговий вхід
-  addr: 0x400B,
-  _get: function () {
-    return {
-      data: {
-        FC: 3,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення аналогового входу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення аналогового входу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function () {
-    return {
-      data: null,
-      err: "_Set: Регістр 0x400B [AI] - тільки для читання",
-    };
-  },
-  set_: function () {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._set();
-  },
-}); ///regs.set("AI"
+regs.set(
+  "VTR", // - коефіцієнт множення напруги
+  {
+    addr: 0x0FA1,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування коефіцієнту множення напруги [0x0FA1]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Коефіцієнт множення напруги";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FA1 [VTR] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("VTR")
 
-regs.set("DI", { // - дискретний вхід
-  addr: 0x4012,
-  _get: function () {
-    return {
-      data: {
-        FC: 3,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення дискретного входу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення дискретного входу.";
-    let data = !buf.readUInt16BE(0);
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function () {
-    return {
-      data: null,
-      err: "_Set: Регістр 0x4012 [DI] - тільки для читання",
-    };
-  },
-  set_: function () {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._set();
-  },
-}); ///regs.set("DI"
+regs.set(
+  "V_L1-N", // - поточна напруга першої фази 
+  {
+    addr: 0x0FA2,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної напруги першої фази [0x0FA2]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточна напруга першої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FA2 [V_L1-N] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("V_L1-N")
 
-regs.set("AO", {
-  addr: 0x400F,
-  _get: function () {
-    return {
-      data: {
-        FC: 0x03,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення аналогового виходу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення аналогового виходу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function (newValue) {
-    newValue = parseInt(newValue);
-    let buf1 = Buffer.from([0x00, 0x01, 0x02]);
-    let buf2 = Buffer.allocUnsafe(2);
-    buf2.writeUInt16BE(parseInt(0xffff*newValue/100), 0);
-    let totalLength = buf1.length + buf2.length;
-    let val = Buffer.concat([buf1, buf2], totalLength);
-    let err = null;
-    if (val === null) {
-      err = ln + "Не можу перетворити в буфер " + newValue;
-    }
-    return {
-      data: {
-        FC: 0x10,
-        addr: this.addr,
-        data: val,
-      },
-      err: err,
-    };
-  },
-  set_: function (buf) {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._get(buf);
-  },
-}); ///regs.set("AO")
+regs.set(
+  "V_L2-N", // - поточна напруга другої фази 
+  {
+    addr: 0x0FA3,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної напруги другої фази [0x0FA3]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточна напруга другої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FA3 [V_L2-N] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("V_L2-N")
 
-regs.set("DO", {
-  addr: 0x4014,
-  _get: function () {
-    return {
-      data: {
-        FC: 0x03,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення дискретного виходу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення дискретного виходу.";
-    let data = buf.readUInt16BE(0);
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function (newState) {
-    let buf = null;
-    if (newState) {
-      buf = Buffer.from([0x00, 0x01, 0x02, 0x00, 0x01]); // DO 1
-    } else {
-      buf = Buffer.from([0x00, 0x01, 0x02, 0x52, 0xf1]); // DO 0
-    }
-    let err = null;
-    if (buf === null) {
-      err = ln + "Не можу перетворити в буфер " + newValue;
-    }
-    return {
-      data: {
-        FC: 0x10,
-        addr: this.addr,
-        data: buf,
-      },
-      err: err,
-    };
-  },
-  set_: function (buf) {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._get(buf);
-  },
-}); ///regs.set("DO")
+regs.set(
+  "V_L3-N", // - поточна напруга третьої фази 
+  {
+    addr: 0x0FA4,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної напруги третьої фази [0x0FA4]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточна напруга третьої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FA4 [V_L3-N] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("V_L3-N")
+
+regs.set(
+  "Curr_L1", // - поточний струм першої фази 
+  {
+    addr: 0x0FBA,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточного струму першої фази [0x0FBA]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточний струм першої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FBA [Curr_L1] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Curr_L1")
+
+regs.set(
+  "Curr_L2", // - поточний струм другої фази 
+  {
+    addr: 0x0FBB,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточного струму другої фази [0x0FBB]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточний струм другої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FBB [Curr_L2] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Curr_L2")
+
+regs.set(
+  "Curr_L3", // - поточний струм третьої фази 
+  {
+    addr: 0x0FBC,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточного струму третьої фази [0x0FBC]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточний струм третьої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FBC [Curr_L3] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Curr_L3")
+
+regs.set(
+  "Pow_L1", // - поточна потужність першої фази 
+  {
+    addr: 0x0FE8,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної потужності першої фази [0x0FE8]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточна потужність першої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FE8 [Pow_L1] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Pow_L1")
+
+regs.set(
+  "Pow_L2", // - поточна потужність другої фази 
+  {
+    addr: 0x0FE9,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної потужності другої фази [0x0FE9]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточна потужність другої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FE9 [Pow_L2] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Pow_L2")
+
+regs.set(
+  "Pow_L3", // - поточна потужність третьої фази 
+  {
+    addr: 0x0FEA,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної потужності третьої фази [0x0FEA]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточна потужність третьої фази";
+      console.log(buf);
+      let data = buf.readUInt16BE();
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0FEA [Pow_L3] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Pow_L3")
 
 function has(regName) {
   return regs.has(regName);
@@ -283,7 +474,7 @@ function has(regName) {
 function getReg(iface, id, regName, cb) {
   let trace = 0;
   regName = regName.trim();
-  let modul = "AKON.getReg(id=" + id + ":regName=" + regName + "):";
+  let modul = "H2Smart.getReg(id=" + id + ":regName=" + regName + "):";
   trace ? log(3, modul) : null;
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
@@ -364,7 +555,7 @@ function setReg(iface, id, regName, value, cb) {
   // и возвращает такой же объект как и getReg
   let trace = 0;
   let modul =
-    "AKON.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
+    "H2Smart.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
   regName = regName.trim();
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра

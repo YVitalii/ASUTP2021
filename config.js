@@ -1,11 +1,12 @@
 const config = {};
 config.ipAddr = "192.168.1.143"; // IP адреса в локальній мережі
 const TRP08 = require("./devices/trp08/manager.js");
+const Akon = require("./devices/WAD-MIO-MAXPro-645/manager.js");
 const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 0; //true;
+config.emulateRS485 = 1; //true;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -16,7 +17,7 @@ entities.push({
   id: "SDO-151515-55",
   shortName: "СДО-15.15.15/5,5ВЦ", //
   fullName: "Електропіч СДО-15.15.15/5,5ВЦ", //
-  temperature: { min: 0, max: 600 }, // диапазон рабочих температур
+  temperature: { min: 0, max: 250 }, // диапазон рабочих температур
   regs: {
     "1-tT": {
       title: "SP", // имя для вывода в описании поля
@@ -34,7 +35,10 @@ entities.push({
     },
   }, //regs
   listRegs: "1-tT;1-T", // список регистров для запроса, что бы их не генерировать каждый раз
-  devicesList: [new TRP08(iface, 1, { addT: 0 })], //список приладів печі
+  devicesList: [
+    new TRP08(iface, 1, { addT: 0 }),
+    new Akon(iface, 1)
+  ], //список приладів печі
 });
 // костиль з термопроцессом
 entities[0].thermProcess = new ThermProcess(entities[0].devicesList);
