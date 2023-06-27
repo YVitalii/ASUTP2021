@@ -74,7 +74,7 @@ class Chart {
       yScale: {}, //шкала по оси Y например: caption,value
     };
     this.registers = config.registers;
-    this.y = { max: 0, min: 50 }; // кордони по осі Y, для початку мінімальні - потім коригуються згідно отриманим даним в refreshTimeDomen
+    this.y = { min: -10, max: 50 }; // кордони по осі Y, для початку мінімальні - потім коригуються згідно отриманим даним в refreshTimeDomen
     // y.max,y.min - границы по оси 'y'
     // task - задача в виде {time:  ,y:  , dYmin:  , dYmax:   }
     // data:"/URL  " - ссылка на архив оперативных данных
@@ -185,7 +185,9 @@ class Chart {
           obj[data.columns[0]] = new Date(d[data.columns[0]]); //d[data.columns[0]]=d['time'];
         }
         // запамятовуємо значення для ключа
-        obj[data.columns[i]] = d[data.columns[i]]; //.value ? d[data.columns[i]].value : 0; //если данные = null или undefined то 0
+        let val = d[data.columns[i]];
+        obj[data.columns[i]] = val;
+        this.adjustYscale(val, true);
       } // if ( d[data.columns[i]] )
     } //for
     //если после обработки входящих данных нет отметки времени: т.е. объект -пустой - выход
@@ -197,7 +199,7 @@ class Chart {
     trace ? console.log(lmsg + "Объект:" + JSON.stringify(obj)) : null;
     // добавляем данные в таблицу
     this.data.push(obj);
-
+    // this.testYdomain(obj);
     // проверяем шкалу времени
     if (obj[data.columns[0]].getTime() >= this.timeDomain.end.getTime()) {
       //выходим за пределы шкалы, увеличиваем шкалу на 30 мин
@@ -523,7 +525,10 @@ class Chart {
           continue; //next iteration}
         } //  if (key == "time")
         // поле не time, преобразуем в число
-        dataLine[key] = parseFloat(dataLine[key]);
+        let val = parseFloat(dataLine[key]);
+        dataLine[key] = val;
+        // за потреби коригуємо границі осі Y
+        this.adjustYscale(val);
         //trace ? console.log(logH,"dataLine[",key,"]=",dataLine[key]):null;
       } //for (let key in dataLine)
 
@@ -547,7 +552,7 @@ class Chart {
 
   //-- line = {1-tT:200, 1-T:300, ... , time: Date }
   testYdomain(obj) {
-    let trace = 1,
+    let trace = 0,
       ln = "testYdomain():";
     trace ? console.log(ln, "----- Started -----") : null;
 
@@ -567,24 +572,48 @@ class Chart {
     for (let i = 1; i < columns.length; i++) {
       //починаємо з 1 бо [0] = час
       const element = columns[i];
-      if (obj(element)) {
-        arr.push(obj(element));
+      if (obj[element]) {
+        arr.push(obj[element]);
       }
     }
-
+    trace ? console.log(ln, "arr=", arr) : null;
     // шукаємо мінімум/максимум
     let [yMin, yMax] = d3.extent(arr);
+    // за потреби коригуємо границі осі Y
+    this.adjustYscale(yMin);
+    this.adjustYscale(yMax);
+  }
 
-    if (this.y.min > yMin) {
+  // змінює шкалу для осі Y
+  adjustYscale(val, redraw = false) {
+    let divider = 50;
+    let trace = 0,
+      ln = `"adjustYscale(${val}):"`;
+    trace
+      ? console.log(
+          ln,
+          `Started. Current limit are:  y.min=${this.y.min}; y.max=${this.y.max}.`
+        )
+      : null;
+    let changed = false;
+    if (val <= this.y.min) {
       // якщо нове значення менше за мінімум - коригуємо
-      this.y.min = Math.round(yMin / 50) * 50 - 50;
-      this.redraw();
+      this.y.min = Math.round(val / divider) * divider - divider;
+      changed = true;
     }
 
-    if (this.y.max < yMax) {
+    if (val >= this.y.max - divider / 5) {
       // якщо нове значення більше за максимум - коригуємо
-      this.y.max = Math.round(yMax / 50) * 50 + 50;
-      this.redraw();
+      this.y.max = Math.round(val / divider) * divider + divider;
+      changed = true;
+    }
+
+    if (changed) {
+      console.log(
+        ln,
+        `scaleY was adjusted to y.min=${this.y.min};y.max=${this.y.max};`
+      );
+      if (redraw) this.redraw();
     }
   }
 
