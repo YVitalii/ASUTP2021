@@ -28,15 +28,10 @@ router.post("/stop", async function (req, res, next) {
     return;
   }
 
-  // добуваємо з запиту номер кроку програми
-  // let step = 1;
-  // --- тут має бути код -------
-
-  // запускаємо програму на виконання
+  // зупиняємо програму
   let prName = thermProcess.getProgram()[0].title;
   try {
-    // пробуємо запустити програму на виконання
-    // thermProcess.stop(step);
+    // пробуємо зупинити програму
     thermProcess.stop();
     // програма запущена вдало , відсилаємо відповідь
     let response = {

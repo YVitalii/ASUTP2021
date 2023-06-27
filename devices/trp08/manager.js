@@ -44,7 +44,7 @@ class Manager {
     //this.errCounter = { value: 0, timeStamp: new Date() };
 
     // вираховуємо час останнього оновлення регістрів на 10 хв менше ніж тепер
-    let startTime = new Date().getTime() - 600000;
+    let startTime = new Date().getTime() - 10 * 60 * 1000;
 
     // поточні налаштування приладу поки null
     this.state = {
@@ -234,7 +234,7 @@ class Manager {
    * Функція зчитує параметри з фізичного приладу, записує в this.params,
    * та повертає новий обєкт з потрібним переліком регістрів
    * @param {String} params - рядок зі списком параметрів, розподілених крапкою з комою "tT; T; dT"
-   * @returns {Promise}
+   * @returns {Promise} - {tT:50}
    */
   async getParams(params = "tT") {
     let trace = 0;

@@ -67,7 +67,7 @@ class ThermStep {
       this.step.Y = this.step.time;
     } else {
       // тип кроку: нагрівання
-      this.step.H = parseInt((step.time ? step.time : 0) - step.errTime * 0.2); // даємо 20% запасу для розігрівання - щоб компенсувати відставання
+      this.step.H = parseInt((step.time ? step.time : 0) - step.errTime * 0.2); // даємо на 20% менше часу запасу для розігрівання - щоб компенсувати відставання
       if (this.step.H < 0) {
         this.step.H = 0;
       }
@@ -178,7 +178,7 @@ class ThermStep {
     trace ? log("w", ln, "params=", params) : null;
 
     try {
-      // на всякий випадок зупиняємо прилад, бо якщо він знах. в режимі "Пуск" неможливо змінити regMode
+      // зупиняємо прилад, бо якщо він знах. в режимі "Пуск" неможливо змінити regMode
       await this.device.stop();
       // 1.2 Записуємо сформований крок в терморегулятор
       await this.device.setParams(params);
@@ -192,8 +192,12 @@ class ThermStep {
       } else {
         await this.heating();
       }
-      // зупиняємо виконання програми
-      await this.device.stop();
+      // 2023-06-27 - в кінці кроку не зупиняємо прилади, а зупиняємо на початку кроку
+      // так як для багатозонних печей на стадії нагрівання потрібно очікування поки вийдуть на режим всі прилади
+      // вони так зупиняться, коли вичерпається час
+      // 2023-05-01 - зупиняємо виконання програми
+
+      // await this.device.stop();
     } catch (error) {
       let err = this.ln + "Крок завершився невдачею:" + error.message;
       trace ? log("e", err) : null;
@@ -262,7 +266,10 @@ class ThermStep {
    *  */
 
   async heating() {
-    let minT = this.step.tT + this.step.dTmin;
+    // 2023-06-28 Прибрали врахування this.step.dTmin, тому що при переході на крок holding
+    // при падінні температури в печі хоча б на 1*С - програма йде в помилку,
+    // бо поточна температура вийшла за границі контрольованого інтервалу
+    let minT = this.step.tT; //+ this.step.dTmin;
     let ln =
       this.ln +
       `heating(minT=${minT};H=${this.step.H ? 0 : this.step.H};Y=${
