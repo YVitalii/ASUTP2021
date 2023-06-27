@@ -61,7 +61,7 @@ class Chart {
     this.xScale; // масштабирование по оси Х
     this.yScale; // масштабирование по оси Y
     this.data; // таблица с данными, потрібно розібратися як влаштовано
-    // data = [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, columns: Array(5)]
+    // data = [{time, 1-tT:0, 1-T:100,…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, columns: ['time','1-tT','1-T', ...] ]
     // data.columns=["1-T","2-T"..]
     // data[0]=["{time: Tue Oct 15 2019 13:09:19 GMT+0300 (Восточная Европа, летнее время), T1: 74, T2: 79, T3: 82, T4: 78}"]
     this.points; // таблица реперных точек
@@ -74,6 +74,7 @@ class Chart {
       yScale: {}, //шкала по оси Y например: caption,value
     };
     this.registers = config.registers;
+    this.y = { max: 0, min: 50 }; // кордони по осі Y, для початку мінімальні - потім коригуються згідно отриманим даним в refreshTimeDomen
     // y.max,y.min - границы по оси 'y'
     // task - задача в виде {time:  ,y:  , dYmin:  , dYmax:   }
     // data:"/URL  " - ссылка на архив оперативных данных
@@ -183,7 +184,7 @@ class Chart {
           // в первой итерации берем timestamp у первого элемента, как общий для всех
           obj[data.columns[0]] = new Date(d[data.columns[0]]); //d[data.columns[0]]=d['time'];
         }
-        // если у текущего ключа имеется поле value то берем его, иначе=0
+        // запамятовуємо значення для ключа
         obj[data.columns[i]] = d[data.columns[i]]; //.value ? d[data.columns[i]].value : 0; //если данные = null или undefined то 0
       } // if ( d[data.columns[i]] )
     } //for
@@ -542,6 +543,51 @@ class Chart {
     });
   } //getData
 
+  //---- testYdomain -------------
+
+  //-- line = {1-tT:200, 1-T:300, ... , time: Date }
+  testYdomain(obj) {
+    let trace = 1,
+      ln = "testYdomain():";
+    trace ? console.log(ln, "----- Started -----") : null;
+
+    // таблиця данних ще не готова, вихід
+    if (!this.data.columns) {
+      trace ? console.log(ln, "----- Дані ще не готові. Вихід-----") : null;
+      return;
+    }
+
+    // тут збираємо значення всіх регистрів
+    let arr = [];
+
+    // посилання для скорочення коду
+    let columns = this.data.columns;
+
+    // перебираємо всі регістри та збираємо їх значення в массив
+    for (let i = 1; i < columns.length; i++) {
+      //починаємо з 1 бо [0] = час
+      const element = columns[i];
+      if (obj(element)) {
+        arr.push(obj(element));
+      }
+    }
+
+    // шукаємо мінімум/максимум
+    let [yMin, yMax] = d3.extent(arr);
+
+    if (this.y.min > yMin) {
+      // якщо нове значення менше за мінімум - коригуємо
+      this.y.min = Math.round(yMin / 50) * 50 - 50;
+      this.redraw();
+    }
+
+    if (this.y.max < yMax) {
+      // якщо нове значення більше за максимум - коригуємо
+      this.y.max = Math.round(yMax / 50) * 50 + 50;
+      this.redraw();
+    }
+  }
+
   /**
   обновляет границы графика по массиву this.data. Определяет min и max и
   меняет физические границы this.timeDomain.start, this.timeDomain.end
@@ -655,7 +701,7 @@ class Chart {
     // масштаб по оси y
     this.yScale = d3
       .scaleLinear()
-      .domain([this.config.y.min, this.config.y.max]) //диапазон температур
+      .domain([this.y.min, this.y.max]) //диапазон температур
       .range([this.height - this.margin.bottom, this.margin.top]);
     // ---------------   рисуем задание, т.к. оно затем затирает сетку
     this.drawTask();
