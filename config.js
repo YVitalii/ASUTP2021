@@ -1,12 +1,12 @@
 const config = {};
-config.ipAddr = "192.168.1.143"; // IP адреса в локальній мережі
+config.ipAddr = "192.168.1.147"; // IP адреса в локальній мережі
 const TRP08 = require("./devices/trp08/manager.js");
 const Akon = require("./devices/WAD-MIO-MAXPro-645/manager.js");
 const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 1; //true;
+config.emulateRS485 = 0; //true;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -14,30 +14,45 @@ config.connection = require("./conf_iface.js");
 let entities = [];
 
 entities.push({
-  id: "SDO-151515-55",
-  shortName: "СДО-15.15.15/5,5ВЦ", //
-  fullName: "Електропіч СДО-15.15.15/5,5ВЦ", //
-  temperature: { min: 0, max: 250 }, // диапазон рабочих температур
+  id: "SDO-205020-55",
+  shortName: "СДО-20.50.20/5,5ВЦ", //
+  fullName: "Електропіч СДО-20.50.20/5,5ВЦ", //
+  temperature: { min: 0, max: 600 }, // диапазон рабочих температур
   regs: {
     "1-tT": {
-      title: "SP", // имя для вывода в описании поля
+      title: "SP1", // имя для вывода в описании поля
       units: "\u00b0C",
       type: "integer",
-      description: "Задана температура",
-      legend: "Завдання", // Надпись для графика
+      description: "Задана температура ТРП №1",
+      legend: "Завдання ТРП №1", // Надпись для графика
     },
     "1-T": {
-      title: "T", // имя для вывода в описании поля
+      title: "T1", // имя для вывода в описании поля
       type: "integer",
       units: "\u00b0C",
-      description: "Поточна температура",
-      legend: "Температура", // Надпись для графика
+      description: "Поточна температура ТРП №1",
+      legend: "Температура ТРП №1", // Надпись для графика
+    },
+    "2-tT": {
+      title: "SP2", // имя для вывода в описании поля
+      units: "\u00b0C",
+      type: "integer",
+      description: "Задана температура ТРП №2",
+      legend: "Завдання ТРП №2", // Надпись для графика
+    },
+    "2-T": {
+      title: "T2", // имя для вывода в описании поля
+      type: "integer",
+      units: "\u00b0C",
+      description: "Поточна температура ТРП №2",
+      legend: "Температура ТРП №2", // Надпись для графика
     },
   }, //regs
-  listRegs: "1-tT;1-T", // список регистров для запроса, что бы их не генерировать каждый раз
+  listRegs: "1-tT;1-T;2-tT;2-T", // список регистров для запроса, что бы их не генерировать каждый раз
   devicesList: [
-    new TRP08(iface, 1, { addT: 0 }),
-    new Akon(iface, 1)
+    new TRP08(iface, 2, { addT: 0 }),
+    new TRP08(iface, 3, { addT: 0 }),
+    // new Akon(iface, 1)
   ], //список приладів печі
 });
 // костиль з термопроцессом
@@ -49,12 +64,16 @@ config.entities = entities;
 config.devices = [
   "all", //0
   "TRP08", //1
+  "TRP08", //2
+  "TRP08", //3
 ];
 // список используемых алиасов с указанием физического имени регистра
 // (т.е. адрес ModBus + сигнатура в драйвере устройства, например 7SQ1 => 5-DIO1 )
 var tags = new Map();
 tags.set("T1", "1-T");
 tags.set("SP1", "1-tT");
+tags.set("T2", "2-T");
+tags.set("SP2", "2-tT");
 
 config.tags = tags;
 //tags.set("sT"+i,i+"-T");
@@ -73,7 +92,7 @@ config.logger = {
 config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
-config.queue.work = ["1-T", "1-tT"];
+config.queue.work = ["1-T", "1-tT", "2-T", "2-tT"];
 
 module.exports = config;
 
