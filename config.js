@@ -6,7 +6,7 @@ const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 0; //true;
+config.emulateRS485 = 1; //true;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
