@@ -36,7 +36,7 @@ class ThermProcess {
     this.program = [];
     // тут зберігається поточний стан процессу
     this.state = {
-      tasks: [], // поточны завдання, що видані приладам
+      tasks: [], // поточні завдання, що видані приладам
       go: [], // функціїї запуску кожної задачі на виконання для Promise.all()
       stop: true,
       note: "Очікування. Програма не завантажена.",
@@ -95,39 +95,46 @@ class ThermProcess {
     // запамятовуємо стартовий крок
     step = parseInt(step);
     // бо у нас під номером 0 - йде опис програми
-    step == 0 ? 1 : step;
+    step = step == 0 ? 1 : step;
     this.state.currStep = step;
     trace
       ? log("i", ln, "this.program[", step, "]=", this.program[step])
       : null;
+
     // запамятовуємо момент запуску програми
     this.state.programStartTime = new Date();
+
     // змінюємо період опитування в режим "Робота"
     this.period = this.#RUN_MODE_PERIOD;
 
     //trace ? console.log(ln, "this.state=", this.state) : null;
 
+    // послідовно проходимо всі кроки програми
     for (let step = this.state.currStep; step < this.program.length; step++) {
-      // послідовно проходимо всі кроки програми
+      // поточний крок (для скорочення коду)
       let curStep = this.program[step];
-      // запамятовуємо крок
-      this.state.note = curStep.note;
-      this.state.currStep = step;
-      this.state.timestamp = new Date();
+      // запамятовуємо поточний крок
+      this.state.note = curStep.note; // опис кроку
+      this.state.currStep = step; // номер кроку
+      this.state.timestamp = new Date(); // час початку кроку
+
       // очищуємо список завдань та термічних кроків
-      this.state.go = [];
-      this.state.tasks = [];
-      // якщо є сигнал зупинки - виходимо
+      this.state.go = []; // список функцій для Promise.all()
+      this.state.tasks = []; // список термічних кроків
+
+      // якщо під час виконання виник сигнал зупинки - виходимо
       if (this.state.stop) {
         break;
       }
+
       trace ? log("i", ln, `this.state=`, this.state) : null;
+
       // для всіх приладів створюємо термічні кроки з завданням для виконання
-      for (let id = 0; id < this.devices.length; id++) {
+      for (let i = 0; i < this.devices.length; i++) {
         // створюємо ТермічніКроки для всіх приладів
-        this.state.tasks.push(new ThermStep(this.devices[id], curStep));
+        this.state.tasks.push(new ThermStep(this.devices[i], curStep));
         // складаємо список завдань для всіх приладів
-        this.state.go.push(this.state.tasks[id].go());
+        this.state.go.push(this.state.tasks[i].go());
       } // for (let id = 0;
 
       // if (trace) {
@@ -159,9 +166,11 @@ class ThermProcess {
       this.state.tasks[i].stop();
     }
   }
+
   getProgram() {
     return this.program;
   }
+
   getState() {
     let state = this.copyInfoFromObj(this.state, [
       "stop",

@@ -47,6 +47,7 @@ function parseStep(obj) {
   // формуємо завдання для процессу
   return parsed;
 }
+
 function generateFirstEmptyStep(note) {
   let res = {};
   for (let i = 0; i < fields.length; i++) {
@@ -56,6 +57,7 @@ function generateFirstEmptyStep(note) {
   res.startTime = new Date();
   return res;
 }
+
 /**Отримує масив кроків програми з браузера, та перетворює їх в потрібний надалі формат
  * @param {Array of Objects} arr - масив кроків програми
  * @param {Object} arr[0] - загальний опис {id, title, description, date}
