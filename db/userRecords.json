@@ -5,7 +5,7 @@
         "displayName": "Адміністратор",
         "role": "admin"
     },
-    "Гость": {
+    "Гість": {
         "username": "Гість",
         "password": "$2b$10$EtM1rFVCvg7U/t1ih5oNAOisOGWfRdNlgBbjgppxODN9sxgqrTMlG",
         "displayName": "Гість",
