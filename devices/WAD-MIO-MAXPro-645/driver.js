@@ -46,7 +46,7 @@ start = () => {
     {
       id: 1,
       FC: 0x10,
-      addr: 0x0413,
+      addr: 0x4013,
       data: Buffer.from([0x00, 0x01, 0x00, 0x01, 0x00, 0x00]),
       timeout: 2000,
     },
