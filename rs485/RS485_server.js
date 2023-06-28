@@ -43,7 +43,8 @@ for (var i = 0; i < config.devices.length; i++) {
     if (! deviceDrivers.has(dev)) {
       // драйвер устройства еще не загружен, загружаем
       try {
-        deviceDrivers.set(dev,require("./"+dev))
+        // deviceDrivers.set(dev,require("./"+dev))
+        deviceDrivers.set(dev,require("../devices/"+dev+"/driver.js"))
       } catch (err) {
       log(0,"Ошибка загрузки модуля:"+dev+" => "+err.message);
       };
@@ -241,7 +242,7 @@ function emulator(addr,name) {
         ,value:y
         ,req:{
             FC:3
-            ,addr:05
+            ,addr:5
             ,data:1
             ,timeout:2000
             ,id:addr
