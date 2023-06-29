@@ -727,11 +727,7 @@ class Chart {
       .scaleTime()
       .domain([this.timeDomain.start, this.timeDomain.end]) // диапазон времени
       .range([this.margin.left, this.width - this.margin.right]); //поле графика
-    // масштаб по оси y
-    this.yScale = d3
-      .scaleLinear()
-      .domain([this.y.min, this.y.max]) //диапазон температур
-      .range([this.height - this.margin.bottom, this.margin.top]);
+
     // ---------------   рисуем задание, т.к. оно затем затирает сетку
     this.drawTask();
     ///------------- рисуем ось Х ---------------
@@ -747,6 +743,7 @@ class Chart {
           ? ("0" + d.getHours()).slice(-2) + ":00"
           : null;
       }); //tickFormat
+
     this.svg
       .append("g")
       .attr("transform", `translate(0,${this.height - this.margin.bottom})`) //переносим 0,0 оси в нижнюю часть графика
@@ -768,16 +765,31 @@ class Chart {
             .attr("font-size", "14") //увеличиваем размер шрифта
             .attr("y", "14") //смещаем шрифт вниз
       ); //call
+
     ///------------- рисуем ось У ---------------
+
+    let yTickEveryPixes = 10; //кожні пікселей  повинна бути  мітка
+
+    // масштаб по оси y
+    this.yScale = d3
+      .scaleLinear()
+      .domain([this.y.min, this.y.max]) //диапазон температур
+      .range([this.height - this.margin.bottom, this.margin.top]);
+
     this.yAxis = d3
       .axisLeft()
       .scale(this.yScale)
-      .ticks(Math.round(this.config.y.max / 50)) // метки каждые 50*С
+      //.ticks(Math.round(this.config.y.max / 50)) // метки каждые 50*С
+      .ticks(
+        Math.round(
+          (this.yScale.range()[0] - this.yScale.range()[1]) / yTickEveryPixes
+        )
+      )
       .tickSize([-(this.width - this.margin.left - this.margin.right)]) //длина метки, = вся длина графика
       .tickSizeOuter(0) // длина метки крайних точек шкалы (минимум и максимум)
       .tickFormat((d, i) => {
-        //для четных меток пишем надпись, для нечетных - пропускаем;
-        return isPair(i) ? `${d}` : null;
+        //для кожної 5 мітки пишемо підпис , всі інші -пропускаємо;
+        return isPair(i, 5) ? `${d}` : null;
       }); //yAxis
     this.svg
       .append("g")
@@ -786,10 +798,14 @@ class Chart {
       .call((g) =>
         g
           .selectAll(".tick line")
-          .attr("stroke-opacity", 0.5)
+          .attr("stroke-opacity", (d, i) => {
+            //для кожної 5 мітки малюємо жирну лінію , всі інші - напівпрозорі;
+            return isPair(i, 5) ? 0.7 : 0.3;
+          }) //0.5)
           .attr("stroke-dasharray", (d, i) => {
             //console.log("d="+d.toLocaleString()+" ;i="+i);
-            return isPair(i) ? "7,2" : "2,3";
+            //для кожної 5 мітки малюємо пунктирну лінію , всі інші - крапками;
+            return isPair(i, 5) ? "7,2" : "2,3";
           })
       )
       .call(
@@ -1041,12 +1057,10 @@ class Chart {
 } //class
 
 // ---------  вспомогательные функции ------------
-function isPair(i) {
-  // true если i - четное число
-  if (i == 0) {
-    return 0;
-  }
-  return !(i / 2 - Math.round(i / 2 - 0.1));
+function isPair(i, m = 2) {
+  // true якщо i - ділиться на m без залишку
+  let j = i - Math.round(i / m) * m;
+  return j == 0;
 }
 
 function timeRoundDown(time) {
