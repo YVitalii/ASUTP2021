@@ -10,13 +10,13 @@ let test = async () => {
     driver.getReg(iface, id, "VTR", (err, data) => {
         log("---> in getReg \n", data);
     });
-    driver.getReg(iface, id, "V_L1-N", (err, data) => {
+    driver.getReg(iface, id, "V_L1N", (err, data) => {
         log("---> in getReg \n", data);
     });
-    driver.getReg(iface, id, "V_L2-N", (err, data) => {
+    driver.getReg(iface, id, "V_L2N", (err, data) => {
         log("---> in getReg \n", data);
     });
-    driver.getReg(iface, id, "V_L3-N", (err, data) => {
+    driver.getReg(iface, id, "V_L3N", (err, data) => {
         log("---> in getReg \n", data);
     });
     driver.getReg(iface, id, "Curr_L1", (err, data) => {

@@ -118,7 +118,7 @@ regs.set(
 ); ///regs.set("VTR")
 
 regs.set(
-  "V_L1-N", // - поточна напруга першої фази 
+  "V_L1N", // - поточна напруга першої фази 
   {
     addr: 0x0FA2,
     _get: function () {
@@ -145,7 +145,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0FA2 [V_L1-N] - тільки для читання",
+        err: "_Set: Регістр 0x0FA2 [V_L1N] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -153,10 +153,10 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("V_L1-N")
+); ///regs.set("V_L1N")
 
 regs.set(
-  "V_L2-N", // - поточна напруга другої фази 
+  "V_L2N", // - поточна напруга другої фази 
   {
     addr: 0x0FA3,
     _get: function () {
@@ -183,7 +183,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0FA3 [V_L2-N] - тільки для читання",
+        err: "_Set: Регістр 0x0FA3 [V_L2N] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -191,10 +191,10 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("V_L2-N")
+); ///regs.set("V_L2N")
 
 regs.set(
-  "V_L3-N", // - поточна напруга третьої фази 
+  "V_L3N", // - поточна напруга третьої фази 
   {
     addr: 0x0FA4,
     _get: function () {
@@ -221,7 +221,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0FA4 [V_L3-N] - тільки для читання",
+        err: "_Set: Регістр 0x0FA4 [V_L3N] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -229,7 +229,7 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("V_L3-N")
+); ///regs.set("V_L3N")
 
 regs.set(
   "Curr_L1", // - поточний струм першої фази 

@@ -1,6 +1,7 @@
 const config = {};
 config.ipAddr = "192.168.1.147"; // IP адреса в локальній мережі
 const TRP08 = require("./devices/trp08/manager.js");
+const EM_07K = require("./devices/EM-07K/manager.js");
 // const Akon = require("./devices/WAD-MIO-MAXPro-645/manager.js");
 const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
@@ -51,6 +52,7 @@ entities.push({
   listRegs: "2-tT;2-T;3-tT;3-T", // список регистров для запроса, что бы их не генерировать каждый раз
   // listRegs: "1-CTR;1-VTR;2-tT;2-T;3-tT;3-T", // список регистров для запроса, что бы их не генерировать каждый раз
   devicesList: [
+    // new EM_07K(iface, 1),
     new TRP08(iface, 2, { addT: 0 }),
     new TRP08(iface, 3, { addT: 0 }),
     // new Akon(iface, 1)
@@ -93,7 +95,8 @@ config.logger = {
 config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
-config.queue.work = ["1-CTR", "1-VTR", "2-T", "2-tT", "3-T", "3-tT"];
+config.queue.work = ["2-T", "2-tT", "3-T", "3-tT"];
+// config.queue.work = ["1-CTR", "1-VTR", "2-T", "2-tT", "3-T", "3-tT"];
 
 module.exports = config;
 
