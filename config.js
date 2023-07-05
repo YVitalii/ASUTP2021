@@ -7,7 +7,7 @@ const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 1; //true;
+config.emulateRS485 = 0; //true;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -18,7 +18,7 @@ entities.push({
   id: "SDO-205020-55",
   shortName: "СДО-20.50.20/5,5ВЦ", //
   fullName: "Електропіч СДО-20.50.20/5,5ВЦ", //
-  temperature: { min: 0, max: 250 }, // диапазон рабочих температур
+  temperature: { min: 0, max: 550 }, // диапазон рабочих температур
   regs: {
     "2-tT": {
       title: "SP1", // имя для вывода в описании поля
