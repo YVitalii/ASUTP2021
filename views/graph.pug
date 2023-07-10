@@ -23,29 +23,29 @@ block content
 		div(class="card border-info mt-1" style="width:450px")
 			div(class="card-header") Поточна програма
 			ul(class="list-group listgroup-flush overflow-auto p-1" style="max-height: 240px" id="process-program-list")
-		div(class="card border-info mt-1" style="width:450px")
-			div(class="card-header") Електричні характеристики печі
-			table(class="table table-info table-striped table-bordered mb-0" id="electrical-table")
-				tr
-					th #
-					th Напруга, В
-					th Струм, А
-					th Потужність, кВт
-				tr
-					th L1
-					td 220
-					td 25
-					td 1,5
-				tr
-					th L2
-					td 230
-					td 27
-					td 1,5
-				tr
-					th L3
-					td 240
-					td 30
-					td 1,5
+		//- div(class="card border-info mt-1" style="width:450px")
+		//- 	div(class="card-header") Електричні характеристики печі
+		//- 	table(class="table table-info table-striped table-bordered mb-0" id="electrical-table")
+		//- 		tr
+		//- 			th #
+		//- 			th Напруга, В
+		//- 			th Струм, А
+		//- 			th Потужність, кВт
+		//- 		tr
+		//- 			th L1
+		//- 			td 220
+		//- 			td 25
+		//- 			td 1,5
+		//- 		tr
+		//- 			th L2
+		//- 			td 230
+		//- 			td 27
+		//- 			td 1,5
+		//- 		tr
+		//- 			th L3
+		//- 			td 240
+		//- 			td 30
+		//- 			td 1,5
 	script
 		- var regs = '\"' + furnace.listRegs + '\"';
 		!= `var regs = ${regs};`

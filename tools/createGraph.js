@@ -81,6 +81,7 @@ let regsArr = regs.split(';');
 var getReg_xhrT = new XMLHttpRequest();
 getReg_xhrT.onload = function(){
   let res=JSON.parse(getReg_xhrT.responseText);
+  console.log(res);
   let points={}
   for (key in res) {
     let element = document.getElementById(key);

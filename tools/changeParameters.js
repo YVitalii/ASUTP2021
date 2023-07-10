@@ -115,7 +115,11 @@ programSaveChangesBtn.onclick = () => {
   }
 }
 function findMissingNumber(files) {
+  // console.log(files);
   // Функція пошуку першого незайнятого числа в списку файлів, якщо всі числа зайняті створює наступне
+  if (parseInt(files[0].slice(0, -4)) !== 1) {
+    return 1; // повернути  якщо пропущений перший лог файл
+  }
   for (let i = 0; i < files.length - 1; i++) {
     if (parseInt(files[i + 1].slice(0, -4)) - parseInt(files[i].slice(0, -4)) !== 1) {
       return parseInt(files[i].slice(0, -4)) + 1;

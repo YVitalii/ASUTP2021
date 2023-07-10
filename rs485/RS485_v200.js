@@ -375,7 +375,7 @@ if (!module.parent) {
 
 test();*/
   addTask(
-    { id: 1, FC: 3, addr: 0x1, data: 0x1, timeout: 1500 },
+    { id: 3, FC: 3, addr: 0x1, data: 0x1, timeout: 1500 },
     (err, data) => {
       if (err) {
         console.log(err);
@@ -386,7 +386,7 @@ test();*/
     }
   ); //addTask
   addTask(
-    { id: 1, FC: 3, addr: 0x2, data: 0x1, timeout: 1500 },
+    { id: 3, FC: 3, addr: 0x2, data: 0x1, timeout: 1500 },
     (err, data) => {
       if (err) {
         console.log(err);
@@ -397,7 +397,7 @@ test();*/
     }
   ); //addTask
   addTask(
-    { id: 1, FC: 3, addr: 0x3, data: 0x1, timeout: 1500 },
+    { id: 3, FC: 3, addr: 0x3, data: 0x1, timeout: 1500 },
     (err, data) => {
       if (err) {
         console.log(err);
