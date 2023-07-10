@@ -3,7 +3,7 @@ let platform = process.platform;
 if (platform != "win32") {
   comName = "/dev/ttyUSB0";
 } else {
-  comName = "COM3";
+  comName = "COM4";
 }
 // параметры последовательного порта
 const connection = {
