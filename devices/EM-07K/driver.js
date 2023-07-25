@@ -118,7 +118,7 @@ regs.set(
 ); ///regs.set("VTR")
 
 regs.set(
-  "V_L1-N", // - поточна напруга першої фази 
+  "V_L1N", // - поточна напруга першої фази 
   {
     addr: 0x0FA2,
     _get: function () {
@@ -135,7 +135,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточна напруга першої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 0.1;
       let err = null;
       return {
         data: { value: data, note: note },
@@ -145,7 +145,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0FA2 [V_L1-N] - тільки для читання",
+        err: "_Set: Регістр 0x0FA2 [V_L1N] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -153,10 +153,10 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("V_L1-N")
+); ///regs.set("V_L1N")
 
 regs.set(
-  "V_L2-N", // - поточна напруга другої фази 
+  "V_L2N", // - поточна напруга другої фази 
   {
     addr: 0x0FA3,
     _get: function () {
@@ -173,7 +173,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточна напруга другої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 0.1;
       let err = null;
       return {
         data: { value: data, note: note },
@@ -183,7 +183,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0FA3 [V_L2-N] - тільки для читання",
+        err: "_Set: Регістр 0x0FA3 [V_L2N] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -191,10 +191,10 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("V_L2-N")
+); ///regs.set("V_L2N")
 
 regs.set(
-  "V_L3-N", // - поточна напруга третьої фази 
+  "V_L3N", // - поточна напруга третьої фази 
   {
     addr: 0x0FA4,
     _get: function () {
@@ -211,7 +211,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточна напруга третьої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 0.1;
       let err = null;
       return {
         data: { value: data, note: note },
@@ -221,7 +221,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0FA4 [V_L3-N] - тільки для читання",
+        err: "_Set: Регістр 0x0FA4 [V_L3N] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -229,7 +229,7 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("V_L3-N")
+); ///regs.set("V_L3N")
 
 regs.set(
   "Curr_L1", // - поточний струм першої фази 
@@ -249,7 +249,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточний струм першої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 0.01 * 50; // * 0.01 * CTR
       let err = null;
       return {
         data: { value: data, note: note },
@@ -287,7 +287,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточний струм другої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 0.01 * 50; // * 0.01 * CTR
       let err = null;
       return {
         data: { value: data, note: note },
@@ -325,7 +325,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточний струм третьої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 0.01 * 50; // * 0.01 * CTR
       let err = null;
       return {
         data: { value: data, note: note },
@@ -363,7 +363,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточна потужність першої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 50;
       let err = null;
       return {
         data: { value: data, note: note },
@@ -401,7 +401,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточна потужність другої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 50;
       let err = null;
       return {
         data: { value: data, note: note },
@@ -439,7 +439,7 @@ regs.set(
     get_: (buf) => {
       let note = "Поточна потужність третьої фази";
       console.log(buf);
-      let data = buf.readUInt16BE();
+      let data = buf.readUInt16BE() * 50;
       let err = null;
       return {
         data: { value: data, note: note },
@@ -474,7 +474,7 @@ function has(regName) {
 function getReg(iface, id, regName, cb) {
   let trace = 0;
   regName = regName.trim();
-  let modul = "H2Smart.getReg(id=" + id + ":regName=" + regName + "):";
+  let modul = "EM-07K.getReg(id=" + id + ":regName=" + regName + "):";
   trace ? log(3, modul) : null;
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
