@@ -723,26 +723,48 @@ class Chart {
     this.svg.attr("width", this.width).attr("height", this.height);
     // Масштабирование
     // масштаб по оси x
+
     this.xScale = d3
       .scaleTime()
       .domain([this.timeDomain.start, this.timeDomain.end]) // диапазон времени
       .range([this.margin.left, this.width - this.margin.right]); //поле графика
 
+    let everyXpixels = 20; // мітка кожні everyXpixels пікселів
+    let xTicksNumber =
+      (this.xScale.range()[1] - this.xScale.range()[0]) / everyXpixels;
+    this.xScale.nice(xTicksNumber);
     // ---------------   рисуем задание, т.к. оно затем затирает сетку
     this.drawTask();
-    ///------------- рисуем ось Х ---------------
-    this.xAxis = d3
+
+    //------------- рисуем ось Х ---------------
+    let xBoldLine = 6; // кожну xBoldLine буде виводитися мітка та жирна лінія
+    // let minutes =
+    //   (((this.xScale.domain()[1] - this.xScale.domain()[0]) /
+    //     (this.xScale.range()[1] - this.xScale.range()[0])) *
+    //     everyXpixels) /
+    //   1000 /
+    //   60; // вираховуємо приблизну кількість хвилин / мітку
+    // let roundMinutes = 10;
+    // minutes = Math.round(minutes / roundMinutes + 0.5) * roundMinutes; // округлюємо з точністю 10 хв
+
+    /* let t =
+      (chart.xScale.domain()[1] - chart.xScale.domain()[0]) /
+      (chart.xScale.range()[1] - chart.xScale.range()[0]); */
+    let xTicks = (this.xAxis = d3
       .axisBottom()
       .scale(this.xScale)
-      .ticks(d3.timeMinute.every(30))
+      .ticks(xTicksNumber) //d3.timeMinute.every(minutes)
       .tickSize([-(this.height - this.margin.top - this.margin.bottom)])
       .tickSizeOuter(10)
       .tickFormat((d, i) => {
         //console.log("tickFormat.d["+i+"]="+d.toLocaleString());
-        return d <= d3.timeHour(d)
-          ? ("0" + d.getHours()).slice(-2) + ":00"
+        let label = isPair(i, xBoldLine)
+          ? ("0" + d.getHours()).slice(-2) +
+            ":" +
+            ("0" + d.getMinutes()).slice(-2)
           : null;
-      }); //tickFormat
+        return label;
+      })); //tickFormat
 
     this.svg
       .append("g")
@@ -751,10 +773,13 @@ class Chart {
       .call((g) =>
         g
           .selectAll(".tick line") //ищем все линии на оси
-          .attr("stroke-opacity", 0.5) //непрозрачность
+          .attr("stroke-opacity", (d, i) => {
+            //для кожної 5 мітки малюємо жирну лінію , всі інші - напівпрозорі;
+            return isPair(i, xBoldLine) ? 0.7 : 0.3;
+          }) //непрозрачность
           .attr("stroke-dasharray", (d, i) => {
             // если отметка "час" линия "7,2" иначе  "2,3"
-            let rest = d <= d3.timeHour(d) ? "7,2" : "2,3";
+            let rest = isPair(i, xBoldLine) ? "7,2" : "2,3";
             return rest;
           })
       )
