@@ -1,7 +1,8 @@
 const config = {};
 config.ipAddr = "192.168.1.147"; // IP адреса в локальній мережі
 const TRP08 = require("./devices/trp08/manager.js");
-const EM_07K = require("./devices/EM-07K/manager.js");
+// const OWEN_MW110 = require("./devices/OWEN_MW110/manager.js");
+// const EM_07K = require("./devices/EM-07K/manager.js");
 // const Akon = require("./devices/WAD-MIO-MAXPro-645/manager.js");
 const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
@@ -15,46 +16,32 @@ config.connection = require("./conf_iface.js");
 let entities = [];
 
 entities.push({
-  id: "SDO-205020-55",
-  shortName: "СДО-20.50.20/5,5ВЦ", //
-  fullName: "Електропіч СДО-20.50.20/5,5ВЦ", //
+  id: "SNO-5104-13",
+  shortName: "СНО-5.10.4/13", //
+  fullName: "Електропіч СНО-5.10.4/13", //
   temperature: { min: 0, max: 550 }, // диапазон рабочих температур
   regs: {
-    "2-tT": {
+    "1-tT": {
       title: "SP1", // имя для вывода в описании поля
       units: "\u00b0C",
       type: "integer",
-      description: "Задана температура зони №1",
-      legend: "Завдання зони №1", // Надпись для графика
+      description: "Задана температура",
+      legend: "Завдання", // Надпись для графика
     },
-    "2-T": {
+    "1-T": {
       title: "T1", // имя для вывода в описании поля
       type: "integer",
       units: "\u00b0C",
-      description: "Поточна температура зони №1",
-      legend: "Температура зони №1", // Надпись для графика
-    },
-    "3-tT": {
-      title: "SP2", // имя для вывода в описании поля
-      units: "\u00b0C",
-      type: "integer",
-      description: "Задана температура зони №2",
-      legend: "Завдання зони №2", // Надпись для графика
-    },
-    "3-T": {
-      title: "T2", // имя для вывода в описании поля
-      type: "integer",
-      units: "\u00b0C",
-      description: "Поточна температура зони №2",
-      legend: "Температура зони №2", // Надпись для графика
+      description: "Поточна температура",
+      legend: "Температура", // Надпись для графика
     },
   }, //regs
-  listRegs: "2-tT;2-T;3-tT;3-T", // список регистров для запроса, что бы их не генерировать каждый раз
+  listRegs: "1-tT;1-T", // список регистров для запроса, что бы их не генерировать каждый раз
   // listRegs: "1-CTR;1-VTR;2-tT;2-T;3-tT;3-T", // список регистров для запроса, что бы их не генерировать каждый раз
   devicesList: [
     // new EM_07K(iface, 1),
-    new TRP08(iface, 2, { addT: 0 }),
-    new TRP08(iface, 3, { addT: 0 }),
+    new TRP08(iface, 1, { addT: 0 }),
+    // new TRP08(iface, 3, { addT: 0 }),
     // new Akon(iface, 1)
   ], //список приладів печі
 });
@@ -66,17 +53,17 @@ config.entities = entities;
 // таблица сопоставления адреса устройства и типа (массив где индекс - адрес устройства, а значение - имя файла драйвера)
 config.devices = [
   "all", //0
-  "EM-07K", //1
-  "trp08", //2
-  "trp08", //3
+  "trp08", //1
 ];
+for (let index = 2; index < 16; index++) {
+  config.devices[index] = "trp08";
+}
+config.devices[16] = "OWEN_MW110";
 // список используемых алиасов с указанием физического имени регистра
 // (т.е. адрес ModBus + сигнатура в драйвере устройства, например 7SQ1 => 5-DIO1 )
 var tags = new Map();
-tags.set("T1", "2-T");
-tags.set("SP1", "2-tT");
-tags.set("T2", "3-T");
-tags.set("SP2", "3-tT");
+tags.set("T1", "1-T");
+tags.set("SP1", "1-tT");
 
 config.tags = tags;
 //tags.set("sT"+i,i+"-T");
@@ -95,7 +82,7 @@ config.logger = {
 config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
-config.queue.work = ["2-T", "2-tT", "3-T", "3-tT"];
+config.queue.work = ["1-T", "1-tT"];
 // config.queue.work = ["1-CTR", "1-VTR", "2-T", "2-tT", "3-T", "3-tT"];
 
 module.exports = config;
