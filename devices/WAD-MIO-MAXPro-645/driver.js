@@ -245,9 +245,11 @@ regs.set("DO", {
   _set: function (newState) {
     let buf = null;
     if (newState) {
+      // buf = Buffer.from([0x00, 0x01, 0x02, 0x00, 0x01]); // DO 1
       buf = Buffer.from([0x00, 0x01, 0x02, 0x00, 0x01]); // DO 1
     } else {
-      buf = Buffer.from([0x00, 0x01, 0x02, 0x52, 0xf1]); // DO 0
+      // buf = Buffer.from([0x00, 0x01, 0x02, 0x52, 0xf1]); // DO 0
+      buf = Buffer.from([0x00, 0x01, 0x02, 0x00, 0x00]); // DO 0
     }
     let err = null;
     if (buf === null) {
