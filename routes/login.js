@@ -11,7 +11,7 @@ let gTrace = 0; //=1 глобальная трассировка (трассир
 router.get("/", checkNotAuthentificated, function (req, res, next) {
   // ----------- настройки логгера локальные --------------
   let logN = logName + "get:/login:";
-  let trace = 1;
+  let trace = 0;
   trace = gTrace != 0 ? gTrace : trace;
   trace ? log("i", logN, "Started") : null;
   // ------------

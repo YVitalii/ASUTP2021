@@ -33,34 +33,33 @@
                 )
 */
 const WAD_MIO = require("../../rs485/RS485_v200.js");
-const log = require("../../tools/log");
+const log = require("../../tools/log.js");
+const parseBuf = require("../../tools/parseBuf.js");
 
-const ln = "AKON:: driver.js::";
+const ln = "OWEN-MW110-8A:: driver.js::";
 const timeout = 1000; //таймаут запроса
 
 const regs = new Map(); //список регистров прибора
 
 regs.set(
-  "SN", // - серійний номер
+  "T1", // - Поточне значення температури
   {
-    // addr: 0x0003,
-    addr: 0x0002,
+    addr: 1,
     _get: function () {
       return {
         data: {
           FC: 3,
           addr: this.addr,
-          data: 1,
-          // data: 2,
-          note: `Зчитування серійного номеру приладу`,
+          data: 2,
+          note: `Зчитування поточної температури [1]`,
         },
         err: null,
       };
     },
     get_: (buf) => {
-      let note = "Серійний номер приладу";
-      console.log(buf);
-      let data = buf.readUInt32BE(0);
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
       let err = null;
       return {
         data: { value: data, note: note },
@@ -70,7 +69,7 @@ regs.set(
     _set: function (data) {
       return {
         data: null,
-        err: "_Set: Регістр 0x0002 [SN] - тільки для читання",
+        err: "_Set: Регістр 1 [T1] - тільки для читання",
       };
     },
     set_: function (buf) {
@@ -78,197 +77,273 @@ regs.set(
       return this._set();
     },
   }
-); ///regs.set("SN"
+); ///regs.set("T1")
 
-regs.set("AI", { // - аналоговий вхід
-  addr: 0x400B,
-  _get: function () {
-    return {
-      data: {
-        FC: 3,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення аналогового входу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення аналогового входу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function () {
-    return {
-      data: null,
-      err: "_Set: Регістр 0x400B [AI] - тільки для читання",
-    };
-  },
-  set_: function () {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._set();
-  },
-}); ///regs.set("AI"
+regs.set(
+  "T2", // - Поточне значення температури
+  {
+    addr: 7,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної температури [7]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 7 [T2] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("T2")
 
-regs.set("DI", { // - дискретний вхід
-  addr: 0x4012,
-  _get: function () {
-    return {
-      data: {
-        FC: 3,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення дискретного входу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення дискретного входу.";
-    let data = !buf.readUInt16BE(0);
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function () {
-    return {
-      data: null,
-      err: "_Set: Регістр 0x4012 [DI] - тільки для читання",
-    };
-  },
-  set_: function () {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._set();
-  },
-}); ///regs.set("DI"
+regs.set(
+  "T3", // - Поточне значення температури
+  {
+    addr: 13,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної температури [13]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 13 [T3] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("T3")
 
-regs.set("AO", {
-  addr: 0x400F,
-  _get: function () {
-    return {
-      data: {
-        FC: 0x03,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення аналогового виходу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення аналогового виходу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function (newValue) {
-    newValue = parseInt(newValue);
-    let buf1 = Buffer.from([0x00, 0x01, 0x02]);
-    let buf2 = Buffer.allocUnsafe(2);
-    buf2.writeUInt16BE(parseInt(0xffff*newValue/100), 0);
-    let totalLength = buf1.length + buf2.length;
-    let val = Buffer.concat([buf1, buf2], totalLength);
-    let err = null;
-    if (val === null) {
-      err = ln + "Не можу перетворити в буфер " + newValue;
-    }
-    return {
-      data: {
-        FC: 0x10,
-        addr: this.addr,
-        data: val,
-      },
-      err: err,
-    };
-  },
-  set_: function (buf) {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._get(buf);
-  },
-}); ///regs.set("AO")
+regs.set(
+  "T4", // - Поточне значення температури
+  {
+    addr: 19,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної температури [19]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 19 [T4] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("T4")
 
-regs.set("DO", {
-  addr: 0x4014,
-  _get: function () {
-    return {
-      data: {
-        FC: 0x03,
-        addr: this.addr,
-        data: 2,
-        note: "Зчитування значення дискретного виходу",
-      },
-      err: null,
-    };
-  },
-  get_: (buf) => {
-    let note = "Поточне значення дискретного виходу.";
-    let data = buf.readUInt16BE(0);
-    let err = null;
-    if (!data) {
-      err =
-        "_get: Не можу перетворити буфер:[" +
-        buf.toString("hex") +
-        "] в число.";
-    }
-    return {
-      data: { value: data, note: note },
-      err: err,
-    };
-  },
-  _set: function (newState) {
-    let buf = null;
-    if (newState) {
-      // buf = Buffer.from([0x00, 0x01, 0x02, 0x00, 0x01]); // DO 1
-      buf = Buffer.from([0x00, 0x01, 0x02, 0x00, 0x01]); // DO 1
-    } else {
-      // buf = Buffer.from([0x00, 0x01, 0x02, 0x52, 0xf1]); // DO 0
-      buf = Buffer.from([0x00, 0x01, 0x02, 0x00, 0x00]); // DO 0
-    }
-    let err = null;
-    if (buf === null) {
-      err = ln + "Не можу перетворити в буфер " + newValue;
-    }
-    return {
-      data: {
-        FC: 0x10,
-        addr: this.addr,
-        data: buf,
-      },
-      err: err,
-    };
-  },
-  set_: function (buf) {
-    //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-    return this._get(buf);
-  },
-}); ///regs.set("DO")
+regs.set(
+  "T5", // - Поточне значення температури
+  {
+    addr: 25,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної температури [25]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 25 [T5] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("T5")
+
+regs.set(
+  "T6", // - Поточне значення температури
+  {
+    addr: 31,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної температури [31]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 31 [T6] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("T6")
+
+regs.set(
+  "T7", // - Поточне значення температури
+  {
+    addr: 37,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної температури [37]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 37 [T7] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("T7")
+
+regs.set(
+  "T8", // - Поточне значення температури
+  {
+    addr: 43,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування поточної температури [43]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Поточне значення температури";
+      // console.log(buf);
+      let data = buf.readUInt16BE() / 10;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 43 [T8] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("T8")
 
 function has(regName) {
   return regs.has(regName);
@@ -285,7 +360,7 @@ function has(regName) {
 function getReg(iface, id, regName, cb) {
   let trace = 0;
   regName = regName.trim();
-  let modul = "AKON.getReg(id=" + id + ":regName=" + regName + "):";
+  let modul = "OWEN-MW110-8A.getReg(id=" + id + ":regName=" + regName + "):";
   trace ? log(3, modul) : null;
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
@@ -366,7 +441,7 @@ function setReg(iface, id, regName, value, cb) {
   // и возвращает такой же объект как и getReg
   let trace = 0;
   let modul =
-    "AKON.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
+    "OWEN-MW110-8A.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
   regName = regName.trim();
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра

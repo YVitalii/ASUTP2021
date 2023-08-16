@@ -3,7 +3,7 @@ var router = express.Router();
 // ------------ логгер  --------------------
 let log = require("../../../tools/log.js"); // логер
 let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
-let gTrace = 1; //=1 глобальная трассировка (трассируется все)
+let gTrace = 0; //=1 глобальная трассировка (трассируется все)
 gTrace ? log("i", logName) : null;
 // ------------- костиль для отримання термічного процессу печі -----
 const thermProcess = require("../../../config.js").entities[0].thermProcess;
