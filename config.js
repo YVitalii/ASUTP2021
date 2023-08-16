@@ -6,9 +6,16 @@ const TRP08 = require("./devices/trp08/manager.js");
 // const Akon = require("./devices/WAD-MIO-MAXPro-645/manager.js");
 const ThermProcess = require("./processes/thermprocess/ThermProcess.js");
 const iface = require("./rs485/RS485_v200.js");
+const log = require("./tools/log.js");
 
 // включает/выключает  эмуляцию обмена по RS485
 config.emulateRS485 = 0; //true;
+
+// трасувальник
+let trace = 1;
+let title = "config.js::"; // загальний підпис
+let ln = title;
+trace ? log("i", ln, `Started!`) : null;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -16,10 +23,10 @@ config.connection = require("./conf_iface.js");
 let entities = [];
 
 entities.push({
-  id: "SNO-5104-13",
-  shortName: "СНО-5.10.4/13", //
-  fullName: "Електропіч СНО-5.10.4/13", //
-  temperature: { min: 0, max: 550 }, // диапазон рабочих температур
+  id: "SShAM-712-7", //
+  shortName: "СШАМ-7.12/7", //
+  fullName: "Електропіч СШАМ-7.12/7", //
+  temperature: { min: 0, max: 700 }, // диапазон рабочих температур
   regs: {
     "1-tT": {
       title: "SP1", // имя для вывода в описании поля
@@ -45,7 +52,29 @@ entities.push({
     // new Akon(iface, 1)
   ], //список приладів печі
 });
-// костиль з термопроцессом
+
+// ------------ костиль з приладами -----------------------
+trace = 1;
+ln = title + "entities[0].devices:";
+trace ? log("i", ln, `Started`) : null;
+entities[0].devices = {}; //список приладів з налаштуваннями, що встановлені в печі
+let dev = entities[0].devices; // для скорочення записів
+if (trace) {
+  log("i", ln, `dev=`);
+  console.dir(dev);
+}
+trace ? log("i", ln, `entities[0].devices=`, entities[0].devices) : null;
+dev["furnaceTRP"] = new TRP08(iface, 1, { addT: 0 }); // терморегулятор печі
+dev["retortTRP"] = new TRP08(iface, 2, { addT: 0 }); // терморегулятор в реторті
+
+// ----------         костиль з термопроцессом  ------------------
+/**  функція, що виконується перед кожним кроком програми, 
+// оскільки ми регулюємо по терморегулятору що в реторті, перед запуском кроку на ньому потрібно налаштувати 
+// терморегулятор печі 
+*/
+beforeStep = async function (step) {
+  dev.furnaceTRP.setParams({ tT: 10 });
+};
 entities[0].thermProcess = new ThermProcess(entities[0].devicesList);
 
 config.entities = entities;

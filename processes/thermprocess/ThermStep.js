@@ -13,7 +13,7 @@ const { dummyPromise } = require("../../tools/dummy.js");
 class ThermStep {
   /**
    * @param {object} device - об'єкт налаштованого приладу див. /devices/trp08/Manager.js
-   * @param {object} step - обєкт=крок програми
+   * @param {object} step - об`єкт = крок програми
    * @param {number} step.startT=0 - *С, стартова температура кроку (для визначення типу кроку нагрівання/витримка)
    * @param {number} step.tT=50    - *С, цільова температура
    * @param {number} step.reg=1    - *С, закон регулювання: 1 -  ПІД; 2 - позиційний;
@@ -53,12 +53,12 @@ class ThermStep {
     this.step.dTmax = step.dTmax ? step.dTmax : +10;
     this.step.time = step.time ? step.time : 0;
     this.step.errTime = step.errTime ? step.errTime : 60;
-
     this.step.reg = step.reg ? step.reg : 1;
     this.step.o = step.o ? step.o : 2;
     this.step.ti = step.ti ? step.ti : 0;
     this.step.td = step.td ? step.td : 0;
     this.step.u = step.u ? step.u : 0;
+
     // якщо температури початку та кінця кроку співпадають то тип кроку = витримка , інакше - нагрівання
     this.step.holding = this.step.startT === this.step.tT;
     if (this.step.holding) {
@@ -73,6 +73,7 @@ class ThermStep {
       }
       this.step.Y = this.step.errTime + 10; // запас 10 хв - щоб спіймати перевищення часу до закінчення кроку
     }
+
     // час початку процесу
     this.startTime = null;
     this.forceStop = false; // індикатор команди "Стоп"
@@ -86,18 +87,22 @@ class ThermStep {
     trace ? log("i", logN, this.step) : null;
   }
 
-  /** функція бере паузу, потім надсилає запит поточної температури на прилад
-   * та записує його в this.currT, також оновлює таймер this.timer
-   * у випадку помилки, змінює лічильник,
-   * [(tT - dTmin) ... (tT + dTmax)]
-   * @returns {Promise}  resolve(), reject(err) - якщо досягнута гранична кількість помилок
-   * */
+  /** Функція зупиняє поточний процесс */
+
   async stop() {
     let trace = 1,
       ln = this.ln + 'stop()::Отримано сигнал "Стоп"';
     trace ? log("e", ln) : null;
     this.forceStop = true;
   }
+
+  /** функція бере паузу, потім надсилає запит поточної температури на прилад
+   * та записує його в this.currT, також оновлює таймер this.timer
+   * у випадку помилки, змінює лічильник,
+   * [(tT - dTmin) ... (tT + dTmax)]
+   * @returns {Promise}  resolve(), reject(err) - якщо досягнута гранична кількість помилок
+   *
+   * */
 
   async iterate() {
     let trace = 1;
@@ -194,7 +199,7 @@ class ThermStep {
       }
       // 2023-06-27 - в кінці кроку не зупиняємо прилади, а зупиняємо на початку кроку
       // так як для багатозонних печей на стадії нагрівання потрібно очікування поки вийдуть на режим всі прилади
-      // вони так зупиняться, коли вичерпається час
+      // вони і так зупиняться, коли вичерпається час
       // 2023-05-01 - зупиняємо виконання програми
 
       // await this.device.stop();

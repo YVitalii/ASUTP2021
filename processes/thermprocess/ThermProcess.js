@@ -17,7 +17,7 @@ class ThermProcess {
    *
    *
    */
-  constructor(devices) {
+  constructor(devices, props = null) {
     let trace = 1;
     let ln = "ThermProcess()::";
     this.ln = ln;
