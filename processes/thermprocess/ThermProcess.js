@@ -7,6 +7,7 @@ const programTransform = require("./programTransform.js");
 /** клас, що відповідає за виконання всієї програми
  *
  */
+const dummy = require("../../tools/dummy").dummyPromise; // асинхронна заглушка
 
 class ThermProcess {
   #RUN_MODE_PERIOD = 15 * 1000; //період опитування приладів в режимі ПУСК (кожні ?? сек)
@@ -22,7 +23,7 @@ class ThermProcess {
     let ln = "ThermProcess()::";
     this.ln = ln;
     if (trace) {
-      log("i", ln, "devices=");
+      log(ln, "devices=");
       console.dir(devices);
     }
     // перевіряємо валідність devices
@@ -51,17 +52,19 @@ class ThermProcess {
    * @return true - у випадку удачі, false -  ні
    * */
   setProgram(arr) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "setProgram()::";
     if (trace) {
       log("i", ln, "arr=");
       console.dir(arr);
     }
     this.program = programTransform(arr);
+
     if (trace) {
       log("i", ln, "this.program=");
       console.dir(this.program);
     }
+
     this.state.stop = true;
     this.state.currStep = 0;
     this.state.programStartTime = new Date();
@@ -127,6 +130,11 @@ class ThermProcess {
         break;
       }
 
+      // якщо така функція є, запускаємо beforeStep
+      if (this.beforeStep) {
+        await this.beforeStep(curStep);
+      }
+
       trace ? log("i", ln, `this.state=`, this.state) : null;
 
       // для всіх приладів створюємо термічні кроки з завданням для виконання
@@ -152,8 +160,23 @@ class ThermProcess {
         log("e", error.msg);
         return Promise.reject(error);
       }
+
+      // якщо така функція є, запускаємо afterStep
+      if (this.afterStep) {
+        await this.afterStep(curStep);
+      } else {
+        trace ? log("i", ln, `afterStep() not found`) : null;
+      }
     } //for (let step
     //
+  }
+
+  async beforeStep() {
+    let trace = 1,
+      ln = this.ln + "beforeStep()";
+    trace ? log("i", ln, `Empty. Started`) : null;
+    await dummy();
+    trace ? log("i", ln, `Empty. Finished`) : null;
   }
 
   async stop() {

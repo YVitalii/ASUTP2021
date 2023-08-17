@@ -9,7 +9,7 @@ const iface = require("./rs485/RS485_v200.js");
 const log = require("./tools/log.js");
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 0; //true;
+config.emulateRS485 = 1; //true;
 
 // трасувальник
 let trace = 1;
@@ -21,6 +21,7 @@ trace ? log("i", ln, `Started!`) : null;
 config.connection = require("./conf_iface.js");
 // ------------------- описание печей (сущностей) ------------------------
 let entities = [];
+let homePath = "./public/logs/"; // корінь шляху до всіх архівів печей
 
 entities.push({
   id: "SShAM-712-7", //
@@ -47,14 +48,17 @@ entities.push({
   // listRegs: "1-CTR;1-VTR;2-tT;2-T;3-tT;3-T", // список регистров для запроса, что бы их не генерировать каждый раз
   devicesList: [
     // new EM_07K(iface, 1),
-    new TRP08(iface, 1, { addT: 0 }),
+    // new TRP08(iface, 1, { addT: 0 }),
     // new TRP08(iface, 3, { addT: 0 }),
     // new Akon(iface, 1)
   ], //список приладів печі
 });
 
+// кореневий шлях де зберігаються всі файли, що відносяться до даної печі наприклад:  ./public/logs/SShAM-712-7/
+entities[0]["path"] = homePath + entities[0].id + `/`;
+
 // ------------ костиль з приладами -----------------------
-trace = 1;
+trace = 0;
 ln = title + "entities[0].devices:";
 trace ? log("i", ln, `Started`) : null;
 entities[0].devices = {}; //список приладів з налаштуваннями, що встановлені в печі
@@ -63,6 +67,7 @@ if (trace) {
   log("i", ln, `dev=`);
   console.dir(dev);
 }
+
 trace ? log("i", ln, `entities[0].devices=`, entities[0].devices) : null;
 dev["furnaceTRP"] = new TRP08(iface, 1, { addT: 0 }); // терморегулятор печі
 dev["retortTRP"] = new TRP08(iface, 2, { addT: 0 }); // терморегулятор в реторті
@@ -72,10 +77,50 @@ dev["retortTRP"] = new TRP08(iface, 2, { addT: 0 }); // терморегулят
 // оскільки ми регулюємо по терморегулятору що в реторті, перед запуском кроку на ньому потрібно налаштувати 
 // терморегулятор печі 
 */
+
+// додаємо терморегулятори, що приймають участь в контролі нагрівання
+entities[0].thermProcess = new ThermProcess([dev["retortTRP"]]);
+
+// -------------------- beforeStep --------------------------
+/** ця функція виконується перед початком кожного кроку
+ * @param  step - опис кроку
+ */
 beforeStep = async function (step) {
-  dev.furnaceTRP.setParams({ tT: 10 });
+  // ця функція виконується перед початком кожного кроку
+  let trace = 1,
+    ln = this.ln + "beforeStep::";
+  trace ? log("i", ln, `Started`) : null;
+  // if (trace) {
+  //   log("i", ln, `step=`);
+  //   console.dir(step, { depth: 3 });
+  // }
+
+  // зупиняємо ТРП
+  await dev["furnaceTRP"].stop();
+
+  // встановлюємо на терморегуляторі печі на dT *С більшу температуру ніж задана в реторті
+  let dT = 50;
+  if (step.tT < 300) {
+    dT = 100;
+  }
+  await dev["furnaceTRP"].setParams({
+    tT: step.tT + dT,
+    H: 0,
+    Y: 0,
+    regMode: 2,
+    o: 5,
+  });
+
+  // запускаємо програму
+  await dev["furnaceTRP"].start();
 };
-entities[0].thermProcess = new ThermProcess(entities[0].devicesList);
+
+entities[0].thermProcess.beforeStep = beforeStep;
+
+// if (trace) {
+//   log("i", ln, `thermProcess.beforeStep=`);
+//   console.dir(entities[0].thermProcess.beforeStep);
+// }
 
 config.entities = entities;
 
@@ -118,6 +163,6 @@ module.exports = config;
 
 if (!module.parent) {
   console.dir(config, { depth: 4 });
-  console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
+  //console.dir(new Buffer.from([15, 10, 8]), { depth: 4 });
   //util.inspect(config)
 }

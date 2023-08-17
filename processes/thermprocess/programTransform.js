@@ -25,7 +25,7 @@ let fields = [
 
 function parseStep(obj) {
   let parsed = {};
-  let trace = 1;
+  let trace = 0;
   let ln = lN + "parseStep()::";
   trace ? log("i", ln, obj) : null;
   for (let i = 0; i < fields.length; i++) {
