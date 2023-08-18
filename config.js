@@ -9,13 +9,12 @@ const iface = require("./rs485/RS485_v200.js");
 const log = require("./tools/log.js");
 
 // включает/выключает  эмуляцию обмена по RS485
-config.emulateRS485 = 1; //true;
+config.emulateRS485 = 0; //true;
 
 // трасувальник
-let trace = 1;
+let trace = 0;
 let title = "config.js::"; // загальний підпис
 let ln = title;
-trace ? log("i", ln, `Started!`) : null;
 
 // загружает настройки связи
 config.connection = require("./conf_iface.js");
@@ -40,11 +39,32 @@ entities.push({
       title: "T1", // имя для вывода в описании поля
       type: "integer",
       units: "\u00b0C",
-      description: "Поточна температура",
+      description: "Поточна температура в печі",
       legend: "Температура", // Надпись для графика
     },
+    "2-tT": {
+      title: "SP2", // имя для вывода в описании поля
+      units: "\u00b0C",
+      type: "integer",
+      description: "Задана температура",
+      legend: "Завдання", // Надпись для графика
+    },
+    "2-T": {
+      title: "T2", // имя для вывода в описании поля
+      type: "integer",
+      units: "\u00b0C",
+      description: "Поточна температура в реторті",
+      legend: "Температура", // Надпись для графика
+    },
+    "2-state": {
+      title: "state2", // имя для вывода в описании поля
+      type: "integer",
+      units: "\u00b0C",
+      description: "Стан терморегулятора",
+      legend: "Пуск/стоп", // Надпись для графика
+    },
   }, //regs
-  listRegs: "1-tT;1-T", // список регистров для запроса, что бы их не генерировать каждый раз
+  listRegs: "1-tT;1-T;2-tT;2-T;2-state", // список регистров для запроса, что бы их не генерировать каждый раз
   // listRegs: "1-CTR;1-VTR;2-tT;2-T;3-tT;3-T", // список регистров для запроса, что бы их не генерировать каждый раз
   devicesList: [
     // new EM_07K(iface, 1),
@@ -113,9 +133,28 @@ beforeStep = async function (step) {
 
   // запускаємо програму
   await dev["furnaceTRP"].start();
+  trace ? log("i", ln, `Finished`) : null;
 };
 
 entities[0].thermProcess.beforeStep = beforeStep;
+
+// -------------------- afterStep --------------------------
+/** ця функція виконується по закінченню кожного кроку
+ * @param  step - опис кроку
+ */
+afterStep = async function (step) {
+  // ця функція виконується перед початком кожного кроку
+  let trace = 1,
+    ln = this.ln + "afterStep::";
+  trace ? log("i", ln, `Started`) : null;
+
+  // зупиняємо ТРП печі
+  await dev["furnaceTRP"].stop();
+
+  trace ? log("i", ln, `Finished`) : null;
+};
+
+entities[0].thermProcess.afterStep = afterStep;
 
 // if (trace) {
 //   log("i", ln, `thermProcess.beforeStep=`);
@@ -138,7 +177,9 @@ config.devices[16] = "OWEN_MW110";
 var tags = new Map();
 tags.set("T1", "1-T");
 tags.set("SP1", "1-tT");
-
+tags.set("SP2", "2-tT");
+tags.set("T2", "2-T");
+tags.set("state2", "2-state");
 config.tags = tags;
 //tags.set("sT"+i,i+"-T");
 // настройки логгера
@@ -156,10 +197,11 @@ config.logger = {
 config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
-config.queue.work = ["1-T", "1-tT"];
+config.queue.work = ["1-T", "1-tT", "2-T", "2-tT", "2-state"];
 // config.queue.work = ["1-CTR", "1-VTR", "2-T", "2-tT", "3-T", "3-tT"];
 
 module.exports = config;
+log("i", ln, `---------- Config.js loaded! --------------`);
 
 if (!module.parent) {
   console.dir(config, { depth: 4 });

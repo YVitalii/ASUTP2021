@@ -6,27 +6,39 @@
 // let logN=logName+"описание:";
 // let trace=0;   trace = (gTrace!=0) ? gTrace : trace;
 // trace ? log("i",logN,"Started") : null;
-
+const fs = require("fs");
+const path = require("path");
+const { ifError } = require("assert");
 var buf = require("./parseBuf.js");
 var colors = require("colors");
-
-const fs = require("fs");
+let fileName = __dirname + "/events/" + "eventsLog.txt";
+fileName = path.normalize(fileName);
 
 //var modulName=null;
-var FH = null;
+let fd = null; // дескриптор файлу
 
-// function setName(str) {
-//   modulName = ""; //str;
-// }
+(() => {
+  try {
+    let stats = fs.statSync(fileName);
+    if (stats) {
+      if (stats.size > 500 * 1064) {
+        fs.truncateSync(fileName, 200 * 1064);
+      }
+    }
+    fd = fs.openSync(fileName, "a+");
+    log("n", `log.js::File for logging process events opened: ${fileName} `);
+  } catch (error) {
+    throw error;
+  }
+})();
 
 function setFH(fh) {
   FH = fh;
 }
-
 function write(line, FH) {
   let res = "";
   if (FH) {
-    let now = new Date().toLocaleString();
+    let now = new Date().toLocaleString().slice(-8);
     res = now + "\t" + line + "\n";
     fs.write(FH, res, (err) => {
       if (err) {
@@ -109,7 +121,7 @@ function log(level = 3, fh) {
   console.log(line[color]);
   // перевіряємо рівень повідомлення
   if (level < 3) {
-    write(line);
+    write(line, fd);
   }
   return;
 } //log

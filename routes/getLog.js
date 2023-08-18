@@ -4,7 +4,7 @@ var router = express.Router();
 let l = require('../tools/log.js'); // логер
 let logName="<"+(__filename.replace(__dirname,"")).slice(1)+">:";
 let gTrace=1; //=1 глобальная трассировка (трассируется все)
-gTrace ?  l('i',logName) : null;
+gTrace ?  l('i',logName,"started") : null;
 // ---------------
 /* GET users listing. */
 router.post('/:name', function(req, res, next) {

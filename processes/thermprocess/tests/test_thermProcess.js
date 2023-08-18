@@ -30,8 +30,8 @@ async function start() {
   setTimeout(() => {
     //console.log("-------- getProgram ------\n", process.getProgram());
     //console.log("-------- getState ------\n", process.getState());
-    //process.stop();
-  }, 20000);
+    process.stop();
+  }, 50 * 1000);
 } // start()
 
 setTimeout(() => {

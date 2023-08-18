@@ -73,6 +73,7 @@ class ThermProcess {
     this.state.note = `Програму ${
       this.program[0].title
     } завантажено о ${this.state.programStartTime.toLocaleTimeString()}`;
+    log("w", ln, this.state.note);
     return 1;
   }
 
@@ -83,8 +84,8 @@ class ThermProcess {
    */
   async start(step = 1) {
     let trace = 1,
-      ln = this.ln + "start(" + step + ")::";
-
+      ln = this.ln + "start()::";
+    log("w", ln, "<------------", " from step=", step, "------------>");
     // якщо программа вже запущена  - повертаємо помилку
     if (!this.state.stop) {
       let err =
@@ -157,15 +158,15 @@ class ThermProcess {
         // обробляємо помилку, якщо вона є
         this.state.note = error.msg;
         this.stop();
-        log("e", error.msg);
-        return Promise.reject(error);
+        log("e", ln, "Виконання процесу завершилося помилкою!");
+        //return Promise.reject(error);
       }
 
       // якщо така функція є, запускаємо afterStep
       if (this.afterStep) {
         await this.afterStep(curStep);
       } else {
-        trace ? log("i", ln, `afterStep() not found`) : null;
+        trace ? log("n", ln, `afterStep() not found`) : null;
       }
     } //for (let step
     //
@@ -180,6 +181,7 @@ class ThermProcess {
   }
 
   async stop() {
+    let ln = this.ln + "stop()::";
     this.state.stop = true;
     this.state.timestamp = new Date();
     this.state.note =
@@ -188,6 +190,7 @@ class ThermProcess {
     for (let i = 0; i < this.state.tasks.length; i++) {
       this.state.tasks[i].stop();
     }
+    log("w", ln, this.state.note);
   }
 
   getProgram() {

@@ -104,18 +104,17 @@ class Manager {
         obsolescense: 180 * 1000, //період за який дані застаріють
       },
     }; //params
-    setTimeout(() => {
+    setTimeout(async () => {
       // при ініціалізації об'єкту зчитуємо  всі налаштування з приладу
-      let req = "state; T; timer; regMode; tT; H; Y; o; ti; td; u";
-      log("i", req);
-      this.getParams(req);
-    }, 10000);
+      // let req = "state; T; timer; regMode; tT; H; Y; o; ti; td; u";
+      // log("i", this.ln + ":: First reading parameters from device: " + req);
+      await this.stop();
+      //await this.getParams(req);
+    }, 1000);
 
     log(
       "w",
-      `${this.ln}:: ===>  Device(id= ${
-        this.id
-      }) was created at ${new Date().toLocaleTimeString()} `
+      `${this.ln}:: ===>  Device was created. Command 'Stop' was called.`
     );
   }
 
@@ -130,14 +129,13 @@ class Manager {
   /** Функція записує налаштування в прилад
    * @param {Object} params - об'єкт з даними: {tT:50; o:10,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
    */
-
   async setParams(params = {}) {
     let trace = 0;
     let ln = this.ln + `setParams():: `;
     trace ? console.log(ln, "Started") : null;
     let err = "";
     let start = new Date();
-    let resString = ln + `at ${start.toLocaleTimeString()} ::`;
+    let resString = ln;
     // перебираємо всі параметри в запиті
     for (let prop in params) {
       if (params.hasOwnProperty(prop)) {
@@ -175,7 +173,7 @@ class Manager {
     resString += ` duration ${
       (new Date().getTime() - start.getTime()) / 1000
     } sec`;
-    log("w", resString);
+    log("i", resString);
     // if (trace) {
     //   console.log(ln, "this.state=");
     //   console.dir(this.state);
@@ -183,30 +181,33 @@ class Manager {
   }
 
   async start() {
-    let trace = 1;
+    let trace = 0;
     let ln = this.ln + `start()::`;
     trace ? log("w", ln, "Start") : null;
     try {
       await this.setParams({ state: 17 });
       this.state.T.obsolescense = 10 * 1000; // скорочуємо період оновлення даних до 10 с
+      log("w", ln, "Device started");
     } catch (error) {
       log("e", ln, "Error:", error);
     }
     //await dummy(); //заглушка
-    trace ? log("w", ln, "Completed") : null;
+    trace ? log("w", ln, "Finished") : null;
   }
 
   async stop() {
-    let trace = 1;
+    let trace = 0;
     let ln = this.ln + `stop()::`;
-    trace ? log("w", ln, "Started") : null;
+    trace ? log("w", ln, "Device stoped") : null;
     try {
       await this.setParams({ state: 1 });
       this.state.T.obsolescense = 30 * 1000; // збільшуємо період оновлення даних до 30 с
+      log("w", ln, "Stoped.");
     } catch (error) {
       log("e", ln, "Error:", error);
     }
-    trace ? log("w", ln, "Completed") : null;
+
+    trace ? log("w", ln, "Finished") : null;
   }
 
   /** отримує температуру з приладу
@@ -245,7 +246,7 @@ class Manager {
     trace ? console.log(ln, `Started.`) : null;
     let response = {};
     let start = new Date();
-    let resString = ln + `  ${start.toLocaleTimeString()} ::`;
+    let resString = ln;
     let listRegs = params.split(";");
     for (let i = 0; i < listRegs.length; i++) {
       let trace = 0;
