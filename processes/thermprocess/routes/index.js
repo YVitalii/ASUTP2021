@@ -132,8 +132,8 @@ router.post("/getState", function (req, res, next) {
 /** POST Отримання поточної програми  */
 router.post("/getProgram", function (req, res, next) {
   // -- настройки логгера --------------
-  let trace = 0;
-  let ln = logName + "POST:/getReg => ";
+  let trace = 1;
+  let ln = logName + "POST:/getProgram => ";
   let program = thermProcess.getProgram();
   //trace ? console.log(ln, "req=") : null;
   if (trace) {

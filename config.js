@@ -99,7 +99,9 @@ dev["retortTRP"] = new TRP08(iface, 2, { addT: 0 }); // терморегулят
 */
 
 // додаємо терморегулятори, що приймають участь в контролі нагрівання
-entities[0].thermProcess = new ThermProcess([dev["retortTRP"]]);
+entities[0].thermProcess = new ThermProcess([dev["retortTRP"]], {
+  homeDir: entities[0]["path"],
+});
 
 // -------------------- beforeStep --------------------------
 /** ця функція виконується перед початком кожного кроку

@@ -2,6 +2,8 @@
 
 const log = require("../../tools/log.js"); // логер
 const ThermStep = require("./ThermStep.js");
+const syncFileWorker = require("../../tools/syncFileWorker.js");
+const fs = require("fs");
 // модуль з описом співвідношень полів
 const programTransform = require("./programTransform.js");
 /** клас, що відповідає за виконання всієї програми
@@ -18,7 +20,7 @@ class ThermProcess {
    *
    *
    */
-  constructor(devices, props = null) {
+  constructor(devices, props = {}) {
     let trace = 1;
     let ln = "ThermProcess()::";
     this.ln = ln;
@@ -35,6 +37,9 @@ class ThermProcess {
     this.devices = devices;
     // тут зберігається програма
     this.program = [];
+    this.homeDir = props.homeDir;
+    this.lastProgram = this.homeDir + "lastProgram.txt"; // файл з останньою завантаженою програмою
+    //this.lastState = this.homeDir + "lastState.txt"; // файл з записом поточного стану
     // тут зберігається поточний стан процессу
     this.state = {
       tasks: [], // поточні завдання, що видані приладам
@@ -45,6 +50,25 @@ class ThermProcess {
       step: 0, // поточний крок
       timestamp: new Date(), // момент останньої зміни стану
     };
+
+    // завантажуємо останню програму
+    {
+      let trace = 0;
+      let prg = syncFileWorker.load(this.lastProgram);
+      if (trace) {
+        log("i", this.ln, `prg=`);
+        console.dir(prg);
+      }
+
+      if (Array.isArray(prg)) {
+        this.program = prg;
+        log("i", this.ln, `Остання програма "${prg[0].title}" завантажена `);
+        if (trace) {
+          log("i", this.ln, `this.program=`);
+          console.dir(this.program);
+        }
+      }
+    }
   } // constructor
 
   /** завантажує програму в процесс
@@ -58,6 +82,7 @@ class ThermProcess {
       log("i", ln, "arr=");
       console.dir(arr);
     }
+
     this.program = programTransform(arr);
 
     if (trace) {
@@ -74,6 +99,8 @@ class ThermProcess {
       this.program[0].title
     } завантажено о ${this.state.programStartTime.toLocaleTimeString()}`;
     log("w", ln, this.state.note);
+    syncFileWorker.save(this.lastProgram, this.program); //запамятовуємо останню програму
+    //syncFileWorker.del(this.lastState); // очищуємо запис стану - бо нова програма
     return 1;
   }
 
@@ -125,7 +152,7 @@ class ThermProcess {
       // очищуємо список завдань та термічних кроків
       this.state.go = []; // список функцій для Promise.all()
       this.state.tasks = []; // список термічних кроків
-
+      //syncFileWorker.save(this.lastState, this.state); // зберігаємо поточний стан процесу
       // якщо під час виконання виник сигнал зупинки - виходимо
       if (this.state.stop) {
         break;
@@ -190,6 +217,7 @@ class ThermProcess {
     for (let i = 0; i < this.state.tasks.length; i++) {
       this.state.tasks[i].stop();
     }
+    //syncFileWorker.del(this.lastState);
     log("w", ln, this.state.note);
   }
 
