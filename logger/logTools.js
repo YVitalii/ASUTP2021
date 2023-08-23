@@ -18,13 +18,13 @@ function testFile(path, headers) {
   // headers - строка со списком заголовков (пишутся в первой строке файла)
   return new Promise((resolve, reject) => {
     let trace = 0;
-    logN = "testFile(" + path + ",'" + headers + "')";
+    logN = "logTools.js::testFile()::";
     trace ? log("i", "Enter to ", logN) : null;
     fs.open(path, "ax", (err, fd) => {
       if (err) {
         if (err.code === "EEXIST") {
           // если файл существует
-          log("i", "Enter to ", logN, "File exist");
+          log("i", logN, "File:", path, " exist. Opened");
           resolve(true); // все хорошо файл существует
           return;
         } else {

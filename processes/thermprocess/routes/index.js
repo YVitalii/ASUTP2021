@@ -122,7 +122,7 @@ router.post("/getState", function (req, res, next) {
   let state = thermProcess.getState();
   //trace ? console.log(ln, "req=") : null;
   if (trace) {
-    log("i", ln, `thermProcess.getState()=`);
+    log("n", ln, `thermProcess.getState()=`);
     console.dir(state);
   }
   //-----------------------------------------
@@ -132,12 +132,12 @@ router.post("/getState", function (req, res, next) {
 /** POST Отримання поточної програми  */
 router.post("/getProgram", function (req, res, next) {
   // -- настройки логгера --------------
-  let trace = 0;
-  let ln = logName + "POST:/getReg => ";
+  let trace = 1;
+  let ln = logName + "POST:/getProgram => ";
   let program = thermProcess.getProgram();
   //trace ? console.log(ln, "req=") : null;
   if (trace) {
-    log("i", ln, `thermProcess.getProgram()=`);
+    log("n", ln, `thermProcess.getProgram()=`);
     console.dir(program);
   }
   //-----------------------------------------
@@ -160,7 +160,7 @@ router.post("/setProgram", function (req, res, next) {
   //   console.dir(incomeProgram);
   // }
   // --- перевіряємо права користувача на завантаження програми ------
-  trace ? log("i", ln, `req.user.permissions=`, req.user.permissions) : null;
+  trace ? log("n", ln, `req.user.permissions=`, req.user.permissions) : null;
   if (!req.user.permissions.programSet) {
     let user = req.user.username;
     let err = {

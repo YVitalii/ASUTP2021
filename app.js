@@ -35,6 +35,12 @@ const processRouter = require("./processes/thermprocess/routes"); // шлях д
 const developing = true;
 var app = express();
 
+const log = require("./tools/log.js");
+log(
+  "w",
+  "=========================== Program started ==============================="
+);
+
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");

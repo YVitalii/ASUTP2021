@@ -13,7 +13,7 @@ const { dummyPromise } = require("../../tools/dummy.js");
 class ThermStep {
   /**
    * @param {object} device - об'єкт налаштованого приладу див. /devices/trp08/Manager.js
-   * @param {object} step - обєкт=крок програми
+   * @param {object} step - об`єкт = крок програми
    * @param {number} step.startT=0 - *С, стартова температура кроку (для визначення типу кроку нагрівання/витримка)
    * @param {number} step.tT=50    - *С, цільова температура
    * @param {number} step.reg=1    - *С, закон регулювання: 1 -  ПІД; 2 - позиційний;
@@ -32,7 +32,7 @@ class ThermStep {
     // ----------- настройки логгера локальные --------------
     let logN = this.ln + "constructor:";
     let trace = 1;
-    trace ? log("i", logN, "Started: ", step) : null;
+    trace ? log("i", logN, "Start with parameters: ", step) : null;
 
     // прилад
     if (!device) {
@@ -41,7 +41,7 @@ class ThermStep {
     this.device = device;
     // рахує помилки звязку, для виявлення помилки "немає звязку", загалом робиться 10*3=30 спроб, якщо = 0 - викидаємо помилку
     this.errCounter = this.#ERR_COUNT;
-    log("i", `this.errCounter=${this.errCounter}`);
+    log("n", this.ln, `this.errCounter=${this.errCounter}`);
     // поточна температура
     this.currT = 0;
     // ---------- парсимо крок -----------
@@ -53,12 +53,12 @@ class ThermStep {
     this.step.dTmax = step.dTmax ? step.dTmax : +10;
     this.step.time = step.time ? step.time : 0;
     this.step.errTime = step.errTime ? step.errTime : 60;
-
     this.step.reg = step.reg ? step.reg : 1;
     this.step.o = step.o ? step.o : 2;
     this.step.ti = step.ti ? step.ti : 0;
     this.step.td = step.td ? step.td : 0;
     this.step.u = step.u ? step.u : 0;
+
     // якщо температури початку та кінця кроку співпадають то тип кроку = витримка , інакше - нагрівання
     this.step.holding = this.step.startT === this.step.tT;
     if (this.step.holding) {
@@ -73,17 +73,29 @@ class ThermStep {
       }
       this.step.Y = this.step.errTime + 10; // запас 10 хв - щоб спіймати перевищення часу до закінчення кроку
     }
+
     // час початку процесу
     this.startTime = null;
     this.forceStop = false; // індикатор команди "Стоп"
     this.timer = 0;
-    let str = `[${this.step.startT} ${
+
+    let str = `[${this.step.startT}${
       !this.step.holding ? "-->" + this.step.tT : ""
     }]*C`;
-    this.ln = `ThermStep (id=${this.device.getId()};tT=${str};time= ${
+    this.ln = `ThermStep(id=${this.device.getId()};tT=${str};time= ${
       this.step.time
     })_${this.step.holding ? "Витримка" : "Нагрівання"}::`;
-    trace ? log("i", logN, this.step) : null;
+
+    trace ? log("i", this.ln, "Parsed step:", this.step) : null;
+  }
+
+  /** Функція зупиняє поточний процесс */
+
+  async stop() {
+    let trace = 1,
+      ln = this.ln + "виклик stop()";
+    trace ? log("w", ln) : null;
+    this.forceStop = true;
   }
 
   /** функція бере паузу, потім надсилає запит поточної температури на прилад
@@ -91,13 +103,8 @@ class ThermStep {
    * у випадку помилки, змінює лічильник,
    * [(tT - dTmin) ... (tT + dTmax)]
    * @returns {Promise}  resolve(), reject(err) - якщо досягнута гранична кількість помилок
+   *
    * */
-  async stop() {
-    let trace = 1,
-      ln = this.ln + 'stop()::Отримано сигнал "Стоп"';
-    trace ? log("e", ln) : null;
-    this.forceStop = true;
-  }
 
   async iterate() {
     let trace = 1;
@@ -137,7 +144,7 @@ class ThermStep {
     // для перевірки
     trace
       ? log(
-          "i",
+          "n",
           ln,
           "currentT=",
           this.currT,
@@ -154,13 +161,12 @@ class ThermStep {
    * @returns {Promise}
    */
   async go() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "go():";
-    trace
-      ? console.log(
-          `------------------------ Крок ${this.ln} Started --------------------`
-        )
-      : null;
+    log(
+      "w",
+      `--ThermStep.go()--------------- Крок ${this.ln} Started --------------------`
+    );
     // робимо налаштування
     let params = {
       tT: this.step.tT,
@@ -194,15 +200,16 @@ class ThermStep {
       }
       // 2023-06-27 - в кінці кроку не зупиняємо прилади, а зупиняємо на початку кроку
       // так як для багатозонних печей на стадії нагрівання потрібно очікування поки вийдуть на режим всі прилади
-      // вони так зупиняться, коли вичерпається час
+      // вони і так зупиняться, коли вичерпається час
       // 2023-05-01 - зупиняємо виконання програми
 
       // await this.device.stop();
     } catch (error) {
-      let err = this.ln + "Крок завершився невдачею:" + error.message;
-      trace ? log("e", err) : null;
+      //let err = this.ln + "Крок завершився невдачею:" + error.message;
+      //trace ? log("e", err) : null;
+      log("e", ln, error);
       await this.device.stop();
-      return Promise.reject(new Error(err));
+      return Promise.reject(new Error(error));
     }
     return Promise.resolve("Ok");
   }
@@ -221,11 +228,11 @@ class ThermStep {
         // запит температури
         await this.iterate();
       } catch (error) {
-        err = ln + "Помилка зчитування температури";
+        err = "Помилка зчитування температури";
         finished = true;
         log(
           "e",
-          "Досягнута гранична  КількПомилок=",
+          "Помилка! Досягнута гранична  КількПомилок=",
           this.#ERR_COUNT - this.errCounter,
           "  ",
           error
@@ -234,15 +241,13 @@ class ThermStep {
       }
       // перевіряємо чи немає команди "Стоп"
       if (this.forceStop) {
-        err = this.ln + `Отримана команда "Стоп" `;
+        err = `Увага! Отримана команда "Стоп" `;
         finished = true;
         continue;
       }
       // перевіряємо чи температура в потрібному діапазоні, якщо ні - помилка
       if (this.currT > maxT || this.currT < minT) {
-        err =
-          this.ln +
-          `Поточна температура вийшла за границю діапазону [${minT} ... ${maxT}]!!! Т=${this.currT}°C`;
+        err = `Помилка! Поточна температура вийшла за границю діапазону [${minT} ... ${maxT}]!!! Т=${this.currT}°C`;
         finished = true;
         continue;
       }
@@ -252,8 +257,8 @@ class ThermStep {
       }
     }
     if (err) {
-      let error = ln + "Помилка:" + err;
-      log("e", error);
+      let error = err;
+      log("e", ln, "Виявлено помилку:", error);
       return Promise.reject(new Error(error));
     }
     log("w", ln, "Витримку закінчено!!! ");
@@ -304,7 +309,7 @@ class ThermStep {
       }
       // Перевіряємо температуру
       if (this.currT > minT) {
-        log("w", ln, "Температура досягнута!! ");
+        log("w", ln, "Успіх. Температура досягнута!! ");
         finished = true;
         continue;
       }
@@ -321,7 +326,7 @@ class ThermStep {
     } // while loop
 
     if (err !== null) {
-      trace ? log("e", "Процесс завершився з помилкою:" + err) : null;
+      trace ? log("e", err) : null;
       return Promise.reject(new Error(err));
     }
     return Promise.resolve(ln + "Нагрівання закінчено");

@@ -13,7 +13,7 @@ router.get("/", checkNotAuthentificated, function (req, res, next) {
   let logN = logName + "get:/login:";
   let trace = 0;
   trace = gTrace != 0 ? gTrace : trace;
-  trace ? log("i", logN, "Started") : null;
+  trace ? log("n", logN, "Started") : null;
   // ------------
   res.render("login", {});
   //res.send();
@@ -24,7 +24,7 @@ router.get("/", checkNotAuthentificated, function (req, res, next) {
 function checkNotAuthentificated(req, res, next) {
   let trace = 1,
     ln = logName + "::/login::checkNotAuthentificated::";
-  trace ? log("i", ln, `req.user=`, req.user) : null;
+  trace ? log("n", ln, `req.user=`, req.user) : null;
   if (req.user) {
     res.redirect("/");
   }
@@ -40,7 +40,7 @@ router.post(
     let logN = logName + "post:/login:";
     let trace = 1;
     trace = gTrace != 0 ? gTrace : trace;
-    trace ? log("i", logN, "Started") : null;
+    trace ? log("n", logN, "Started") : null;
     //next();
     res.redirect("/");
   }
@@ -49,7 +49,9 @@ router.post(
 router.get("/logout", function (req, res) {
   console.log("------------------------------");
   console.log("req.logout=" + req.logout);
-  req.logout((err, data) => {console.log(data)});
+  req.logout((err, data) => {
+    console.log(data);
+  });
   res.redirect("/");
 });
 

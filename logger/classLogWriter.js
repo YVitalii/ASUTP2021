@@ -131,7 +131,7 @@ function iterate() {
     }
     //this.beforeValues = values;
     trace
-      ? log("i", logN, "First time: beforeValues=", this.beforeValues)
+      ? log("n", logN, "First time: beforeValues=", this.beforeValues)
       : null;
     return;
   }
@@ -168,7 +168,7 @@ function iterate() {
       log("e", logN, "writeLine error:", err);
       throw err;
     }
-    trace ? log("i", logN, "Saved to file: ", line.slice(0, -1)) : null;
+    trace ? log("n", logN, "Saved to file: ", line.slice(0, -1)) : null;
   });
 }
 

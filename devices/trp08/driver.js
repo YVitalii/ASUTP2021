@@ -43,6 +43,9 @@
 
 */
 
+// ----- стандартні позначення, щоб міняти в одному місці  -------
+let degC = "\u00b0C"; // °C - позначення градуса
+
 const log = require("../../tools/log.js");
 //log.setName("TRP08.js");
 const ln = "driver.js::";
@@ -126,15 +129,21 @@ const regs = new Map(); //список регистров прибора
 */
 regs.set(
   "state", //
+
   {
     addr: 0x0000,
+    title: "Стан приладу: ",
+    units: "",
+    type: "integer",
     _get: function () {
       return {
         data: {
           FC: 3,
           addr: this.addr,
           data: 0x1,
-          note: `Читання: 07Н=7- датчик в норме в режиме "стоп"
+          note:
+            this.title +
+            `Читання: 07Н=7- датчик в норме в режиме "стоп"
           17Н=23- датчик в норме в режиме "пуск"
           47Н=71- авария датчика в режиме "стоп"
           57Н=87- авария датчика в режиме "пуск"
@@ -146,24 +155,24 @@ regs.set(
       };
     },
     get_: (buf) => {
-      let note = "";
+      let note = this.title;
       let data = buf[1];
       let err = null;
       switch (data) {
         case 7:
-          note = "Стоп";
+          note += "Стоп";
           break;
         case 23:
-          note = "Пуск";
+          note += "Пуск";
           break;
         case 71:
-          note = "Авария в режиме Стоп";
+          note += "Авария в режиме Стоп";
           break;
         case 87:
-          note = "Авария в режиме Пуск";
+          note += "Авария в режиме Пуск";
           break;
         default:
-          note = "Неизвестный код состояния:" + data;
+          note += "Неизвестный код состояния:" + data;
           err = note;
           data = null;
       }
@@ -205,26 +214,29 @@ regs.set(
   }
 );
 
-/*  ------------------ 00 01 T текущая температура объекта только чтение
+/*  ------------------ 00 01 T поточна температура, тільки читання
             в приборе:слово в формате BCD,
             ответ: текущая температура
     */
 
 regs.set("T", {
   addr: 0x0001,
+  units: degC,
+  title: "Поточна температура",
+  type: "integer",
   _get: function () {
     return {
       data: {
         FC: 3,
         addr: this.addr,
         data: 0x1,
-        note: "Температура на даний момент",
+        note: this.title,
       },
       err: null,
     };
   },
   get_: (buf) => {
-    let note = "Текущая температура T";
+    //let note = "Текущая температура T";
     let data = fromBCD(buf);
     let err = null;
     if (!data) {
@@ -234,7 +246,7 @@ regs.set("T", {
         "] в число";
     }
     return {
-      data: { value: data, note: note },
+      data: { value: data, note: this.note },
       err: err,
     };
   },
@@ -253,6 +265,9 @@ regs.set("T", {
 */
 regs.set("timer", {
   addr: 0x0002,
+  units: "хв",
+  title: "Час що пройшов від початку кроку",
+  type: "clock",
   _get: function () {
     return {
       data: {
@@ -264,7 +279,6 @@ regs.set("timer", {
     };
   },
   get_: (buf) => {
-    let note = "Время от момента пуска программы timer";
     let data = fromClock(buf);
     let err = null;
     if (!data) {
@@ -274,7 +288,7 @@ regs.set("timer", {
         "] в минуты";
     }
     return {
-      data: { value: data, note: note },
+      data: { value: data, note: this.title },
       err: err,
     };
   },
@@ -302,6 +316,9 @@ regs.set("timer", {
 */
 regs.set("regMode", {
   addr: 0x0003,
+  units: "",
+  title: "Закон регулювання:",
+  type: "integer",
   _get: function () {
     return {
       data: {
@@ -313,28 +330,27 @@ regs.set("regMode", {
     };
   },
   get_: (buf) => {
-    let note = "";
+    let note = this.title;
     let data = buf[1];
     let err = null;
     switch (data) {
       case 0:
-        note = "Регулирование выключено";
+        note += "Регулювання вимкнено";
         break;
       case 1:
-        note = "ПИД-закон";
+        note = "ПІД-закон";
         break;
       case 2:
-        note = "Позиционный закон";
+        note = "Позиційний прямий закон";
         break;
       case 3:
-        note = "Позиционный обратный закон";
+        note = "Позиційний зворотній закон";
         break;
       default:
-        note = "Неизвестный код состояния:" + data;
+        note = "Невідомий код стану:" + data;
         err = note;
         data = null;
     }
-    note = "Закон регулирования:" + note + " REG";
     return {
       data: { value: data, note: note },
       err: err,
@@ -372,6 +388,9 @@ regs.set("regMode", {
 
 regs.set("tT", {
   addr: 0x0100,
+  title: "Цільова температура",
+  units: degC,
+  type: "integer",
   _get: function () {
     return {
       data: {
@@ -383,7 +402,7 @@ regs.set("tT", {
     };
   },
   get_: (buf) => {
-    let note = "Заданная температура tT";
+    let note = this.title;
     let data = fromBCD(buf);
     let err = null;
     if (!data) {
@@ -424,6 +443,9 @@ regs.set("tT", {
 
 regs.set("H", {
   addr: 0x0120,
+  title: "Час розігрівання",
+  units: "хв",
+  type: "clock",
   _get: function () {
     return {
       data: {
@@ -435,7 +457,7 @@ regs.set("H", {
     };
   },
   get_: (buf) => {
-    let note = "Время нарастания температуры H";
+    let note = this.title;
     let data = fromClock(buf);
     let err = null;
     if (!data) {
@@ -477,6 +499,9 @@ regs.set("H", {
 
 regs.set("Y", {
   addr: 0x0140,
+  title: "Час витримки",
+  units: "хв",
+  type: "clock",
   _get: function () {
     return {
       data: {
@@ -488,7 +513,7 @@ regs.set("Y", {
     };
   },
   get_: (buf) => {
-    let note = "Время удержания температуры Y";
+    let note = this.title;
     let data = fromClock(buf);
     let err = null;
     if (!data) {
@@ -530,6 +555,9 @@ regs.set("Y", {
     */
 regs.set("o", {
   addr: 0x0160,
+  title: "при РЕГ=1 коеф.підсилення / при РЕГ=2 гістерезис",
+  units: "",
+  type: "integer",
   _get: function () {
     return {
       data: {
@@ -580,6 +608,9 @@ regs.set("o", {
     */
 regs.set("ti", {
   addr: 0x0180,
+  title: "рег ПІД. Час інтегрування",
+  units: "",
+  type: "integer",
   _get: function () {
     return {
       data: {
@@ -591,7 +622,6 @@ regs.set("ti", {
     };
   },
   get_: (buf) => {
-    let note = "Время интегрирования ti";
     let data = fromBCD(buf);
     let err = null;
     if (!data) {
@@ -601,7 +631,7 @@ regs.set("ti", {
         "] в число";
     }
     return {
-      data: { value: data, note: note },
+      data: { value: data, note: this.title },
       err: err,
     };
   },
@@ -626,12 +656,16 @@ regs.set("ti", {
 }); ///regs.set("ti"
 
 /*  ------------------ 0x 01 A0 [td] Задание времени дифференцирования в случае выбранного ПИД закона
-        в приборе:слово, формат ВСDб (0х0000..0х9999)
+        в приборе:слово, формат ВСD, (0х0000..0х9999)
         ответ: число
     */
 
 regs.set("td", {
   addr: 0x01a0,
+  title: "рег ПІД. Час диференціювання",
+  units: "",
+  type: "integer",
+  legend: "td",
   _get: function () {
     return {
       data: {
@@ -643,7 +677,6 @@ regs.set("td", {
     };
   },
   get_: (buf) => {
-    let note = "Время дифференцирования td";
     let data = fromBCD(buf);
     let err = null;
     if (!data) {
@@ -653,7 +686,7 @@ regs.set("td", {
         "] в число";
     }
     return {
-      data: { value: data, note: note },
+      data: { value: data, note: this.title },
       err: err,
     };
   },
@@ -684,6 +717,9 @@ regs.set("td", {
         */
 regs.set("u", {
   addr: 0x01c0,
+  title: "рег ПІД. Зміщення",
+  units: "",
+  type: "integer",
   _get: function () {
     return {
       data: {
@@ -705,7 +741,7 @@ regs.set("u", {
         "] в число";
     }
     return {
-      data: { value: data, note: note },
+      data: { value: data, note: this.title },
       err: err,
     };
   },
@@ -911,6 +947,24 @@ function setRegPromise(props) {
   });
 }
 
+/**
+ * Повертає опис регістра у вигляді об'єкта: {name:імя регістра як в драйвері, description: this.title, units: this.units}
+ * @param {String} [regName]  - опис регістра
+ * @returns {Object}
+ */
+
+function getRegDesription(regName = null) {
+  if (!regName) return null;
+  if (!has(regName)) return null;
+  let res = regs.get(regName);
+  return {
+    name: regName,
+    description: res.title,
+    units: res.units,
+    type: res.type,
+  };
+}
+
 module.exports.setReg = setReg;
 module.exports.setRegPromise = setRegPromise;
 module.exports.getReg = getReg;
@@ -1024,8 +1078,9 @@ if (!module.parent) {
 
   console.log("----------------------- \n regs.keys = ");
   for (let key of regs.keys()) {
-    log("i", key); //+ " -> "
+    let reg = getRegDesription(key);
+    log("i", "reg=", reg); //+ " -> "
   }
-  console.log("----------------------- \n regs = ");
-  console.dir(regs, { depth: 4 });
+  // console.log("----------------------- \n regs = ");
+  // console.dir(regs, { depth: 4 });
 }
