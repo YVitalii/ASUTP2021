@@ -95,7 +95,8 @@ regs.set("AI", { // - аналоговий вхід
   },
   get_: (buf) => {
     let note = "Поточне значення аналогового входу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
+    // let data = 16/0xffff*buf.readUInt16BE(0)+4; // перерахунок значення в діапазон 4-20 мА
+    let data = 100/0xffff*buf.readUInt16BE(0); // перерахунок значення в діапазон 0-100 %
     let err = null;
     if (!data) {
       err =
@@ -175,20 +176,32 @@ regs.set("AO", {
   },
   get_: (buf) => {
     let note = "Поточне значення аналогового виходу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
+    // let value = 16/0xffff*buf.readUInt16BE(0)+4; // перерахунок значення в діапазон 4-20 мА
+    let value = 100/0xffff*buf.readUInt16BE(0); // перерахунок значення в діапазон 0-100 %
     let err = null;
-    if (!data) {
+    if (!value) {
       err =
         "_get: Не можу перетворити буфер:[" +
         buf.toString("hex") +
         "] в число.";
     }
     return {
-      data: { value: data, note: note },
+      data: { value: value, note: note },
       err: err,
     };
   },
   _set: function (newValue) {
+    if (newValue > 100) {
+      err = `${ln}Значення ${newValue} поза межею 100%.`;
+      return {
+        data: {
+          FC: 0x10,
+          addr: this.addr,
+          data: null,
+        },
+        err: err,
+      };
+    }
     newValue = parseInt(newValue);
     let buf1 = Buffer.from([0x00, 0x01, 0x02]);
     let buf2 = Buffer.allocUnsafe(2);
