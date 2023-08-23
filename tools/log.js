@@ -11,20 +11,37 @@ const path = require("path");
 const { ifError } = require("assert");
 var buf = require("./parseBuf.js");
 var colors = require("colors");
-let fileName = __dirname + "/events/" + "eventsLog.txt";
-fileName = path.normalize(fileName);
+let homeDir = path.normalize(__dirname + "/events/");
+let fileName = path.join(homeDir, "eventsLog.txt");
+let oldFileName = path.join(homeDir, "oldEventsLog.txt");
+//fileName = path.normalize(fileName);
 
 //var modulName=null;
 let fd = null; // дескриптор файлу
 
 (() => {
   try {
-    let stats = fs.statSync(fileName);
-    if (stats) {
-      if (stats.size > 500 * 1064) {
-        fs.truncateSync(fileName, 200 * 1064);
+    // перевіряємо наявність директорії
+    if (!fs.existsSync(homeDir)) {
+      // немає → створюємо
+      fs.mkdirSync(homeDir);
+    }
+    // якщо файл існує
+    if (fs.existsSync(fileName)) {
+      //- отримуємо його розмір
+      let stats = fs.statSync(fileName);
+      //перевіряємо розмір файла 200к
+      if (stats.size > 200 * 1064) {
+        // файл завеликий
+        if (fs.existsSync(oldFileName)) {
+          // якщо застарівший файл існує -видаляємо його
+          fs.unlinkSync(oldFileName);
+        }
+        // перейменовуємо поточний файл в застарівший
+        fs.renameSync(fileName, oldFileName);
       }
     }
+    // створюємо/відкриваємо файл для запису
     fd = fs.openSync(fileName, "a+");
     log("n", `log.js::File for logging process events opened: ${fileName} `);
   } catch (error) {

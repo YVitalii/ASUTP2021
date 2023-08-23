@@ -158,6 +158,7 @@ class Manager {
           reg.value = res.value;
           reg.timestamp = res.timestamp;
           resString += `${prop}=${res.value}; `;
+          return resString;
           // if (trace) {
           //   console.log(ln, "res=");
           //   console.dir(res);
@@ -169,6 +170,7 @@ class Manager {
         }
       }
     }
+
     //await dummy(); //заглушка
     resString += ` duration ${
       (new Date().getTime() - start.getTime()) / 1000
@@ -301,40 +303,6 @@ class Manager {
     trace ? log("i", resString) : null;
     return response;
   }
-
-  /**
-   * Ця функція виконує передану їй функцію item , якщо невдача то виклик повторюється тричі
-   * @param {Function} item - функцію, яку потрібно виконати кілька разів
-   * @param {object} params - дані що передаються в функцію item {regName,id,iface..}
-   * @returns Promise
-   */
-  trySomeTimes(item, params) {
-    // додати перевірку на тип помилки, бо коли помилка в назві регистра не потрібно повторювати тричі
-    return new Promise(async (resolve, reject) => {
-      let trace = 0,
-        ln = this.ln + `trySomeTimes(${params.regName}=${params.value})::`;
-      let res = null;
-      let err = null;
-      for (let i = 0; i < 3; i++) {
-        trace ? console.log(ln, "Спроба:" + i) : null;
-        try {
-          res = await item(params);
-          trace ? console.log(ln, "res=") : null;
-          trace ? console.dir(res) : null;
-          resolve(res);
-          break;
-          return;
-        } catch (error) {
-          log("e", ln, "Невдала спроба:" + error);
-          err = error;
-          continue;
-        }
-        //await item(params);
-      } //for
-      // всі спроби ненвдалі
-      reject(err);
-    });
-  } //trySomeTimes(item, params)
 
   isRegActual(regName) {}
 }

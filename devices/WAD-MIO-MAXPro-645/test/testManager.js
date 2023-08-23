@@ -27,5 +27,8 @@ if (trace) {
     log("n=", await dev.getAO());
     log("n=", await dev.setAO(i));
     i += 10;
+    if (i > 100) {
+      i = 0;
+    }
   }
 })();
