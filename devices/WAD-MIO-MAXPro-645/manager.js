@@ -69,12 +69,79 @@ class MaxPRO_645 {
     this.trySomeTimes = trySomeTimes;
   } //constructor
 
+  /**
+   * Функція зчитує параметри з фізичного приладу, записує в this.params,
+   * та повертає новий обєкт з потрібним переліком регістрів
+   * @param {String} params - рядок зі списком параметрів, розподілених крапкою з комою "tT; T; dT"
+   * @returns {Promise} - {tT:50,...}
+   */
+  async getParams(params = "tT") {
+    let trace = 0;
+    let ln = this.ln + `getParams(${params})::`;
+    trace ? console.log(ln, `Started.`) : null;
+    let response = {};
+    let start = new Date();
+    let resString = ln;
+    let listRegs = params.split(";");
+    for (let i = 0; i < listRegs.length; i++) {
+      let trace = 0;
+      let item = listRegs[i].trim();
+      if (item == "") {
+        continue;
+      }
+      trace ? console.log(ln, "get for: " + item) : null;
+      // якщо такого регістра немає в переліку станів беремо наступний
+      if (!this.state[item]) {
+        log("e", ln, `Регістра ${item} не знайдено в states`);
+        continue;
+      }
+
+      // робимо посилання на state[item] для скорочення наступного коду
+      let currReg = this.state[item];
+
+      // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх
+      if (
+        start.getTime() - currReg.timestamp.getTime() <
+        currReg.obsolescense
+      ) {
+        resString += `${item}=[${currReg.value}]; `;
+        response[item] = currReg;
+        continue;
+      }
+
+      // робимо запит в прилад по інтерфейсу
+      let res = await this.trySomeTimes(device.getRegPromise, {
+        iface: this.iface,
+        id: this.id,
+        regName: item,
+      });
+      trace ? console.log(ln, item, "=", res[0].value) : null;
+      // додаємо отримані дані в відповідь
+      response[item] = res[0];
+      // оновлюємо дані в state
+      currReg.value = res[0].value;
+      currReg.timestamp = res[0].timestamp;
+      currReg.regName = res[0].regName;
+      currReg.note = res[0].note;
+      // додаємо інформацію для повідомлення в консолі
+      resString += `${item}=${res[0].value}; `;
+    } //for
+    // виводимо результат в консоль
+    resString += ` duration ${
+      (new Date().getTime() - start.getTime()) / 1000
+    } sec`;
+    if (trace) {
+      log(ln, new Date().toLocaleTimeString(), "response=", resString);
+    }
+    trace ? log("i", resString) : null;
+    return response;
+  }
+
   /** Функція записує налаштування в прилад
    * @param {Object} params - об'єкт з даними: {tT:50; o:10,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
    */
-
   async setParams(params = null) {
-    let trace = 1;
+    let trace = 0;
     let ln = this.ln + `setParams():: `;
     trace ? console.log(ln, "Started") : null;
     let err = ""; // опис помилки
@@ -96,8 +163,8 @@ class MaxPRO_645 {
         trace ? log(ln, `params[${prop}]=`, params[prop]) : null;
         // перевірка наявності регістра виконується в драйвері, тому на цьому етапі не потрібна
         // даємо запит на запис
+        let value = params[prop];
         try {
-          let value = params[prop];
           value = parseInt(value);
           let res = await this.trySomeTimes(device.setRegPromise, {
             iface: this.iface,
@@ -111,9 +178,9 @@ class MaxPRO_645 {
           }
           // оновлюємо дані в state
           let reg = this.state[prop];
-          reg.value = res.value;
+          reg.value = value; // в приладі повертається тільки кількість записаних регістрів, тому значення беремо з запиту
           reg.timestamp = res.timestamp;
-          resString += `${prop}=${res.value}; `;
+          resString += `${prop}=${value}; `;
           // if (trace) {
           //   console.log(ln, "res=");
           //   console.dir(res);
@@ -149,13 +216,9 @@ class MaxPRO_645 {
     }
     // запит даних з приладу
     try {
-      let reg = await device.getRegPromise({
-        iface: this.iface,
-        id: this.id,
-        regName: "AI",
-      });
+      let reg = await this.getParams("AI");
       trace ? log("i", ln, `reg=`, reg) : null;
-      let val = toPercent(reg[0].value);
+
       trace ? log("i", ln, `val=`, val) : null;
       this.state.AI.source = reg[0];
       this.state.AI.timeStamp = new Date();
@@ -180,22 +243,17 @@ class MaxPRO_645 {
     let trace = 1,
       ln = this.ln + "getAO()::";
     let currTime = new Date().getTime();
-
+    trace ? log("i", ln, `Started`) : null;
     // запит даних з приладу
     try {
-      let reg = await this.getRegdevice.getRegPromise({
-        iface: this.iface,
-        id: this.id,
-        regName: "AO",
-      });
+      let reg = await this.getParams("AO");
       trace ? log("i", ln, `reg=`, reg) : null;
-      let val = toPercent(reg[0].value);
-      trace ? log("i", ln, `val=`, val) : null;
-      this.state.AO.source = reg[0];
-      this.state.AO.timeStamp = new Date();
-      this.state.AO.value = val;
+      // trace ? log("i", ln, `val=`, val) : null;
+      // this.state.AO.source = reg[0];
+      // this.state.AO.timeStamp = new Date();
+      // this.state.AO.value = val;
 
-      return val;
+      // return val;
     } catch (error) {
       log("e", ln, error);
       //throw error;
