@@ -14,7 +14,7 @@ class Manager {
 
   constructor(iface, id) {
     this.trace = 1; // дозвіл трасування
-    this.ln = `managerAkon(id=${id}):`; // заголовок трасування
+    this.ln = `WAD-MIO(id=${id})::manager.js::`; // заголовок трасування
     this.iface = iface;
     // ----- перевіряємо id ----------------
     if (!id) {
@@ -58,7 +58,7 @@ class Manager {
         value: null,
         timestamp: new Date(startTime),
         obsolescense: 20 * 1000, //період за який дані застаріють
-      }
+      },
     }; //params
     setTimeout(() => {
       let req = "SN; AI; DI; AO; DO";
@@ -76,6 +76,7 @@ class Manager {
   /** Функція записує налаштування в прилад
    * @param {Object} params - об'єкт з даними: {SN:392770622; AI:13.99,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
    */
+
   async setParams(params = {}) {
     let trace = 0;
     let ln = this.ln + `setParams():: `;
@@ -111,7 +112,7 @@ class Manager {
     resString += ` duration ${
       (new Date().getTime() - start.getTime()) / 1000
     } sec`;
-    log("w", resString);
+    log("i", resString);
     // if (trace) {
     //   console.log(ln, "this.state=");
     //   console.dir(this.state);
