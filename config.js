@@ -56,15 +56,15 @@ entities.push({
       description: "Поточна температура в реторті",
       legend: "Температура", // Надпись для графика
     },
-    "2-state": {
-      title: "state2", // имя для вывода в описании поля
-      type: "integer",
-      units: "\u00b0C",
-      description: "Стан терморегулятора",
-      legend: "Пуск/стоп", // Надпись для графика
-    },
+    // "2-state": {
+    //   title: "state2", // имя для вывода в описании поля
+    //   type: "integer",
+    //   units: "\u00b0C",
+    //   description: "Стан терморегулятора",
+    //   legend: "Пуск/стоп", // Надпись для графика
+    // },
   }, //regs
-  listRegs: "1-tT;1-T;2-tT;2-T;2-state", // список регистров для запроса, что бы их не генерировать каждый раз
+  listRegs: "1-tT;1-T;2-tT;2-T", // список регистров для запроса, что бы их не генерировать каждый раз
   // listRegs: "1-CTR;1-VTR;2-tT;2-T;3-tT;3-T", // список регистров для запроса, что бы их не генерировать каждый раз
   devicesList: [
     // new EM_07K(iface, 1),
@@ -121,12 +121,20 @@ beforeStep = async function (step) {
   await dev["furnaceTRP"].stop();
 
   // встановлюємо на терморегуляторі печі на dT *С більшу температуру ніж задана в реторті
-  let dT = 50;
-  if (step.tT < 300) {
-    dT = 100;
+  let tT = step.tT;
+  if (step.heating) {
+    tT += 300;
+  } else {
+    tT += 50;
   }
+
+  // перевіряємо, чи не виходить температура за обмеження в печі
+  tT = tT > entities[0].temperature.max ? entities[0].temperature.max + 40 : tT;
+  trace ? log("i", ln, `tT=`, tT) : null;
+
+  // програмуємо прилад
   await dev["furnaceTRP"].setParams({
-    tT: step.tT + dT,
+    tT: tT,
     H: 0,
     Y: 0,
     regMode: 2,
@@ -181,7 +189,7 @@ tags.set("T1", "1-T");
 tags.set("SP1", "1-tT");
 tags.set("SP2", "2-tT");
 tags.set("T2", "2-T");
-tags.set("state2", "2-state");
+//tags.set("state2", "2-state");
 config.tags = tags;
 //tags.set("sT"+i,i+"-T");
 // настройки логгера
@@ -199,7 +207,7 @@ config.logger = {
 config.queue = {};
 // рабочая очередь опроса, опрашивается автоматически в цикле
 //  актульным считается значение,если оно считано не более 5 сек назад
-config.queue.work = ["1-T", "1-tT", "2-T", "2-tT", "2-state"];
+config.queue.work = ["1-T", "1-tT", "2-T", "2-tT"];
 // config.queue.work = ["1-CTR", "1-VTR", "2-T", "2-tT", "3-T", "3-tT"];
 
 module.exports = config;

@@ -28,3 +28,7 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json*
 conf_iface.js*
+<<<<<<< HEAD
+=======
+./tools/events/*
+>>>>>>> thermProcess_2023-08-16
