@@ -4,6 +4,7 @@
 /node_modules
 /public/logs
 /public/params
+/tools/events
 /.pnp
 .pnp.js
 .bak
