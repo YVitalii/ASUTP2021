@@ -1,239 +1,147 @@
-//const { forEach } = require("core-js/core/array");
-const device = require("./driver.js");
+/**
+ * Класс, що керує роботою блоку вводу-виводу WAD-MIO-MAXPro-645
+ */
+const device = require("./driver.js"); //драйвер приладу
 const log = require("../../tools/log.js");
 
-/** @class
- * Клас створює об'єкт, що репрезентує багатофункціональний
- */
-class Manager {
-  /**
-   * Конструктор
-   * @param {Object} iface - об'єкт до якого підключено цей прилад
-   * @param {Integer} id - адреса придладу в iface
-   */
+function toPercent(val = 0) {
+  val -= 4; //зміщення на 4 мА вниз
+  return (100 * val) / 16;
+}
 
-  constructor(iface, id) {
-    this.trace = 1; // дозвіл трасування
-    this.ln = `WAD-MIO(id=${id})::manager.js::`; // заголовок трасування
-    this.iface = iface;
-    // ----- перевіряємо id ----------------
+function fromPercent(val = 0) {
+  return (val / 100) * 16 + 4;
+}
+
+class MaxPRO_645 {
+  /**
+   * @param {Object} iface - об'єкт інтерфейсу RS485 до якого підключено цей прилад
+   * @param {Integer} id - адреса приладу в iface
+   * @param {Object} props - об'єкт з налаштуваннями
+   * */
+  constructor(iface = null, id = null, props = null) {
+    this.ln = "MaxPro645_Manager()::";
+    let ln = this.ln + "constructor()::";
+    // -------- id  ---------------
     if (!id) {
-      throw new Error("Не вказана адреса приладу id=" + id);
+      let err = ln + "Має бути вказана адреса приладу";
+      log("e", err);
+      throw new Error(err);
     }
-    if (this.id < 1 || this.id > 32) {
-      throw new Error("id виходить з дозволеного діапазону адрес:" + this.id);
+    this.id = id;
+    // ----- iface --------------------------------
+    if (!iface) {
+      let err = ln + "Має бути вказаний інтерфейс для зв`язку з приладом";
+      log("e", err);
+      throw new Error(err);
     }
+    this.iface = iface;
+
+    this.AI = {
+      value: 0,
+      timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
+      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+      source: {}, // регістр, отриманий з драйверу, для дод.інформації
+    };
+    this.AO = {
+      value: 0,
+      timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
+      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+    };
+    this.DI = {
+      value: 0,
+      timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
+      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+    };
+    this.DO = {
+      value: 0,
+      timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
+      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+    };
+  }
+  /* ---------------------- AI ---------------------------- */
+  /** Отримує значення з аналогового входу */
+  async getAI() {
+    let trace = 1,
+      ln = this.ln + "getAI()::";
+    let currTime = new Date().getTime();
+    // якщо актуальність даних ще не втратилась, відразу повертаємо дані
+    if (currTime - this.AI.timestamp <= this.AI.period) {
+      return this.AI.value;
+    }
+    // запит даних з приладу
     try {
-      this.id = parseInt(id);
-    } catch (error) {
-      throw new Error("id неможливо перетворити в цифру:" + error.message);
-    }
-
-    // вираховуємо час останнього оновлення регістрів на 10 хв менше ніж тепер
-    let startTime = new Date().getTime() - 600000;
-
-    // поточні налаштування приладу поки null
-    this.state = {
-      SN: {
-        value: null,
-        timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
-      },
-      AI: {
-        value: null,
-        timestamp: new Date(startTime),
-        obsolescense: 20 * 1000, //період за який дані застаріють
-      },
-      DI: {
-        value: null,
-        timestamp: new Date(startTime),
-        obsolescense: 20 * 1000, //період за який дані застаріють
-      },
-      AO: {
-        value: null,
-        timestamp: new Date(startTime),
-        obsolescense: 20 * 1000, //період за який дані застаріють
-      },
-      DO: {
-        value: null,
-        timestamp: new Date(startTime),
-        obsolescense: 20 * 1000, //період за який дані застаріють
-      },
-    }; //params
-    setTimeout(() => {
-      let req = "SN; AI; DI; AO; DO";
-      log("i", req);
-      this.getParams(req);
-    }, 10000);
-    log(
-      "w",
-      `${this.ln}:: ===>  Device(id= ${
-        this.id
-      }) was created at ${new Date().toLocaleTimeString()} `
-    );
-  }
-
-  /** Функція записує налаштування в прилад
-   * @param {Object} params - об'єкт з даними: {SN:392770622; AI:13.99,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
-   */
-
-  async setParams(params = {}) {
-    let trace = 0;
-    let ln = this.ln + `setParams():: `;
-    trace ? console.log(ln, "Started") : null;
-    let start = new Date();
-    let resString = ln + `at ${start.toLocaleTimeString()} ::`;
-    // перебираємо всі параметри в запиті
-    for (let prop in params) {
-      if (params.hasOwnProperty(prop)) {
-        trace ? log(ln, `params[${prop}]=`, params[prop]) : null;
-        // перевірка наявності регістра виконується в драйвері, тому на цьому етапі не потрібна
-        // даємо запит на запис
-        try {
-          let value = params[prop];
-          let res = await this.trySomeTimes(device.setRegPromise, {
-            iface: this.iface,
-            id: this.id,
-            regName: prop,
-            value: value,
-          });
-          // оновлюємо дані в state
-          let reg = this.state[prop];
-          reg.value = res.value;
-          reg.timestamp = res.timestamp;
-          resString += `${prop}=${res.value}; `;
-        } catch (error) {
-          log("e", ln, error);
-          //throw new Error(error.message);
-        }
-      }
-    }
-    //await dummy(); //заглушка
-    resString += ` duration ${
-      (new Date().getTime() - start.getTime()) / 1000
-    } sec`;
-    log("i", resString);
-    // if (trace) {
-    //   console.log(ln, "this.state=");
-    //   console.dir(this.state);
-    // }
-  }
-
-  getId() {
-    return this.id;
-  }
-
-  /**
-   * Функція зчитує параметри з фізичного приладу, записує в this.params,
-   * та повертає новий обєкт з потрібним переліком регістрів
-   * @param {String} params - рядок зі списком параметрів, розподілених крапкою з комою "tT; T; dT"
-   * @returns {Promise}
-   */
-  async getParams(params = "SN") {
-    let trace = 0;
-    let ln = this.ln + `getParams(${params})::`;
-    trace ? console.log(ln, `Started.`) : null;
-    let response = {};
-    let start = new Date();
-    let resString = ln + `  ${start.toLocaleTimeString()} ::`;
-    let listRegs = params.split(";");
-    for (let i = 0; i < listRegs.length; i++) {
-      let trace = 0;
-      let item = listRegs[i].trim();
-      if (item == "") {
-        continue;
-      }
-      trace ? console.log(ln, "get for: " + item) : null;
-      // якщо такого регістра немає в переліку станів беремо наступний
-      if (!this.state[item]) {
-        log("e", ln, `Регістра ${item} не знайдено в states`);
-        continue;
-      }
-
-      // робимо посилання на state[item] для скорочення наступного коду
-      let currReg = this.state[item];
-
-      // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх
-      if (
-        start.getTime() - currReg.timestamp.getTime() <
-        currReg.obsolescense
-      ) {
-        resString += `${item}=[${currReg.value}]; `;
-        response[item] = currReg;
-        continue;
-      }
-
-      // робимо запит в прилад по інтерфейсу
-      let res = await this.trySomeTimes(device.getRegPromise, {
+      let reg = await device.getRegPromise({
         iface: this.iface,
         id: this.id,
-        regName: item,
+        regName: "AI",
       });
-      trace ? console.log(ln, item, "=", res[0].value) : null;
-      // додаємо отримані дані в відповідь
-      response[item] = res[0];
-      // оновлюємо дані в state
-      currReg.value = res[0].value;
-      currReg.timestamp = res[0].timestamp;
-      currReg.regName = res[0].regName;
-      currReg.note = res[0].note;
-      // додаємо інформацію для повідомлення в консолі
-      resString += `${item}=${res[0].value}; `;
-    } //for
-    // виводимо результат в консоль
-    resString += ` duration ${
-      (new Date().getTime() - start.getTime()) / 1000
-    } sec`;
-    if (trace) {
-      console.log(ln, new Date().toLocaleTimeString(), "response=", resString);
+      trace ? log("i", ln, `reg=`, reg) : null;
+      let val = toPercent(reg[0].value);
+      trace ? log("i", ln, `val=`, val) : null;
+      this.AI.source = reg[0];
+      this.AI.timeStamp = new Date();
+      this.AI.value = val;
+
+      return val;
+    } catch (error) {
+      log("e", ln, error);
     }
-    trace ? log("i", resString) : null;
-    return response;
+  } //async getAI()
+
+  async setAI(val = null) {
+    let trace = 1,
+      ln = this.ln + "setAI()::";
+    let res = ln + "Error! AI is only for reading !!!";
+    throw new Error(res);
   }
 
-  /**
-   * Ця функція виконує передану їй функцію item , якщо невдача то виклик повторюється тричі
-   * @param {Function} item - функцію, яку потрібно виконати кілька разів
-   * @param {object} params - дані що передаються в функцію item {regName,id,iface..}
-   * @returns Promise
-   */
-  trySomeTimes(item, params) {
-    // додати перевірку на тип помилки, бо коли помилка в назві регистра не потрібно повторювати тричі
-    return new Promise(async (resolve, reject) => {
-      let trace = 0,
-        ln = this.ln + `trySomeTimes(${params.regName}=${params.value})::`;
-      let res = null;
-      let err = null;
-      for (let i = 0; i < 3; i++) {
-        trace ? console.log(ln, "Спроба:" + i) : null;
-        try {
-          res = await item(params);
-          trace ? console.log(ln, "res=") : null;
-          trace ? console.dir(res) : null;
-          resolve(res);
-          break;
-          return;
-        } catch (error) {
-          log("e", ln, "Невдала спроба:" + error);
-          err = error;
-          continue;
-        }
-        //await item(params);
-      } //for
-      // всі спроби ненвдалі
-      reject(err);
-    });
-  } //trySomeTimes(item, params)
+  /* ---------------------- AO ---------------------------- */
+  /** Отримує значення з аналогового виходу */
+  async getAO() {
+    let trace = 1,
+      ln = this.ln + "getAO()::";
+    let currTime = new Date().getTime();
+    // якщо актуальність даних ще не втратилась, відразу повертаємо дані
+    if (currTime - this.AO.timestamp <= this.AO.period) {
+      return this.AO.value;
+    }
+    // запит даних з приладу
+    try {
+      let reg = await device.getRegPromise({
+        iface: this.iface,
+        id: this.id,
+        regName: "AO",
+      });
+      trace ? log("i", ln, `reg=`, reg) : null;
+      let val = toPercent(reg[0].value);
+      trace ? log("i", ln, `val=`, val) : null;
+      this.AO.source = reg[0];
+      this.AO.timeStamp = new Date();
+      this.AO.value = val;
 
-  isRegActual(regName) {}
-}
+      return val;
+    } catch (error) {
+      log("e", ln, error);
+      throw error;
+    }
+  } //async getAO()
 
-module.exports = Manager;
+  async setAO(val = null) {
+    let trace = 1,
+      ln = this.ln + "setAO(" + val + ")::";
+    try {
+      //val = fromPercent(val);
+      trace ? log("i", ln, `val=`, val) : null;
+      let reg = await device.setRegPromise({
+        iface: this.iface,
+        id: this.id,
+        regName: "AO",
+        value: val,
+      });
+      trace ? log("i", ln, `reg=`, reg) : null;
+    } catch (error) {}
+  }
+} //class
 
-if (!module.parent) {
-  let device = new Manager({}, 1);
-  (async function () {
-    await device.setParams({ AO: "0" });
-    await device.getParams();
-  })();
-}
+module.exports = MaxPRO_645;

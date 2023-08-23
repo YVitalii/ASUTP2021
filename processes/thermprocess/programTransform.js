@@ -85,6 +85,7 @@ function generateProgram(arr) {
     step.u = parsed.u ? parsed.u : 0;
     step.startTime = null;
     step.finishTime = null;
+    step.heating = true; // признак нагрівання, якщо false - то витримка
     step.dTmin = parsed.dTmin ? parsed.dTmin : -5;
     step.dTmax = parsed.dTmax ? parsed.dTmax : +5;
     // для зручності розбиваємо кожний крок на підкроки: нагрівання + витримка
@@ -98,7 +99,7 @@ function generateProgram(arr) {
     step.note = `Крок ${i}:1.Нагрівання ${step.startT}->${
       parsed.tT
     }\u00b0C; H=${parsed.H ? parsed.H : "\u221E"}хв`;
-
+    step.heating = true; //нагрівання
     program.push({ ...step }); //записуємо клонований крок
     // ------------ другий під-крок - Витримка
     step.note = `Крок ${i}:2. Витримка T=${parsed.tT}\u00b0C; Y=${
@@ -107,6 +108,7 @@ function generateProgram(arr) {
     step.startT = step.tT;
     step.time = parsed.Y ? parsed.Y : 0;
     step.errTime = 0;
+    step.heating = false; // витримка
     program.push({ ...step }); //записуємо клонований крок
   }
   return program;
