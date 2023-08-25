@@ -240,7 +240,7 @@ class MaxPRO_645 {
   /* ---------------------- AO ---------------------------- */
   /** Отримує значення з аналогового виходу */
   async getAO() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getAO()::";
     let currTime = new Date().getTime();
     trace ? log("i", ln, `Started`) : null;
