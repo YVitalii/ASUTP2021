@@ -1,0 +1,5 @@
+15:17:52	WARN: managerTRP08(id=1)::: ===>  Device was created. Command 'Stop' was called.
+15:17:52	INFO: currentProgram.js::load()::File: "undefinedlastProgram.txt" not found!
+15:17:52	INFO: <setTime.js>:
+15:17:52	INFO: <getLog.js>:started
+15:17:52	WARN: =========================== Program started ===============================
