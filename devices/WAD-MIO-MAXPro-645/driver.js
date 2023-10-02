@@ -80,8 +80,9 @@ regs.set(
   }
 ); ///regs.set("SN"
 
-regs.set("AI", { // - аналоговий вхід
-  addr: 0x400B,
+regs.set("AI", {
+  // - аналоговий вхід
+  addr: 0x400b,
   _get: function () {
     return {
       data: {
@@ -96,7 +97,7 @@ regs.set("AI", { // - аналоговий вхід
   get_: (buf) => {
     let note = "Поточне значення аналогового входу.";
     // let data = 16/0xffff*buf.readUInt16BE(0)+4; // перерахунок значення в діапазон 4-20 мА
-    let data = 100/0xffff*buf.readUInt16BE(0); // перерахунок значення в діапазон 0-100 %
+    let data = (100 / 0xffff) * buf.readUInt16BE(0); // перерахунок значення в діапазон 0-100 %
     let err = null;
     if (!data) {
       err =
@@ -121,7 +122,8 @@ regs.set("AI", { // - аналоговий вхід
   },
 }); ///regs.set("AI"
 
-regs.set("DI", { // - дискретний вхід
+regs.set("DI", {
+  // - дискретний вхід
   addr: 0x4012,
   _get: function () {
     return {
@@ -162,7 +164,7 @@ regs.set("DI", { // - дискретний вхід
 }); ///regs.set("DI"
 
 regs.set("AO", {
-  addr: 0x400F,
+  addr: 0x400f,
   _get: function () {
     return {
       data: {
@@ -177,7 +179,7 @@ regs.set("AO", {
   get_: (buf) => {
     let note = "Поточне значення аналогового виходу.";
     // let value = 16/0xffff*buf.readUInt16BE(0)+4; // перерахунок значення в діапазон 4-20 мА
-    let value = 100/0xffff*buf.readUInt16BE(0); // перерахунок значення в діапазон 0-100 %
+    let value = (100 / 0xffff) * buf.readUInt16BE(0); // перерахунок значення в діапазон 0-100 %
     let err = null;
     if (!value) {
       err =
@@ -205,7 +207,7 @@ regs.set("AO", {
     newValue = parseInt(newValue);
     let buf1 = Buffer.from([0x00, 0x01, 0x02]);
     let buf2 = Buffer.allocUnsafe(2);
-    buf2.writeUInt16BE(parseInt(0xffff*newValue/100), 0);
+    buf2.writeUInt16BE(parseInt((0xffff * newValue) / 100), 0);
     let totalLength = buf1.length + buf2.length;
     let val = Buffer.concat([buf1, buf2], totalLength);
     let err = null;

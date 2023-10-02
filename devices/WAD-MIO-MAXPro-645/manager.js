@@ -4,6 +4,7 @@
 const device = require("./driver.js"); //драйвер приладу
 const log = require("../../tools/log.js");
 const trySomeTimes = require("../../tools/trySomeTimes.js");
+const { response } = require("express");
 function toPercent(val = 0) {
   val -= 4; //зміщення на 4 мА вниз
   return (100 * val) / 16;
@@ -46,7 +47,7 @@ class MaxPRO_645 {
       source: {}, // регістр, отриманий з драйверу, для дод.інформації
     };
     this.state.AO = {
-      // аналоговий вихід
+      // аналоговий вихід, в цьому полі також зберігається поточне завдання
       value: 0,
       timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
       period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
@@ -69,20 +70,28 @@ class MaxPRO_645 {
     this.trySomeTimes = trySomeTimes;
   } //constructor
 
+  // ----------------------------- getParams() -----------------------
+
   /**
    * Функція зчитує параметри з фізичного приладу, записує в this.params,
-   * та повертає новий обєкт з потрібним переліком регістрів
-   * @param {String} params - рядок зі списком параметрів, розподілених крапкою з комою "tT; T; dT"
-   * @returns {Promise} - {tT:50,...}
+   * та повертає новий обєкт з потрібним переліком регістрів та їх значень
+   * @param {String} params - рядок зі списком параметрів, розподілених крапкою з комою "AO; AI; DO; DI"
+   * @returns {Promise} - fulfilled: {"AO":{value:50,timestamp,...}, rejected: Error
    */
+
   async getParams(params = "tT") {
     let trace = 0;
     let ln = this.ln + `getParams(${params})::`;
     trace ? console.log(ln, `Started.`) : null;
     let response = {};
     let start = new Date();
-    let resString = ln;
+    let resString = ""; // рядок з описом об'єкту трасування
+
+    // розбиваємо рядок запиту в масив
+
     let listRegs = params.split(";");
+
+    // --- цикл запиту всіх апараметрів в списку --------------
     for (let i = 0; i < listRegs.length; i++) {
       let trace = 0;
       let item = listRegs[i].trim();
@@ -99,11 +108,8 @@ class MaxPRO_645 {
       // робимо посилання на state[item] для скорочення наступного коду
       let currReg = this.state[item];
 
-      // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх
-      if (
-        start.getTime() - currReg.timestamp.getTime() <
-        currReg.obsolescense
-      ) {
+      // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх → наступна ітерація
+      if (start.getTime() - currReg.timestamp.getTime < currReg.obsolescense) {
         resString += `${item}=[${currReg.value}]; `;
         response[item] = currReg;
         continue;
@@ -115,14 +121,17 @@ class MaxPRO_645 {
         id: this.id,
         regName: item,
       });
+
       trace ? console.log(ln, item, "=", res[0].value) : null;
+
       // додаємо отримані дані в відповідь
       response[item] = res[0];
+
       // оновлюємо дані в state
       currReg.value = res[0].value;
       currReg.timestamp = res[0].timestamp;
-      currReg.regName = res[0].regName;
-      currReg.note = res[0].note;
+      currReg.source = res[0];
+      trace ? log(ln, `currReg=`, currReg) : null;
       // додаємо інформацію для повідомлення в консолі
       resString += `${item}=${res[0].value}; `;
     } //for
@@ -131,14 +140,17 @@ class MaxPRO_645 {
       (new Date().getTime() - start.getTime()) / 1000
     } sec`;
     if (trace) {
-      log(ln, new Date().toLocaleTimeString(), "response=", resString);
+      log(ln, new Date().toLocaleTimeString(), ">> response=", response);
     }
-    trace ? log("i", resString) : null;
+    //trace ? log("i", resString) : null;
     return response;
   }
 
+  // ----------------------------- setParams() -----------------------
+
   /** Функція записує налаштування в прилад
-   * @param {Object} params - об'єкт з даними: {tT:50; o:10,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
+   * @param {Object} params - об'єкт з даними: {tT:50; o:10,...} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
+   * @returns {Promise} - resolved ({tT:50,o:10,...}) / Error
    */
   async setParams(params = null) {
     let trace = 0;
@@ -146,7 +158,11 @@ class MaxPRO_645 {
     trace ? console.log(ln, "Started") : null;
     let err = ""; // опис помилки
     let resString = ln; // рядок відповіді
-
+    let resObj = {}; // об'єкт відповіді
+    if (trace) {
+      log("i", ln, `params=`);
+      console.dir(params);
+    }
     //якщо параметри не об'єкт повертаємо помилку
     if (typeof params !== "object") {
       let res = ln + "Error: params must be an object.";
@@ -159,11 +175,15 @@ class MaxPRO_645 {
 
     // перебираємо всі параметри в запиті
     for (let prop in params) {
+      let trace = 1;
+      trace = prop == "DO" ? 1 : 0;
+
       if (params.hasOwnProperty(prop)) {
-        trace ? log(ln, `params[${prop}]=`, params[prop]) : null;
         // перевірка наявності регістра виконується в драйвері, тому на цьому етапі не потрібна
         // даємо запит на запис
         let value = params[prop];
+        trace ? log(ln, `params[${prop}]=`, params[prop]) : null;
+
         try {
           value = parseInt(value);
           let res = await this.trySomeTimes(device.setRegPromise, {
@@ -176,16 +196,14 @@ class MaxPRO_645 {
             log("i", ln, `res=`);
             console.dir(res);
           }
+          //
+          response[prop] = value;
           // оновлюємо дані в state
-          let reg = this.state[prop];
+          let reg = this.state[prop]; // посилання на регістр в this.state для скорочення коду
           reg.value = value; // в приладі повертається тільки кількість записаних регістрів, тому значення беремо з запиту
           reg.timestamp = res.timestamp;
           resString += `${prop}=${value}; `;
-          // if (trace) {
-          //   console.log(ln, "res=");
-          //   console.dir(res);
-          // }
-          //this.state[prop] = res;
+          trace ? log("i", ln, `reg=`, reg) : null;
         } catch (error) {
           log("e", ln, error);
           throw error;
@@ -197,7 +215,8 @@ class MaxPRO_645 {
     resString += ` duration ${
       (new Date().getTime() - start.getTime()) / 1000
     } sec`;
-    log("i", resString);
+    trace ? log("i", ln, resString) : null;
+    return response;
     // if (trace) {
     //   console.log(ln, "this.state=");
     //   console.dir(this.state);
@@ -248,12 +267,12 @@ class MaxPRO_645 {
     try {
       let reg = await this.getParams("AO");
       trace ? log("i", ln, `reg=`, reg) : null;
-      // trace ? log("i", ln, `val=`, val) : null;
-      // this.state.AO.source = reg[0];
-      // this.state.AO.timeStamp = new Date();
-      // this.state.AO.value = val;
+      let val = reg.AO.value;
 
-      // return val;
+      trace ? log("i", ln, `val=`, val) : null;
+      this.state.AO.timeStamp = new Date();
+      this.state.AO.value = val;
+      return val;
     } catch (error) {
       log("e", ln, error);
       //throw error;
@@ -276,28 +295,68 @@ class MaxPRO_645 {
     try {
       val = parseInt(val);
       //val = fromPercent(val);
-      trace ? log("i", ln, `val=`, val) : null;
+      log("i", ln, `val=`, val);
       let reg = await this.setParams({ AO: val });
-      return reg;
+      return reg.AO;
     } catch (error) {
       log("e", ln, "Error:", error);
     }
   }
 
   async getDI() {
-    let trace = 1,
-      ln = this.ln + "getDI(" + val + ")::";
+    let trace = 0,
+      ln = this.ln + "getDI(" + ")::";
+    trace ? log(ln, `Started`) : null;
     try {
-      //val = fromPercent(val);
-      trace ? log("i", ln, `val=`, val) : null;
-      let reg = await device.setRegPromise({
-        iface: this.iface,
-        id: this.id,
-        regName: "AO",
-        value: val,
-      });
+      let reg = await this.getParams("DI");
       trace ? log("i", ln, `reg=`, reg) : null;
-    } catch (error) {}
+      return reg.DI.value ? 1 : 0;
+    } catch (error) {
+      log("e", ln, "Error:", error);
+      console.dir(error);
+    }
+  }
+
+  async setDI(val = null) {
+    let trace = 1,
+      ln = this.ln + "setDI()::";
+    let res = ln + "Error! DI is only for reading !!!";
+    return reject(new Error(res));
+  }
+
+  async getDO() {
+    let trace = 0,
+      ln = this.ln + "getDO(" + ")::";
+    trace ? log(ln, `Started`) : null;
+    try {
+      let reg = await this.getParams("DO");
+      trace ? log("i", ln, `reg=`, reg) : null;
+      return reg.DO.value ? 1 : 0;
+    } catch (error) {
+      log("e", ln, "Error:", error);
+      console.dir(error);
+    }
+  }
+
+  async setDO(value = null) {
+    if (value === null) {
+      throw new Error(this.ln + "setDO()::" + "Function mast have value! ");
+    }
+    value ? 1 : 0;
+
+    let trace = 1,
+      ln = this.ln + "setDO(" + Number(value) + ")::";
+    trace ? log(ln, `Started`) : null;
+
+    try {
+      let reg = await this.setParams({ DO: Number(value) });
+      trace ? log("i", ln, `reg=`, reg) : null;
+      this.state.DO.value = value; // запамятовуэмо встановлене значення регістру
+      return value; // в відповіді тільки кількість байт, value - немає, тому підставляємо з запиту
+    } catch (error) {
+      log("e", ln, "Error:", error);
+      console.dir(error);
+    }
   }
 } //class
 

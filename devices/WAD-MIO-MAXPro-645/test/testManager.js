@@ -16,6 +16,8 @@ if (trace) {
 
 (async () => {
   let i = 0;
+  let dOut = 0; // стан числового виходу 1 - замкнуто 0 - розімкнуто
+
   try {
     log("n=", await dev.setAI(2));
   } catch (error) {
@@ -24,8 +26,14 @@ if (trace) {
 
   while (true) {
     //log("n=", await dev.getAI());
-    log("n=", await dev.getAO());
-    log("n=", await dev.setAO(i));
+
+    // log("getAO()::result=", await dev.getAO());
+    // log(`getAO(${i}); result=`, await dev.setAO(i));
+    // log(`getDI(); result=`, await dev.getDI());
+    // log(`getAO(${i}); result=`, await dev.setAO(i));
+    dOut = Number(!dOut);
+    log(`setDO(${Number(dOut)}); result=`, await dev.setDO(dOut));
+    log(`getDO(); result=`, await dev.getDO());
     i += 10;
     if (i > 100) {
       i = 0;
