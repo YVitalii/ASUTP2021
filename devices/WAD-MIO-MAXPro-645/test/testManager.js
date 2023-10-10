@@ -5,7 +5,7 @@ let trace = 1,
 const Manager = require("../manager.js");
 const iface = require("../../../rs485/RS485_v200.js");
 
-const id = 72; // номер приладу
+const id = 73; // номер приладу
 
 let dev = new Manager(iface, id);
 
