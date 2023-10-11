@@ -11,7 +11,7 @@ async function trySomeTimes(item, params, times = 3) {
   // додати перевірку на тип помилки, бо коли помилка в назві регистра не потрібно повторювати тричі
   return new Promise(async (resolve, reject) => {
     let trace = 0,
-      ln = this.ln + `trySomeTimes(${params.regName}=${params.value})::`;
+      ln = this.ln + `trySomeTimes(${item.name})::`;
     let res = null;
     let err = null;
     for (let i = 0; i < times; i++) {
@@ -24,7 +24,7 @@ async function trySomeTimes(item, params, times = 3) {
         break;
         return;
       } catch (error) {
-        log("e", ln, "Невдала спроба:" + error);
+        trace ? log("e", ln, "Невдала спроба:" + error) : null;
         err = error;
         continue;
       }

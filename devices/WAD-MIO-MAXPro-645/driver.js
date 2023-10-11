@@ -35,7 +35,7 @@
 const WAD_MIO = require("../../rs485/RS485_v200.js");
 const log = require("../../tools/log");
 
-const ln = "AKON:: driver.js::";
+const ln = "WAD-NIO-MAXPro-645::driver::";
 const timeout = 1000; //таймаут запроса
 
 const regs = new Map(); //список регистров прибора
@@ -300,7 +300,7 @@ function has(regName) {
 function getReg(iface, id, regName, cb) {
   let trace = 0;
   regName = regName.trim();
-  let modul = "AKON.getReg(id=" + id + ":regName=" + regName + "):";
+  let modul = ln + "getReg(id=" + id + ":regName=" + regName + "):";
   trace ? log(3, modul) : null;
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
@@ -359,6 +359,7 @@ function getRegPromise(props) {
       if (err) {
         reject(err);
         return;
+        функция;
       }
       resolve(data);
       return;
@@ -381,7 +382,7 @@ function setReg(iface, id, regName, value, cb) {
   // и возвращает такой же объект как и getReg
   let trace = 0;
   let modul =
-    "AKON.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
+    ln + "setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
   regName = regName.trim();
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра

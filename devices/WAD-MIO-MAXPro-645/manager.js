@@ -70,6 +70,10 @@ class MaxPRO_645 {
     this.trySomeTimes = trySomeTimes;
   } //constructor
 
+  getId() {
+    return this.id;
+  }
+
   // ----------------------------- getParams() -----------------------
 
   /**
@@ -226,9 +230,10 @@ class MaxPRO_645 {
   /* ---------------------- AI ---------------------------- */
   /** Отримує значення з аналогового входу */
   async getAI() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getAI()::";
     let currTime = new Date().getTime();
+    trace ? log("i", ln, `Started`) : null;
     // якщо актуальність даних ще не втратилась, відразу повертаємо дані
     if (currTime - this.state.AI.timestamp <= this.state.AI.period) {
       return this.state.AI.value;
@@ -237,15 +242,20 @@ class MaxPRO_645 {
     try {
       let reg = await this.getParams("AI");
       trace ? log("i", ln, `reg=`, reg) : null;
-
+      let val = reg.AI.value;
       trace ? log("i", ln, `val=`, val) : null;
-      this.state.AI.source = reg[0];
+      this.state.AI.source = reg.AI;
       this.state.AI.timeStamp = new Date();
       this.state.AI.value = val;
 
       return val;
     } catch (error) {
-      log("e", ln, error);
+      if (trace) {
+        log("e", ln, `error=`);
+        console.dir(error);
+      }
+      //log("e", ln, error);
+      throw error;
     }
   } //async getAI()
 
@@ -291,7 +301,7 @@ class MaxPRO_645 {
       log("e", ln);
       throw new Error(err);
     }
-
+    // flowScale.high;
     try {
       val = parseInt(val);
       //val = fromPercent(val);
@@ -300,6 +310,7 @@ class MaxPRO_645 {
       return reg.AO;
     } catch (error) {
       log("e", ln, "Error:", error);
+      throw error;
     }
   }
 
