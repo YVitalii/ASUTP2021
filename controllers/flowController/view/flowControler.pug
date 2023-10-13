@@ -1,0 +1,25 @@
+style
+  include style.css
+h4 #{id}: #{fullName}
+hr
+div(class="flowController-container")
+- var el_id=`${id}-SP`
+  input(type='range' min='0' max='100' value=`${parseInt(setPoint)}` class="slider" id=`${el_id}-SP`)
+  label(for=`${el_id}` id=`${el_id}-label`) 
+    b SP =
+      span(id=`${id}-SP-N`) #{parseInt(setPoint)}
+
+el_id=`${id}-PV`
+div(class="flowController-container")
+  progress(class="slider" value=`${parseInt(processValue)}` max="100" id=`${el_id}-SL`)
+  label(for=`${el_id}` id=`${el_id}-label`) 
+    b PV =
+      span(id=`${id}-PV-N`) #{parseInt(processValue)}
+
+div(class="flowController-container")
+  table
+    tr
+      td(align="center") 
+
+      td(align="center") 
+

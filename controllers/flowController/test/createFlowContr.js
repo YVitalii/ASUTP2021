@@ -1,6 +1,8 @@
-const Device = require("../../WAD-MIO-MAXPro-645/manager");
+const Device = require("../../../devices/WAD-MIO-MAXPro-645/manager");
 const iface = require("../../../rs485/RS485_v200");
 const FlowController = require("../classFlowController.js");
+const save = require("fs").writeFile;
+let homeDir = require("path").normalize(__dirname + "/index.html");
 const log = require("../../../tools/log");
 let trace = 1,
   ln = "flowController/test/createFlowControler::";
@@ -8,7 +10,7 @@ let trace = 1,
 const dev = new Device(iface, 73);
 let value = 0;
 let props = {};
-props.id = dev.getId();
+props.id = "NH3_sm";
 props.shortName = "NH3_low";
 props.fullName = "Аміак. Малий потік";
 props.flowScale = { min: 0, high: 1.1 }; //m3
@@ -27,6 +29,21 @@ if (trace) {
   log("i", ln, `fc=`);
   console.dir(fc);
 }
+
+save(
+  homeDir,
+  fc.getHtml(),
+  {
+    encoding: "utf8",
+    flag: "w",
+  },
+  (err) => {
+    if (err) console.log(err);
+    else {
+      console.log("File " + homeDir + " written successfully");
+    }
+  }
+);
 
 module.exports = fc;
 

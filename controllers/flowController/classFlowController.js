@@ -11,13 +11,17 @@ this.getFlow() - повертає поточну витрату газу в м3/
  */
 
 const log = require("../../tools/log.js");
+const pug = require("pug");
+// немає сенсу бо в 1 контролері може бути багато адрес @param {Number}  props.addr = адреса в мережі RS485
 
+log("i", "--------------------------");
 class FlowControler {
   /**
    * @param {Object}  props - об'єкт з налаштуваннями
    * @param {Object}  props.regErr = {min:..; max:..}, [%]- помилка регулювання
-   * @param {Number}  props.id = адреса в мережі RS485
-   * @param {String}  props.shortName = коротка назва "АмВ" для логів
+   *
+   * @param {Number}  props.id = ідентифікатор контролера, по цьому імені його можна знайти
+   * @param {String}  props.shortName = коротка назва "АмВ"
    * @param {String}  props.fullName =  назва контролера, наприклад "Аміак. Великий"
    * @param {Object}  props.flowScale = {min,max} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
    * @param {Object}  props.getValue() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
@@ -28,17 +32,22 @@ class FlowControler {
 
   constructor(props = null) {
     /** @private {String} ln - загальний підпис для логування */
-    this.ln = `FlowControler(${props.shortName ? props.shortName : "null"})::`;
+    this.ln = `FlowControler(${props.id ? props.id : "null"})::`;
     let ln = this.ln + "constructor()::";
+
+    // ---------------- this.id --------------------------------
+
+    if (!props.id) {
+      throw new Error(ln + "Must be the id for component!!");
+      return;
+    }
+    this.id = props.id;
 
     // --------- this.regErr ------------------
     this.regErr = {};
     props.regErr = props.regErr ? props.regErr : {};
     this.regErr.min = props.regErr.min ? props.regErr.min : -5;
     this.regErr.max = props.regErr.max ? props.regErr.max : +5;
-
-    // ----------------this.id
-    this.id = props.id ? props.id : "null";
 
     // ----------------this.shortName
     this.shortName = props.shortName ? props.shortName : "null";
@@ -254,6 +263,14 @@ class FlowControler {
 
   getCurrentValue() {
     return this.processValue;
+  }
+
+  getHtml() {
+    let res = pug.renderFile("./view/flowControler.pug", this);
+    log("i", "--------------------------");
+    log("i", res);
+    log("i", "--------------------------");
+    return res;
   }
 }
 
