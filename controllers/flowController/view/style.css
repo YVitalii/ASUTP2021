@@ -21,6 +21,10 @@
     opacity: 1; /* Fully shown on mouse-over */
 }
 
+.slider:disabled {
+    opacity: 0.2;
+}
+
 /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none; /* Override default look */

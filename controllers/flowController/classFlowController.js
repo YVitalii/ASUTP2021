@@ -106,8 +106,12 @@ class FlowControler {
     /** @private {Number} - поточне задане значення  */
     this.setPoint = 0; //
 
-    /** @private {Number} - поточний стан регулятора потоку  */
-    this.state = { note: { en: "Waiting.", ua: "Очікування" }, code: 0 }; //
+    /** @private {Object} - поточний стан регулятора потоку  */
+    this.state = {
+      blocked: false, // заблокувати ручне керування
+      note: { en: "Waiting.", ua: "Очікування", code: 0 },
+      code: 0,
+    }; //
 
     // ---------- Запускаємо поточний контроль потоку --------------------
     setTimeout(async () => {

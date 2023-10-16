@@ -1,25 +1,99 @@
 style
   include style.css
+
+- var ctrl_id=`${id}`
+
+script.
+  //- функція простору імен для нашого контролера
+  const #{ctrl_id} = function() {
+    return 0
+  }
+
+  // ініціалізація змінних 
+  #{ctrl_id}.props ={};
+
+  //- завдання (уставка) SP (set point) в %
+  #{ctrl_id}.props.SP={
+    setValue: function (value) {
+      document.getElementById("#{ctrl_id}_SP_range").value = value;
+      document.getElementById("#{ctrl_id}_SP_value").innerHTML = parseInt(value);
+      }, 
+    value: 0,
+  }
+    //- поточне значення PV (process value) в %
+  #{ctrl_id}.props.PV={
+    setValue: function (value) {
+      document.getElementById("#{ctrl_id}_PV_slider").value = value;
+      document.getElementById("#{ctrl_id}_PV_value").innerHTML = parseInt(value);
+      }, 
+    value: 0,
+  }
+
+  //- поточне значення в м3/год
+  #{ctrl_id}.props.flow={
+    setValue: function (value) {
+      document.getElementById("#{ctrl_id}_flow_value").innerHTML = toFix(value,2);
+      }, 
+    value: 0,
+  }
+
+  //- поточний стан контролера
+  #{ctrl_id}.props.state={
+    setValue: function (state={}) {
+      if (state.blocked) { document.getElementById("#{ctrl_id}_SP_range").enabled = state.blocked; }
+      if (state.note) { document.getElementById("#{ctrl_id}_state_note".innerHTML=state.note)}
+      }, 
+    value: 0,
+  }
+
+
+
 h4 #{id}: #{fullName}
-hr
-div(class="flowController-container")
-- var el_id=`${id}-SP`
-  input(type='range' min='0' max='100' value=`${parseInt(setPoint)}` class="slider" id=`${el_id}-SP`)
-  label(for=`${el_id}` id=`${el_id}-label`) 
-    b SP =
-      span(id=`${id}-SP-N`) #{parseInt(setPoint)}
-
-el_id=`${id}-PV`
-div(class="flowController-container")
-  progress(class="slider" value=`${parseInt(processValue)}` max="100" id=`${el_id}-SL`)
-  label(for=`${el_id}` id=`${el_id}-label`) 
-    b PV =
-      span(id=`${id}-PV-N`) #{parseInt(processValue)}
 
 div(class="flowController-container")
-  table
+  input(type='range' min='0' max='100' value=`0` class="slider" id=`${ctrl_id}_SP_range`)
+  progress(class="slider" value=`0` max="100" id=`${ctrl_id}_PV_slider`)
+
+
+div(class="flowController-container")
+  table(width="100%")
     tr
-      td(align="center") 
+      td(width="30%") 
+        b PV = 
+          span(id=`${id}_PV_value`)  0
+          span() &nbsp;%
+      td(width="30%") 
+        b SP =
+          span(id=`${id}_SP_value`) 0
+          span() &nbsp;%
+      td() 
+        b Flow =
+          span(id=`${id}_Flow_value`) 0.00
+          span() &nbsp;м3/год
+    tr
+      td(colspan=3)
+        i Стан:
+        span(id=`${id}_state_note`) Невизначено
 
-      td(align="center") 
+script.
 
+  // об'єкт запиту на сервер
+  #{ctrl_id}.xhrT = new XMLHttpRequest(); 
+  #{ctrl_id}.xhrT.onLoad = function(){
+    let res=JSON.parse(xhrT.responseText);
+    console.log("res=",res);
+  };
+  #{ctrl_id}.xhrT.onerror = function(){
+    console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+  } //  xhrT.onerror
+
+  #{ctrl_id}.getAll_url = "/#{ctrl_id}/getAll"; //- запит на отримання вcього комплекту даних
+  #{ctrl_id}.setSP_url = "/#{ctrl_id}/setSP"; // запит на зміну SP
+
+  //  обробники подій зміни завдання SP
+  document.getElementById("#{ctrl_id}_SP_range").onchange=function (event) {
+  let value = event.target.value;
+  #{ctrl_id}.props.SP.setValue(value);
+  console.log("#{ctrl_id}_SP_range.value=",value);
+  #{ctrl_id}.props.PV.setValue(value); // для тестування
+  } //document.getElementById("#{ctrl_id}_SP_range").onchange

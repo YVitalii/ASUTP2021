@@ -21,6 +21,10 @@
     opacity: 1; /* Fully shown on mouse-over */
 }
 
+.slider:disabled {
+    opacity: 0.2;
+}
+
 /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none; /* Override default look */
@@ -36,4 +40,66 @@
     height: 25px; /* Slider handle height */
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
-}</style><h4>NH3_sm: Аміак. Малий потік</h4><hr/><div class="flowController-container"></div><input class="slider" type="range" min="0" max="100" value="0" id="NH3_sm-SP-SL"/><label for="NH3_sm-SP-SL" id="NH3_sm-SP-SL-label"> <b>SP =<span id="NH3_sm-SP-N">0</span></b></label><div class="flowController-container"><progress class="slider" value="0" max="100" id="NH3_sm-PV-SL"></progress></div><div class="flowController-container"><table><tr><td align="center"> </td><td align="center"> <b>PV =<span id="NH3_sm-PV-N">0</span></b></td></tr></table></div>
+}</style><script>//- функція простору імен для нашого контролера
+const NH3_sm = function() {
+  return 0
+}
+
+// ініціалізація змінних 
+NH3_sm.props ={};
+
+//- завдання (уставка) SP (set point) в %
+NH3_sm.props.SP={
+  setValue: function (value) {
+    document.getElementById("NH3_sm_SP_range").value = value;
+    document.getElementById("NH3_sm_SP_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+  //- поточне значення PV (process value) в %
+NH3_sm.props.PV={
+  setValue: function (value) {
+    document.getElementById("NH3_sm_PV_slider").value = value;
+    document.getElementById("NH3_sm_PV_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+
+//- поточне значення в м3/год
+NH3_sm.props.flow={
+  setValue: function (value) {
+    document.getElementById("NH3_sm_flow_value").innerHTML = toFix(value,2);
+    }, 
+  value: 0,
+}
+
+//- поточний стан контролера
+NH3_sm.props.state={
+  setValue: function (state={}) {
+    if (state.blocked) { document.getElementById("NH3_sm_SP_range").enabled = state.blocked; }
+    if (state.note) { document.getElementById("NH3_sm_state_note".innerHTML=state.note)}
+    }, 
+  value: 0,
+}
+
+
+</script><h4>NH3_sm: Аміак. Малий потік</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="NH3_sm_SP_range"/><progress class="slider" value="0" max="100" id="NH3_sm_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="NH3_sm_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="NH3_sm_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="NH3_sm_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="NH3_sm_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
+NH3_sm.xhrT = new XMLHttpRequest(); 
+NH3_sm.xhrT.onLoad = function(){
+  let res=JSON.parse(xhrT.responseText);
+  console.log("res=",res);
+};
+NH3_sm.xhrT.onerror = function(){
+  console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+} //  xhrT.onerror
+
+NH3_sm.getAll_url = "/NH3_sm/getAll"; //- запит на отримання вcього комплекту даних
+NH3_sm.setSP_url = "/NH3_sm/setSP"; // запит на зміну SP
+
+//  обробники подій зміни завдання SP
+document.getElementById("NH3_sm_SP_range").onchange=function (event) {
+let value = event.target.value;
+NH3_sm.props.SP.setValue(value);
+console.log("NH3_sm_SP_range.value=",value);
+NH3_sm.props.PV.setValue(value); // для тестування
+} //document.getElementById("NH3_sm_SP_range").onchange</script>
