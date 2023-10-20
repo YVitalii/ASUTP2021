@@ -129,7 +129,6 @@ const regs = new Map(); //список регистров прибора
 */
 regs.set(
   "state", //
-
   {
     addr: 0x0000,
     title: "Стан приладу: ",
