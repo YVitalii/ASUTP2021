@@ -58,14 +58,20 @@ class IfaceRS485 {
     // черга запитів
     this.queue = [];
 
-    // for temporary collecting data
-    this.buffer = new Buffer.from("");
-
     // вимикаємо автоматиче відкриття порту, щоб поставити прослуховувачів порт відкривається далі в циклі
     props.autoOpen = false;
 
     // поточна задача
-    this.task = {};
+    this.task = {
+      timeout: 1000, // мс, термін очікування відповіді
+      resLength: 6, // байт, очікуєма довжина відповіді
+      req: new Buffer.alloc(0), // буфер запиту
+      res: new Buffer.alloc(0), // буфер відповіді
+      timer: null, // ідентифікатор таймера таймауту (для можливості його скасування)
+      start: null, // відмітка часу початку запиту
+      cb: null, // функція зворотнього виклику (err,data)
+      
+    };
 
     // створюємо об'єкт порту
     this.serial = new SerialPort(path, props);
@@ -74,8 +80,14 @@ class IfaceRS485 {
     this.serial.on("data", (data) => {
       let trace = 1,
         ln = this.ln + 'serial.on("data")::';
-      // при отриманні шматка інформації, заносимо в получении порции данных заносим их в буфер
-      this.buffer = Buffer.concat([buffer, data]);
+      // при отриманні шматка інформації, запамятовуємо їх в буфер відповіді
+      this.task.res = Buffer.concat([this.task.res, data]);
+      trace ? log("i", ln, `data=`, data) : null;
+      // перевіряємо чи отримано всі очікувані байти
+      if (this.task.res.length >= this.task.resLength) {
+        // викликаємо завершення транзакції
+        this.taskFinished(this.task);
+      }
     });
 
     // функція callback для serial.open, створена для запуску самої себе до відкриття порту
@@ -107,7 +119,6 @@ class IfaceRS485 {
    * @return {callback} (err,data) = >
    * @typedef {Object} data - отримані дані
    */
-
   send(req, cb) {
     // налаштування трасувальника
     let trace = 1,
@@ -130,7 +141,14 @@ class IfaceRS485 {
       return;
     }
     // заготовка послання
-    let msg = { timeout: req.timeout ? req.timeout : 1000, cb: cb };
+    let msg = {
+      timeout: req.timeout ? req.timeout : 1000,
+      cb: cb,
+      timeout: null,
+      timer: null,
+      res: new Buffer.alloc(0),
+       
+    };
     // розраховуємо довжину відповіді
     msg.resLength = calculateResponseLength(req.FC, req.data);
     // формуємо буфер запиту
@@ -154,7 +172,8 @@ class IfaceRS485 {
     arr.push(crc[0]);
     arr.push(crc[1]);
     // запамятовуэмо запит
-    msg.buf = new Buffer.from(arr);
+    msg.req = new Buffer.from(arr);
+
     trace ? log("i", ln, `Task created: msg=`, msg) : null;
     // ставимо запит в чергу
     this.queue.push(msg);
@@ -169,7 +188,8 @@ class IfaceRS485 {
       ln = this.ln + `iterate()::`;
     trace ? log("i", ln, `Started!`) : null;
     // -- якщо черга пуста - плануємо перевірку через 1 с
-    if (this.queue.length < 1) {
+    if (this.queue.length < 1 | (this.task.isGoing) ) {
+      this.task = null;
       setTimeout(() => {
         this.iterate();
       }, 1000);
@@ -184,20 +204,47 @@ class IfaceRS485 {
       this.transaction(this.task, (err, data) => {
         this.task.cb(err, data); //отсылаем ответ
         // вызываем следующую итерацию после задержки timeoutBetweenCalls
-        this.iterate();
+        this.transactionStart(this.task);
       }); //transaction
     }, this.timeoutBetweenCalls);
   } // iterate()
 
-  transaction(req, cb) {
+  transactionStart(task, cb) {
     let trace = 1,
-      ln = this.ln + `transaction(${parseBuf(req)})::`;
+      ln = this.ln + `transaction(${parseBuf(task.req)})::`;
     trace ? log("i", ln, `Started!`) : null;
     // очищуємо приймальний буфер
-    this.buffer = Buffer.alloc(0);
+    task.res = Buffer.alloc(0);
     // запамятовуємо час
-    this.start = new Date().getTime();
+    task.start = new Date().getTime();
     // відсилаємо повідомлення
+    this.serial.write(task.req);
+    // запускаємо таймер для зупинки запиту при закінченні timeout
+    task.timer = setTimeout(() => {
+      finishTransaction(task);
+    }, task.timeout + 50);
+  }
+
+  /**
+   * Завершення транзакції
+   * @param {*} task
+   */
+  transactionFinish(task) {
+    let trace = 1,
+      ln = this.ln + "transactionFinish()::";
+    trace ? log("i", ln, `Started!`) : null;
+    // якщо таймер запущено, то очікувана відповідь отримана. скидаємо його
+    if (task.timer) {
+      clearTimeout(task.timer);
+    }
+    // перевірка на помилки отриманого повідомлення
+    let err = checkBuffer(task);
+    if (err) {
+      // помилку виявлено
+      task.cb(err, null);
+      return;
+    }
+    // виділяємо з посилки корисне повідомлення
   }
 } // class
 
@@ -223,4 +270,5 @@ function calculateResponseLength(fc, data) {
   return length;
 }
 
+function checkModbusError(task) {}
 module.exports = IfaceRS485;

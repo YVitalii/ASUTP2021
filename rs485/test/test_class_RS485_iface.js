@@ -6,7 +6,7 @@ let req = { id: 2, FC: 3, addr: 0x1, data: 0x1, timeout: 1500 };
 
 setTimeout(() => {
   test();
-}, 300);
+}, 3000);
 
 function test() {
   iface.send(req, (err, data) => {
