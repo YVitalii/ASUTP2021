@@ -32,7 +32,7 @@
                 timestamp:},...],
                 )
 */
-const WAD_MIO = require("../../rs485/RS485_v200.js");
+// const WAD_MIO = require("../../rs485/RS485_v200.js");
 const log = require("../../tools/log");
 
 const ln = "WAD-NIO-MAXPro-645::driver::";

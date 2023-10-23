@@ -18,18 +18,16 @@ log("i", "--------------------------");
 class FlowControler {
   /**
    * @param {Object}  props - об'єкт з налаштуваннями
-   * @param {Object}  props.regErr = {min:..; max:..}, [%]- помилка регулювання
-   *
+   * @param {Object}  props.regErr = {min:-5; max:+5}, [%]- помилка регулювання
    * @param {Number}  props.id = ідентифікатор контролера, по цьому імені його можна знайти
    * @param {String}  props.shortName = коротка назва "АмВ"
    * @param {String}  props.fullName =  назва контролера, наприклад "Аміак. Великий"
-   * @param {Object}  props.flowScale = {min,max} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
+   * @param {Object}  props.flowScale = {min=0,max=1} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
    * @param {Object}  props.getValue() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
    * @param {Object}  props.setValue() = async функція драйвера приладу , яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
-   * @param {Object}  props.periodSets ={working=..,waiting=..} [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
-   * @param {Number}  props.errCounter = допустима кількість помилок, після якої вмикається аварія
+   * @param {Object}  props.periodSets - {working=5,waiting=30 } [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
+   * @param {Number}  props.errCounter=10 - допустима кількість помилок, після якої генерується аварія
    * */
-
   constructor(props = null) {
     /** @private {String} ln - загальний підпис для логування */
     this.ln = `FlowControler(${props.id ? props.id : "null"})::`;
