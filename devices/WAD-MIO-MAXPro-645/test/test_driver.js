@@ -1,4 +1,5 @@
-const iface = require("../../../rs485/RS485_v200.js");
+//const iface = require("../../../rs485/RS485_v200.js");
+const iface = require("../../../conf_iface.js").w2;
 const log = require("../../../tools/log.js"); // логер
 let A13 = 71,
   A22 = 73,
@@ -7,34 +8,35 @@ let A13 = 71,
 const driver = require("../driver.js");
 
 let test = async () => {
+  let ln = "WAD-MIO-MAXPro-645/test/test_driver.js::";
   // driver.getReg(iface, id, "SN", (err, data) => {
-  //     log("---> in getReg \n", data);
+  //   log("---> in getReg \n", data);
   // });
   // driver.getReg(iface, id, "AI", (err, data) => {
-  // log("---> in getReg \n", data);
+  //   log("---> in getReg \n", data);
   // });
   // driver.getReg(iface, id, "DI", (err, data) => {
-  // log("---> in getReg \n", data);
+  //   log("---> in getReg \n", data);
   // });
   // driver.getReg(iface, id, "AO", (err, data) => {
-  //     log("---> in getReg \n", data);
+  //   log("---> in getReg \n", data);
   // });
   // driver.setReg(iface, id, "AO", "100", (err, data) => {
-  //     log("---> in setReg \n", data);
+  //   log("---> in setReg \n", data);
   // });
 
-  // // Вимикаємо аварію
-  // driver.setReg(iface, A24, "DO", true, (err, data) => {
-  //     log("Вимикаємо аварію.");
-  // });
-  // // Перевіряємо стан аварії для пуску подачі аміаку
-  // driver.getReg(iface, A24, "DI", (err, data) => {
-  //     if (!data[0].value) {
-  //         log("e", "Увага! Аварійний стан!");
-  //     } else {
-  //         log("Аварія не зафіксована.");
-  //     }
-  // });
+  // Вимикаємо аварію
+  driver.setReg(iface, A24, "DO", true, (err, data) => {
+    log("w", ln, "Вимикаємо аварію.");
+  });
+  // Перевіряємо стан аварії для пуску подачі аміаку
+  driver.getReg(iface, A24, "DI", (err, data) => {
+    if (!data[0].value) {
+      log("e", ln, "Увага! Аварійний стан!");
+    } else {
+      log("w", ln, "Аварія не зафіксована.");
+    }
+  });
   // // Вмикаємо подачу газу СО2
   // driver.setReg(iface, A25, "DO", true, (err, data) => {
   //     // log("---> in setReg \n", data);
@@ -64,12 +66,17 @@ let test = async () => {
   //         });
   //     }
   // });
-  // driver.getReg(iface, A13, "AI", (err, data) => {
-  // log("Поточне значення 4-20 мА по лінії азоту: ", Math.round(data[0].value*10)/10, "%");
-  // });
-  // driver.setReg(iface, A13, "AO", "100", (err, data) => {
-  //     log("Змінюємо значення 4-20 мА по лінії азоту.",);
-  // });
+  driver.getReg(iface, A13, "AI", (err, data) => {
+    log(
+      "w",
+      "Поточне значення 4-20 мА по лінії азоту: ",
+      Math.round(data[0].value * 10) / 10,
+      "%"
+    );
+  });
+  driver.setReg(iface, A13, "AO", "100", (err, data) => {
+    log("w", "Змінюємо значення 4-20 мА по лінії азоту.");
+  });
   // driver.getReg(iface, A25, "AI", (err, data) => {
   //     log("Поточне значення контролю вхідного тиску 4-20 мА по лінії аміаку: ", Math.round(data[0].value*10)/10, "%");
   // });
@@ -94,8 +101,8 @@ let test = async () => {
   // });
   // Вмикаємо лампу дозвіл аміаку
   driver.setReg(iface, A22, "DO", true, (err, data) => {
-    log("Вмикаємо лампу 'Аміак дозволено' та клапан.");
-    log("i", "data=", data);
+    log("w", "Вмикаємо лампу 'Аміак дозволено' та клапан.");
+    log(ln, "data=", data);
   });
 };
 setInterval(test, 3000);

@@ -7,11 +7,10 @@ const log = require("./log.js");
  * @param {Number} times=3 - кількість спроб
  * @returns {Promise} Promise resolved when Ok
  */
-async function trySomeTimes(item, params, times = 3) {
+async function trySomeTimes(item, params, times = 3, trace = 0) {
   // додати перевірку на тип помилки, бо коли помилка в назві регистра не потрібно повторювати тричі
   return new Promise(async (resolve, reject) => {
-    let trace = 0,
-      ln = this.ln + `trySomeTimes(${item.name})::`;
+    let ln = this.ln + `trySomeTimes(${item.name})::`;
     let res = null;
     let err = null;
     for (let i = 0; i < times; i++) {

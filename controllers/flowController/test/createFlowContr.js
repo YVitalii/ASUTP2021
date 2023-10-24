@@ -1,5 +1,5 @@
 const Device = require("../../../devices/WAD-MIO-MAXPro-645/manager");
-const iface = require("../../../rs485/RS485_v200");
+const iface = require("../../../conf_iface");
 const FlowController = require("../classFlowController.js");
 const save = require("fs").writeFile;
 let homeDir = require("path").normalize(__dirname + "/index.html");
@@ -7,17 +7,17 @@ const log = require("../../../tools/log");
 let trace = 1,
   ln = "flowController/test/createFlowControler::";
 
-const dev = new Device(iface, 73);
+const dev = new Device(iface.w2, 71);
 let value = 0;
 let props = {};
-props.id = "NH3_sm";
-props.shortName = "NH3_low";
-props.fullName = "Аміак. Малий потік";
+props.id = "N2";
+props.shortName = "Ammonia";
+props.fullName = "Азот";
 props.flowScale = { min: 0, high: 1.1 }; //m3
-props.getValue = async () => {
+props.getDevicePV = async () => {
   return await dev.getAI();
 };
-props.setValue = async (val) => {
+props.setDeviceSP = async (val) => {
   return await dev.setAO(val);
 };
 
@@ -50,16 +50,20 @@ module.exports = fc;
 async function next() {
   value = value > 100 ? 0 : value;
   try {
-    await fc.setTarget(value);
+    await fc.setSP(value);
     value += 10;
-    log("i", ln, "current flow = ", fc.getCurrentFlow());
+    log("w", ln, "setSP (", value, ")");
+    log("i", ln, "getSP() = ", await fc.getSP());
+    log("i", ln, "current PV = ", await fc.getPV());
+    log("i", ln, "current flow = ", await fc.getCurrentFlow());
+    console.log("--------------------------------");
   } catch (error) {
     log("e", error);
   }
 
   setTimeout(() => {
-    next, 20000;
-  });
+    next;
+  }, 20000);
 }
 
 if (!module.parent) {

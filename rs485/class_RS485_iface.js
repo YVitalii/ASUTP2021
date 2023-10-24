@@ -60,9 +60,10 @@ class IfaceRS485 {
     // вимикаємо автоматиче відкриття порту, щоб поставити прослуховувача
     // порт відкривається далі в циклі
     props.autoOpen = false;
+
     /**
-     * поточна задача
-     * @typedef task
+     * Поточна задача
+     * @typedef {Object} Task
      * @property {Number} timeout=1000 - мс, термін очікування відповіді
      * @property {Number} resLength=6 - байт, очікуєма довжина відповіді
      * @property {Number} timer=0 - ідентифікатор таймера таймауту (для можливості його скасування)
@@ -70,10 +71,7 @@ class IfaceRS485 {
      * @property {Buffer} req=[] -буфер запиту
      * @property {Buffer} res=[] - буфер відповіді
      * @property {Function} cb - callback клієнта, що сформував запит (err,data)
-     * @property {Function} task_cb - callback внутрішнього ітератора для автоматичного запуску наступної задачі
-     *
      */
-    //
     this.task = {
       timeout: 1000,
       resLength: 6, //
@@ -89,7 +87,7 @@ class IfaceRS485 {
 
     // ---------- ставимо прослуховувача- збирача даних --------------
     this.serial.on("data", (data) => {
-      let trace = 1,
+      let trace = 0,
         ln = this.ln + 'serial.on("data")::';
       // при отриманні шматка інформації, запамятовуємо їх в буфер відповіді
       this.task.res = Buffer.concat([this.task.res, data]);
@@ -97,7 +95,7 @@ class IfaceRS485 {
       // перевіряємо чи отримано всі очікувані байти
       if (this.task.res.length >= this.task.resLength) {
         // викликаємо завершення транзакції
-        this.taskFinished(this.task);
+        this.transactionFinish(this.task);
       }
     });
 
@@ -139,10 +137,12 @@ class IfaceRS485 {
 
   send(req, cb) {
     // налаштування трасувальника
-    let trace = 1,
+    let trace = 0,
       ln =
         this.ln +
-        `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${req.data})::`;
+        `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
+          req.data
+        )})::`;
     trace ? log(ln, `Started!`) : null;
 
     // якщо порт ще не відкрито, повертаємо помилку
@@ -162,7 +162,6 @@ class IfaceRS485 {
     let msg = {
       timeout: req.timeout ? req.timeout : 1000,
       cb: cb,
-      timeout: 0,
       timer: 0,
       res: new Buffer.alloc(0),
     };
@@ -201,7 +200,7 @@ class IfaceRS485 {
    */
   iterate() {
     // -- налаштування трасувальника -----
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `iterate()::`;
     trace ? log("i", ln, `Started!`) : null;
 
@@ -221,9 +220,12 @@ class IfaceRS485 {
       this.transactionStart(this.task); //transaction
     }, this.timeoutBetweenCalls);
   } // iterate()
-
+  /**
+   * Починає тразакцію, запускає таймер очікування timeot
+   * @param {Task} task
+   */
   transactionStart(task) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `transactionStart(${parseBuf(task.req)})::`;
     trace ? log("i", ln, `Started!`) : null;
     // очищуємо приймальний буфер
@@ -236,43 +238,56 @@ class IfaceRS485 {
     task.timer = setTimeout(() => {
       this.transactionFinish(task);
     }, task.timeout + 50);
-    if (trace) {
-      log("i", ln, `this.task=`);
-      console.dir(this.task, { depth: 2 });
-    }
+    // if (trace) {
+    //   log("i", ln, `this.task=`);
+    //   console.dir(this.task, { depth: 2 });
+    // }
   }
 
   /**
    * Завершення транзакції
-   * @param {*} task
+   * @param {Task} task - поточне завдання
    */
   transactionFinish(task) {
     let trace = 1,
-      ln = this.ln + "transactionFinish()::";
-    trace ? log("i", ln, `Started!`) : null;
+      ln = this.ln + `transactionFinish(${parseBuf(task.req)})::`;
+    // trace ? log("i", ln, `Started!`) : null;
+    let duration = 0;
     //
     if (trace) {
-      let duration = (new Date().getTime() - task.start) / 1000;
-      log("i", ln, "duration:", duration);
+      duration = (new Date().getTime() - task.start) / 1000;
+      // log("i", ln, "duration:", duration, " s");
     }
     task.start = 0;
     // якщо таймер запущено, то відповідь отримана: Вимикаємо таймер
     clearTimeout(task.timer);
     // скидаємо таймер активної задачі
-    task.timer = null;
-    //викликаємо наступну ітерацію
-    this.iterate();
+    task.timer = 0;
+
     // перевірка на помилки отриманого повідомлення
     let err = checkBuffer(task);
     if (err) {
       // помилку ModBus виявлено
       task.cb(err, null);
+      trace ? log("e", ln, `err=`, err) : null;
+      //викликаємо наступну ітерацію
+      this.iterate();
       return;
     }
     // виділяємо з посилки корисне повідомлення
     task.data = extractData(task.res);
+    trace
+      ? log(
+          ln,
+          `response=${parseBuf(task.res)}; data=${parseBuf(
+            task.data
+          )}; duration=${duration} s`
+        )
+      : null;
     // відсилаємо дані
     task.cb(null, task.data);
+    //викликаємо наступну ітерацію
+    this.iterate();
   }
 } // class
 
@@ -294,13 +309,14 @@ function extractData(buf) {
   let _data = null;
   switch (FC) {
     case 3:
-      _data = Uint8Array.prototype.slice(3, buf.length - 2);
+      _data = new Buffer.from(buf.slice(3, buf.length - 2));
       break;
     case 6:
-      _data = Uint8Array.prototype.slice(4, buf.length - 2);
+      _data = new Buffer.from(buf.slice(4, buf.length - 2));
       break;
     case 0x10:
-      _data = Uint8Array.prototype.slice(7, buf.length - 2);
+      _data = new Buffer.from(buf.slice(4, buf.length - 2));
+      //log("w", "buf=", buf, "; _data=", _data);
       break;
     default:
       log("e", ln, "Undefined function code=" + FC);

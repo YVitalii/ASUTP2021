@@ -23,15 +23,20 @@ class FlowControler {
    * @param {String}  props.shortName = коротка назва "АмВ"
    * @param {String}  props.fullName =  назва контролера, наприклад "Аміак. Великий"
    * @param {Object}  props.flowScale = {min=0,max=1} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
-   * @param {Object}  props.getValue() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
-   * @param {Object}  props.setValue() = async функція драйвера приладу , яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
+   * @param {Object}  props.getPV() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
+   * @param {Object}  props.setSP() = async функція драйвера приладу , яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
    * @param {Object}  props.periodSets - {working=5,waiting=30 } [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
    * @param {Number}  props.errCounter=10 - допустима кількість помилок, після якої генерується аварія
    * */
   constructor(props = null) {
     /** @private {String} ln - загальний підпис для логування */
     this.ln = `FlowControler(${props.id ? props.id : "null"})::`;
-    let ln = this.ln + "constructor()::";
+    let ln = this.ln + "constructor()::",
+      trace = 1;
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
 
     // ---------------- this.id --------------------------------
 
@@ -65,21 +70,21 @@ class FlowControler {
     this.flowScale.min = props.flowScale.min ? props.flowScale.min : 0;
     this.flowScale.max = props.flowScale.max ? props.flowScale.max : 1;
 
-    // ---------------- this.getValue --------------------------------
-    if (!props.getValue || typeof props.getValue !== "function") {
-      let err = "Received wrong getValue() function";
+    // ---------------- this.getPV --------------------------------
+    if (!props.getDevicePV || typeof props.getDevicePV !== "function") {
+      let err = "Received wrong getPV function";
       log("e", ln, err);
       throw new Error(err);
     }
-    this.getValue = props.getValue;
+    this.getDevicePV = props.getDevicePV;
 
-    // ---------------- this.setValue --------------------------------
-    if (!props.setValue || typeof props.setValue !== "function") {
+    // ---------------- this.setSP --------------------------------
+    if (!props.setDeviceSP || typeof props.setDeviceSP !== "function") {
       let err = "Received wrong setValue() function";
       log("e", ln, err);
       throw new Error(err);
     }
-    this.setValue = props.setValue;
+    this.setDeviceSP = props.setDeviceSP;
 
     // --------- this.periodSets ------------------
     this.periodSets = {};
@@ -113,7 +118,7 @@ class FlowControler {
 
     // ---------- Запускаємо поточний контроль потоку --------------------
     setTimeout(async () => {
-      await this.checkCurrentValue();
+      await this.checkPV();
     }, 3000);
   } //constructor
 
@@ -182,20 +187,17 @@ class FlowControler {
   /**
    * Періодична перевірка поточного значення потоку. Запускається кожні this.askPeriod сек
    */
-  async checkCurrentValue() {
+  async checkPV() {
     let trace = 1,
-      ln =
-        this.ln +
-        "checkCurrentValue(" +
-        new Date().toLocaleTimeString() +
-        ")::";
+      ln = this.ln + "checkPV(" + new Date().toLocaleTimeString() + ")::";
     let logLevel = trace ? "info" : "";
     trace ? log(ln, `Started`) : null;
     try {
       // читаємо поточне значення
-      let newVal = await this.getValue();
+      let newVal = await this.getDevicePV();
       trace ? log(ln, `newVal=`, newVal.toFixed(2)) : null;
-      // застосовуємо фільтр: Running Average (середнє що біжить) https://alexgyver.ru/lessons/filters/
+      // застосовуємо фільтр:
+      // Running Average (середнє що біжить) https://alexgyver.ru/lessons/filters/
       let dV = newVal - this.processValue;
       let k = Math.abs(dV) > 5 ? 0.9 : 0.1;
       trace ? log(ln, `k=`, k) : null;
@@ -203,8 +205,10 @@ class FlowControler {
       trace
         ? log(logLevel, ln, `this.processValue=`, this.processValue.toFixed(2))
         : null;
+      // перевіряємо на відповіжність діапазону
       this.checkRange(this.processValue);
     } catch (error) {
+      // якщо в процессі роботи виникла помилка
       if (trace) {
         if (trace) {
           log("i", ln, `error=`);
@@ -216,16 +220,18 @@ class FlowControler {
 
     // плануємо наступну перевірку
     setTimeout(async () => {
-      await this.checkCurrentValue();
+      await this.checkPV();
     }, this.askPeriod * 1000);
-  } // checkCurrentValue
+  } // checkPV
 
   /**
-   * @param {any} val
+   * Встановлення завдання setPoint
+   * @param {Number} val
    */
-  async setTarget(val) {
+  async setSP(val) {
     let trace = 1,
-      ln = this.ln + `setTarget(${val})::`;
+      ln = this.ln + `setSP(${val})::`;
+    trace ? log("i", ln, `Started`) : null;
     if (val < 0 || val > 100 || parseInt(val) === NaN) {
       let note = { en: "Erro: Value is out of range" };
       throw new Error(note.en);
@@ -233,7 +239,7 @@ class FlowControler {
     }
     this.setPoint = parseInt(val);
     try {
-      await this.setValue(val);
+      await this.setDeviceSP(val);
       log("i", ln, "Completed !!");
       // скидаємо лічильник помилок, щоб не було помилкових спрацювань
       this.errCounter = this.initErrCounter;
@@ -242,12 +248,12 @@ class FlowControler {
     }
   }
 
-  async getTarget() {
+  async getSP() {
     return this.setPoint;
   }
 
   getCurrentFlow() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getCurrentFlow()::";
     trace
       ? log(
@@ -263,15 +269,15 @@ class FlowControler {
     return val;
   }
 
-  getCurrentValue() {
+  getPV() {
     return this.processValue;
   }
 
   getHtml() {
     let res = pug.renderFile("./view/flowControler.pug", this);
-    log("i", "--------------------------");
-    log("i", res);
-    log("i", "--------------------------");
+    // log("i", "--------------------------");
+    // log("i", res);
+    // log("i", "--------------------------");
     return res;
   }
 }

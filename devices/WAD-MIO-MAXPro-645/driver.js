@@ -34,6 +34,7 @@
 */
 // const WAD_MIO = require("../../rs485/RS485_v200.js");
 const log = require("../../tools/log");
+const parseBuf = require("../../tools/parseBuf");
 
 const ln = "WAD-NIO-MAXPro-645::driver::";
 const timeout = 1000; //таймаут запроса
@@ -244,7 +245,9 @@ regs.set("DO", {
   },
   get_: (buf) => {
     let note = "Поточне значення дискретного виходу.";
+
     let data = buf.readUInt16BE(0);
+    //log("w", ln, "driver::get_(", parseBuf(buf), "):: data=", data);
     let err = null;
     if (!data) {
       err =
@@ -340,26 +343,35 @@ function getReg(iface, id, regName, cb) {
  */
 function getRegPromise(props) {
   let trace = 0,
-    ln = "getRegPromise(" + props.id + "-" + props.regName + ")";
+    ln =
+      "WAD-MIO_MAXPro-645/driver.js/getRegPromise(" +
+      props.id +
+      "-" +
+      props.regName +
+      ")::";
   trace ? log(1, ln) : null;
   return new Promise(function (resolve, reject) {
     trace ? log(1, ln + "in Promise") : null;
-    trace ? log(1, ln, props) : null;
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
+    // trace ? log(1, ln,"props=", props) : null;
 
     getReg(props.iface, props.id, props.regName, (err, data) => {
       let trace = 0;
-      if (trace) {
+      if (trace && err) {
         console.log(ln, "err=");
         console.dir(err);
       }
-      if (trace) {
+      if (trace && data) {
         console.log(ln, "data=");
         console.dir(data);
       }
       if (err) {
         reject(err);
         return;
-        функция;
+        //функция;
       }
       resolve(data);
       return;
@@ -422,7 +434,8 @@ function setReg(iface, id, regName, value, cb) {
         let { data, error } = reg.set_(buf);
         trace ? log(2, modul, "after (set_) data=", data, " err=", err) : null;
         if (!error) {
-          res["value"] = data.value;
+          res["value"] = value; // для фунцкції fc=0x10 повертається не ехо запиту, а кількість встановлених байт
+          // , тому якщо немає помилки - повертаємо значення з запиту
           res["note"] = data.note;
           //  return cb(null,data);
           //)//getReg

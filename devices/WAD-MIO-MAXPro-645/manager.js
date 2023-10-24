@@ -43,28 +43,28 @@ class MaxPRO_645 {
       // аналоговий вхід
       value: 0,
       timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
-      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+      period: 5 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
       source: {}, // регістр, отриманий з драйверу, для дод.інформації
     };
     this.state.AO = {
       // аналоговий вихід, в цьому полі також зберігається поточне завдання
       value: 0,
       timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
-      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+      period: 5 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
       source: {}, // регістр, отриманий з драйверу, для дод.інформації
     };
     this.state.DI = {
       // дискретний вхід
       value: 0,
       timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
-      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+      period: 5 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
       source: {}, // регістр, отриманий з драйверу, для дод.інформації
     };
     this.state.DO = {
       // дискретний вихід
       value: 0,
       timestamp: new Date().getTime() - 10 * 60 * 3600 * 1000,
-      period: 10 * 60 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
+      period: 5 * 1000, // на протязі 10 сек після останнього запиту дані рахуються актуальними
       source: {}, // регістр, отриманий з драйверу, для дод.інформації
     };
     this.trySomeTimes = trySomeTimes;
@@ -83,7 +83,7 @@ class MaxPRO_645 {
    * @returns {Promise} - fulfilled: {"AO":{value:50,timestamp,...}, rejected: Error
    */
 
-  async getParams(params = "tT") {
+  async getParams(params = "AO") {
     let trace = 0;
     let ln = this.ln + `getParams(${params})::`;
     trace ? console.log(ln, `Started.`) : null;
@@ -159,14 +159,14 @@ class MaxPRO_645 {
   async setParams(params = null) {
     let trace = 0;
     let ln = this.ln + `setParams():: `;
-    trace ? console.log(ln, "Started") : null;
+    //trace ? console.log(ln, "Started") : null;
     let err = ""; // опис помилки
     let resString = ln; // рядок відповіді
     let resObj = {}; // об'єкт відповіді
-    if (trace) {
-      log("i", ln, `params=`);
-      console.dir(params);
-    }
+    // if (trace) {
+    //   log("i", ln, `params=`);
+    //   console.dir(params);
+    // }
     //якщо параметри не об'єкт повертаємо помилку
     if (typeof params !== "object") {
       let res = ln + "Error: params must be an object.";
@@ -179,8 +179,8 @@ class MaxPRO_645 {
 
     // перебираємо всі параметри в запиті
     for (let prop in params) {
-      let trace = 1;
-      trace = prop == "DO" ? 1 : 0;
+      let trace = 0;
+      //trace = prop == "DO" ? 1 : 0;
 
       if (params.hasOwnProperty(prop)) {
         // перевірка наявності регістра виконується в драйвері, тому на цьому етапі не потрібна
@@ -190,12 +190,17 @@ class MaxPRO_645 {
 
         try {
           value = parseInt(value);
-          let res = await this.trySomeTimes(device.setRegPromise, {
+          let params = {
             iface: this.iface,
             id: this.id,
             regName: prop,
             value: value,
-          });
+          };
+          // if (trace) {
+          //   log("i", ln, `params=`);
+          //   console.dir(params);
+          // }
+          let res = await this.trySomeTimes(device.setRegPromise, params);
           if (trace) {
             log("i", ln, `res=`);
             console.dir(res);
@@ -230,7 +235,7 @@ class MaxPRO_645 {
   /* ---------------------- AI ---------------------------- */
   /** Отримує значення з аналогового входу */
   async getAI() {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "getAI()::";
     let currTime = new Date().getTime();
     trace ? log("i", ln, `Started`) : null;
@@ -306,6 +311,25 @@ class MaxPRO_645 {
       val = parseInt(val);
       //val = fromPercent(val);
       log("i", ln, `val=`, val);
+      if (val < 0) {
+        val = 0;
+        log(
+          "e",
+          "Value must be greater then 0, but received val=",
+          val,
+          ". Value was setted '0'"
+        );
+      }
+      if (val > 100) {
+        val = 100;
+        log(
+          "e",
+          "Value must be less then 100, but received val=",
+          val,
+          ". Value was setted '100'"
+        );
+      }
+
       let reg = await this.setParams({ AO: val });
       return reg.AO;
     } catch (error) {
@@ -353,9 +377,9 @@ class MaxPRO_645 {
     if (value === null) {
       throw new Error(this.ln + "setDO()::" + "Function mast have value! ");
     }
-    value ? 1 : 0;
+    value = value ? 1 : 0;
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "setDO(" + Number(value) + ")::";
     trace ? log(ln, `Started`) : null;
 

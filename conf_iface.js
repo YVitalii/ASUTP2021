@@ -14,18 +14,20 @@ module.exports.w2 = new Iface(comName, {
   timeoutBetweenCalls: 100,
 });
 
-if (platform != "win32") {
-  comName = "/dev/ttyUSB1";
-} else {
-  comName = "COM4";
-}
+// -- чотирьох провідна лінія ------------------
+// if (platform != "win32") {
+//   comName = "/dev/ttyUSB1";
+// } else {
+//   comName = "COM4";
+// }
 
-module.exports.w4 = new Iface(comName, {
-  baudRate: 2400,
-  timeoutBetweenCalls: 100,
-});
+// module.exports.w4 = new Iface(comName, {
+//   baudRate: 2400,
+//   timeoutBetweenCalls: 100,
+// });
 
-// // параметры последовательного порта
+// Застарівша версія налаштування потрібні для RS485_v200.js
+// параметры последовательного порта
 // const connection = {
 //   path: comName, //путь к последовательному порту
 //   openOptions: {
