@@ -249,7 +249,7 @@ class IfaceRS485 {
    * @param {Task} task - поточне завдання
    */
   transactionFinish(task) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `transactionFinish(${parseBuf(task.req)})::`;
     // trace ? log("i", ln, `Started!`) : null;
     let duration = 0;

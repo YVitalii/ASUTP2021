@@ -13,7 +13,7 @@ let props = {};
 props.id = "N2";
 props.shortName = "Ammonia";
 props.fullName = "Азот";
-props.flowScale = { min: 0, high: 1.1 }; //m3
+props.flowScale = { min: 0, max: 3 }; //m3
 props.getDevicePV = async () => {
   return await dev.getAI();
 };
@@ -40,19 +40,19 @@ save(
   (err) => {
     if (err) console.log(err);
     else {
-      console.log("File " + homeDir + " written successfully");
+      console.log(ln + "File " + homeDir + " written successfully");
     }
   }
 );
 
+//save();
+
 module.exports = fc;
 
 async function next() {
-  value = value > 100 ? 0 : value;
   try {
-    await fc.setSP(value);
-    value += 10;
-    log("w", ln, "setSP (", value, ")");
+    //value += 10;
+
     log("i", ln, "getSP() = ", await fc.getSP());
     log("i", ln, "current PV = ", await fc.getPV());
     log("i", ln, "current flow = ", await fc.getCurrentFlow());
@@ -62,9 +62,16 @@ async function next() {
   }
 
   setTimeout(() => {
-    next;
-  }, 20000);
+    next();
+  }, 1000);
 }
+
+setInterval(async () => {
+  value = value >= 100 ? 0 : value + 10;
+
+  await fc.setSP(value);
+  log("w", ln, "setSP (", value, ")");
+}, 60000);
 
 if (!module.parent) {
   setTimeout(() => {

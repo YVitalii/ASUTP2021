@@ -70,7 +70,7 @@ class FlowControler {
     this.flowScale.min = props.flowScale.min ? props.flowScale.min : 0;
     this.flowScale.max = props.flowScale.max ? props.flowScale.max : 1;
 
-    // ---------------- this.getPV --------------------------------
+    // ---------------- this.getDevicePV --------------------------------
     if (!props.getDevicePV || typeof props.getDevicePV !== "function") {
       let err = "Received wrong getPV function";
       log("e", ln, err);
@@ -78,7 +78,7 @@ class FlowControler {
     }
     this.getDevicePV = props.getDevicePV;
 
-    // ---------------- this.setSP --------------------------------
+    // ---------------- this.setDeviceSP --------------------------------
     if (!props.setDeviceSP || typeof props.setDeviceSP !== "function") {
       let err = "Received wrong setValue() function";
       log("e", ln, err);
@@ -115,12 +115,27 @@ class FlowControler {
       note: { en: "Waiting.", ua: "Очікування", code: 0 },
       code: 0,
     }; //
-
+    // ---------- Зупиняємо подачу газу, так як контролер продовжує памятати попередні установки --
+    this.stop();
     // ---------- Запускаємо поточний контроль потоку --------------------
     setTimeout(async () => {
       await this.checkPV();
     }, 3000);
   } //constructor
+
+  async stop(cb) {
+    try {
+      // посилаємо команду вимкнути подачу
+      await this.setSP(0);
+    } catch (error) {
+      // якщо помилка, плануємо повторну команду через 3 сек
+      setTimeout(() => {
+        this.stop();
+      }, 3000);
+      return;
+    }
+    return 1;
+  }
 
   /**
    * перевірка на входження поточного значення в робочий діапазон
@@ -188,7 +203,7 @@ class FlowControler {
    * Періодична перевірка поточного значення потоку. Запускається кожні this.askPeriod сек
    */
   async checkPV() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "checkPV(" + new Date().toLocaleTimeString() + ")::";
     let logLevel = trace ? "info" : "";
     trace ? log(ln, `Started`) : null;
@@ -199,7 +214,7 @@ class FlowControler {
       // застосовуємо фільтр:
       // Running Average (середнє що біжить) https://alexgyver.ru/lessons/filters/
       let dV = newVal - this.processValue;
-      let k = Math.abs(dV) > 5 ? 0.9 : 0.1;
+      let k = Math.abs(dV) > 2 ? 0.9 : 0.1;
       trace ? log(ln, `k=`, k) : null;
       this.processValue += dV * k;
       trace
