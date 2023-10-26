@@ -1,0 +1,313 @@
+<h1>Список контролерів </h1><hr/><div><style>
+.flowController-container {
+    width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 80%; /* Full-width */
+    height: 25px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider:disabled {
+    opacity: 0.2;
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}</style><script>//- функція простору імен для нашого контролера
+const NH3small = function() {
+  return 0
+}
+
+// ініціалізація змінних 
+NH3small.props ={};
+
+//- завдання (уставка) SP (set point) в %
+NH3small.props.SP={
+  setValue: function (value) {
+    document.getElementById("NH3small_SP_range").value = value;
+    document.getElementById("NH3small_SP_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+  //- поточне значення PV (process value) в %
+NH3small.props.PV={
+  setValue: function (value) {
+    document.getElementById("NH3small_PV_slider").value = value;
+    document.getElementById("NH3small_PV_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+
+//- поточне значення в м3/год
+NH3small.props.flow={
+  setValue: function (value) {
+    document.getElementById("NH3small_flow_value").innerHTML = toFix(value,2);
+    }, 
+  value: 0,
+}
+
+//- поточний стан контролера
+NH3small.props.state={
+  setValue: function (state={}) {
+    if (state.blocked) { document.getElementById("NH3small_SP_range").enabled = state.blocked; }
+    if (state.note) { document.getElementById("NH3small_state_note".innerHTML=state.note)}
+    }, 
+  value: 0,
+}
+
+
+</script><h4>NH3small: Аміак. Мала витрата</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="NH3small_SP_range"/><progress class="slider" value="0" max="100" id="NH3small_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="NH3small_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="NH3small_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="NH3small_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="NH3small_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
+NH3small.xhrT = new XMLHttpRequest(); 
+NH3small.xhrT.onLoad = function(){
+  let res=JSON.parse(xhrT.responseText);
+  console.log("res=",res);
+};
+NH3small.xhrT.onerror = function(){
+  console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+} //  xhrT.onerror
+
+NH3small.getAll_url = "/NH3small/getAll"; //- запит на отримання вcього комплекту даних
+NH3small.setSP_url = "/NH3small/setSP"; // запит на зміну SP
+
+//  обробники подій зміни завдання SP
+document.getElementById("NH3small_SP_range").onchange=function (event) {
+let value = event.target.value;
+NH3small.props.SP.setValue(value);
+console.log("NH3small_SP_range.value=",value);
+NH3small.props.PV.setValue(value); // для тестування
+} //document.getElementById("NH3small_SP_range").onchange</script><hr><style>
+.flowController-container {
+    width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 80%; /* Full-width */
+    height: 25px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider:disabled {
+    opacity: 0.2;
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}</style><script>//- функція простору імен для нашого контролера
+const NH3big = function() {
+  return 0
+}
+
+// ініціалізація змінних 
+NH3big.props ={};
+
+//- завдання (уставка) SP (set point) в %
+NH3big.props.SP={
+  setValue: function (value) {
+    document.getElementById("NH3big_SP_range").value = value;
+    document.getElementById("NH3big_SP_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+  //- поточне значення PV (process value) в %
+NH3big.props.PV={
+  setValue: function (value) {
+    document.getElementById("NH3big_PV_slider").value = value;
+    document.getElementById("NH3big_PV_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+
+//- поточне значення в м3/год
+NH3big.props.flow={
+  setValue: function (value) {
+    document.getElementById("NH3big_flow_value").innerHTML = toFix(value,2);
+    }, 
+  value: 0,
+}
+
+//- поточний стан контролера
+NH3big.props.state={
+  setValue: function (state={}) {
+    if (state.blocked) { document.getElementById("NH3big_SP_range").enabled = state.blocked; }
+    if (state.note) { document.getElementById("NH3big_state_note".innerHTML=state.note)}
+    }, 
+  value: 0,
+}
+
+
+</script><h4>NH3big: Аміак. Велика витрата</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="NH3big_SP_range"/><progress class="slider" value="0" max="100" id="NH3big_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="NH3big_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="NH3big_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="NH3big_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="NH3big_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
+NH3big.xhrT = new XMLHttpRequest(); 
+NH3big.xhrT.onLoad = function(){
+  let res=JSON.parse(xhrT.responseText);
+  console.log("res=",res);
+};
+NH3big.xhrT.onerror = function(){
+  console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+} //  xhrT.onerror
+
+NH3big.getAll_url = "/NH3big/getAll"; //- запит на отримання вcього комплекту даних
+NH3big.setSP_url = "/NH3big/setSP"; // запит на зміну SP
+
+//  обробники подій зміни завдання SP
+document.getElementById("NH3big_SP_range").onchange=function (event) {
+let value = event.target.value;
+NH3big.props.SP.setValue(value);
+console.log("NH3big_SP_range.value=",value);
+NH3big.props.PV.setValue(value); // для тестування
+} //document.getElementById("NH3big_SP_range").onchange</script><hr><style>
+.flowController-container {
+    width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 80%; /* Full-width */
+    height: 25px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider:disabled {
+    opacity: 0.2;
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}</style><script>//- функція простору імен для нашого контролера
+const N2 = function() {
+  return 0
+}
+
+// ініціалізація змінних 
+N2.props ={};
+
+//- завдання (уставка) SP (set point) в %
+N2.props.SP={
+  setValue: function (value) {
+    document.getElementById("N2_SP_range").value = value;
+    document.getElementById("N2_SP_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+  //- поточне значення PV (process value) в %
+N2.props.PV={
+  setValue: function (value) {
+    document.getElementById("N2_PV_slider").value = value;
+    document.getElementById("N2_PV_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
+
+//- поточне значення в м3/год
+N2.props.flow={
+  setValue: function (value) {
+    document.getElementById("N2_flow_value").innerHTML = toFix(value,2);
+    }, 
+  value: 0,
+}
+
+//- поточний стан контролера
+N2.props.state={
+  setValue: function (state={}) {
+    if (state.blocked) { document.getElementById("N2_SP_range").enabled = state.blocked; }
+    if (state.note) { document.getElementById("N2_state_note".innerHTML=state.note)}
+    }, 
+  value: 0,
+}
+
+
+</script><h4>N2: Азот</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="N2_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="N2_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
+N2.xhrT = new XMLHttpRequest(); 
+N2.xhrT.onLoad = function(){
+  let res=JSON.parse(xhrT.responseText);
+  console.log("res=",res);
+};
+N2.xhrT.onerror = function(){
+  console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+} //  xhrT.onerror
+
+N2.getAll_url = "/N2/getAll"; //- запит на отримання вcього комплекту даних
+N2.setSP_url = "/N2/setSP"; // запит на зміну SP
+
+//  обробники подій зміни завдання SP
+document.getElementById("N2_SP_range").onchange=function (event) {
+let value = event.target.value;
+N2.props.SP.setValue(value);
+console.log("N2_SP_range.value=",value);
+N2.props.PV.setValue(value); // для тестування
+} //document.getElementById("N2_SP_range").onchange</script><hr></div>

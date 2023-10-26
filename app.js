@@ -20,7 +20,8 @@ var loginRouter = require("./routes/login");
 var reportRouter = require("./routes/report");
 var usersRouter = require("./routes/users");
 var setTimeRouter = require("./routes/setTime.js");
-var entitiesRouter = require("./routes/entities.js"); //  список печей
+//var entitiesRouter = require("./routes/entities.js"); //  список печей
+const entitiesRouter = require("./entieties/general/routes"); // сторінка зі списком печей
 const deleteFileRouter = require("./routes/deleteFile.js"); // удаление файла
 const saveProgramRouter = require("./routes/saveProgram.js"); // Запись программы
 const saveProgramChangesRouter = require("./routes/program/saveProgramChanges.js"); // Зберігання змін до файлу з програмою
@@ -97,6 +98,7 @@ app.use("/login", loginRouter);
 app.use(passport.testLogin); // проверяем авторизованный пользователь или нет, если нет перенаправляем на страничку /login
 app.use("/", indexRouter);
 app.use("/setTime", setTimeRouter); //страница установки времени
+app.use("/entyties");
 app.use("/graph", graphRouter); // страница с графиком
 app.use("/akon", akonRouter); // страница с настройками AKON
 app.use("/parameterSetting", parameterSettingRouter); // страница с установкой параметров терморегулятора

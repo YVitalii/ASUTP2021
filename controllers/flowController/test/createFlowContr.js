@@ -6,13 +6,14 @@ let homeDir = require("path").normalize(__dirname + "/index.html");
 const log = require("../../../tools/log");
 let trace = 1,
   ln = "flowController/test/createFlowControler::";
-
+trace ? log("i", ln, `Sterted`) : null;
 const dev = new Device(iface.w2, 71);
+
 let value = 0;
 let props = {};
 props.id = "N2";
-props.shortName = "Ammonia";
-props.fullName = "Азот";
+props.shortName = { ua: "N2", en: "N2", ru: "N2" };
+props.fullName = { ua: "Нітроген", en: "Ammonia", ru: "Азот" };
 props.flowScale = { min: 0, max: 3 }; //m3
 props.getDevicePV = async () => {
   return await dev.getAI();
@@ -23,6 +24,8 @@ props.setDeviceSP = async (val) => {
 
 props.periodSets = { working: 1, waiting: 2, stabilization: 10 };
 
+trace ? log("i", ln, `props=`, props) : null;
+
 const fc = new FlowController(props);
 
 if (trace) {
@@ -30,9 +33,10 @@ if (trace) {
   console.dir(fc);
 }
 
+//htmlFull(),
 save(
   homeDir,
-  fc.getHtml(),
+  fc.htmlFull(),
   {
     encoding: "utf8",
     flag: "w",
@@ -43,9 +47,7 @@ save(
       console.log(ln + "File " + homeDir + " written successfully");
     }
   }
-);
-
-//save();
+); //save();
 
 module.exports = fc;
 

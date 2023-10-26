@@ -20,23 +20,22 @@ class FlowControler {
    * @param {Object}  props - об'єкт з налаштуваннями
    * @param {Object}  props.regErr = {min:-5; max:+5}, [%]- помилка регулювання
    * @param {Number}  props.id = ідентифікатор контролера, по цьому імені його можна знайти
-   * @param {String}  props.shortName = коротка назва "АмВ"
-   * @param {String}  props.fullName =  назва контролера, наприклад "Аміак. Великий"
+   * @param {String}  props.shortName = {ua,en,ru} коротка назва "АмВ"
+   * @param {String}  props.fullName =  {ua,en,ru} назва контролера, наприклад "Аміак. Великий"
    * @param {Object}  props.flowScale = {min=0,max=1} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
-   * @param {Object}  props.getPV() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
-   * @param {Object}  props.setSP() = async функція драйвера приладу , яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
+   * @param {Object}  props.getDevicePV() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
+   * @param {Object}  props.setDeviceSP() = async функція драйвера приладу , яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
    * @param {Object}  props.periodSets - {working=5,waiting=30 } [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
    * @param {Number}  props.errCounter=10 - допустима кількість помилок, після якої генерується аварія
    * */
   constructor(props = null) {
+    log("i", `=====> props=`);
+    console.dir(props);
+
     /** @private {String} ln - загальний підпис для логування */
     this.ln = `FlowControler(${props.id ? props.id : "null"})::`;
     let ln = this.ln + "constructor()::",
       trace = 1;
-    if (trace) {
-      log("i", ln, `props=`);
-      console.dir(props);
-    }
 
     // ---------------- this.id --------------------------------
 
@@ -45,6 +44,7 @@ class FlowControler {
       return;
     }
     this.id = props.id;
+    this.dirname = __dirname;
 
     // --------- this.regErr ------------------
     this.regErr = {};
@@ -53,10 +53,14 @@ class FlowControler {
     this.regErr.max = props.regErr.max ? props.regErr.max : +5;
 
     // ----------------this.shortName
-    this.shortName = props.shortName ? props.shortName : "null";
+    this.shortName = props.shortName
+      ? props.shortName
+      : { ua: "null", en: "null", ru: "null" };
 
     // ----------------this.fullName
-    this.fullName = props.fullName ? props.fullName : "null";
+    this.fullName = props.fullName
+      ? props.fullName
+      : { ua: "null", en: "null", ru: "null" };
 
     // ----------------this.errCounter - лічильник помилок
     // значення для ініціалізації лічильника
@@ -72,7 +76,7 @@ class FlowControler {
 
     // ---------------- this.getDevicePV --------------------------------
     if (!props.getDevicePV || typeof props.getDevicePV !== "function") {
-      let err = "Received wrong getPV function";
+      let err = "Received wrong getDevicePV function";
       log("e", ln, err);
       throw new Error(err);
     }
@@ -80,7 +84,7 @@ class FlowControler {
 
     // ---------------- this.setDeviceSP --------------------------------
     if (!props.setDeviceSP || typeof props.setDeviceSP !== "function") {
-      let err = "Received wrong setValue() function";
+      let err = "Received wrong setDeviceSP() function";
       log("e", ln, err);
       throw new Error(err);
     }
@@ -112,7 +116,7 @@ class FlowControler {
     /** @private {Object} - поточний стан регулятора потоку  */
     this.state = {
       blocked: false, // заблокувати ручне керування
-      note: { en: "Waiting.", ua: "Очікування", code: 0 },
+      note: { en: "Waiting.", ua: "Очікування", ru: "Ожидание", code: 0 },
       code: 0,
     }; //
     // ---------- Зупиняємо подачу газу, так як контролер продовжує памятати попередні установки --
@@ -244,7 +248,7 @@ class FlowControler {
    * @param {Number} val
    */
   async setSP(val) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setSP(${val})::`;
     trace ? log("i", ln, `Started`) : null;
     if (val < 0 || val > 100 || parseInt(val) === NaN) {
@@ -288,8 +292,16 @@ class FlowControler {
     return this.processValue;
   }
 
-  getHtml() {
-    let res = pug.renderFile("./view/flowControler.pug", this);
+  htmlFull() {
+    let res = pug.renderFile(__dirname + "/view/full.pug", this);
+    // log("i", "--------------------------");
+    // log("i", res);
+    // log("i", "--------------------------");
+    return res;
+  }
+
+  htmlCompact() {
+    let res = pug.renderFile(__dirname + "/view/compact.pug", this);
     // log("i", "--------------------------");
     // log("i", res);
     // log("i", "--------------------------");
@@ -298,3 +310,7 @@ class FlowControler {
 }
 
 module.exports = FlowControler;
+
+if (!module._parent) {
+  //let c = new FlowControler();
+}
