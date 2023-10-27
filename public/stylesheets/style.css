@@ -12,27 +12,25 @@
     right: 70px;
   }
 } */
-#logo {
+/* #logo {
   width: 110px;
   height: 67px;
   position: fixed;
   top: 10px;
   left: 10px;
-}
-body {
+} */
+/* body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
+} */
 
 a {
   color: #00B7FF;
 }
 #timedisplay {
   position: fixed;
-  top: 22px;
-  left: 150px;
   font-size: x-large;
-}
+} 
 .user-tools {
   position: fixed;
   display: flex;

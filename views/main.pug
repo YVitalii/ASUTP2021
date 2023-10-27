@@ -1,0 +1,35 @@
+doctype html
+html(class="h-100")
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/bootstrap/bootstrap.min.css')
+    script(src="/bootstrap/bootstrap.bundle.min.js") 
+    script
+      include ../public/chart/d3/d3.min.js
+    script
+      include ../public/timedisplay.js
+    //- script
+    //-   include ../tools/createGraph.js
+    //- script
+    //-   include ../tools/createReport.js
+  body
+    div(class="container w-100")
+      div(class="row justify-content-md-center")
+        div(class="col-2 col-sm-1")
+          img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
+        div(class="col")
+          #{pageTitle} Заглавие страницы 
+        div(class="col-3 col-sm-2")
+          div(id="timedisplay")
+
+    div.user-tools
+      - if (userData) {
+        h4 #{userData.displayName}
+        a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Вийти
+      - }
+
+    div(id="pageBody") !{body}
+
+    script(src="/bootstrap/popper.min.js")
+    script(src="/bootstrap/bootstrap.min.js")

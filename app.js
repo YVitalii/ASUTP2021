@@ -3,7 +3,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-const logWriter = require("./logger/logWriter.js");
+//const logWriter = require("./logger/logWriter.js");
 const nocache = require("nocache");
 
 const ipAddr = require("./config.js").ipAddr;
@@ -12,34 +12,35 @@ var passport = require("./tools/passport-loc.js");
 
 // var flash = require('express-flash');
 
-var indexRouter = require("./routes/index");
-var graphRouter = require("./routes/graph");
-var akonRouter = require("./routes/akon");
-var parameterSettingRouter = require("./routes/parameterSetting");
+var indexRouter = require("./entities/general/routes/entitiesRouter.js"); // require("./routes/index");
+// var graphRouter = require("./routes/graph");
+// var akonRouter = require("./routes/akon");
+// var parameterSettingRouter = require("./routes/parameterSetting");
 var loginRouter = require("./routes/login");
-var reportRouter = require("./routes/report");
-var usersRouter = require("./routes/users");
-var setTimeRouter = require("./routes/setTime.js");
-//var entitiesRouter = require("./routes/entities.js"); //  список печей
-const entitiesRouter = require("./entieties/general/routes"); // сторінка зі списком печей
-const deleteFileRouter = require("./routes/deleteFile.js"); // удаление файла
-const saveProgramRouter = require("./routes/saveProgram.js"); // Запись программы
-const saveProgramChangesRouter = require("./routes/program/saveProgramChanges.js"); // Зберігання змін до файлу з програмою
-const saveProgramNewRouter = require("./routes/program/saveProgramNew.js"); // Зберігання програми до нового файлу
-const deleteProgramRouter = require("./routes/program/deleteProgram.js"); // Видалення файлу з програмою
-const getProgramRouter = require("./routes/program/getProgram.js"); // Читання програми
-const newAkonOutputSignalRouter = require("./routes/newAkonOutputSignal.js"); // Запись новых данных в прибор Акон
-const getRouter = require("./routes/getReg.js"); // получение оперативных данных
-const logsRouter = require("./routes/getLog.js"); // получение оперативных данных
+// var reportRouter = require("./routes/report");
+// var usersRouter = require("./routes/users");
+// var setTimeRouter = require("./routes/setTime.js");
+// var entitiesRouter = require("./routes/entities.js"); //  список печей
+//const entitiesRouter = require("./entities/general/routes"); // сторінка зі списком печей
+// const deleteFileRouter = require("./routes/deleteFile.js"); // удаление файла
+// const saveProgramRouter = require("./routes/saveProgram.js"); // Запись программы
+// const saveProgramChangesRouter = require("./routes/program/saveProgramChanges.js"); // Зберігання змін до файлу з програмою
+// const saveProgramNewRouter = require("./routes/program/saveProgramNew.js"); // Зберігання програми до нового файлу
+// const deleteProgramRouter = require("./routes/program/deleteProgram.js"); // Видалення файлу з програмою
+// const getProgramRouter = require("./routes/program/getProgram.js"); // Читання програми
+// const newAkonOutputSignalRouter = require("./routes/newAkonOutputSignal.js"); // Запись новых данных в прибор Акон
+// const getRouter = require("./routes/getReg.js"); // получение оперативных данных
+// const logsRouter = require("./routes/getLog.js"); // получение оперативных данных
 const { session } = require("./tools/passport-loc.js");
-const processRouter = require("./processes/thermprocess/routes"); // шлях для роботи з програмою
+// const processRouter = require("./processes/thermprocess/routes"); // шлях для роботи з програмою
 const developing = true;
+
 var app = express();
 
 const log = require("./tools/log.js");
 log(
   "w",
-  "=========================== Program started ==============================="
+  `=========================== Program started at ${new Date().toLocaleString()}  ===============================`
 );
 
 // view engine setup
@@ -55,7 +56,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(logger("dev"));
+//app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -97,23 +98,23 @@ app.use(passport.session(), (req, res, next) => {
 app.use("/login", loginRouter);
 app.use(passport.testLogin); // проверяем авторизованный пользователь или нет, если нет перенаправляем на страничку /login
 app.use("/", indexRouter);
-app.use("/setTime", setTimeRouter); //страница установки времени
-app.use("/entyties");
-app.use("/graph", graphRouter); // страница с графиком
-app.use("/akon", akonRouter); // страница с настройками AKON
-app.use("/parameterSetting", parameterSettingRouter); // страница с установкой параметров терморегулятора
-app.use("/report", reportRouter); // страница с отчётом
-app.use("/entyties", entitiesRouter); // возвращает список всех печей с их характеристиками
-app.use("/deleteFile", deleteFileRouter); // удаляет файл
-app.use("/saveProgram", saveProgramRouter); // Сохраняет новую программу
-app.use("/saveProgramChanges", saveProgramChangesRouter); // Зберігає зміни в файлі з програмою
-app.use("/saveProgramNew", saveProgramNewRouter); // Зберігає програму в новому файлі
-app.use("/deleteProgram", deleteProgramRouter); // Видаляє файл з програмою
-app.use("/getProgram", getProgramRouter); // Зчитує з файлу існуючу програму
-app.use("/newAkonOutputSignal", newAkonOutputSignalRouter); // Сохраняет новые данные в прибор Акон
-app.use("/getReg", getRouter); // возвращает текущие значения регистров
-app.use("/getLog", logsRouter); // работа с логами печей
-app.use("/process", processRouter); // робота з програмою
+//app.use("/setTime", setTimeRouter); //страница установки времени
+//app.use("/entyties");
+//app.use("/graph", graphRouter); // страница с графиком
+//app.use("/akon", akonRouter); // страница с настройками AKON
+//app.use("/parameterSetting", parameterSettingRouter); // страница с установкой параметров терморегулятора
+// app.use("/report", reportRouter); // страница с отчётом
+//app.use("/", entitiesRouter); // возвращает список всех печей с их характеристиками
+// app.use("/deleteFile", deleteFileRouter); // удаляет файл
+// app.use("/saveProgram", saveProgramRouter); // Сохраняет новую программу
+// app.use("/saveProgramChanges", saveProgramChangesRouter); // Зберігає зміни в файлі з програмою
+// app.use("/saveProgramNew", saveProgramNewRouter); // Зберігає програму в новому файлі
+// app.use("/deleteProgram", deleteProgramRouter); // Видаляє файл з програмою
+// app.use("/getProgram", getProgramRouter); // Зчитує з файлу існуючу програму
+// app.use("/newAkonOutputSignal", newAkonOutputSignalRouter); // Сохраняет новые данные в прибор Акон
+// app.use("/getReg", getRouter); // возвращает текущие значения регистров
+// app.use("/getLog", logsRouter); // работа с логами печей
+// app.use("/process", processRouter); // робота з програмою
 //app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
