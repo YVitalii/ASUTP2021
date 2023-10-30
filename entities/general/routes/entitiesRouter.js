@@ -45,6 +45,7 @@ router.get("/:id", function (req, res, next) {
   res.render("main.pug", {
     body: ent.htmlFull(),
     backButton: { path: "/", title: { ua: `Назад`, en: `Back`, ru: `Назад` } },
+    pageTitle: ent.fullName,
   });
   return; //
 });

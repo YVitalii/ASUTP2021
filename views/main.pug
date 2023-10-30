@@ -13,14 +13,16 @@ html(class="h-100")
     //-   include ../tools/createGraph.js
     //- script
     //-   include ../tools/createReport.js
-  body
-    div(class="container w-100")
-      div(class="row justify-content-md-center")
-        div(class="col-2 col-sm-1")
+  -var _pageTitle = pageTitle ? pageTitle : 'pageTitle: not defined'
+  body( class="h-100")
+    div(class="container w-100" id="header")
+      div(class="row justify-content-md-center w-100")
+        div(class="col-2 ")
           img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
-        div(class="col")
-          #{pageTitle} Заглавие страницы 
-        div(class="col-3 col-sm-2")
+        div(class="col align-middle text-center")
+          div(class="h-100 align-middle")
+            h2(class="") #{_pageTitle}
+        div(class="col-2")
           div(id="timedisplay")
 
     div.user-tools
