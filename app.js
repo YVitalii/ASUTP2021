@@ -5,14 +5,15 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 //const logWriter = require("./logger/logWriter.js");
 const nocache = require("nocache");
-
+const logName = "app.js::";
 const ipAddr = require("./config.js").ipAddr;
-
+const entities = require("./entities/general/entities.js");
 var passport = require("./tools/passport-loc.js");
 
 //var flash = require("express-flash");
 
 var indexRouter = require("./entities/general/routes/entitiesRouter.js"); // require("./routes/index");
+const SShAM_7_12_Router = require("./entities/SShAM-7-12_2023/routes/entityRouter.js");
 // var graphRouter = require("./routes/graph");
 // var akonRouter = require("./routes/akon");
 // var parameterSettingRouter = require("./routes/parameterSetting");
@@ -56,7 +57,7 @@ app.use((req, res, next) => {
   next();
 });
 
-//app.use(logger("dev"));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -98,6 +99,76 @@ app.use(passport.session(), (req, res, next) => {
 app.use("/login", loginRouter);
 app.use(passport.testLogin); // проверяем авторизованный пользователь или нет, если нет перенаправляем на страничку /login
 app.use("/", indexRouter);
+// app.use(/:id)
+
+// app.use("/SShAM-7-12_2023", SShAM_7_12_Router);
+app.use("/entity/:id", (req, res, next) => {
+  let trace = 1,
+    ln = logName + "app.use(/:id)::";
+  trace ? log("i", ln, `Started`) : null;
+  if (trace) {
+    log("i", ln, `req.params=`);
+    console.dir(req.params);
+  }
+  // шукаємо сутність в списку
+  let entName = req.params.id.trim();
+  let ent = entities[entName];
+  // якщо така сутність не знайдена - повертаємо помилку
+  if (!ent) {
+    res.status(404).send(`Entity [${entName}] not found!`);
+    return;
+  }
+  // запамятовуємо id сутності в об'єкті запиту
+  req.entity = ent;
+  trace ? log("i", ln, `req.entity.id=`, req.entity.id) : null;
+  // передаємо керування далі
+  next();
+});
+
+app.post("/entity/:id/controllers/:contrId/getAll", (req, res) => {
+  let trace = 1,
+    ln = logName + `app.post(${req.route.path})::`;
+  if (trace) {
+    log("i", ln, `req.params=`);
+    console.dir(req.params);
+  }
+  let data = req.entity.controllers[req.params.contrId];
+  if (!data) {
+    res
+      .status(404)
+      .json({ err: `Not found controller:${req.params.contrId}`, data: null });
+    return;
+  }
+  data = data.getAllRegs();
+  trace ? log("i", ln, `data=`, data) : null;
+  //req.entity.getAllRegs();
+  res.status(200).send(JSON.stringify(data));
+  res.end();
+  //res.status(200).json(data);
+});
+
+app.use("/entity/:id/controllers", (req, res) => {
+  let trace = 1,
+    ln = logName + 'app.use("/entity/:id/controllers")::';
+  if (trace) {
+    log("i", ln, `req.entity.controllers.about=`);
+    console.dir(req.entity.controllers.about);
+  }
+  res.render("main.pug", {
+    body: req.entity.controllers.about.htmlFull(),
+    pageTitle:
+      req.entity.fullName +
+      `<br> <small> ${req.entity.controllers.about.fullName.ua} </small>`,
+  });
+});
+
+app.use("/entity/:id/", (req, res) => {
+  res.render("main.pug", {
+    body: req.entity.htmlFull(),
+    pageTitle: req.entity.fullName,
+  });
+});
+
 //app.use("/setTime", setTimeRouter); //страница установки времени
 //app.use("/entyties");
 //app.use("/graph", graphRouter); // страница с графиком

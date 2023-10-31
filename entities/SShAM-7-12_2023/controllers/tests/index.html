@@ -1,4 +1,4 @@
-<h1>Список контролерів </h1><hr/><div><style>
+<hr/><div><style>
 .flowController-container {
     width: 100%; /* Width of the outside container */
 }
@@ -86,16 +86,26 @@ NH3small.props.state={
 </script><h4>NH3small: Аміак. Мала витрата</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="NH3small_SP_range"/><progress class="slider" value="0" max="100" id="NH3small_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="NH3small_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="NH3small_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="NH3small_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="NH3small_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
 NH3small.xhrT = new XMLHttpRequest(); 
 NH3small.xhrT.onLoad = function(){
+  console.log("Data received: res=",res);
   let res=JSON.parse(xhrT.responseText);
   console.log("res=",res);
+  setTimeout( () => {NH3small.getRegs();},3000);
 };
 NH3small.xhrT.onerror = function(){
   console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+  setTimeout( () => {NH3small.getRegs();},5000);
 } //  xhrT.onerror
 
-NH3small.getAll_url = "/NH3small/getAll"; //- запит на отримання вcього комплекту даних
-NH3small.setSP_url = "/NH3small/setSP"; // запит на зміну SP
+NH3small.getRegs= () => {
+  let url = document.baseURI + `/NH3small/getAll`;
+  NH3small.xhrT.open("POST",url);
+  NH3small.xhrT.send();
+  console.log("Request [ "+url+" ]was sended");
+}
 
+//NH3small.getAll_url =  //- запит на отримання вcього комплекту даних
+//NH3small.setSP_url = "/NH3small/setSP"; // запит на зміну SP
+setTimeout( () => {NH3small.getRegs();},3000);
 //  обробники подій зміни завдання SP
 document.getElementById("NH3small_SP_range").onchange=function (event) {
 let value = event.target.value;
@@ -190,16 +200,26 @@ NH3big.props.state={
 </script><h4>NH3big: Аміак. Велика витрата</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="NH3big_SP_range"/><progress class="slider" value="0" max="100" id="NH3big_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="NH3big_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="NH3big_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="NH3big_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="NH3big_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
 NH3big.xhrT = new XMLHttpRequest(); 
 NH3big.xhrT.onLoad = function(){
+  console.log("Data received: res=",res);
   let res=JSON.parse(xhrT.responseText);
   console.log("res=",res);
+  setTimeout( () => {NH3big.getRegs();},3000);
 };
 NH3big.xhrT.onerror = function(){
   console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+  setTimeout( () => {NH3big.getRegs();},5000);
 } //  xhrT.onerror
 
-NH3big.getAll_url = "/NH3big/getAll"; //- запит на отримання вcього комплекту даних
-NH3big.setSP_url = "/NH3big/setSP"; // запит на зміну SP
+NH3big.getRegs= () => {
+  let url = document.baseURI + `/NH3big/getAll`;
+  NH3big.xhrT.open("POST",url);
+  NH3big.xhrT.send();
+  console.log("Request [ "+url+" ]was sended");
+}
 
+//NH3big.getAll_url =  //- запит на отримання вcього комплекту даних
+//NH3big.setSP_url = "/NH3big/setSP"; // запит на зміну SP
+setTimeout( () => {NH3big.getRegs();},3000);
 //  обробники подій зміни завдання SP
 document.getElementById("NH3big_SP_range").onchange=function (event) {
 let value = event.target.value;
@@ -294,16 +314,26 @@ N2.props.state={
 </script><h4>N2: Азот</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="N2_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="N2_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
 N2.xhrT = new XMLHttpRequest(); 
 N2.xhrT.onLoad = function(){
+  console.log("Data received: res=",res);
   let res=JSON.parse(xhrT.responseText);
   console.log("res=",res);
+  setTimeout( () => {N2.getRegs();},3000);
 };
 N2.xhrT.onerror = function(){
   console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+  setTimeout( () => {N2.getRegs();},5000);
 } //  xhrT.onerror
 
-N2.getAll_url = "/N2/getAll"; //- запит на отримання вcього комплекту даних
-N2.setSP_url = "/N2/setSP"; // запит на зміну SP
+N2.getRegs= () => {
+  let url = document.baseURI + `/N2/getAll`;
+  N2.xhrT.open("POST",url);
+  N2.xhrT.send();
+  console.log("Request [ "+url+" ]was sended");
+}
 
+//N2.getAll_url =  //- запит на отримання вcього комплекту даних
+//N2.setSP_url = "/N2/setSP"; // запит на зміну SP
+setTimeout( () => {N2.getRegs();},3000);
 //  обробники подій зміни завдання SP
 document.getElementById("N2_SP_range").onchange=function (event) {
 let value = event.target.value;

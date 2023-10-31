@@ -36,7 +36,10 @@ entities.about.htmlFull = () => {
       html += `<! ----- ${entity}----- > \n ${element} \n<hr>\n`;
     }
   }
-  html = pug.renderFile(__dirname + "/views/full.pug", { entities, html });
+  html = pug.renderFile(__dirname + "/views/full.pug", {
+    entities,
+    html,
+  });
   //console.log(html);
   return html;
 };

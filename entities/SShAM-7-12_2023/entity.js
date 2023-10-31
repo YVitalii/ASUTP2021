@@ -7,6 +7,7 @@ let trace = 1,
 entity.fullName = "Піч азотування СШАМ-7.12/7. Інв №????";
 entity.shortName = "СШАМ-7.12/7";
 entity.id = "SShAM-7-12_2023";
+entity.homeUrl = entity.id + "/";
 entity.devices = require("./config/devices.js");
 entity.controllers = require("./controllers/index.js");
 entity.htmlCompact = () => {
@@ -26,9 +27,17 @@ entity.htmlFull = () => {
   let trace = 1,
     ln = gln + "htmlComponent.full::";
   //   trace ? log("i", ln, `entity=`, entity) : null;
-  let html = pug.renderFile(__dirname + "/views/full.pug", entity);
+  let html = pug.renderFile(__dirname + "/views/full.pug", {
+    entity,
+    controllersButton: {
+      href: entity.homeUrl,
+      title: { ua: `Контролери`, en: `Controllers`, ru: `Контроллеры` },
+    },
+  });
   return html;
 };
+
+entity.router = require(__dirname + "\\routes\\entityRouter.js");
 
 module.exports = entity;
 

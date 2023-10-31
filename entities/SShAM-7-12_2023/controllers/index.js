@@ -88,8 +88,8 @@ controllers.about.htmlFull = () => {
   let html = "";
 
   for (let controler in controllers) {
-    console.log("--------- iteration ----------");
-    console.dir(controler);
+    // console.log("--------- iteration ----------");
+    // console.dir(controler);
     if (controllers.hasOwnProperty(controler)) {
       if (controler == "about") {
         continue;
@@ -110,9 +110,9 @@ controllers.about.htmlFull = () => {
   return html;
 };
 
-module.exports.controllers = controllers;
+module.exports = controllers;
 
-if (!module._parent) {
+if (!module.parent) {
   console.log("--------------------------------");
   let entity = controllers;
   //   console.dir(entity);

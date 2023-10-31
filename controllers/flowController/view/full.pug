@@ -79,17 +79,30 @@ script.
 
   // об'єкт запиту на сервер
   #{ctrl_id}.xhrT = new XMLHttpRequest(); 
-  #{ctrl_id}.xhrT.onLoad = function(){
-    let res=JSON.parse(xhrT.responseText);
-    console.log("res=",res);
+  #{ctrl_id}.xhrT.onload = () => {
+    let trace=1;
+    let ln=`#{ctrl_id}.xhrT.onload::`
+    let res=JSON.parse( #{ctrl_id}.xhrT.responseText);
+    trace ? console.log(ln,"Data received: res=",res):null;
+
+    setTimeout( () => {#{ctrl_id}.getRegs();},3000);
   };
   #{ctrl_id}.xhrT.onerror = function(){
-    console.log("Error POST from /realtimes :"+xhrT.status + ': ' + xhrT.statusText)
+    let xhrT=#{ctrl_id}.xhrT
+    console.log("Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
+    setTimeout( () => {#{ctrl_id}.getRegs();},5000);
   } //  xhrT.onerror
 
-  #{ctrl_id}.getAll_url = "/#{ctrl_id}/getAll"; //- запит на отримання вcього комплекту даних
-  #{ctrl_id}.setSP_url = "/#{ctrl_id}/setSP"; // запит на зміну SP
+  #{ctrl_id}.getRegs= () => {
+    let url = document.baseURI + `#{ctrl_id}/getAll`;
+    #{ctrl_id}.xhrT.open("POST",url);
+    #{ctrl_id}.xhrT.send();
+    console.log("Request [ "+url+" ]was sended");
+  }
 
+  //- #{ctrl_id}.getAll_url =  //- запит на отримання вcього комплекту даних
+  //- #{ctrl_id}.setSP_url = "/#{ctrl_id}/setSP"; // запит на зміну SP
+  setTimeout( () => {#{ctrl_id}.getRegs();},3000);
   //  обробники подій зміни завдання SP
   document.getElementById("#{ctrl_id}_SP_range").onchange=function (event) {
   let value = event.target.value;
