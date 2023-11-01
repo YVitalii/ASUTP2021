@@ -55,9 +55,10 @@ async function next() {
   try {
     //value += 10;
 
-    log("i", ln, "getSP() = ", await fc.getSP());
-    log("i", ln, "current PV = ", await fc.getPV());
-    log("i", ln, "current flow = ", await fc.getCurrentFlow());
+    log("i", ln, "getSP() = ", fc.getSP());
+    log("i", ln, "current PV = ", fc.getPV());
+    log("i", ln, "current flow = ", fc.getCurrentFlow());
+    log("i", ln, "getAllRegs=", fc.getAllRegs());
     console.log("--------------------------------");
   } catch (error) {
     log("e", error);
@@ -69,7 +70,7 @@ async function next() {
 }
 
 setInterval(async () => {
-  value = value >= 100 ? 0 : value + 10;
+  value = value >= 20 ? 0 : value + 10;
 
   await fc.setSP(value);
   log("w", ln, "setSP (", value, ")");

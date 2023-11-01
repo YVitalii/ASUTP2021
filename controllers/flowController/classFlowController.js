@@ -12,6 +12,8 @@ this.getFlow() - повертає поточну витрату газу в м3/
 
 const log = require("../../tools/log.js");
 const pug = require("pug");
+var express = require("express");
+
 // немає сенсу бо в 1 контролері може бути багато адрес @param {Number}  props.addr = адреса в мережі RS485
 
 log("i", "--------------------------");
@@ -44,7 +46,14 @@ class FlowControler {
       return;
     }
     this.id = props.id;
+
     this.dirname = __dirname;
+    // ------------ router ---------
+    this.router = express.Router();
+    this.router.post("/getAllRegs", (req, res, next) => {
+      let trace = 1,
+        ln = this.ln + "router().post(/getAllRegs)";
+    });
 
     // --------- this.regErr ------------------
     this.regErr = {};
@@ -102,7 +111,7 @@ class FlowControler {
       : 30;
 
     /** @private {Number} - поточна реальна витрата 0..100% */
-    this.processValue = 0;
+    this.PV = 0;
 
     /** @private {Boolean} - індикатор робота/очікування */
     this.run = false;
@@ -111,11 +120,12 @@ class FlowControler {
     this.askPeriod = this.periodSets.waiting; // поточний період опитування стану РВ
 
     /** @private {Number} - поточне задане значення  */
-    this.setPoint = 0; //
+    this.SP = 0; //
 
     /** @private {Object} - поточний стан регулятора потоку  */
     this.state = {
-      blocked: false, // заблокувати ручне керування
+      locked: false, // заблокувати ручне керування
+      run: false,
       note: { en: "Waiting.", ua: "Очікування", ru: "Ожидание", code: 0 },
       code: 0,
     }; //
@@ -131,6 +141,15 @@ class FlowControler {
     try {
       // посилаємо команду вимкнути подачу
       await this.setSP(0);
+      this.state.run = false;
+      this.state.note = {
+        en: "Waiting.",
+        ua: "Очікування",
+        ru: "Ожидание",
+        code: 0,
+      };
+      this.askPeriod = this.periodSets.waiting;
+      //this.state.locked=false;
     } catch (error) {
       // якщо помилка, плануємо повторну команду через 3 сек
       setTimeout(() => {
@@ -149,8 +168,8 @@ class FlowControler {
   checkRange(val) {
     let trace = 0,
       ln = this.ln + `checkRange(${val})::`;
-    let min = this.setPoint + this.regErr.min,
-      max = this.setPoint + this.regErr.max;
+    let min = this.SP + this.regErr.min,
+      max = this.SP + this.regErr.max;
     let msg = `[val=${val.toFixed(1)}; min=${min}; max=${max}]`;
     let note = {};
     let code = 0;
@@ -162,8 +181,8 @@ class FlowControler {
           min,
           `; max=`,
           max,
-          `; this.setPoint=`,
-          this.setPoint,
+          `; this.SP=`,
+          this.SP,
           "; this.errCounter=",
           this.errCounter
         )
@@ -217,15 +236,13 @@ class FlowControler {
       trace ? log(ln, `newVal=`, newVal.toFixed(2)) : null;
       // застосовуємо фільтр:
       // Running Average (середнє що біжить) https://alexgyver.ru/lessons/filters/
-      let dV = newVal - this.processValue;
+      let dV = newVal - this.PV;
       let k = Math.abs(dV) > 2 ? 0.9 : 0.1;
       trace ? log(ln, `k=`, k) : null;
-      this.processValue += dV * k;
-      trace
-        ? log(logLevel, ln, `this.processValue=`, this.processValue.toFixed(2))
-        : null;
+      this.PV += dV * k;
+      trace ? log(logLevel, ln, `this.PV=`, this.PV.toFixed(2)) : null;
       // перевіряємо на відповіжність діапазону
-      this.checkRange(this.processValue);
+      this.checkRange(this.PV);
     } catch (error) {
       // якщо в процессі роботи виникла помилка
       if (trace) {
@@ -256,7 +273,7 @@ class FlowControler {
       throw new Error(note.en);
       return;
     }
-    this.setPoint = parseInt(val);
+    this.SP = parseInt(val);
     try {
       await this.setDeviceSP(val);
       log("i", ln, "Completed !!");
@@ -267,8 +284,8 @@ class FlowControler {
     }
   }
 
-  async getSP() {
-    return this.setPoint;
+  getSP() {
+    return this.SP;
   }
 
   getCurrentFlow() {
@@ -278,18 +295,27 @@ class FlowControler {
       ? log(
           "i",
           ln,
-          `this.flowScale.min=${this.flowScale.min}; this.flowScale.max=${this.flowScale.max}; this.processValue = ${this.processValue}`
+          `this.flowScale.min=${this.flowScale.min}; this.flowScale.max=${this.flowScale.max}; this.PV = ${this.PV}`
         )
       : null;
     let val =
       this.flowScale.min +
-      ((this.flowScale.max - this.flowScale.min) * this.processValue) / 100;
+      ((this.flowScale.max - this.flowScale.min) * this.PV) / 100;
     trace ? log("i", ln, `val=`, val) : null;
     return val;
   }
 
   getPV() {
-    return this.processValue;
+    return this.PV;
+  }
+
+  getAllRegs() {
+    return {
+      SP: this.getSP(),
+      PV: this.getPV(),
+      flow: this.getCurrentFlow(),
+      state: this.state,
+    };
   }
 
   htmlFull() {

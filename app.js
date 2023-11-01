@@ -125,31 +125,34 @@ app.use("/entity/:id", (req, res, next) => {
   next();
 });
 
-app.post("/entity/:id/controllers/:contrId/getAll", (req, res) => {
+app.post("/entity/:id/controllers/:contrId/getAllRegs", (req, res, next) => {
   let trace = 1,
     ln = logName + `app.post(${req.route.path})::`;
   if (trace) {
     log("i", ln, `req.params=`);
     console.dir(req.params);
   }
-  let data = req.entity.controllers[req.params.contrId];
-  if (!data) {
-    res
-      .status(404)
-      .json({ err: `Not found controller:${req.params.contrId}`, data: null });
+
+  let controller = req.entity.controllers[req.params.contrId];
+  if (!controller) {
+    res.status(404).json({
+      err: `Not found controller:${req.params.contrId}`,
+      controller: null,
+    });
     return;
   }
-  data = data.getAllRegs();
-  trace ? log("i", ln, `data=`, data) : null;
+  app.use(controller.router);
+  let data = controller.getAllRegs();
+  //trace ? log("i", ln, `data=`, data) : null;
   //req.entity.getAllRegs();
-  res.status(200).send(JSON.stringify(data));
-  res.end();
-  //res.status(200).json(data);
+  //res.status(200).send(JSON.stringify(data));
+  //res.end();
+  //res.status(200).json(controller);
 });
 
 app.use("/entity/:id/controllers", (req, res) => {
   let trace = 1,
-    ln = logName + 'app.use("/entity/:id/controllers")::';
+    ln = logName + `app.use("/entity/${req.entity.id}/controllers")::`;
   if (trace) {
     log("i", ln, `req.entity.controllers.about=`);
     console.dir(req.entity.controllers.about);

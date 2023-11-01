@@ -1,149 +1,118 @@
 <style>
-  .flowController-container {
+.flowController-container {
     width: 100%; /* Width of the outside container */
-  }
+}
 
-  /* The slider itself */
-  .slider {
-    -webkit-appearance: none; /* Override default CSS styles */
+/* The slider itself */
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
     appearance: none;
     width: 80%; /* Full-width */
     height: 25px; /* Specified height */
     background: #d3d3d3; /* Grey background */
     outline: none; /* Remove outline */
     opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-    -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
-    transition: opacity 0.2s;
-  }
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
 
-  /* Mouse-over effects */
-  .slider:hover {
+/* Mouse-over effects */
+.slider:hover {
     opacity: 1; /* Fully shown on mouse-over */
-  }
+}
 
-  .slider:disabled {
+.slider:disabled {
     opacity: 0.2;
-  }
+}
 
-  /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
-  .slider::-webkit-slider-thumb {
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
     -webkit-appearance: none; /* Override default look */
     appearance: none;
     width: 25px; /* Set a specific slider handle width */
     height: 25px; /* Slider handle height */
-    background: #4caf50; /* Green background */
+    background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
-  }
+}
 
-  .slider::-moz-range-thumb {
+.slider::-moz-range-thumb {
     width: 25px; /* Set a specific slider handle width */
     height: 25px; /* Slider handle height */
-    background: #4caf50; /* Green background */
+    background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
-  }
-</style>
-<script>
-  //- функція простору імен для нашого контролера
-  const N2 = function () {
-    return 0;
-  };
+}</style><script>//- функція простору імен для нашого контролера
+const N2 = function() {
+  return 0
+}
 
-  // ініціалізація змінних
-  N2.props = {};
+// ініціалізація змінних 
+N2.props ={};
 
-  //- завдання (уставка) SP (set point) в %
-  N2.props.SP = {
-    setValue: function (value) {
-      document.getElementById("N2_SP_range").value = value;
-      document.getElementById("N2_SP_value").innerHTML = parseInt(value);
-    },
-    value: 0,
-  };
+//- завдання (уставка) SP (set point) в %
+N2.props.SP={
+  setValue: function (value) {
+    document.getElementById("N2_SP_range").value = value;
+    document.getElementById("N2_SP_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
   //- поточне значення PV (process value) в %
-  N2.props.PV = {
-    setValue: function (value) {
-      document.getElementById("N2_PV_slider").value = value;
-      document.getElementById("N2_PV_value").innerHTML = parseInt(value);
-    },
-    value: 0,
-  };
+N2.props.PV={
+  setValue: function (value) {
+    document.getElementById("N2_PV_slider").value = value;
+    document.getElementById("N2_PV_value").innerHTML = parseInt(value);
+    }, 
+  value: 0,
+}
 
-  //- поточне значення в м3/год
-  N2.props.flow = {
-    setValue: function (value) {
-      document.getElementById("N2_flow_value").innerHTML = toFix(value, 2);
-    },
-    value: 0,
-  };
+//- поточне значення в м3/год
+N2.props.flow={
+  setValue: function (value) {
+    document.getElementById("N2_flow_value").innerHTML = toFix(value,2);
+    }, 
+  value: 0,
+}
 
-  //- поточний стан контролера
-  N2.props.state = {
-    setValue: function (state = {}) {
-      if (state.blocked) {
-        document.getElementById("N2_SP_range").enabled = state.blocked;
-      }
-      if (state.note) {
-        document.getElementById(("N2_state_note".innerHTML = state.note));
-      }
-    },
-    value: 0,
-  };
-</script>
-<h4>N2: [object Object]</h4>
-<div class="flowController-container">
-  <input
-    class="slider"
-    type="range"
-    min="0"
-    max="100"
-    value="0"
-    id="N2_SP_range"
-  /><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress>
-</div>
-<div class="flowController-container">
-  <table width="100%">
-    <tr>
-      <td width="30%">
-        <b>PV = <span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b>
-      </td>
-      <td width="30%">
-        <b>SP =<span id="N2_SP_value">0</span><span>&nbsp;%</span></b>
-      </td>
-      <td>
-        <b
-          >Flow =<span id="N2_Flow_value">0.00</span
-          ><span>&nbsp;м3/год</span></b
-        >
-      </td>
-    </tr>
-    <tr>
-      <td colspan="3">
-        <i>Стан:</i><span id="N2_state_note">Невизначено</span>
-      </td>
-    </tr>
-  </table>
-</div>
-<script>
-  // об'єкт запиту на сервер
-  N2.xhrT = new XMLHttpRequest();
-  N2.xhrT.onLoad = function () {
-    let res = JSON.parse(xhrT.responseText);
-    console.log("res=", res);
-  };
-  N2.xhrT.onerror = function () {
-    console.log(
-      "Error POST from /realtimes :" + xhrT.status + ": " + xhrT.statusText
-    );
-  }; //  xhrT.onerror
+//- поточний стан контролера
+N2.props.state={
+  setValue: function (state={}) {
+    if (state.blocked) { document.getElementById("N2_SP_range").enabled = state.blocked; }
+    if (state.note) { document.getElementById("N2_state_note".innerHTML=state.note)}
+    }, 
+  value: 0,
+}
 
-  N2.getAll_url = "/N2/getAll"; //- запит на отримання вcього комплекту даних
-  N2.setSP_url = "/N2/setSP"; // запит на зміну SP
 
-  //  обробники подій зміни завдання SP
-  document.getElementById("N2_SP_range").onchange = function (event) {
-    let value = event.target.value;
-    N2.props.SP.setValue(value);
-    console.log("N2_SP_range.value=", value);
-    N2.props.PV.setValue(value); // для тестування
-  }; //document.getElementById("N2_SP_range").onchange
-</script>
+</script><h4>N2: Нітроген</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="N2_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="N2_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
+N2.xhrT = new XMLHttpRequest(); 
+N2.xhrT.onload = () => {
+  let trace=1;
+  let ln=`N2.xhrT.onload::`
+  let res=JSON.parse( N2.xhrT.responseText);
+  trace ? console.log(ln,"Data received: res=",res):null;
+
+  setTimeout( () => {N2.getRegs();},3000);
+};
+N2.xhrT.onerror = function(){
+  let xhrT=N2.xhrT
+  console.log("Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
+  setTimeout( () => {N2.getRegs();},5000);
+} //  xhrT.onerror
+
+N2.getRegs= () => {
+  let url = document.baseURI + `N2/getAll`;
+  N2.xhrT.open("POST",url);
+  N2.xhrT.send();
+  console.log("Request [ "+url+" ]was sended");
+}
+
+//- N2.getAll_url =  //- запит на отримання вcього комплекту даних
+//- N2.setSP_url = "/N2/setSP"; // запит на зміну SP
+setTimeout( () => {N2.getRegs();},3000);
+//  обробники подій зміни завдання SP
+document.getElementById("N2_SP_range").onchange=function (event) {
+let value = event.target.value;
+N2.props.SP.setValue(value);
+console.log("N2_SP_range.value=",value);
+N2.props.PV.setValue(value); // для тестування
+} //document.getElementById("N2_SP_range").onchange</script>
