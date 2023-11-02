@@ -103,13 +103,14 @@ app.use("/", indexRouter);
 
 // app.use("/SShAM-7-12_2023", SShAM_7_12_Router);
 app.use("/entity/:id", (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = logName + "app.use(/:id)::";
   trace ? log("i", ln, `Started`) : null;
   if (trace) {
     log("i", ln, `req.params=`);
     console.dir(req.params);
   }
+
   // шукаємо сутність в списку
   let entName = req.params.id.trim();
   let ent = entities[entName];
@@ -125,12 +126,13 @@ app.use("/entity/:id", (req, res, next) => {
   next();
 });
 
-app.post("/entity/:id/controllers/:contrId/getAllRegs", (req, res, next) => {
-  let trace = 1,
-    ln = logName + `app.post(${req.route.path})::`;
+// перевіряємо чи є такий контролер, якщо нема - повідомляємо про помилку
+app.use("/entity/:id/controllers/:contrId", (req, res, next) => {
+  let trace = 0,
+    ln = logName + `app.post(${req.originalUrl})::`;
   if (trace) {
-    log("i", ln, `req.params=`);
-    console.dir(req.params);
+    log("i", ln, `req.query=`);
+    console.dir(req.query);
   }
 
   let controller = req.entity.controllers[req.params.contrId];
@@ -141,18 +143,48 @@ app.post("/entity/:id/controllers/:contrId/getAllRegs", (req, res, next) => {
     });
     return;
   }
-  app.use(controller.router);
-  let data = controller.getAllRegs();
-  //trace ? log("i", ln, `data=`, data) : null;
-  //req.entity.getAllRegs();
-  //res.status(200).send(JSON.stringify(data));
-  //res.end();
-  //res.status(200).json(controller);
+  req.controller = controller;
+  next();
+});
+
+app.post("/entity/:id/controllers/:contrId/getRegs", (req, res, next) => {
+  let trace = 1,
+    ln = logName + `app.post(${req.originalUrl})::`;
+  if (trace) {
+    log("i", ln, `req.query=`);
+    console.dir(req.query);
+  }
+  let data = req.controller.getRegs(req.query.regs);
+  if (trace) {
+    log("i", ln, `data=`);
+    console.dir(data);
+  }
+  res.json(data); //next();
+  return;
+});
+
+app.post("/entity/:id/controllers/:contrId/setRegs", (req, res, next) => {
+  let trace = 1,
+    ln = logName + `app.post(${req.originalUrl})::`;
+  if (trace) {
+    log("i", ln, `req.query=`);
+    console.dir(req.query);
+  }
+  res.json(req.controller.setRegs(req.query.regs)); //next();
+  return;
+});
+
+app.post("/entity/:id/controllers/:contrId", (req, res, next) => {
+  let trace = 1,
+    ln = logName + `app.use(${req.originalUrl})::`;
+  trace ? log("w", ln, "Started") : null;
+  req.entity.router(req, res, next);
+  return;
 });
 
 app.use("/entity/:id/controllers", (req, res) => {
   let trace = 1,
-    ln = logName + `app.use("/entity/${req.entity.id}/controllers")::`;
+    ln = logName + `app.use("${req.originalUrl}")::`;
   if (trace) {
     log("i", ln, `req.entity.controllers.about=`);
     console.dir(req.entity.controllers.about);

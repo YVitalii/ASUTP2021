@@ -29,8 +29,8 @@ let props = {
   getDevicePV: async () => {
     return await devices.A22.getAI();
   },
-  setDeviceSP: async () => {
-    return await devices.A22.setAO();
+  setDeviceSP: async (val) => {
+    return await devices.A22.setAO(val);
   },
 };
 
@@ -52,8 +52,8 @@ props = {
   getDevicePV: async () => {
     return await devices.A24.getAI();
   },
-  setDeviceSP: async () => {
-    return await devices.A24.setAO();
+  setDeviceSP: async (val) => {
+    return await devices.A24.setAO(val);
   },
 };
 
@@ -72,11 +72,26 @@ props = {
   flowScale: { min: 0, max: 3 }, // m3/hour
   periodSets: { working: 5, waiting: 20 },
   errCounter: 10,
+  calibrationTable: [
+    { x: 0, y: 0 }, // x=0..100%, y = m3/hr
+    { x: 10, y: 0.5 },
+    { x: 20, y: 0.75 },
+    { x: 30, y: 1.2 },
+    { x: 40, y: 1.6 },
+    { x: 50, y: 1.9 },
+    { x: 60, y: 2.2 },
+    { x: 70, y: 2.5 },
+    { x: 80, y: 2.8 },
+    { x: 90, y: 3.1 },
+    { x: 96, y: 3.3 },
+    { x: 98, y: 3.35 },
+    { x: 100, y: 3.4 },
+  ],
   getDevicePV: async () => {
-    return await devices.A24.getAI();
+    return await devices.A13.getAI();
   },
-  setDeviceSP: async () => {
-    return await devices.A24.setAO();
+  setDeviceSP: async (val) => {
+    return await devices.A13.setAO(val);
   },
 };
 controllers.N2 = new FlowController(props);

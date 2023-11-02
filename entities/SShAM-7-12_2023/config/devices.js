@@ -13,6 +13,6 @@ devices.A24 = new MaxPRO_645(iface.w2, 72);
 devices.A25 = new MaxPRO_645(iface.w2, 74);
 devices.A13 = new MaxPRO_645(iface.w2, 71);
 
-module.exports.devices = devices;
+module.exports = devices;
 
 // console.dir(devices);

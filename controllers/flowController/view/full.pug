@@ -1,7 +1,9 @@
 style
   include style.css
 
-- var ctrl_id=`${id}`
+- var ctrl_id =`${id}`
+- var props = ctrl_id+".props"
+- var xhrt = ctrl_id+".xhrt"
 
 script.
   //- функція простору імен для нашого контролера
@@ -10,40 +12,57 @@ script.
   }
 
   // ініціалізація змінних 
-  #{ctrl_id}.props ={};
+  #{props} ={};
 
   //- завдання (уставка) SP (set point) в %
-  #{ctrl_id}.props.SP={
-    setValue: function (value) {
+  #{props}.SP={
+    updateValue: function (value) {
       document.getElementById("#{ctrl_id}_SP_range").value = value;
       document.getElementById("#{ctrl_id}_SP_value").innerHTML = parseInt(value);
+      #{props}.SP.value=value;
+      return value
       }, 
     value: 0,
   }
     //- поточне значення PV (process value) в %
-  #{ctrl_id}.props.PV={
-    setValue: function (value) {
+  #{props}.PV={
+    updateValue: function (value) {
       document.getElementById("#{ctrl_id}_PV_slider").value = value;
-      document.getElementById("#{ctrl_id}_PV_value").innerHTML = parseInt(value);
+      document.getElementById("#{ctrl_id}_PV_value").innerHTML = value.toFixed(1);
+      #{props}.PV.value=value;
+      return value
       }, 
     value: 0,
   }
 
   //- поточне значення в м3/год
-  #{ctrl_id}.props.flow={
-    setValue: function (value) {
-      document.getElementById("#{ctrl_id}_flow_value").innerHTML = toFix(value,2);
+  #{props}.flow={
+    updateValue: function (value) {
+      console.log("---> flow.updateValue("+value+")")
+      document.getElementById("#{ctrl_id}_flow_value").innerHTML = value.toFixed(2);
+      #{props}.flow.value=value;
+      return value;
       }, 
     value: 0,
   }
 
   //- поточний стан контролера
-  #{ctrl_id}.props.state={
-    setValue: function (state={}) {
-      if (state.blocked) { document.getElementById("#{ctrl_id}_SP_range").enabled = state.blocked; }
-      if (state.note) { document.getElementById("#{ctrl_id}_state_note".innerHTML=state.note)}
-      }, 
-    value: 0,
+  #{props}.state={
+    updateValue: function (obj={}) {
+      let trace=1, ln = '#{props}.state::'
+      trace ? console.log(ln+"Started"):null;
+      #{props}.state.value=obj;
+      #{props}.state.askPeriod=obj.askPeriod;
+
+      if (obj.locked) { document.getElementById("#{ctrl_id}_SP_range").enabled = obj.locked; }
+
+      if (obj.note.ua) {
+        document.getElementById("#{ctrl_id}_state_note").innerHTML=obj.note.ua}
+
+      return obj.note.ua
+      }, //updateValue
+    value: {},
+    askPeriod: 1,
   }
 
 
@@ -68,7 +87,7 @@ div(class="flowController-container")
           span() &nbsp;%
       td() 
         b Flow =
-          span(id=`${id}_Flow_value`) 0.00
+          span(id=`${id}_flow_value`) 0.00
           span() &nbsp;м3/год
     tr
       td(colspan=3)
@@ -78,34 +97,59 @@ div(class="flowController-container")
 script.
 
   // об'єкт запиту на сервер
-  #{ctrl_id}.xhrT = new XMLHttpRequest(); 
-  #{ctrl_id}.xhrT.onload = () => {
+  #{xhrt} = new XMLHttpRequest(); 
+
+  #{xhrt}.onload = () => {
     let trace=1;
-    let ln=`#{ctrl_id}.xhrT.onload::`
-    let res=JSON.parse( #{ctrl_id}.xhrT.responseText);
-    trace ? console.log(ln,"Data received: res=",res):null;
-    setTimeout( () => {#{ctrl_id}.getAllRegs();},3000);
+    let ln=`#{xhrt}.onload::`
+    trace ? console.log(ln,"Data received: res=",#{xhrt}.responseText):null;
+    trace=0;
+    let res=JSON.parse( #{xhrt}.responseText);
+    trace ? console.log(ln,"Data parsed: res=",res):null;
+    if (! res.err) {
+    for (let prop in  res.data ) {
+      if( res.data.hasOwnProperty( prop ) ) {
+        trace ? console.log(ln+'res.data['+ prop + "]="+res.data[prop]):null;
+        if (#{props}[prop]) {
+          let result= #{props}[prop].updateValue(res.data[prop]);
+          trace ? console.log(ln+'#{props}'+"."+ prop + " = " +result):null;
+        } else {
+          trace ? console.log(ln+'#{props}'+"."+ prop + " Not found"):null;
+        }
+    } } }
+
+  // плануємо наступний запуск
+  setTimeout( () => {#{ctrl_id}.getRegs();},#{props}.state.askPeriod*1000);
   };
-  #{ctrl_id}.xhrT.onerror = function(){
+
+  #{xhrt}.onerror = function(){
     let xhrT=#{ctrl_id}.xhrT
-    console.log("Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
-    setTimeout( () => {#{ctrl_id}.getAllRegs();},5000);
+    console.log(ln+"Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
+    setTimeout( () => {#{ctrl_id}.getRegs();},5000);
   } //  xhrT.onerror
 
-  #{ctrl_id}.getAllRegs= () => {
-    let url = document.baseURI + `#{ctrl_id}/getAllRegs`;
-    #{ctrl_id}.xhrT.open("POST",url);
-    #{ctrl_id}.xhrT.send();
-    //- console.log("Request [ "+url+" ]was sended");
+  #{ctrl_id}.getRegs= () => {
+    let url = new URL(document.baseURI + `#{ctrl_id}/getRegs`);
+    url.searchParams.set("regs","SP;PV;flow;state");
+
+    #{xhrt}.open("POST",url);
+    #{xhrt}.send();
+    //console.log("Request [ "+url+" ]was sended");
   }
 
   //- #{ctrl_id}.getAll_url =  //- запит на отримання вcього комплекту даних
   //- #{ctrl_id}.setSP_url = "/#{ctrl_id}/setSP"; // запит на зміну SP
-  setTimeout( () => {#{ctrl_id}.getAllRegs();},3000);
+  setTimeout( () => {#{ctrl_id}.getRegs();},3000);
   //  обробники подій зміни завдання SP
   document.getElementById("#{ctrl_id}_SP_range").onchange=function (event) {
   let value = event.target.value;
-  #{ctrl_id}.props.SP.setValue(value);
-  console.log("#{ctrl_id}_SP_range.value=",value);
-  #{ctrl_id}.props.PV.setValue(value); // для тестування
+  //#{props}.SP.updateValue(value);
+
+  let url = new URL(document.baseURI + `#{ctrl_id}/setRegs`);
+    url.searchParams.set("regs",JSON.stringify({SP:value}));
+  console.log("#{ctrl_id}_onchange::",url);
+  #{xhrt}.open("POST",url);
+  #{xhrt}.send();
+  setTimeout(() => {#{ctrl_id}.getRegs();},500);
+  //#{props}.PV.updateValue(value); // для тестування
   } //document.getElementById("#{ctrl_id}_SP_range").onchange

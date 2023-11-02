@@ -50,60 +50,95 @@ N2.props ={};
 
 //- завдання (уставка) SP (set point) в %
 N2.props.SP={
-  setValue: function (value) {
+  updateValue: function (value) {
     document.getElementById("N2_SP_range").value = value;
     document.getElementById("N2_SP_value").innerHTML = parseInt(value);
+    N2.props.SP.value=value;
+    return value
     }, 
   value: 0,
 }
   //- поточне значення PV (process value) в %
 N2.props.PV={
-  setValue: function (value) {
+  updateValue: function (value) {
     document.getElementById("N2_PV_slider").value = value;
-    document.getElementById("N2_PV_value").innerHTML = parseInt(value);
+    document.getElementById("N2_PV_value").innerHTML = value.toFixed(1);
+    N2.props.PV.value=value;
+    return value
     }, 
   value: 0,
 }
 
 //- поточне значення в м3/год
 N2.props.flow={
-  setValue: function (value) {
-    document.getElementById("N2_flow_value").innerHTML = toFix(value,2);
+  updateValue: function (value) {
+    console.log("---> flow.updateValue("+value+")")
+    document.getElementById("N2_flow_value").innerHTML = value.toFixed(2);
+    N2.props.flow.value=value;
+    return value;
     }, 
   value: 0,
 }
 
 //- поточний стан контролера
 N2.props.state={
-  setValue: function (state={}) {
-    if (state.blocked) { document.getElementById("N2_SP_range").enabled = state.blocked; }
-    if (state.note) { document.getElementById("N2_state_note".innerHTML=state.note)}
-    }, 
-  value: 0,
+  updateValue: function (obj={}) {
+    let trace=1, ln = 'N2.props.state::'
+    trace ? console.log(ln+"Started"):null;
+    N2.props.state.value=obj;
+    N2.props.state.askPeriod=obj.askPeriod;
+
+    if (obj.locked) { document.getElementById("N2_SP_range").enabled = obj.locked; }
+
+    if (obj.note.ua) {
+      document.getElementById("N2_state_note").innerHTML=obj.note.ua}
+
+    return obj.note.ua
+    }, //updateValue
+  value: {},
+  askPeriod: 1,
 }
 
 
-</script><h4>N2: Нітроген</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="N2_Flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="N2_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
-N2.xhrT = new XMLHttpRequest(); 
-N2.xhrT.onload = () => {
-  let trace=1;
-  let ln=`N2.xhrT.onload::`
-  let res=JSON.parse( N2.xhrT.responseText);
-  trace ? console.log(ln,"Data received: res=",res):null;
+</script><h4>N2: Нітроген</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="N2_flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="3"><i>Стан:</i><span id="N2_state_note">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
+N2.xhrt = new XMLHttpRequest(); 
 
-  setTimeout( () => {N2.getRegs();},3000);
+N2.xhrt.onload = () => {
+  let trace=1;
+  let ln=`N2.xhrt.onload::`
+  trace ? console.log(ln,"Data received: res=",N2.xhrt.responseText):null;
+  trace=0;
+  let res=JSON.parse( N2.xhrt.responseText);
+  trace ? console.log(ln,"Data parsed: res=",res):null;
+  if (! res.err) {
+  for (let prop in  res.data ) {
+    if( res.data.hasOwnProperty( prop ) ) {
+      trace ? console.log(ln+'res.data['+ prop + "]="+res.data[prop]):null;
+      if (N2.props[prop]) {
+        let result= N2.props[prop].updateValue(res.data[prop]);
+        trace ? console.log(ln+'N2.props'+"."+ prop + " = " +result):null;
+      } else {
+        trace ? console.log(ln+'N2.props'+"."+ prop + " Not found"):null;
+      }
+  } } }
+
+// плануємо наступний запуск
+setTimeout( () => {N2.getRegs();},N2.props.state.askPeriod*1000);
 };
-N2.xhrT.onerror = function(){
+
+N2.xhrt.onerror = function(){
   let xhrT=N2.xhrT
-  console.log("Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
+  console.log(ln+"Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
   setTimeout( () => {N2.getRegs();},5000);
 } //  xhrT.onerror
 
 N2.getRegs= () => {
-  let url = document.baseURI + `N2/getAll`;
-  N2.xhrT.open("POST",url);
-  N2.xhrT.send();
-  console.log("Request [ "+url+" ]was sended");
+  let url = new URL(document.baseURI + `N2/getRegs`);
+  url.searchParams.set("regs","SP;PV;flow;state");
+
+  N2.xhrt.open("POST",url);
+  N2.xhrt.send();
+  //console.log("Request [ "+url+" ]was sended");
 }
 
 //- N2.getAll_url =  //- запит на отримання вcього комплекту даних
@@ -112,7 +147,13 @@ setTimeout( () => {N2.getRegs();},3000);
 //  обробники подій зміни завдання SP
 document.getElementById("N2_SP_range").onchange=function (event) {
 let value = event.target.value;
-N2.props.SP.setValue(value);
-console.log("N2_SP_range.value=",value);
-N2.props.PV.setValue(value); // для тестування
+//N2.props.SP.updateValue(value);
+
+let url = new URL(document.baseURI + `N2/setRegs`);
+  url.searchParams.set("regs",JSON.stringify({SP:value}));
+console.log("N2_onchange::",url);
+N2.xhrt.open("POST",url);
+N2.xhrt.send();
+setTimeout(() => {N2.getRegs();},500);
+//N2.props.PV.updateValue(value); // для тестування
 } //document.getElementById("N2_SP_range").onchange</script>
