@@ -26,7 +26,7 @@ class FlowControler {
    * @param {Object}  props.flowScale = {min=0,max=1} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
    * @param {Object}  props.getDevicePV() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
    * @param {Object}  props.setDeviceSP() = async функція драйвера приладу , яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
-   * @param {Object}  props.periodSets - {working=5,waiting=30,transition=1, transitionDelay=10 } [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
+   * @param {Object}  props.periodSets - {working=1, waiting=1,transition=1, transitionDelay=20 } [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
    * @param {Number}  props.errCounter=10 - допустима кількість помилок, після якої генерується аварія
    * @param {Array of Point}  props.calibrationTable - калібрувальна таблиця витратомірів, Point={x:%,y:m3/h}
    * */
