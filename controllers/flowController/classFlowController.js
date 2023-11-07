@@ -24,8 +24,10 @@ class FlowControler {
    * @param {String}  props.shortName = {ua,en,ru} коротка назва "АмВ"
    * @param {String}  props.fullName =  {ua,en,ru} назва контролера, наприклад "Аміак. Великий"
    * @param {Object}  props.flowScale = {min=0,max=1} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
-   * @param {Object}  props.getDevicePV() = async функція драйвера приладу , яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
-   * @param {Object}  props.setDeviceSP() = async функція драйвера приладу , яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
+   * @param {async Function}  props.getDevicePV() = async функція, яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
+   * @param {async Function}  props.setDeviceSP(val) = async функція, яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
+   * @param {async Function}  props.getDevicePressure() = функція що має повертати тиск газу на вході в %, для реле (0 або 100), для аналогових 0..100%
+   * @param {Object}  props.pressureList = {alarm,warning,normal,heigh} налаштування рівней тиску газу: Number
    * @param {Object}  props.periodSets - {working=1, waiting=1,transition=1, transitionDelay=20 } [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
    * @param {Number}  props.errCounter=10 - допустима кількість помилок, після якої генерується аварія
    * @param {Array of Point}  props.calibrationTable - калібрувальна таблиця витратомірів, Point={x:%,y:m3/h}
@@ -47,6 +49,68 @@ class FlowControler {
     }
     this.id = props.id;
 
+    // ---------------- this.pressureList --------------------------------
+    // опис рівней тисків, для контролю
+
+    this.pressureList = {
+      alarm: {
+        value: props.pressureList.alarm ? props.pressureList.alarm : 10,
+        note: {
+          code: "alarm",
+          ua: `Аварія! Немає газу`,
+          en: `Alarm! No gas`,
+          ru: `Авария! Нет газа!`,
+        },
+      },
+      warning: {
+        value: props.pressureList.warning ? props.pressureList.warning : 20,
+        note: {
+          code: "warning",
+          ua: `Увага! Низький тиск`,
+          en: `Warning! Low pressure`,
+          ru: `Внимание! Низкое давление`,
+        },
+      },
+      normal: {
+        value: props.pressureList.normal ? props.pressureList.normal : 100,
+        note: {
+          code: "normal",
+          ua: `Тиск в нормі`,
+          en: `Pressure Ok.`,
+          ru: `Давление в норме`,
+        },
+      },
+      high: {
+        value: props.pressureList.high ? props.pressureList.high : 110,
+        note: {
+          code: "high",
+          ua: `Високий тиск`,
+          en: `High pressure`,
+          ru: `Высокое давление`,
+        },
+      },
+      notdefined: {
+        code: "notdefined",
+        value: undefined,
+        note: { ua: `Невідомо`, en: `Undefined`, ru: `Неизвестно` },
+      },
+    };
+
+    /** Поточний контроль тиску  */
+    this.pressure = this.pressureList.notdefined;
+
+    // ---------------- this.getDevicePV --------------------------------
+    if (
+      !props.getDevicePressure ||
+      typeof props.getDevicePressure !== "function"
+    ) {
+      let err = "Received wrong getDevicePressure function";
+      log("e", ln, err);
+      throw new Error(err);
+    }
+    this.getDevicePressure = props.getDevicePressure;
+
+    // ---- директорія модуля -----------
     this.dirname = __dirname;
 
     // ------------ router ---------
@@ -149,7 +213,8 @@ class FlowControler {
 
     // ---------- Запускаємо поточний контроль потоку --------------------
     this.askPeriodTimer = setTimeout(async () => {
-      await this.checkPV();
+      this.checkPV();
+      this.checkPressure();
     }, this.state.askPeriod * 1000);
   } //constructor
 
@@ -170,6 +235,51 @@ class FlowControler {
       return;
     }
     return 1;
+  }
+
+  async checkPressure(val) {
+    let trace = 1,
+      ln =
+        this.ln + "checkPressure()::" + new Date().toLocaleTimeString() + "::";
+    trace ? log("i", ln, `Started`) : null;
+
+    let pressure;
+
+    try {
+      // зчитуємо тиск в системі
+      pressure = await this.getDevicePressure();
+      trace ? log("i", ln, `Current pressure=`, pressure) : null;
+      this.pressure.value = parseInt(pressure);
+    } catch (error) {
+      log("e", ln, "Помилка зчитування тиску!");
+      pressure = undefined;
+    }
+
+    if (!pressure) {
+      pressure = undefined;
+    }
+
+    // плануємо наступну перевірку тиску
+    setTimeout(async () => {
+      this.checkPressure();
+    }, 6000);
+
+    // помилок немає, перевіряємо
+    let list = this.pressureList;
+    let note = {};
+    if (!pressure) {
+      note = list.notdefined.note;
+    } else if (val <= list.alarm.value) {
+      note = list.alarm.note;
+    } else if (val <= list.warning.value) {
+      note = list.warning.note;
+    } else if (val <= list.normal.value) {
+      note = list.normal.note;
+    } else {
+      note = list.high.note;
+    }
+    this.pressure.note = note;
+    trace ? log("i", ln, `note.ua=`, note.ua) : null;
   }
 
   /**
@@ -329,7 +439,7 @@ class FlowControler {
   }
 
   getCurrentFlow() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getCurrentFlow()::";
     trace ? log("i", ln, `Started`) : null;
     let val = 0;
@@ -406,7 +516,7 @@ class FlowControler {
   getRegs(list) {
     //list = list.slice(1, -1);
     let obj = { err: null, data: null };
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `getRegs(${list})::`;
     trace ? log("i", ln, `Started`) : null;
     list = list.split(";");
@@ -425,6 +535,9 @@ class FlowControler {
           break;
         case "state":
           res[element] = this.state;
+          break;
+        case "pressure":
+          res[element] = this.pressure;
           break;
         default:
           log("w", ln, "Undefined register:[" + element + "]");

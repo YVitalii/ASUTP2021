@@ -65,6 +65,39 @@ script.
     askPeriod: 1,
   }
 
+  //- поточний стан контролера
+  #{props}.pressure={
+    updateValue: function (obj={}) {
+      let trace=1, ln = '#{props}.pressure::'
+      trace ? console.log(ln+"Started"):null;
+      #{props}.pressure.value=obj;
+      let el = document.getElementById("#{ctrl_id}_pressure_note");
+      if (obj.note.ua) {
+        el.innerHTML=obj.note.ua}
+      let style=el.style;
+      switch (obj.note.code) {
+        case "normal":
+          style.color='null';
+          break;
+        case "warning":
+        case "notdefined":
+          style.color='orange';
+          break;
+        case 'alarm':
+        case 'high':
+          style.color='red';
+          break;
+        default:
+          style.color='grey';
+      }
+      trace ? console.log(ln+"Style=",style):null;
+
+      return obj.note.ua
+      }, //updateValue
+    value: {},
+    askPeriod: 1,
+  }
+
 
 
 h4 #{id}: #{fullName.ua}
@@ -90,10 +123,12 @@ div(class="flowController-container")
           span(id=`${id}_flow_value`) 0.00
           span() &nbsp;м3/год
     tr
-      td(colspan=3)
+      td(colspan=2)
         i Стан:
         span(id=`${id}_state_note`) Невизначено
-
+      td
+        i Тиск:
+        span(id=`${id}_pressure_note` style="font-weight:bold") Невизначено
 script.
 
   // об'єкт запиту на сервер
@@ -101,11 +136,21 @@ script.
 
   #{xhrt}.onload = () => {
     let trace=1;
-    let ln=`#{xhrt}.onload::`
+    let ln=`#{xhrt}.onload::`;
     trace ? console.log(ln,"Data received: res=",#{xhrt}.responseText):null;
+    // плануємо наступний запуск
+    setTimeout( () => {#{ctrl_id}.getRegs();},#{props}.state.askPeriod*1000);
     trace=0;
-    let res=JSON.parse( #{xhrt}.responseText);
-    trace ? console.log(ln,"Data parsed: res=",res):null;
+    let res;
+    try {
+      res=JSON.parse( #{xhrt}.responseText);
+      trace ? console.log(ln,"Data parsed: res=",res):null;
+
+    } catch {
+      console.log(ln,"Error::",#{xhrt}.responseText);
+      return
+    };
+
     if (! res.err) {
     for (let prop in  res.data ) {
       if( res.data.hasOwnProperty( prop ) ) {
@@ -118,8 +163,7 @@ script.
         }
     } } }
 
-  // плануємо наступний запуск
-  setTimeout( () => {#{ctrl_id}.getRegs();},#{props}.state.askPeriod*1000);
+
   };
 
   #{xhrt}.onerror = function(){
@@ -128,9 +172,11 @@ script.
     setTimeout( () => {#{ctrl_id}.getRegs();},5000);
   } //  xhrT.onerror
 
+  //- запит на отримання даних з сервера
+
   #{ctrl_id}.getRegs= () => {
     let url = new URL(document.baseURI + `#{ctrl_id}/getRegs`);
-    url.searchParams.set("regs","SP;PV;flow;state");
+    url.searchParams.set("regs","SP;PV;flow;state;pressure");
 
     #{xhrt}.open("POST",url);
     #{xhrt}.send();

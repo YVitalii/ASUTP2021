@@ -1,3 +1,5 @@
+// browser-sync start --server --browser "Chrome" --files "stylesheets/*.css, *.html"
+
 const Device = require("../../../devices/WAD-MIO-MAXPro-645/manager");
 const iface = require("../../../conf_iface");
 const FlowController = require("../classFlowController.js");
@@ -21,7 +23,19 @@ props.getDevicePV = async () => {
 props.setDeviceSP = async (val) => {
   return await dev.setAO(val);
 };
-(props.calibrationTable = [
+
+props.getDevicePressure = async () => {
+  let pressure = await dev.getDI();
+  return pressure * 100;
+};
+
+props.pressureList = {
+  alarm: 10, // %
+  warning: 50,
+  normal: 100,
+  high: 110,
+};
+props.calibrationTable = [
   { x: 0, y: 0 }, // x=0..100%, y = m3/hr
   { x: 10, y: 0.5 },
   { x: 20, y: 0.75 },
@@ -35,10 +49,11 @@ props.setDeviceSP = async (val) => {
   { x: 96, y: 3.3 },
   { x: 98, y: 3.35 },
   { x: 100, y: 3.4 },
-]),
-  //props.periodSets = { working: 1, waiting: 2, stabilization: 10 };
+];
 
-  trace ? log("i", ln, `props=`, props) : null;
+//props.periodSets = { working: 1, waiting: 2, stabilization: 10 };
+
+trace ? log("i", ln, `props=`, props) : null;
 
 const fc = new FlowController(props);
 
@@ -72,7 +87,7 @@ async function next() {
     //log("i", ln, "getSP() = ", fc.getSP());
     //log("i", ln, "current PV = ", fc.getPV());
     //log("i", ln, "current flow = ", fc.getCurrentFlow());
-    log("i", ln, "getRegs=", fc.getRegs("SP;PV;flow;state"));
+    log("i", ln, "getRegs=", fc.getRegs("SP;PV;flow;state;pressure"));
     //log("i", ln, "this.router = ");
     //console.dir(fc.router);
     console.log("--------------------------------");
