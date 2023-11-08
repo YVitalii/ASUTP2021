@@ -12,7 +12,7 @@ this.getFlow() - повертає поточну витрату газу в м3/
 
 const log = require("../../tools/log.js");
 const pug = require("pug");
-
+const dummy = require("../../tools/dummy.js");
 // немає сенсу бо в 1 контролері може бути багато адрес @param {Number}  props.addr = адреса в мережі RS485
 
 log("i", "--------------------------");
@@ -51,7 +51,7 @@ class FlowControler {
 
     // ---------------- this.pressureList --------------------------------
     // опис рівней тисків, для контролю
-
+    props.pressureList = props.pressureList ? props.pressureList : {};
     this.pressureList = {
       alarm: {
         value: props.pressureList.alarm ? props.pressureList.alarm : 10,
@@ -90,23 +90,36 @@ class FlowControler {
         },
       },
       notdefined: {
-        code: "notdefined",
         value: undefined,
-        note: { ua: `Невідомо`, en: `Undefined`, ru: `Неизвестно` },
+        note: {
+          code: "notdefined",
+          ua: `Невідомо`,
+          en: `Undefined`,
+          ru: `Неизвестно`,
+        },
       },
     };
 
-    /** Поточний контроль тиску  */
-    this.pressure = this.pressureList.notdefined;
+    /** Поточний значення контроль тиску  */
+    this.pressure = {
+      timestamp: new Date().getTime(),
+      value: undefined,
+      note: this.pressureList.notdefined,
+    };
 
     // ---------------- this.getDevicePV --------------------------------
     if (
       !props.getDevicePressure ||
       typeof props.getDevicePressure !== "function"
     ) {
-      let err = "Received wrong getDevicePressure function";
+      let err =
+        "==>  Error!! Received wrong getDevicePressure function!!! Was seted empty dummy-function! ";
       log("e", ln, err);
-      throw new Error(err);
+      //throw new Error(err);
+      props.getDevicePressure = async () => {
+        await dummy(3000);
+        return undefined;
+      };
     }
     this.getDevicePressure = props.getDevicePressure;
 
@@ -170,25 +183,56 @@ class FlowControler {
     props.periodSets = props.periodSets ? props.periodSets : {};
     this.states = {};
     this.states.waiting = {
-      note: { en: "Waiting.", ua: "Очікування", ru: "Ожидание" },
+      note: {
+        code: "waiting",
+        en: "Waiting",
+        ua: "Очікування",
+        ru: "Ожидание",
+      },
       code: 0,
-      askPeriod: props.periodSets.waiting ? props.periodSets.waiting : 30, // період між опитуванням в режимі: Очікування
+      askPeriod: props.periodSets.waiting ? props.periodSets.waiting : 1, // період між опитуванням в режимі: Очікування
     };
 
     this.states.transition = {
-      note: { en: "Transition", ua: "Перехід", ru: "Переход" },
-      code: 1,
+      note: {
+        code: "transition",
+        en: "Transition",
+        ua: "Зміна",
+        ru: "Изменение",
+      },
       askPeriod: props.periodSets.transition ? props.periodSets.transition : 1, // період опитування в режимі: Зміна завдання
       transitionDelay: props.periodSets.transitionDelay
         ? props.periodSets.transitionDelay
-        : 20, // тривалість перехідного процесу
+        : 10, // тривалість перехідного процесу, щоб уникнути помилки  "Вихід за межі дозволеного діапазону"
     };
 
     this.states.working = {
-      note: { en: "Working", ua: "Робота", ru: "Работа" },
-      code: 2,
-      askPeriod: props.periodSets.working ? props.periodSets.working : 5, // період між опитуванням в режимі: робота
+      note: { code: "working", en: "Working", ua: "Робота", ru: "Работа" },
+      askPeriod: props.periodSets.working ? props.periodSets.working : 1, // період між опитуванням в режимі: робота
     };
+
+    this.states.highFlow = {
+      note: {
+        code: "highFlow",
+        en: `High flow! `,
+        ua: `Великий потік!`,
+        ru: `Большой поток!`,
+      },
+      askPeriod: props.periodSets.working ? props.periodSets.working : 1, // період між опитуванням в режимі: робота
+    };
+
+    this.states.lowFlow = {
+      note: {
+        code: "lowFlow",
+        en: `Low flow! `,
+        ua: `Низька витрата!`,
+        ru: `Низкий расход!`,
+      },
+      askPeriod: props.periodSets.working ? props.periodSets.working : 1, // період між опитуванням в режимі: робота
+    };
+
+    /** @private {Object} - поточний стан регулятора потоку  */
+    this.state = this.states.waiting; //
 
     /**  askPeriodTimer - запамятовує поточний таймер, для можливості його скасування при зміні режиму роботи */
     this.askPeriodTimer = null;
@@ -205,17 +249,14 @@ class FlowControler {
     /** блокування ручного керування (якщо йде автоматичне регулювання)  */
     this.locked = false;
 
-    /** @private {Object} - поточний стан регулятора потоку  */
-    this.state = this.states.working; //
-
-    // ---------- Зупиняємо подачу газу, так як контролер продовжує памятати попередні установки --
-    this.stop();
-
-    // ---------- Запускаємо поточний контроль потоку --------------------
+    // ---------- Запускаємо поточний контроль параметрів --------------------
     this.askPeriodTimer = setTimeout(async () => {
+      // ---------- Зупиняємо подачу газу, так як контролер продовжує памятати попередні установки --
+      this.stop();
+
       this.checkPV();
       this.checkPressure();
-    }, this.state.askPeriod * 1000);
+    }, 5000); // 5 сек - щоб встиг відкритися порт
   } //constructor
 
   async stop(cb) {
@@ -237,8 +278,8 @@ class FlowControler {
     return 1;
   }
 
-  async checkPressure(val) {
-    let trace = 1,
+  async checkPressure() {
+    let trace = 0,
       ln =
         this.ln + "checkPressure()::" + new Date().toLocaleTimeString() + "::";
     trace ? log("i", ln, `Started`) : null;
@@ -247,17 +288,18 @@ class FlowControler {
 
     try {
       // зчитуємо тиск в системі
+      pressure = undefined;
       pressure = await this.getDevicePressure();
-      trace ? log("i", ln, `Current pressure=`, pressure) : null;
-      this.pressure.value = parseInt(pressure);
+
+      pressure = parseInt(pressure);
+      this.pressure.value = pressure;
+      this.pressure.timestamp = new Date().toLocaleTimeString();
     } catch (error) {
       log("e", ln, "Помилка зчитування тиску!");
       pressure = undefined;
     }
 
-    if (!pressure) {
-      pressure = undefined;
-    }
+    trace ? log("i", ln, `Current pressure=`, pressure) : null;
 
     // плануємо наступну перевірку тиску
     setTimeout(async () => {
@@ -267,16 +309,22 @@ class FlowControler {
     // помилок немає, перевіряємо
     let list = this.pressureList;
     let note = {};
-    if (!pressure) {
+    let val = pressure;
+    if (!isFinite(pressure) || isNaN(pressure)) {
       note = list.notdefined.note;
+      trace ? log("i", ln, "note=", note.ua) : null;
     } else if (val <= list.alarm.value) {
       note = list.alarm.note;
+      trace ? log("i", ln, "note=", note.ua) : null;
     } else if (val <= list.warning.value) {
       note = list.warning.note;
+      trace ? log("i", ln, "note=", note.ua) : null;
     } else if (val <= list.normal.value) {
       note = list.normal.note;
+      trace ? log("i", ln, "note=", note.ua) : null;
     } else {
       note = list.high.note;
+      trace ? log("i", ln, "note=", note.ua) : null;
     }
     this.pressure.note = note;
     trace ? log("i", ln, `note.ua=`, note.ua) : null;
@@ -310,36 +358,33 @@ class FlowControler {
         )
       : null;
     if (val < min) {
-      note = {
-        en: `Current flow [${msg}] is lower then minimum! `,
-        ua: `Поточна витрата [${msg}] менше ніж допустимий мінімум!`,
-        ru: `Текущий расход [${msg}] ниже минимального`,
-      };
+      // lowFlow
       code = -1;
     }
     if (val > max) {
-      note = {
-        en: `Current flow [${msg}] is greater then maximum! `,
-        ua: `Поточна витрата [${msg}] більше ніж допустимий максимум!`,
-        ru: `Текущий расход [${msg}] выше максимального!`,
-      };
+      // highFlow
       code = -2;
     }
+    // якщо код помилки менше 0 - є помилка
     if (code < 0) {
+      // якщо лічильник помилок спрацював
       if (this.errCounter <= 0) {
-        this.state.code = code;
-        this.state.note = note;
-        let msg = ln + "Error:" + note.en;
-        log("e", msg);
-        throw new Error(msg);
-        return;
+        // виставляємо стан помилки
+        this.state = code == -1 ? this.states.lowFlow : this.states.highFlow;
+        //let msg = ln + "Error:" + note.en;
+        log("e", ln + msg);
+        return false;
       }
+      // зменшуємо декрементуємо лічильник помилок
       this.errCounter -= 1;
-      return;
+      // виходимо
+      return true;
     }
+    // помилки немає, за потреби інкрементуємо лічильник помилок
     if (this.errCounter < this.initErrCounter) {
       this.errCounter += 1;
     }
+
     trace ? log("i", ln, `Ok`) : null;
     return true;
   }
@@ -348,7 +393,7 @@ class FlowControler {
    * Періодична перевірка поточного значення потоку. Запускається кожні this.state.askPeriod сек
    */
   async checkPV() {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "checkPV(" + new Date().toLocaleTimeString() + ")::";
     let logLevel = trace ? "info" : "";
     trace ? log(ln, `Started`) : null;
@@ -363,12 +408,26 @@ class FlowControler {
       trace ? log(ln, `k=`, k) : null;
       this.PV += dV * k;
       trace ? log(logLevel, ln, `this.PV=`, this.PV.toFixed(2)) : null;
-      if (this.state.code != 1) {
-        // не перехідний процес: перевіряємо на відповіжність діапазону
-        this.checkRange(this.PV);
+      if (this.state.note.code != "transition") {
+        // не перехідний процес: перевіряємо на відповідність діапазону
+        let state = this.checkRange(this.PV);
+        trace ? log("i", ln, `checkRange(${this.PV})=`, state) : null;
+        if (state) {
+          if (this.SP == 0) {
+            trace ? log("w", ln, `Set state waiting`) : null;
+            this.state = this.states.waiting;
+          } else {
+            this.state = this.states.working;
+            trace ? log("w", ln, `Set state working`) : null;
+          }
+        }
       } else {
+        // перехідний процес
+        // рахуємо скільки пройшло часу
+        trace = 0;
         let delay = (new Date().getTime() - this.transitionStart) / 1000;
         trace ? log("i", ln, `Transition delay=`, delay, " sek") : null;
+
         if (delay > this.state.transitionDelay) {
           trace ? log("w", ln, `Transition finished!`) : null;
           if (this.SP == 0) {
@@ -410,6 +469,15 @@ class FlowControler {
       return;
     }
     this.SP = val;
+
+    // якщо прийшла конанда = 0 - зупиняємо регулятор
+    if (val === 0) {
+      this.state = this.states.waiting;
+    } else {
+      this.state = this.states.working;
+    }
+
+    // встановлюэмо нову цільову точку
     try {
       // if (trace) {
       //   log("i", ln, `this.setDeviceSP=`);
@@ -520,7 +588,7 @@ class FlowControler {
       ln = this.ln + `getRegs(${list})::`;
     trace ? log("i", ln, `Started`) : null;
     list = list.split(";");
-    let res = {};
+    let res = { id: this.id };
     for (let i = 0; i < list.length; i++) {
       const element = list[i].trim();
       switch (element) {

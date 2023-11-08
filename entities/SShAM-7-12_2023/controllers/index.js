@@ -55,6 +55,16 @@ props = {
   setDeviceSP: async (val) => {
     return await devices.A24.setAO(val);
   },
+  pressureList: {
+    alarm: 10, // %
+    warning: 50,
+    normal: 100,
+    high: 110,
+  },
+  getDevicePressure: async () => {
+    let pressure = await dev.getDI();
+    return pressure * 100;
+  },
 };
 
 controllers.NH3big = new FlowController(props);
@@ -92,6 +102,16 @@ props = {
   },
   setDeviceSP: async (val) => {
     return await devices.A13.setAO(val);
+  },
+  pressureList: {
+    alarm: 10, // %
+    warning: 50,
+    normal: 110,
+    high: 120,
+  },
+  getDevicePressure: async () => {
+    let pressure = await devices.A13.getDI();
+    return pressure * 100;
   },
 };
 controllers.N2 = new FlowController(props);

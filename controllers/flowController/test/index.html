@@ -40,12 +40,12 @@
     height: 25px; /* Slider handle height */
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
-}</style><script>//- функція простору імен для нашого контролера
+}</style><h4>N2: Нітроген</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV =&nbsp;<span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =&nbsp;<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =&nbsp;<span id="N2_flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="2"><i>Стан:&nbsp;</i><span id="N2_state_note" style="font-weight:bold">Невизначено</span></td><td><i>Тиск:&nbsp;</i><span id="N2_pressure_note" style="font-weight:bold">Невизначено</span></td></tr></table></div><script>//- функція простору імен для нашого контролера
 const N2 = function() {
   return 0
 }
 
-// ініціалізація змінних 
+// ініціалізація параметрів контролера  
 N2.props ={};
 
 //- завдання (уставка) SP (set point) в %
@@ -82,21 +82,35 @@ N2.props.flow={
 
 //- поточний стан контролера
 N2.props.state={
-  updateValue: function (obj={}) {
+  updateValue: function (obj={}) { // функція, що оновлює дані на сторінці
     let trace=1, ln = 'N2.props.state::'
     trace ? console.log(ln+"Started"):null;
     N2.props.state.value=obj;
-    N2.props.state.askPeriod=obj.askPeriod;
 
     if (obj.locked) { document.getElementById("N2_SP_range").enabled = obj.locked; }
-
+    let el = document.getElementById("N2_state_note");
+    let style=el.style;
+    switch (obj.note.code){
+      case 'working':
+        style.color = "darkgreen"
+        break;
+      case 'transition':
+        style.color="orange";
+        break;
+      case 'waiting' :
+        style.color = "grey"
+        break;
+      case 'lowFlow':
+      case "highFlow":
+        style.color = "red"
+        break;
+    }
     if (obj.note.ua) {
-      document.getElementById("N2_state_note").innerHTML=obj.note.ua}
+      el.innerHTML=obj.note.ua}
 
     return obj.note.ua
     }, //updateValue
-  value: {},
-  askPeriod: 1,
+  value: {}, // поточне значення
 }
 
 //- поточний стан контролера
@@ -111,7 +125,7 @@ N2.props.pressure={
     let style=el.style;
     switch (obj.note.code) {
       case "normal":
-        style.color='null';
+        style.color='darkgreen';
         break;
       case "warning":
       case "notdefined":
@@ -129,19 +143,19 @@ N2.props.pressure={
     return obj.note.ua
     }, //updateValue
   value: {},
-  askPeriod: 1,
+
 }
 
 
-</script><h4>N2: Нітроген</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV = <span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =<span id="N2_flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="2"><i>Стан:</i><span id="N2_state_note">Невизначено</span></td><td><i>Тиск:</i><span id="N2_pressure_note" style="font-weight:bold">Невизначено</span></td></tr></table></div><script>// об'єкт запиту на сервер
+// об'єкт запиту на сервер
 N2.xhrt = new XMLHttpRequest(); 
 
 N2.xhrt.onload = () => {
   let trace=1;
   let ln=`N2.xhrt.onload::`;
   trace ? console.log(ln,"Data received: res=",N2.xhrt.responseText):null;
-  // плануємо наступний запуск
-  setTimeout( () => {N2.getRegs();},N2.props.state.askPeriod*1000);
+  // плануємо наступний запуск через 2 сек
+  setTimeout( () => {N2.getRegs();},2000);
   trace=0;
   let res;
   try {

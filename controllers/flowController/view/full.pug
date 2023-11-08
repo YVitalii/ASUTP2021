@@ -1,17 +1,55 @@
 style
   include style.css
+//-      ------------    declare PUG - variables  -------------------------
 
-- var ctrl_id =`${id}`
-- var props = ctrl_id+".props"
-- var xhrt = ctrl_id+".xhrt"
+- var ctrl_id =`${id}` //- id контролера 
+- var props = ctrl_id+".props" //- props контролера
+- var xhrt = ctrl_id+".xhrt" // - 
 
+//-      ------------    HTML   -------------------------
+
+h4 #{id}: #{fullName.ua}
+
+div(class="flowController-container")
+  input(type='range' min='0' max='100' value=`0` class="slider" id=`${ctrl_id}_SP_range`)
+  progress(class="slider" value=`0` max="100" id=`${ctrl_id}_PV_slider`)
+
+
+div(class="flowController-container")
+  table(width="100%")
+    tr
+      td(width="30%") 
+        b PV =&nbsp;
+          span(id=`${id}_PV_value`)  0
+          span() &nbsp;%
+      td(width="30%") 
+        b SP =&nbsp;
+          span(id=`${id}_SP_value`) 0
+          span() &nbsp;%
+      td() 
+        b Flow =&nbsp;
+          span(id=`${id}_flow_value`) 0.00
+          span() &nbsp;м3/год
+    tr
+      td(colspan=2)
+        i Стан:&nbsp;
+        span(id=`${id}_state_note` style="font-weight:bold") Невизначено
+      td
+        i Тиск:&nbsp;
+        span(id=`${id}_pressure_note` style="font-weight:bold") Невизначено
+
+
+
+
+//-      ------------    JS   -------------------------
 script.
+
   //- функція простору імен для нашого контролера
   const #{ctrl_id} = function() {
     return 0
   }
 
-  // ініціалізація змінних 
+  // ініціалізація параметрів контролера  
   #{props} ={};
 
   //- завдання (уставка) SP (set point) в %
@@ -48,21 +86,35 @@ script.
 
   //- поточний стан контролера
   #{props}.state={
-    updateValue: function (obj={}) {
+    updateValue: function (obj={}) { // функція, що оновлює дані на сторінці
       let trace=1, ln = '#{props}.state::'
       trace ? console.log(ln+"Started"):null;
       #{props}.state.value=obj;
-      #{props}.state.askPeriod=obj.askPeriod;
 
       if (obj.locked) { document.getElementById("#{ctrl_id}_SP_range").enabled = obj.locked; }
-
+      let el = document.getElementById("#{ctrl_id}_state_note");
+      let style=el.style;
+      switch (obj.note.code){
+        case 'working':
+          style.color = "darkgreen"
+          break;
+        case 'transition':
+          style.color="orange";
+          break;
+        case 'waiting' :
+          style.color = "grey"
+          break;
+        case 'lowFlow':
+        case "highFlow":
+          style.color = "red"
+          break;
+      }
       if (obj.note.ua) {
-        document.getElementById("#{ctrl_id}_state_note").innerHTML=obj.note.ua}
+        el.innerHTML=obj.note.ua}
 
       return obj.note.ua
       }, //updateValue
-    value: {},
-    askPeriod: 1,
+    value: {}, // поточне значення
   }
 
   //- поточний стан контролера
@@ -77,7 +129,7 @@ script.
       let style=el.style;
       switch (obj.note.code) {
         case "normal":
-          style.color='null';
+          style.color='darkgreen';
           break;
         case "warning":
         case "notdefined":
@@ -95,41 +147,9 @@ script.
       return obj.note.ua
       }, //updateValue
     value: {},
-    askPeriod: 1,
+
   }
 
-
-
-h4 #{id}: #{fullName.ua}
-
-div(class="flowController-container")
-  input(type='range' min='0' max='100' value=`0` class="slider" id=`${ctrl_id}_SP_range`)
-  progress(class="slider" value=`0` max="100" id=`${ctrl_id}_PV_slider`)
-
-
-div(class="flowController-container")
-  table(width="100%")
-    tr
-      td(width="30%") 
-        b PV = 
-          span(id=`${id}_PV_value`)  0
-          span() &nbsp;%
-      td(width="30%") 
-        b SP =
-          span(id=`${id}_SP_value`) 0
-          span() &nbsp;%
-      td() 
-        b Flow =
-          span(id=`${id}_flow_value`) 0.00
-          span() &nbsp;м3/год
-    tr
-      td(colspan=2)
-        i Стан:
-        span(id=`${id}_state_note`) Невизначено
-      td
-        i Тиск:
-        span(id=`${id}_pressure_note` style="font-weight:bold") Невизначено
-script.
 
   // об'єкт запиту на сервер
   #{xhrt} = new XMLHttpRequest(); 
@@ -138,8 +158,8 @@ script.
     let trace=1;
     let ln=`#{xhrt}.onload::`;
     trace ? console.log(ln,"Data received: res=",#{xhrt}.responseText):null;
-    // плануємо наступний запуск
-    setTimeout( () => {#{ctrl_id}.getRegs();},#{props}.state.askPeriod*1000);
+    // плануємо наступний запуск через 2 сек
+    setTimeout( () => {#{ctrl_id}.getRegs();},2000);
     trace=0;
     let res;
     try {

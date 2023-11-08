@@ -32,8 +32,8 @@ props.getDevicePressure = async () => {
 props.pressureList = {
   alarm: 10, // %
   warning: 50,
-  normal: 100,
-  high: 110,
+  normal: 110,
+  high: 120,
 };
 props.calibrationTable = [
   { x: 0, y: 0 }, // x=0..100%, y = m3/hr
@@ -87,7 +87,8 @@ async function next() {
     //log("i", ln, "getSP() = ", fc.getSP());
     //log("i", ln, "current PV = ", fc.getPV());
     //log("i", ln, "current flow = ", fc.getCurrentFlow());
-    log("i", ln, "getRegs=", fc.getRegs("SP;PV;flow;state;pressure"));
+    log("i", ln, "getRegs=", fc.getRegs("SP;PV;state"));
+    // log("i", ln, "getRegs=", fc.getRegs("SP;PV;flow;state;pressure"));
     //log("i", ln, "this.router = ");
     //console.dir(fc.router);
     console.log("--------------------------------");
@@ -101,11 +102,11 @@ async function next() {
 }
 
 setInterval(async () => {
-  value = value >= 20 ? 0 : value + 10;
-
+  //value = value >= 20 ? 0 : value + 10;
+  value = value < 50 ? 50 : 20;
   await fc.setSP(value);
   log("w", ln, "setSP (", value, ") finished!");
-}, 20000);
+}, 30000);
 
 if (!module.parent) {
   setTimeout(() => {
