@@ -269,13 +269,21 @@ class FlowControler {
       //this.state = this.states.waiting;
     } catch (error) {
       // якщо помилка, плануємо повторну команду через 3 сек
-      log("e", "Помилка зупинки приладу");
+      log("e", ln, "Помилка зупинки приладу");
       setTimeout(() => {
         this.stop();
       }, 3000);
       return;
     }
     return 1;
+  }
+
+  lockDevice() {
+    this.locked = true;
+  }
+
+  unlockDevice() {
+    this.locked = false;
   }
 
   async checkPressure() {
@@ -335,6 +343,7 @@ class FlowControler {
    * @param {Number} val  - значення, що перевіряється
    * @returns true - якщо все Ок, або помилка
    */
+
   checkRange(val) {
     let trace = 0,
       ln = this.ln + `checkRange(${val})::`;
@@ -462,19 +471,27 @@ class FlowControler {
     let trace = 1,
       ln = this.ln + `setSP(${val})::`;
     trace ? log("i", ln, `Started`) : null;
+    // якщо прилад заблокований повертаємо помилку
+    if (this.locked) {
+      let msg = this.ln + "Error: Value=" + val + ">";
+      let note = {
+        en: msg + " device locked",
+        ua: msg + " прилад заблокований",
+        ru: msg + " Прибор заблокирован",
+      };
+      throw new Error(note.en);
+    }
+    // перевіряємо вхідне значення
     val = parseInt(val);
     if (val < 0 || val > 100 || parseInt(val) === NaN) {
-      let note = { en: "Erro: Value is out of range" };
+      let msg = this.ln + "Error: Value=" + val + ">";
+      let note = {
+        en: msg + " is out of range",
+        ua: msg + "Завдання за межами дозволеного діапазону",
+        ru: msg + "За границами разрешенных значений",
+      };
       throw new Error(note.en);
       return;
-    }
-    this.SP = val;
-
-    // якщо прийшла конанда = 0 - зупиняємо регулятор
-    if (val === 0) {
-      this.state = this.states.waiting;
-    } else {
-      this.state = this.states.working;
     }
 
     // встановлюэмо нову цільову точку
@@ -486,6 +503,15 @@ class FlowControler {
 
       // посилаємо запит в прилад
       await this.setDeviceSP(val);
+      // запамятовуємо нове завдання
+      this.SP = val;
+
+      // якщо прийшла конанда = 0 - зупиняємо регулятор
+      if (val === 0) {
+        this.state = this.states.waiting;
+      } else {
+        this.state = this.states.working;
+      }
       // вмикаємо перехідний режим
       if (this.askPeriodTimer) {
         clearTimeout(this.askPeriodTimer);
@@ -603,6 +629,7 @@ class FlowControler {
           break;
         case "state":
           res[element] = this.state;
+          res[element].locked = this.locked;
           break;
         case "pressure":
           res[element] = this.pressure;

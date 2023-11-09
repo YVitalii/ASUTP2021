@@ -9,7 +9,7 @@ entity.shortName = "СШАМ-7.12/7";
 entity.id = "SShAM-7-12_2023";
 entity.homeUrl = entity.id + "/";
 entity.devices = require("./config/devices.js");
-entity.controllers = require("./controllers/index.js");
+entity.controllers = require("./controllers/controllers.js");
 entity.htmlCompact = () => {
   let trace = 1,
     ln = gln + "htmlComponent.compact::";

@@ -8,21 +8,22 @@ style
 
 //-      ------------    HTML   -------------------------
 
-h4 #{id}: #{fullName.ua}
+
 
 div(class="flowController-container")
+  h4  #{fullName.ua} (#{id})
   input(type='range' min='0' max='100' value=`0` class="slider" id=`${ctrl_id}_SP_range`)
   progress(class="slider" value=`0` max="100" id=`${ctrl_id}_PV_slider`)
 
 
 div(class="flowController-container")
-  table(width="100%")
+  table(width="90%")
     tr
-      td(width="30%") 
+      td(width="25%") 
         b PV =&nbsp;
           span(id=`${id}_PV_value`)  0
           span() &nbsp;%
-      td(width="30%") 
+      td(width="25%") 
         b SP =&nbsp;
           span(id=`${id}_SP_value`) 0
           span() &nbsp;%
@@ -49,14 +50,16 @@ script.
     return 0
   }
 
+
   // ініціалізація параметрів контролера  
   #{props} ={};
 
   //- завдання (уставка) SP (set point) в %
   #{props}.SP={
     updateValue: function (value) {
-      document.getElementById("#{ctrl_id}_SP_range").value = value;
-      document.getElementById("#{ctrl_id}_SP_value").innerHTML = parseInt(value);
+
+      document.getElementById("#{ctrl_id}_SP_range").value = isFinite(value) ? value : 0;
+      document.getElementById("#{ctrl_id}_SP_value").innerHTML = isFinite(value) ? parseInt(value) : "???";
       #{props}.SP.value=value;
       return value
       }, 
@@ -65,8 +68,8 @@ script.
     //- поточне значення PV (process value) в %
   #{props}.PV={
     updateValue: function (value) {
-      document.getElementById("#{ctrl_id}_PV_slider").value = value;
-      document.getElementById("#{ctrl_id}_PV_value").innerHTML = value.toFixed(1);
+      document.getElementById("#{ctrl_id}_PV_slider").value = isFinite(value) ? value : 0;
+      document.getElementById("#{ctrl_id}_PV_value").innerHTML = isFinite(value) ? value.toFixed(1): "???";
       #{props}.PV.value=value;
       return value
       }, 
@@ -76,8 +79,9 @@ script.
   //- поточне значення в м3/год
   #{props}.flow={
     updateValue: function (value) {
-      console.log("---> flow.updateValue("+value+")")
-      document.getElementById("#{ctrl_id}_flow_value").innerHTML = value.toFixed(2);
+
+      //console.log("---> flow.updateValue("+value+")")
+      document.getElementById("#{ctrl_id}_flow_value").innerHTML = isFinite(value) ? value.toFixed(2) : "???";
       #{props}.flow.value=value;
       return value;
       }, 
@@ -86,14 +90,22 @@ script.
 
   //- поточний стан контролера
   #{props}.state={
-    updateValue: function (obj={}) { // функція, що оновлює дані на сторінці
-      let trace=1, ln = '#{props}.state::'
+    updateValue: function (obj=undefined) { // функція, що оновлює дані на сторінці
+      let trace=0, ln = '#{props}.state('+obj+')::'
       trace ? console.log(ln+"Started"):null;
       #{props}.state.value=obj;
-
-      if (obj.locked) { document.getElementById("#{ctrl_id}_SP_range").enabled = obj.locked; }
       let el = document.getElementById("#{ctrl_id}_state_note");
       let style=el.style;
+
+      // якщо undefined - ставимо стан помилки та виходимо 
+      if ( typeof(obj) == "undefined" ) {
+        #{ctrl_id}.setErrorNote(el);
+        return
+        }
+
+      if (obj.locked) { document.getElementById("#{ctrl_id}_SP_range").enabled = obj.locked; }
+      // змінюємо напис
+      el.innerHTML=obj.note.ua
       switch (obj.note.code){
         case 'working':
           style.color = "darkgreen"
@@ -109,8 +121,8 @@ script.
           style.color = "red"
           break;
       }
-      if (obj.note.ua) {
-        el.innerHTML=obj.note.ua}
+
+
 
       return obj.note.ua
       }, //updateValue
@@ -119,13 +131,18 @@ script.
 
   //- поточний стан контролера
   #{props}.pressure={
-    updateValue: function (obj={}) {
-      let trace=1, ln = '#{props}.pressure::'
+    updateValue: function (obj=undefined) {
+      let trace=0, ln = '#{props}.pressure::'
       trace ? console.log(ln+"Started"):null;
       #{props}.pressure.value=obj;
+
       let el = document.getElementById("#{ctrl_id}_pressure_note");
-      if (obj.note.ua) {
-        el.innerHTML=obj.note.ua}
+      // якщо undefined - ставимо стан помилки та виходимо 
+      if ( typeof(obj) == "undefined" ) {
+        #{ctrl_id}.setErrorNote(el);
+        return
+        }
+      el.innerHTML=obj.note.ua;
       let style=el.style;
       switch (obj.note.code) {
         case "normal":
@@ -150,6 +167,34 @@ script.
 
   }
 
+  #{ctrl_id}.setErrorNote= (el) => {
+    // вписує знаки ??? в innerHTML елементу el
+    // змінює колір тексту на червоний
+    el.innerHTML = "???";
+    el.style.color = "red";
+  }
+
+  #{ctrl_id}.setRegs= (data) => {
+    let trace=0, ln="#{ctrl_id}.setRegs()->";
+    // функція перебирає регістри в відповіді та змінює поля
+      for (let prop in  data ) {
+        if( data.hasOwnProperty( prop ) ) {
+          trace ? console.log(ln+'data['+ prop + "]="+data[prop]):null;
+          if (#{props}[prop]) {
+            let result= #{props}[prop].updateValue(data[prop]);
+            trace ? console.log(ln+'#{props}'+"."+ prop + " = " +result):null;
+          } else {
+            trace ? console.log(ln+'#{props}'+"."+ prop + " Not found"):null;
+          }
+    } }
+    return true 
+  }
+
+  #{ctrl_id}.errorRegs = () => {
+    // функція встановлює стан помилки звязку
+    let data = {PV:undefined,SP:undefined, state:undefined, pressure:undefined, flow:undefined} 
+      #{ctrl_id}.setRegs(data);
+  }
 
   // об'єкт запиту на сервер
   #{xhrt} = new XMLHttpRequest(); 
@@ -157,39 +202,44 @@ script.
   #{xhrt}.onload = () => {
     let trace=1;
     let ln=`#{xhrt}.onload::`;
-    trace ? console.log(ln,"Data received: res=",#{xhrt}.responseText):null;
+    //trace ? console.log(ln,"Data received: res=",#{xhrt}.responseText):null;
     // плануємо наступний запуск через 2 сек
     setTimeout( () => {#{ctrl_id}.getRegs();},2000);
-    trace=0;
+    trace=1;
     let res;
     try {
       res=JSON.parse( #{xhrt}.responseText);
-      trace ? console.log(ln,"Data parsed: res=",res):null;
+
+      if ( typeof(res) == "string" ) {
+        trace ? console.log(ln,"Error:: Data must be an Object but 'res' is string::",res.slice(0,10)):null;
+        throw new Error("Response must be an object")
+
+      }
+      trace ? console.log(ln,"Data parsed: res.data=",res.data):null;
 
     } catch {
-      console.log(ln,"Error::",#{xhrt}.responseText);
+      console.log(ln,"Error::",#{xhrt}.responseText.slice(0,20));
+      // встановлюємо стан помилки
+      #{ctrl_id}.errorRegs()
       return
+
     };
 
     if (! res.err) {
-    for (let prop in  res.data ) {
-      if( res.data.hasOwnProperty( prop ) ) {
-        trace ? console.log(ln+'res.data['+ prop + "]="+res.data[prop]):null;
-        if (#{props}[prop]) {
-          let result= #{props}[prop].updateValue(res.data[prop]);
-          trace ? console.log(ln+'#{props}'+"."+ prop + " = " +result):null;
-        } else {
-          trace ? console.log(ln+'#{props}'+"."+ prop + " Not found"):null;
-        }
-    } } }
+      // оновлюємо компоненти
+      #{ctrl_id}.setRegs(res.data)
+    }
 
 
   };
 
   #{xhrt}.onerror = function(){
+    let ln="#{ctrl_id}.xhrT.onerror::"
     let xhrT=#{ctrl_id}.xhrT
-    console.log(ln+"Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
+    console.log(ln + "Error: Connection down !!!" );
+    #{ctrl_id}.errorRegs();
     setTimeout( () => {#{ctrl_id}.getRegs();},5000);
+
   } //  xhrT.onerror
 
   //- запит на отримання даних з сервера

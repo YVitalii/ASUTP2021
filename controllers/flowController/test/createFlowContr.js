@@ -87,7 +87,7 @@ async function next() {
     //log("i", ln, "getSP() = ", fc.getSP());
     //log("i", ln, "current PV = ", fc.getPV());
     //log("i", ln, "current flow = ", fc.getCurrentFlow());
-    log("i", ln, "getRegs=", fc.getRegs("SP;PV;state"));
+    log("i", ln, "getRegs=", fc.getRegs("SP;PV;state;pressure"));
     // log("i", ln, "getRegs=", fc.getRegs("SP;PV;flow;state;pressure"));
     //log("i", ln, "this.router = ");
     //console.dir(fc.router);

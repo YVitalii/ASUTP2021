@@ -1,5 +1,5 @@
-const FlowController = require("../../../controllers/flowController/classFlowController");
-const devices = require("../config/devices");
+const FlowController = require("../../../controllers/flowController/classFlowController.js");
+const devices = require("../config/devices.js");
 const controllers = {};
 const log = require("../../../tools/log.js");
 let trace = 1,

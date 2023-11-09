@@ -1,14 +1,17 @@
 <style>
 .flowController-container {
     width: 100%; /* Width of the outside container */
+    margin-left: 10px;
+
+
 }
 
 /* The slider itself */
 .slider {
     -webkit-appearance: none;  /* Override default CSS styles */
     appearance: none;
-    width: 80%; /* Full-width */
-    height: 25px; /* Specified height */
+    width: 90%; /* Full-width */
+    height: 15px; /* Specified height */
     background: #d3d3d3; /* Grey background */
     outline: none; /* Remove outline */
     opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
@@ -40,7 +43,7 @@
     height: 25px; /* Slider handle height */
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
-}</style><h4>N2: Нітроген</h4><div class="flowController-container"><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="100%"><tr><td width="30%"> <b>PV =&nbsp;<span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="30%"> <b>SP =&nbsp;<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =&nbsp;<span id="N2_flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="2"><i>Стан:&nbsp;</i><span id="N2_state_note" style="font-weight:bold">Невизначено</span></td><td><i>Тиск:&nbsp;</i><span id="N2_pressure_note" style="font-weight:bold">Невизначено</span></td></tr></table></div><script>//- функція простору імен для нашого контролера
+}</style><div class="flowController-container"><h4> Нітроген (N2)</h4><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="90%"><tr><td width="25%"> <b>PV =&nbsp;<span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="25%"> <b>SP =&nbsp;<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =&nbsp;<span id="N2_flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="2"><i>Стан:&nbsp;</i><span id="N2_state_note" style="font-weight:bold">Невизначено</span></td><td><i>Тиск:&nbsp;</i><span id="N2_pressure_note" style="font-weight:bold">Невизначено</span></td></tr></table></div><script>//- функція простору імен для нашого контролера
 const N2 = function() {
   return 0
 }
