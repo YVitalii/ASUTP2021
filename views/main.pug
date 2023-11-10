@@ -1,37 +1,70 @@
 doctype html
+-var _pageTitle = pageTitle ? pageTitle : 'pageTitle: not defined'
 html(class="h-100")
   head
-    title= title
+    title !{_pageTitle}
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/bootstrap/bootstrap.min.css')
     script(src="/bootstrap/bootstrap.bundle.min.js") 
-    script
-      include ../public/chart/d3/d3.min.js
+    //- script
+    //-   include ../public/chart/d3/d3.min.js
     script
       include ../public/timedisplay.js
     //- script
     //-   include ../tools/createGraph.js
     //- script
     //-   include ../tools/createReport.js
-  -var _pageTitle = pageTitle ? pageTitle : 'pageTitle: not defined'
-  body( class="h-100")
-    div(class="container w-100" id="header")
-      div(class="row justify-content-md-center w-100")
-        div(class="col-2 ")
+
+  body(class="h-100"  )
+    div(class="container-fluid h-100 d-flex flex-column" ) 
+      div(class="row")
+        div(class="col-3")
           img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
-        div(class="col align-middle text-center")
-          div(class="h-100 align-middle")
-            h2(class="") !{_pageTitle}
-        div(class="col-2")
-          div(id="timedisplay")
+        div(class="col my-auto mx-auto" )
+          div(class="h2 " id="pageTitle") !{_pageTitle}
+        hr
+      div(class="row" )
+        div(class="col")
+          div(id="pageBody") !{body}
 
-    div.user-tools
-      - if (userData) {
-        h4 #{userData.displayName}
-        a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Вийти
-      - }
+      -var _footerContent = footerContent ? footerContent : 'footerContent : not defined'
 
-    div(id="pageBody") !{body}
+      div(class="row fixed-bottom")
+        hr
+        div(class="col my-auto mx-auto" id="footer")  
+          div(class="h6" id="footerContent") Footer !{_footerContent}
+        div(class="col-2 d-flex align-items-center") 
+          div( class="h6" id="timedisplay" )
 
-    script(src="/bootstrap/popper.min.js")
+
+    //-   //- header
+    //-   div(class="row fixed-top")
+    //-     h2 Header
+    //-     //- div(class="col-3")
+    //-     //-   img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
+    //-     //- div(class="col" id="pageTitle")
+    //-     //-   h2(class="") !{_pageTitle}
+
+    //-   //- body
+
+    //-   div(class="row h-100" style="border-style:dotted; background:blue")
+    //-     h1 Body
+
+
+    //-       //-     div(class="col h-100" id="_pageBody" ) !{body}
+    //-       //- footer
+    //-   div(class="row fixed-bottom")
+    //-     h2 Footer
+    //- //-     div(class="col") !{_footerContent}
+    //- //-     div(class="col-2")  
+    //- //-       div(id="timedisplay")
+
+
+
+    //- //- div.user-tools
+    //- //-   - if (userData) {
+    //- //-     h4 #{userData.displayName}
+    //- //-     a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Вийти
+    //- //-   - }
+    //- script(src="/bootstrap/popper.min.js")
     script(src="/bootstrap/bootstrap.min.js")

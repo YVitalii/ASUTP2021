@@ -656,7 +656,7 @@ class FlowControler {
   }
 
   htmlCompact() {
-    let res = pug.renderFile(__dirname + "/view/compact.pug", this);
+    let res = pug.renderFile(__dirname + "/view/full.pug", this);
     // log("i", "--------------------------");
     // log("i", res);
     // log("i", "--------------------------");

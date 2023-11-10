@@ -1,4 +1,24 @@
 //- Файл рендерить повну домашню сторінку конкретної сутності
+
+-
+  var controllersArr =[];
+
+  for (const key in entity.controllers) {
+    if (Object.hasOwnProperty.call(entity.controllers, key)) {
+      controllersArr.push(entity.controllers[key])
+  }}
+
+
+- for (var x = 0; x < 3; x++)
+  li item
+
+each item in controllersArr
+  li= item.id
+
+table(class="table")
+
+
+
 h1 Тут має бути оформлена повнорозмірна сторінка печі 
 h2 #{fullName}
 h3 В розробці
