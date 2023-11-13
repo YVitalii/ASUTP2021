@@ -245,7 +245,7 @@ script.
   //- запит на отримання даних з сервера
 
   #{ctrl_id}.getRegs= () => {
-    let url = new URL(document.baseURI + `#{ctrl_id}/getRegs`);
+    let url = new URL(document.baseURI + `/controllers/#{ctrl_id}/getRegs`);
     url.searchParams.set("regs","SP;PV;flow;state;pressure");
 
     #{xhrt}.open("POST",url);
@@ -261,7 +261,7 @@ script.
   let value = event.target.value;
   //#{props}.SP.updateValue(value);
 
-  let url = new URL(document.baseURI + `#{ctrl_id}/setRegs`);
+  let url = new URL(document.baseURI + `/controllers/#{ctrl_id}/setRegs`);
     url.searchParams.set("regs",JSON.stringify({SP:value}));
   console.log("#{ctrl_id}_onchange::",url);
   #{xhrt}.open("POST",url);

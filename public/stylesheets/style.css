@@ -27,10 +27,10 @@
 a {
   color: #00B7FF;
 }
-#timedisplay {
+/* #timedisplay {
   position: fixed;
   font-size: x-large;
-} 
+}  */
 .user-tools {
   position: fixed;
   display: flex;

@@ -1,15 +1,18 @@
 /** Збирає і налаштовує всі елементи сутності, та передає менеджеру сутностей */
 const pug = require("pug");
 const entity = {};
+const devices = require("./devices/devices.js");
 const log = require("../../tools/log.js");
 let trace = 1,
   gln = "/SSham-7-12_2023/index.js::";
-entity.fullName = "Піч азотування СШАМ-7.12/7. Інв №????";
+entity.fullName = "Піч азотування СШАМ-7.12/7";
 entity.shortName = "СШАМ-7.12/7";
 entity.id = "SShAM-7-12_2023";
 entity.homeUrl = entity.id + "/";
-entity.devices = require("./config/devices.js");
+entity.devices = devices;
 entity.controllers = require("./controllers/controllers.js");
+entity.process = require("./processes/mainProcess.js");
+
 entity.htmlCompact = () => {
   let trace = 1,
     ln = gln + "htmlComponent.compact::";
@@ -26,7 +29,7 @@ entity.htmlCompact = () => {
 entity.htmlFull = () => {
   let trace = 1,
     ln = gln + "htmlComponent.full::";
-  //   trace ? log("i", ln, `entity=`, entity) : null;
+  //trace ? log("i", ln, `entity=`, entity) : null;
   let html = pug.renderFile(__dirname + "/views/full.pug", {
     entity,
     controllersButton: {
@@ -39,11 +42,17 @@ entity.htmlFull = () => {
 
 entity.router = require(__dirname + "\\routes\\entityRouter.js");
 
+if (trace) {
+  log("i", gln, `entity=`);
+  console.dir(entity);
+}
+
 module.exports = entity;
 
 if (!module.parent) {
-  console.log("--------------------------------");
+  console.log("----------entity.js:: entity= ----------------------");
+  console.dir(entity.process.fullHTML());
   //   console.dir(entity);
-  log(entity.html.compact());
-  log(entity.html.full());
+  //log(entity.html.compact());
+  //log(entity.html.full());
 }

@@ -33,13 +33,15 @@ class FlowControler {
    * @param {Array of Point}  props.calibrationTable - калібрувальна таблиця витратомірів, Point={x:%,y:m3/h}
    * */
   constructor(props = null) {
-    log("i", `=====> props=`);
-    console.dir(props);
-
     /** @private {String} ln - загальний підпис для логування */
     this.ln = `FlowControler(${props.id ? props.id : "null"})::`;
     let ln = this.ln + "constructor()::",
-      trace = 1;
+      trace = 0;
+
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
 
     // ---------------- this.id --------------------------------
 
@@ -66,27 +68,27 @@ class FlowControler {
         value: props.pressureList.warning ? props.pressureList.warning : 20,
         note: {
           code: "warning",
-          ua: `Увага! Низький тиск`,
-          en: `Warning! Low pressure`,
-          ru: `Внимание! Низкое давление`,
+          ua: `Низький`,
+          en: `Low`,
+          ru: `Низкое`,
         },
       },
       normal: {
         value: props.pressureList.normal ? props.pressureList.normal : 100,
         note: {
           code: "normal",
-          ua: `Тиск в нормі`,
-          en: `Pressure Ok.`,
-          ru: `Давление в норме`,
+          ua: `Норма`,
+          en: `Ok.`,
+          ru: `Норма`,
         },
       },
       high: {
         value: props.pressureList.high ? props.pressureList.high : 110,
         note: {
           code: "high",
-          ua: `Високий тиск`,
-          en: `High pressure`,
-          ru: `Высокое давление`,
+          ua: `Високий`,
+          en: `High`,
+          ru: `Высокое`,
         },
       },
       notdefined: {
@@ -402,7 +404,7 @@ class FlowControler {
    * Періодична перевірка поточного значення потоку. Запускається кожні this.state.askPeriod сек
    */
   async checkPV() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "checkPV(" + new Date().toLocaleTimeString() + ")::";
     let logLevel = trace ? "info" : "";
     trace ? log(ln, `Started`) : null;
@@ -598,6 +600,7 @@ class FlowControler {
         switch (key) {
           case "SP":
             res.data[key] = await this.setSP(regs[key]);
+            log("w", ln, `(${key})=regs[key]`);
             break;
           default:
             log("w", ln, "Undefined register:[" + element + "]");
@@ -610,7 +613,7 @@ class FlowControler {
   getRegs(list) {
     //list = list.slice(1, -1);
     let obj = { err: null, data: null };
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `getRegs(${list})::`;
     trace ? log("i", ln, `Started`) : null;
     list = list.split(";");

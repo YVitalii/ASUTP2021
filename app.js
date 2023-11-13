@@ -98,10 +98,10 @@ app.use(passport.session(), (req, res, next) => {
 
 app.use("/login", loginRouter);
 app.use(passport.testLogin); // проверяем авторизованный пользователь или нет, если нет перенаправляем на страничку /login
+// початкова сторінка
 app.use("/", indexRouter);
-// app.use(/:id)
 
-// app.use("/SShAM-7-12_2023", SShAM_7_12_Router);
+// визначення сутності та запамятовування її в req.entity
 app.use("/entity/:id", (req, res, next) => {
   let trace = 0,
     ln = logName + "app.use(/:id)::";
@@ -119,9 +119,14 @@ app.use("/entity/:id", (req, res, next) => {
     res.status(404).send(`Entity [${entName}] not found!`);
     return;
   }
+
   // запамятовуємо id сутності в об'єкті запиту
   req.entity = ent;
-  trace ? log("i", ln, `req.entity.id=`, req.entity.id) : null;
+  //trace ? log("i", ln, `req.entity.id=`, req.entity.id) : null;
+  if (trace) {
+    log("i", ln, `req.entity=`);
+    console.dir(req.entity);
+  }
   // передаємо керування далі
   next();
 });
@@ -175,7 +180,7 @@ app.post("/entity/:id/controllers/:contrId/setRegs", (req, res, next) => {
 });
 
 app.post("/entity/:id/controllers/:contrId", (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = logName + `app.use(${req.originalUrl})::`;
   trace ? log("w", ln, "Started") : null;
   req.entity.router(req, res, next);
@@ -183,7 +188,7 @@ app.post("/entity/:id/controllers/:contrId", (req, res, next) => {
 });
 
 app.use("/entity/:id/controllers", (req, res) => {
-  let trace = 1,
+  let trace = 0,
     ln = logName + `app.use("${req.originalUrl}")::`;
   if (trace) {
     log("i", ln, `req.entity.controllers.about=`);
@@ -195,6 +200,14 @@ app.use("/entity/:id/controllers", (req, res) => {
       req.entity.fullName +
       `<br> <small> ${req.entity.controllers.about.fullName.ua} </small>`,
   });
+});
+
+app.get("/entity/:id/process", (req, res, next) => {
+  res.render("main.pug", {
+    body: req.entity.process.htmlFull(),
+  });
+  req.entity.process.router(req, res, next);
+  res.send(ln);
 });
 
 app.use("/entity/:id/", (req, res) => {

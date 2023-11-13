@@ -6,10 +6,12 @@ const syncFileWorker = require("../../tools/syncFileWorker.js");
 const fs = require("fs");
 // модуль з описом співвідношень полів
 const programTransform = require("./programTransform.js");
+
+const dummy = require("../../tools/dummy").dummyPromise; // асинхронна заглушка
+
 /** клас, що відповідає за виконання всієї програми
  *
  */
-const dummy = require("../../tools/dummy").dummyPromise; // асинхронна заглушка
 
 class ThermProcess {
   #RUN_MODE_PERIOD = 15 * 1000; //період опитування приладів в режимі ПУСК (кожні ?? сек)
