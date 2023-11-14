@@ -202,11 +202,17 @@ app.use("/entity/:id/controllers", (req, res) => {
   });
 });
 
-app.get("/entity/:id/process", (req, res, next) => {
+app.use("/entity/:id/process/", (req, res, next) => {
+  let trace = 1,
+    ln = logName + `app.use("${req.originalUrl}")::`;
+  if (trace) {
+    log("i", ln, `req.entity=`);
+    console.dir(req.entity);
+  }
   res.render("main.pug", {
     body: req.entity.process.htmlFull(),
   });
-  req.entity.process.router(req, res, next);
+  // req.entity.process.router(req, res, next);
   res.send(ln);
 });
 

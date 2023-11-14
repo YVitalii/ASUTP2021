@@ -235,7 +235,7 @@ script.
 
   #{xhrt}.onerror = function(){
     let ln="#{ctrl_id}.xhrT.onerror::"
-    let xhrT=#{ctrl_id}.xhrT
+    let xhrT=#{ctrl_id}.xhrt
     console.log(ln + "Error: Connection down !!!" );
     #{ctrl_id}.errorRegs();
     setTimeout( () => {#{ctrl_id}.getRegs();},5000);
@@ -245,6 +245,7 @@ script.
   //- запит на отримання даних з сервера
 
   #{ctrl_id}.getRegs= () => {
+    //- 2023-11-14 тут помилка при запитах зі сторінки контролерів, буде шлях  /controllers/controllers
     let url = new URL(document.baseURI + `/controllers/#{ctrl_id}/getRegs`);
     url.searchParams.set("regs","SP;PV;flow;state;pressure");
 
@@ -253,14 +254,12 @@ script.
     //console.log("Request [ "+url+" ]was sended");
   }
 
-  //- #{ctrl_id}.getAll_url =  //- запит на отримання вcього комплекту даних
-  //- #{ctrl_id}.setSP_url = "/#{ctrl_id}/setSP"; // запит на зміну SP
+  //  перший запит  
   setTimeout( () => {#{ctrl_id}.getRegs();},3000);
+
   //  обробники подій зміни завдання SP
   document.getElementById("#{ctrl_id}_SP_range").onchange=function (event) {
   let value = event.target.value;
-  //#{props}.SP.updateValue(value);
-
   let url = new URL(document.baseURI + `/controllers/#{ctrl_id}/setRegs`);
     url.searchParams.set("regs",JSON.stringify({SP:value}));
   console.log("#{ctrl_id}_onchange::",url);

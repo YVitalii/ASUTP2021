@@ -10,7 +10,7 @@
 
 
 //- для трасування
-pre #{JSON.stringify(entity.process)}
+//- pre #{JSON.stringify(entity.process)}
 //- pre #{JSON.stringify(controllersArr[0].htmlFull())}
 
 
@@ -19,10 +19,9 @@ div(class="row")
   each item in controllersArr
     div(class="col")
       div !{item.htmlFull()}
-
+hr
 div(class="row h-100")
-  h3 Program
-  //- div(class="col-3") !{entity.process.fullHTML()}
+  div(class="col-3") !{entity.process.htmlFull(entity)}
   div(class="col")
     h3 Тут має бути графік
 

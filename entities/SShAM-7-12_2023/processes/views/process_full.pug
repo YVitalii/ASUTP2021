@@ -1,9 +1,161 @@
+-var id="main_"
+
+
 form
   fieldset
     legend Програма
+    //-  температура
     div(class="form-group row")
-      label(for="tT" class="col-2 col-form-label") Температура, &deg;С
-      div(class="col-3")
-        input(type="number" class="form-control-number" id="tT")
+      label(for=`${id}tT` class="col-form-label") Температура, &deg;С
+      div(class="col")
+        input(type="number" class="col-6 form-control-number" id=`${id}tT` placeholder="???" data-before=0)
+    //-  Час розігрівання
+    div(class="form-group row")
+      label(for=`${id}heating` class="col col-form-label") Розігрівання, хв
+      div(class="col")
+        input(type="time" class="col-auto form-control-number" id=`${id}heating` value="00:00" data-before=0)
+    //- час витримки
+    div(class="form-group row")
+      label(for=`${id}holding` class="col col-form-label") Витримка, хв
+      div(class="col")
+        input(type="time" class="col-auto form-control-number" id=`${id}holding` value="00:00" data-before=0)
+    //- Kn
+    div(class="form-group")
+      label(for=`${id}Kn` class="col col-form-label h5") Kn, %
+      div(class="col")
+        input(type="number" class="col-6 form-control-number" id=`${id}Kn` value="0" placeholder="???" data-before=0)
+    //- Kn
+    div(class="form-group")
+      label(for=`${id}Kc` class="col col-form-label h5") Kc, %
+      div(class="col")
+        input(type="number" class="col-6 form-control-number" id=`${id}Kc` value="0" placeholder="???" data-before=0)
+    //- button
+    div(class="form-group row")
+      div(class="col-sm-10")
+        button( type="button" id=`${id}buttonSubmit` class="btn btn-primary") Застосувати
+hr
+
+-var props = id + ".props" //- для скорочення записів посилання на властивості  
+-var xhrt= id + ".xhrt"
+script.
+
+  const #{id} = function(){ return ""; };
+
+  // регістри контролера 
+  #{props} = {} ;
+
+  #{id}.minutesToTime  = function (min) { 
+    let time = (new Date(min*60*1000)).toLocaleTimeString().slice(0,5);
+    return time}
+
+  #{props}.tT={
+    updateValue: (val) => {
+      let el = document.getElementById("#{id}tT");
+      el.dataset.before.value=el.value
+      el.value = isFinite(val) ? val : undefined;
+      return val
+    }
+    ,get: ()=>{
+      let val= document.getElementById("#{id}tT").value;
+      return parseInt(val)
+    }
+  }
+
+  #{props}.heating={
+    updateValue: (val) => {
+      let trace=1, ln = '#{props}.heating.updateValue('+val+')::'
+      //- val в хвилинах
+      let el = document.getElementById("#{id}heating");
+      trace ? console.log(ln+"el=",el):null;
+      el.dataset.before=el.value
+      el.value = isFinite(val) ? #{id}.minutesToTime(val)  : undefined;
+      return val
+    }
+    ,get: ()=>{
+      let val= document.getElementById("#{id}heating").valueAsNumber;
+      return val
+    }
+  }
+
+  #{props}.holding={
+    updateValue: (val) => {
+      let trace=1, ln = '#{props}.holding.updateValue('+val+')::'
+      //- val в хвилинах
+      let el = document.getElementById("#{id}holding");
+      trace ? console.log(ln+"el=",el):null;
+      el.dataset.before=el.value
+      el.value = isFinite(val) ? #{id}.minutesToTime(val)  : undefined;
+      return val
+    }
+      ,get: ()=>{
+        let val= document.getElementById("#{id}holding").valueAsNumber;
+        return val
+    }
+  }
+
+  #{props}.Kn={
+    updateValue: (val) => {
+      let el = document.getElementById("#{id}Kn");
+      el.dataset.before.value=el.value
+      el.value = isFinite(val) ? val : undefined;
+      return val
+    }
+      ,get: ()=>{
+        let val= document.getElementById("#{id}Kn").value;
+        return  parseFloat(val)
+    }
+  }
+
+  #{props}.Kc={
+    updateValue: (val) => {
+      let el = document.getElementById("#{id}Kc");
+      el.dataset.before.value=el.value
+      el.value = isFinite(val) ? val : undefined;
+      return val
+    }
+    ,get: ()=>{
+      let val= document.getElementById("#{id}Kc").value;
+      return parseFloat(val)
+    }
+  }
+
+  #{id}.homeUrl= (()=>{
+    let ent= "#{entity.id}";
+    let url=document.baseURI;
+    let pos = url.indexOf(ent)
+    return url.slice(0,pos+ent.length)+"/process"
+  })()
+  //- "/entity/#{entity.homeUrl}process"
+
+  #{xhrt} = new XMLHttpRequest(); 
+
+  #{id}buttonSubmit.onclick=(e) => {
+    let trace=1, ln="#{id}.buttonSubmit.onclick()->";
+    let path=#{id}.homeUrl+'/setProgram';
+    trace ? console.log(ln,"path="+path) :null;
+    let url= new URL(path);
+    let data=  #{props};
+    for (let prop in  data ) {
+      if( data.hasOwnProperty( prop ) ) {
+        let d=data[prop].get()
+        if (! isFinite(d) ) {
+          alert(ln+"Поле ["+ prop+"] має бути заповнене!")
+          return
+        }
+
+        url.searchParams.set(prop,data)  
+
+      }}
+    trace ?  console.log(ln,"url=",url): null;
+
+    #{xhrt}.open("POST", url);
+    #{xhrt}.send();
+
+    console.log("buttonSubmit:"+url);
+  }
 
 
+
+
+hr
+pre #{JSON.stringify(entity.homeUrl)}
