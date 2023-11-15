@@ -18,6 +18,7 @@ const SShAM_7_12_Router = require("./entities/SShAM-7-12_2023/routes/entityRoute
 // var akonRouter = require("./routes/akon");
 // var parameterSettingRouter = require("./routes/parameterSetting");
 var loginRouter = require("./routes/login");
+const processRouter = require("./entities/general/routes/processRouter.js");
 // var reportRouter = require("./routes/report");
 // var usersRouter = require("./routes/users");
 // var setTimeRouter = require("./routes/setTime.js");
@@ -100,10 +101,19 @@ app.use("/login", loginRouter);
 app.use(passport.testLogin); // проверяем авторизованный пользователь или нет, если нет перенаправляем на страничку /login
 // початкова сторінка
 app.use("/", indexRouter);
+// - функція для трасування entity
+let traceEntity = (req, res, next) => {
+  log(
+    "w",
+    "----app.js---------->>>req.entity.mainProcess=",
+    req.entity.mainProcess
+  );
+  next();
+};
 
 // визначення сутності та запамятовування її в req.entity
 app.use("/entity/:id", (req, res, next) => {
-  let trace = 0,
+  let trace = 1,
     ln = logName + "app.use(/:id)::";
   trace ? log("i", ln, `Started`) : null;
   if (trace) {
@@ -124,12 +134,15 @@ app.use("/entity/:id", (req, res, next) => {
   req.entity = ent;
   //trace ? log("i", ln, `req.entity.id=`, req.entity.id) : null;
   if (trace) {
-    log("i", ln, `req.entity=`);
-    console.dir(req.entity);
+    log("i", ln, `req.entity.mainProcess=`);
+    console.dir(req.entity.mainProcess);
   }
   // передаємо керування далі
   next();
 });
+
+// процес, обробка запитів
+app.use("/entity/:id/process/", processRouter);
 
 // перевіряємо чи є такий контролер, якщо нема - повідомляємо про помилку
 app.use("/entity/:id/controllers/:contrId", (req, res, next) => {
@@ -153,7 +166,7 @@ app.use("/entity/:id/controllers/:contrId", (req, res, next) => {
 });
 
 app.post("/entity/:id/controllers/:contrId/getRegs", (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = logName + `app.post(${req.originalUrl})::`;
   if (trace) {
     log("i", ln, `req.query=`);
@@ -202,19 +215,20 @@ app.use("/entity/:id/controllers", (req, res) => {
   });
 });
 
-app.use("/entity/:id/process/", (req, res, next) => {
-  let trace = 1,
-    ln = logName + `app.use("${req.originalUrl}")::`;
-  if (trace) {
-    log("i", ln, `req.entity=`);
-    console.dir(req.entity);
-  }
-  res.render("main.pug", {
-    body: req.entity.process.htmlFull(),
-  });
-  // req.entity.process.router(req, res, next);
-  res.send(ln);
-});
+// app.use("/entity/:id/process/", (req, res, next) => {
+//   let trace = 1,
+//     ln = logName + `app.use("${req.originalUrl}")::`;
+//   if (trace) {
+//     log("=========================", ln, "===================================");
+//     log("i", ln, `req.query=`);
+//     console.dir(req.query, { depth: 2 });
+//   }
+//   res.render("main.pug", {
+//     body: req.entity.process.htmlFull(),
+//   });
+//   // req.entity.process.router(req, res, next);
+//   res.send(ln);
+// });
 
 app.use("/entity/:id/", (req, res) => {
   res.render("main.pug", {

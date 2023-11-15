@@ -8,10 +8,10 @@ let trace = 1,
 entity.fullName = "Піч азотування СШАМ-7.12/7";
 entity.shortName = "СШАМ-7.12/7";
 entity.id = "SShAM-7-12_2023";
+
 entity.homeUrl = entity.id + "/";
 entity.devices = devices;
 entity.controllers = require("./controllers/controllers.js");
-entity.process = require("./processes/mainProcess.js");
 
 entity.htmlCompact = () => {
   let trace = 1,
@@ -46,6 +46,7 @@ if (trace) {
   log("i", gln, `entity=`);
   console.dir(entity);
 }
+entity.program = new (require("./program/classProgram.js"))();
 
 module.exports = entity;
 

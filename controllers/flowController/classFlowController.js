@@ -613,7 +613,7 @@ class FlowControler {
   getRegs(list) {
     //list = list.slice(1, -1);
     let obj = { err: null, data: null };
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `getRegs(${list})::`;
     trace ? log("i", ln, `Started`) : null;
     list = list.split(";");
