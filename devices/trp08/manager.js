@@ -45,7 +45,14 @@ class Manager {
 
     // вираховуємо час останнього оновлення регістрів на 10 хв менше ніж тепер
     let startTime = new Date().getTime() - 10 * 60 * 1000;
-
+    /**
+     * опис параметрів приладу ТРП-08-ТП
+     * @typedef {object} regs
+     * @property {Number} T - current temperature
+     * @property {Number} state - current state of device see ./driver.js
+     *
+     *
+     */
     // поточні налаштування приладу поки null
     this.state = {
       T: {
@@ -104,6 +111,7 @@ class Manager {
         obsolescense: 180 * 1000, //період за який дані застаріють
       },
     }; //params
+
     setTimeout(async () => {
       // при ініціалізації об'єкту зчитуємо  всі налаштування з приладу
       // let req = "state; T; timer; regMode; tT; H; Y; o; ti; td; u";

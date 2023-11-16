@@ -1,61 +1,52 @@
-let dummy = require("./../../../../tools/dummy");
-let log = require("./../../../../tools/log");
-let gLn = "<" + __filename.replace(__dirname, "").slice(1) + ">::";
-/** Крок - асинхронна функція що виконує задачу, повертає promise
- * @param {Object} program - посилання на програму
- */
-async function step(entity) {
-  let trace = 1,
-    ln = `step[Початок]`;
-  let request = {
-    manualCheck: [
-      {
-        ua: `Кришка печі закрита`,
-        en: `Cover of furnace closed `,
-        ru: ``,
-      },
-      {
-        ua: `Затискачі кришки встановлені`,
-        en: `The clamps of cover enabled`,
-        ru: ``,
-      },
-      {
-        ua: `Водяне охолодження ввімкнене`,
-        en: `Water cooling enabled`,
-        ru: ``,
-      },
-    ],
-  };
-  if (entity.program.task.Kn != 0) {
-    let r = request.manualCheck;
-    r.push({
-      ua: `Утилізатор ввімкнено, нагрівання запущено`,
-      en: ``,
-      ru: ``,
-    });
-    r.push({
-      ua: ` Азот є  `,
-      en: ``,
-      ru: ``,
-    });
-    r.push({
-      ua: ` Аміак є  `,
-      en: ``,
-      ru: ``,
-    });
+/** Загальний клас кроку програми, соновна логіка та влаштування */
+class ClassStep {
+  constructor(props = {}) {
+    let trace = 1;
+    this.ln = "ClassStep()::";
+    this.state = "waiting"; // поточний стан кроку, перелік можливих станів: ["waiting","going","finished","error"]
+    this.err = null; // зберігає опис помилки
+    /** Опис кроку, виводиться в полі програми */
+    this.title = props.title
+      ? props.title
+      : { ua: `Невизначено`, en: `Undefined`, ru: `` };
   }
-  if (entity.program.task.Kс != 0) {
-    let r = request.manualCheck;
-    r.push({
-      ua: `Вуглекислота є`,
-      en: ``,
-      ru: ``,
-    });
+
+  start() {
+    this.state = "going";
   }
-  if (trace) {
-    log("i", ln, `request=`);
-    console.dir(request);
+
+  stop() {
+    this.state = "stoped";
   }
-  await dummy(1, true);
-  trace ? log("i", ln, `Started`) : null;
+
+  finish() {
+    this.step = "finished";
+  }
+
+  async testState() {
+    // якщо крок завершено повертаємо Успіх
+    if (this.state == "finished") {
+      return 1;
+    }
+    // якщо виникла помилка кидаємо помилку
+    if (this.state == "error") {
+      throw new Error("");
+    }
+    if (this.state == "going") {
+      // якщо крок в стані виконання, плануємо наступну перевірку
+      process.nextTick(() => {
+        this.testState();
+      });
+    }
+    if (this.state == "waiting") {
+      // якщо очікування плануємо наступну перевірку через 3 сек
+      setTimeout(() => {
+        this.testState();
+      }, 3000);
+    }
+    // стан не визначений
+    throw new Error(this.ln + "Undefined state of step::" + this.state);
+  }
 }
+
+module.exports = ClassStep;
