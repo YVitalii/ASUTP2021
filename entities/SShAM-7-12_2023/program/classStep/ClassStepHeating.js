@@ -49,7 +49,7 @@ class ClassHeating extends Step {
     // асинхронна функція для зупинки програми на приладі
     if (typeof props.deviceStop != "function") {
       throw new Error(
-        "props.deviceStop musope a function, but received: " +
+        "props.deviceStop mus be a function, but received: " +
           typeof props.deviceStop
       );
     }

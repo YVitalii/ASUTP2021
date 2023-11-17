@@ -9,20 +9,32 @@ class ClassStep {
     this.title = props.title
       ? props.title
       : { ua: `Невизначено`, en: `Undefined`, ru: `` };
+    this.ln = "ClassStep(" + this.title.ua + ")::";
+  }
+
+  logger(level, msg) {
+    log(level, this.ln, "[", new Date().toLocaleTimeString() + "]::" + msg);
   }
 
   start() {
+    logger("w", "Started!!");
     this.state = "going";
   }
 
   stop() {
+    logger("w", "Stoped!!");
     this.state = "stoped";
   }
 
   finish() {
-    this.step = "finished";
+    logger("w", "Finished!!");
+    this.state = "finished";
   }
-
+  error(err) {
+    logger("e", "Happen an Error!!");
+    this.state = "error";
+    throw new Error(err);
+  }
   async testState() {
     // якщо крок завершено повертаємо Успіх
     if (this.state == "finished") {
@@ -45,7 +57,11 @@ class ClassStep {
       }, 3000);
     }
     // стан не визначений
-    throw new Error(this.ln + "Undefined state of step::" + this.state);
+    this.error({
+      ua: `Невизначений стан кроку` + this.state,
+      en: `Undefined state of step` + this.state,
+      ru: ``,
+    });
   }
 }
 
