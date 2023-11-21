@@ -4,7 +4,7 @@ const dummy = require("../../../../tools/dummy.js").dummyPromise;
 /** Загальний клас кроку програми, соновна логіка та влаштування */
 class ClassStep {
   constructor(props = {}) {
-    let trace = 1;
+    let trace = 0;
 
     this.state = "waiting"; // поточний стан кроку, перелік можливих станів: ["waiting","going","finished","error"]
     this.err = null; // зберігає опис помилки
@@ -25,7 +25,7 @@ class ClassStep {
         })();
 
     // сек, період опитування поточної температури, по замовчуванню кожні 5 сек
-    this.periodCheckT = props.periodCheckT ? props.periodCheckT * 1000 : 5000;
+    this.periodCheckT = props.periodCheckT ? props.periodCheckT * 1000 : 2000;
 
     // асинхронна функція для отримання поточної температури
     if (typeof props.getT != "function") {
@@ -43,33 +43,61 @@ class ClassStep {
     log(level, this.ln, "[", new Date().toLocaleTimeString() + "]::" + msg);
   }
 
+  async beforeStart() {
+    this.logger("w", "beforeStart()::Started");
+    return 1;
+  }
+  async afterAll() {
+    this.logger("w", "afterAll()::Started");
+    return 1;
+  }
+
   async start() {
-    this.logger("w", "Received command  'Start'");
+    this.logger("w", "start()::Received command  'Start'");
     this.state = "going";
+    try {
+      await this.beforeStart();
+      this.logger("w", "beforeStart()::Completed.");
+    } catch (error) {
+      this.error(error);
+    }
+
     //this.promise = new Promise();
 
     return new Promise(async (resolve, reject) => {
       let test = this.testState();
       while (!test) {
+        //log("test=", test);
         await dummy(2000);
         test = this.testState();
+      }
+      try {
+        await this.afterAll();
+        this.logger("w", "afterAll()::Completed.");
+      } catch (error) {
+        this.logger("w", "Error executing afterAll()");
+        throw new Error("Error executing afterAll() ");
       }
       resolve(1);
     });
   }
 
   stop() {
-    this.logger("w", "Received command 'Stop'");
-    this.state = "finished";
+    let note = msg.en ? msg.en : "undefined";
+    this.logger("w", "stop()::Received command 'Stop'");
+    this.currNote = msg;
+    this.state = "stoped";
   }
 
-  finish() {
-    this.logger("w", "Received command  finish !!");
+  finish(msg) {
+    let note = msg.en ? msg.en : "undefined";
+    this.logger("w", "finish()::Received command  finish !!::" + note);
     this.state = "finished";
+    this.currNote = msg;
   }
 
   error(err) {
-    this.logger("e", "Happen an Error:" + err.ua);
+    this.logger("e", "error(err)::Happen an Error:" + err.ua);
     this.state = "error";
     this.err = err;
   }
@@ -82,6 +110,12 @@ class ClassStep {
     // якщо крок завершено повертаємо Успіх
     if (this.state == "finished") {
       trace ? log("i", ln, `Finished!!`) : null;
+      return 1;
+    }
+
+    // якщо крок завершено повертаємо Успіх
+    if (this.state == "stoped") {
+      trace ? log("i", ln, `Stoped!!`) : null;
       return 1;
     }
 

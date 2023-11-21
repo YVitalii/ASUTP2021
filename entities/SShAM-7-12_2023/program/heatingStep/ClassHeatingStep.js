@@ -14,7 +14,10 @@ class ClassHeatingStep extends ClassStep {
    * @property {Number} props.errH=0 - хв, помилка часу нагрівання; 0 = не контролювати
    * @property {Number} props.periodCheckT=5 - сек, період між опитуваннями поточної температури
    * @property {async Function} props.getT - функція запиту поточної температури
-   *
+   * @property {Object} props.wave - параметри пошуку точки перегину тренду температури
+   * @property {Number} props.wave.period=30 - сек, період між опитуванням поточної температури
+   * @property {Number} props.wave.dT=1 - *С, рахується що настала вершина хвилі, коли середня похідна менше цього значення
+   * @property {Number} props.wave.points=10, кількість точок для розрахунку середньої похідної
    */
 
   constructor(props) {
@@ -32,10 +35,31 @@ class ClassHeatingStep extends ClassStep {
 
     // максимальний час запізнення нагрівання, після якого рахується помилка
     this.errH = props.errH ? props.errH : 0;
+
+    // індикатор під-кроку процесу нагрівання, true - йде розігрів, false - йде осікування 1-ї хвилі
+    this.heating = true;
+
+    // налаштування для пошуку точки перегину тренду температури
+    this.wave = {};
+    props.wave = props.wave ? props.wave : {};
+    this.wave.period = props.wave.period ? props.wave.period : 30;
+    this.wave.dT = props.wave.dT ? props.wave.dT : 1;
+    this.wave.points = props.wave.points ? props.wave.points : 10;
+    this.wave.arr = []; // массив для зберігання останніх this.wave.points значень
+    for (let i = 0; i < this.wave.points; i++) {
+      this.wave.arr.push(10);
+    }
+    this.wave.pointer = 0; // курсор в масиві для вставлення нового значення
+    this.wave.beforeT = 0; // попередня температура
+    if (trace) {
+      log("i", ln, `this=`);
+      console.dir(this);
+    }
   }
 
   async start() {
     this.startTime = new Date().getTime();
+    this.heating = true;
     this.testProcess();
     return await super.start();
   }
@@ -44,28 +68,81 @@ class ClassHeatingStep extends ClassStep {
     let trace = 1,
       ln = this.ln + "testProcess(" + new Date().toLocaleTimeString() + ")::";
     // trace ? log("i", ln, `Started!!`) : null;
-    let t = null;
 
+    // якщо процесс в стані зупинки, помилки, кінця - виходимо
+    if (
+      this.state == "stoped" ||
+      this.state == "finished" ||
+      this.state == "error"
+    ) {
+      return this.state;
+    }
+
+    // якщо стан процесу:очікування, плануємо свій запуск пізніше та виходимо
+    if (this.state == "waiting") {
+      setTimeout(() => this.testProcess(), this.periodCheckT);
+      return;
+    }
+
+    // відмітка часу
+    this.currTime = (new Date().getTime() - this.startTime) / 1000;
+
+    // запит температури
+    let t = null;
     try {
       t = await this.getT();
-      trace ? log("", ln, `t=`, t) : null;
+      trace ? log("", ln, `t=${t}C; Process time: ${this.currTime}s`) : null;
     } catch (error) {
+      this.logger("e", ln + `Error when try execute function this.getT`);
+      console.dir(error);
       this.error(error);
       return;
     }
 
-    if (this.taskT.min && t < this.taskT.min) {
-      this.error({
-        ua: `Низька температура!`,
-        en: `Low temperature!`,
-        ru: `Низкая температура!`,
-      });
-      return;
+    // якщо під-крок нагрівання - перевіряємо умови інакше витримка
+    if (this.heating) {
+      this.checkHeating(t);
+    } else {
+      this.checkWave(t);
     }
 
-    if (this.taskT.max && t > this.taskT.max) {
+    // запускаємо наступну перевірку
+    setTimeout(() => this.testProcess(), this.periodCheckT);
+  }
+
+  checkWave(t) {
+    let trace = 0,
+      ln = this.ln + "checkWave(" + t + ")::";
+    let dT = t - this.wave.beforeT;
+    this.wave.beforeT = t;
+    this.wave.arr[this.wave.pointer] = dT;
+    this.wave.pointer += 1;
+    if (this.wave.pointer >= this.wave.points) {
+      this.wave.pointer = 0;
+    }
+    if (trace) {
+      log("i", ln, `this.wave=`);
+      console.dir(this.wave);
+    }
+    let sum = 0;
+    for (let i = 0; i < this.wave.points; i++) {
+      sum += this.wave.arr[i];
+    }
+    sum = sum / this.wave.points;
+    trace ? log("i", ln, `sum=`, sum) : null;
+    if (sum <= this.wave.dT) {
+      this.finish({
+        ua: `Нагрівання завершено`,
+        en: `Heating finished`,
+        ru: `Нагрев завершен`,
+      });
+    }
+  }
+
+  checkHeating(t) {
+    if (this.errT.max && t > this.taskT + this.errT.max) {
       this.error({
-        ua: `Висока температура!`,
+        ua: `Перевищена температура!`,
         en: `Hight temperature!`,
         ru: `Высокая температура!`,
       });
@@ -74,17 +151,19 @@ class ClassHeatingStep extends ClassStep {
 
     if (t >= this.taskT) {
       // температура досягнута, кінець
-      this.logger("w", "Цільова температура досягнута!");
-      this.finish();
+      this.logger(
+        "w",
+        "Цільова температура досягнута! Очікуємо стабілізації. "
+      );
+      this.heating = false;
+      this.wave.beforeT = t;
       return 1;
     }
 
     if (this.errH != 0) {
       // якщо помилка розігрівання не дорівнює 0
-      let currTime = (new Date().getTime() - this.startTime) / 1000;
-      trace ? log("", ln, `Process time= `, parseInt(currTime), " s") : null;
 
-      if (currTime > (this.H + this.errH) * 60) {
+      if (this.currTime > (this.H + this.errH) * 60) {
         // якщо час сплив
         this.error({
           ua: `Перевищено час нагрівання !!!`,
@@ -94,8 +173,6 @@ class ClassHeatingStep extends ClassStep {
         return;
       }
     }
-
-    setTimeout(() => this.testProcess(), this.periodCheckT);
   }
 }
 

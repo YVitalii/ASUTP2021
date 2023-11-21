@@ -1,8 +1,8 @@
 let Heating = require("../ClassHeatingStep.js");
-let Holding = require("../ClassHoldingStep.js");
-//let TRP = require("../../../../../devices/trp08/manager.js");
-//const iface = require("../../../../../conf_iface.js");
+let TRP = require("../../../../../devices/trp08/manager.js");
+const iface = require("../../../../../conf_iface.js");
 const log = require("../../../../../tools/log.js");
+let emulate = 0; //1- емулятор; 0 - реальний прилад
 const Device = require("../../../../../devices/ClassTemperatureEmulator.js");
 let trace = 1,
   ln = "createHeatingStep()::";
@@ -16,7 +16,13 @@ props = {
   errT: { min: undefined, max: 100 },
 };
 
-let dev = new Device({ heating: { tT: props.taskT, time: props.H * 60 } });
+let dev;
+
+if (emulate) {
+  dev = new Device({ heating: { tT: props.taskT, time: props.H * 60 } });
+} else {
+  dev = new TRP(iface, 1);
+}
 
 props.getT = async () => {
   return await dev.getT();
@@ -25,8 +31,11 @@ let step = new Heating(props);
 
 (async () => {
   log("w", "----------- нормальне завершення процесу ----------");
-  await dev.start();
-  await step.start();
+
+  setTimeout(async () => {
+    await dev.start();
+    await step.start();
+  }, 1000);
 
   // log("w", "----------- завершення процесу по перевищенню часу  ----------");
   // dev.heating.tT = props.taskT;

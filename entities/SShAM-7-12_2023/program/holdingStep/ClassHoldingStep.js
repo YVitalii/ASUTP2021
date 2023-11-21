@@ -31,32 +31,33 @@ class ClassHoldingStep extends ClassStep {
   async testProcess() {
     let trace = 1,
       ln = this.ln + "testProcess(" + new Date().toLocaleTimeString() + ")::";
+    this.currTime = (new Date().getTime() - this.startTime) / 1000;
     // trace ? log("i", ln, `Started!!`) : null;
     let t = null;
     try {
       t = await this.getT();
-      trace ? log("i", ln, `t=`, t) : null;
+      //trace ? log("i", ln, `t=`, t) : null;
     } catch (error) {
       this.error(error);
       return;
     }
-
-    if (this.taskT.min && t < this.taskT.min) {
+    trace ? log("", ln, `t=${t}; process time = ${this.currTime}`) : null;
+    if (this.errT.min && t < this.taskT + this.errT.min) {
       this.error({
         ua: `Низька температура!`,
         en: `Low temperature!`,
         ru: `Низкая температура!`,
       });
-      return;
+      return 1;
     }
 
-    if (this.taskT.max && t > this.taskT.max) {
+    if (this.errT.max && t > this.taskT + this.errT.max) {
       this.error({
         ua: `Висока температура!`,
         en: `Hight temperature!`,
         ru: `Высокая температура!`,
       });
-      return;
+      return 1;
     }
 
     if (this.Y != 0) {
@@ -71,9 +72,11 @@ class ClassHoldingStep extends ClassStep {
           en: `Holding  finished !!!`,
           ru: `Удержание завершено !!!`,
         });
-        return;
+        return 1;
       }
     }
+    // запускаємо наступну перевірку
+    setTimeout(() => this.testProcess(), this.periodCheckT);
   }
 }
 

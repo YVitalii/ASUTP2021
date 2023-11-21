@@ -1,4 +1,5 @@
 let log = require("../tools/log");
+let dummy = require("../tools/dummy").dummyPromise;
 
 class ClassTemperatureEmulator {
   /**
@@ -38,17 +39,28 @@ class ClassTemperatureEmulator {
     this.startTime = undefined;
     this.parabola = {};
     this.sin = undefined;
+    this.createParabola();
+    this.createSin();
+
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
     }
   }
 
-  async start(tT = undefined) {
-    this.heating.tT = tT ? tT : this.heating.tT;
-    let trace = 1,
-      ln = this.ln + "start(" + tT + ")";
-    this.startTime = new Date().getTime();
+  async setRegs(regs) {
+    log("w", this.ln, "setRegs(" + JSON.stringify(regs) + ")");
+    return await dummy();
+  }
+
+  async stop() {
+    log("w", this.ln, "Device stoped!");
+    return await dummy();
+  }
+
+  createParabola() {
+    let trace = 0,
+      ln = this.ln + "createParabola()::";
     //  розраховуємо параметри параболи
     let x1 = 0,
       y1 = 20;
@@ -77,6 +89,9 @@ class ClassTemperatureEmulator {
     };
     this.y3 = y3;
     this.x3 = x3;
+  }
+
+  createSin() {
     this.sin = () => {
       let trace = 0,
         ln = this.ln + "sin()::";
@@ -86,19 +101,37 @@ class ClassTemperatureEmulator {
       trace ? log("i", ln, `time=`, time) : null;
       return this.y3 - this.holding.dT * Math.sin(time);
     };
+  }
+
+  async start(tT = undefined) {
+    this.heating.tT = tT ? tT : this.heating.tT;
+    this.startTime = new Date().getTime();
+    let trace = 0,
+      ln = this.ln + "Started(" + tT + ")::";
+    this.createParabola();
+    this.createSin();
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
     }
   }
+
   async getT() {
     let trace = 0,
-      ln = this.ln + "getT()";
+      ln = this.ln + "getT()::";
+    await dummy();
+    if (trace) {
+      log("i", ln, `this=`);
+      console.dir(this);
+    }
+
     let x = (new Date().getTime() - this.startTime) / 1000;
     if (x >= this.x3) {
       return parseInt(this.sin());
     }
-    return parseInt(this.parabola.y());
+
+    let t = this.parabola.y();
+    return parseInt(t);
   }
 }
 
@@ -107,7 +140,7 @@ module.exports = ClassTemperatureEmulator;
 if (!module.parent) {
   let t = new ClassTemperatureEmulator();
   t.start(300);
-  setInterval(() => {
-    console.log(t.getT());
+  setInterval(async () => {
+    console.log(await t.getT());
   }, 1000);
 }

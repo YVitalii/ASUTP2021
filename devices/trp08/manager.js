@@ -138,7 +138,7 @@ class Manager {
    * @param {Object} params - об'єкт з даними: {tT:50; o:10,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
    */
   async setParams(params = {}) {
-    let trace = 0;
+    let trace = 1;
     let ln = this.ln + `setParams():: `;
     trace ? console.log(ln, "Started") : null;
     let err = "";
