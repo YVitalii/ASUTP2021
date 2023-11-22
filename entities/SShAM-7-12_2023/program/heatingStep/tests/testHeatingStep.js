@@ -1,8 +1,8 @@
 let Heating = require("../ClassHeatingStep.js");
-let TRP = require("../../../../../devices/trp08/manager.js");
-const iface = require("../../../../../conf_iface.js");
+//let TRP = require("../../../../../devices/trp08/manager.js");
+//const iface = require("../../../../../conf_iface.js");
 const log = require("../../../../../tools/log.js");
-let emulate = 0; //1- емулятор; 0 - реальний прилад
+let emulate = 1; //1- емулятор; 0 - реальний прилад
 const Device = require("../../../../../devices/ClassTemperatureEmulator.js");
 let trace = 1,
   ln = "createHeatingStep()::";
@@ -14,6 +14,9 @@ props = {
   H: 0.5,
   errH: 0.5,
   errT: { min: undefined, max: 100 },
+  wave: {
+    period: 1,
+  },
 };
 
 let dev;

@@ -9,7 +9,7 @@ class ClassTemperatureEmulator {
    * @property {Number} props.heating.tT=200 - *С, задана температура tT
    * @property {Number} props.heating.time=30 - сек, тривалість набору температури tT
    * @property {Object} props.firstWave - параметри першої хвилі перерегулювання
-   * @property {Number} props.firstWave.time=20 - сек, тривалість перщої хвилі
+   * @property {Number} props.firstWave.time=10 - сек, тривалість перщої хвилі
    * @property {Object} props.holding - параметри етапу витримки
    * @property {Number} props.holding.dT=5 - *С, межі зміни теператури навколо tT
    * @property {Number} props.holding.time=20 - сек, період коливань
@@ -30,7 +30,7 @@ class ClassTemperatureEmulator {
           tT: 200, // заздана температура
         };
     this.firstWave = {
-      time: 20, // сек, тривалість першої хвилі
+      time: 10, // сек, тривалість першої хвилі
     };
     this.holding = {
       dT: 5, // ±*С, амплітуда коливань

@@ -1,10 +1,10 @@
 const log = require("../../../../tools/log.js");
-let ClassStep = require("../classStep/ClassStep.js");
+let ClassThermoStep = require("../classStep/ClassThermoStep.js");
 
 /**
  * Клас виконує крок "Нагрівання"
  */
-class ClassHeatingStep extends ClassStep {
+class ClassHeatingStep extends ClassThermoStep {
   /**
    * Конструктор
    * @param {*} props
@@ -15,8 +15,9 @@ class ClassHeatingStep extends ClassStep {
    * @property {Number} props.periodCheckT=5 - сек, період між опитуваннями поточної температури
    * @property {async Function} props.getT - функція запиту поточної температури
    * @property {Object} props.wave - параметри пошуку точки перегину тренду температури
+   *
    * @property {Number} props.wave.period=30 - сек, період між опитуванням поточної температури
-   * @property {Number} props.wave.dT=1 - *С, рахується що настала вершина хвилі, коли середня похідна менше цього значення
+   * @property {Number} props.wave.dT=0.1 - *С, рахується що настала вершина хвилі, коли середня похідна менше цього значення
    * @property {Number} props.wave.points=10, кількість точок для розрахунку середньої похідної
    */
 
@@ -36,7 +37,7 @@ class ClassHeatingStep extends ClassStep {
     // максимальний час запізнення нагрівання, після якого рахується помилка
     this.errH = props.errH ? props.errH : 0;
 
-    // індикатор під-кроку процесу нагрівання, true - йде розігрів, false - йде осікування 1-ї хвилі
+    // індикатор під-кроку процесу нагрівання, true - йде розігрів, false - йде очікування 1-ї хвилі
     this.heating = true;
 
     // налаштування для пошуку точки перегину тренду температури
@@ -69,6 +70,9 @@ class ClassHeatingStep extends ClassStep {
       ln = this.ln + "testProcess(" + new Date().toLocaleTimeString() + ")::";
     // trace ? log("i", ln, `Started!!`) : null;
 
+    //період опитування в мс, для диференціації часу опитування в залежності від стадії кроку
+    let period = this.periodCheckT * 1000;
+
     // якщо процесс в стані зупинки, помилки, кінця - виходимо
     if (
       this.state == "stoped" ||
@@ -80,7 +84,7 @@ class ClassHeatingStep extends ClassStep {
 
     // якщо стан процесу:очікування, плануємо свій запуск пізніше та виходимо
     if (this.state == "waiting") {
-      setTimeout(() => this.testProcess(), this.periodCheckT);
+      setTimeout(() => this.testProcess(), period * 2);
       return;
     }
 
@@ -90,24 +94,31 @@ class ClassHeatingStep extends ClassStep {
     // запит температури
     let t = null;
     try {
+      // if (trace) {
+      //   log("i", ln, `this=`);
+      //   console.dir(this);
+      // }
+      // запит температури
       t = await this.getT();
       trace ? log("", ln, `t=${t}C; Process time: ${this.currTime}s`) : null;
+
+      // якщо під-крок нагрівання - перевіряємо умови інакше витримка
+      if (this.heating) {
+        this.checkHeating(t);
+      } else {
+        this.checkWave(t);
+        period = this.wave.period * 1000;
+      }
     } catch (error) {
-      this.logger("e", ln + `Error when try execute function this.getT`);
+      this.logger("e", `Error when try execute function this.getT`);
       console.dir(error);
       this.error(error);
-      return;
-    }
-
-    // якщо під-крок нагрівання - перевіряємо умови інакше витримка
-    if (this.heating) {
-      this.checkHeating(t);
-    } else {
-      this.checkWave(t);
+      // на випадок помилки зв'язку не викидаємо помилку, а очікуємо відновлення
+      // return;
     }
 
     // запускаємо наступну перевірку
-    setTimeout(() => this.testProcess(), this.periodCheckT);
+    setTimeout(() => this.testProcess(), period);
   }
 
   checkWave(t) {

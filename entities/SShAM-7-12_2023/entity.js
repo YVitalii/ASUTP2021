@@ -8,6 +8,7 @@ let trace = 1,
 entity.fullName = "Піч азотування СШАМ-7.12/7";
 entity.shortName = "СШАМ-7.12/7";
 entity.id = "SShAM-7-12_2023";
+entity.maxT = 700; // maximum
 
 entity.homeUrl = entity.id + "/";
 entity.devices = devices;
