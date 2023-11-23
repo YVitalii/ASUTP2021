@@ -17,7 +17,7 @@ class ClassTemperatureEmulator {
    */
   constructor(props = {}) {
     this.ln = "ClassTemperatureEmulator()::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
     if (trace) {
       log("i", ln, `props=`);
@@ -141,6 +141,6 @@ if (!module.parent) {
   let t = new ClassTemperatureEmulator();
   t.start(300);
   setInterval(async () => {
-    console.log(await t.getT());
+    console.log("!module.parent::", await t.getT());
   }, 1000);
 }

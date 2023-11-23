@@ -5,8 +5,10 @@ const dummy = require("../../../../tools/dummy.js").dummyPromise;
 class ClassStep {
   constructor(props = {}) {
     let trace = 0;
-
-    this.state = "waiting"; // поточний стан кроку, перелік можливих станів: ["waiting","going","finished","error"]
+    this.state = {};
+    // поточний стан кроку,
+    // перелік можливих станів: "waiting","going","finished","stoped","error"
+    this.state._id = "waiting";
     this.err = null; // зберігає опис помилки
     /** Опис кроку, виводиться в полі програми */
     this.title = props.title
@@ -51,7 +53,7 @@ class ClassStep {
 
   async start() {
     this.logger("w", "start()::Received command  'Start'");
-    this.state = "going";
+    this.state._id = "going";
     try {
       await this.beforeStart();
       this.logger("w", "beforeStart()::Completed.");
@@ -81,43 +83,43 @@ class ClassStep {
 
   stop() {
     let note = msg.en ? msg.en : "undefined";
-    this.logger("w", "stop()::Received command 'Stop'");
+    this.logger("w", "stop()::" + note);
     this.currNote = msg;
-    this.state = "stoped";
+    this.state._id = "stoped";
   }
 
   finish(msg) {
     let note = msg.en ? msg.en : "undefined";
-    this.logger("w", "finish()::Received command  finish !!::" + note);
-    this.state = "finished";
+    this.logger("w", "finish()::" + note);
+    this.state._id = "finished";
     this.currNote = msg;
   }
 
   error(err) {
-    this.logger("e", "error(err)::Happen an Error:" + err.ua);
-    this.state = "error";
+    this.logger("e", "error(err)::" + err.ua);
+    this.state._id = "error";
     this.err = err;
   }
 
   testState() {
     let trace = 0,
       ln = this.ln + "testState()::";
-    trace ? log("i", ln, `this.state=`, this.state) : null;
+    trace ? log("i", ln, `this.state._id=`, this.state._id) : null;
 
     // якщо крок завершено повертаємо Успіх
-    if (this.state == "finished") {
+    if (this.state._id == "finished") {
       trace ? log("i", ln, `Finished!!`) : null;
       return 1;
     }
 
     // якщо крок завершено повертаємо Успіх
-    if (this.state == "stoped") {
+    if (this.state._id == "stoped") {
       trace ? log("i", ln, `Stoped!!`) : null;
       return 1;
     }
 
     // якщо виникла помилка кидаємо помилку
-    if (this.state == "error") {
+    if (this.state._id == "error") {
       trace ? log("i", ln, `Error!!`) : null;
       throw new Error(this.err.ua);
     }

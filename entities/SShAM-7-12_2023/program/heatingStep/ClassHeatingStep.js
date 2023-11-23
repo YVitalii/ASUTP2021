@@ -26,6 +26,8 @@ class ClassHeatingStep extends ClassThermoStep {
     trace ? log("i", "HeatingStep.constructor()::", `props=`, props) : null;
     super(props);
 
+    this.ln = "ClassHeatingStep(" + this.title.ua + ")::";
+
     let ln = this.ln + "constructor()::";
 
     // хв, тривалість розігрівання, якщо 0 = максимально швидко
@@ -69,54 +71,18 @@ class ClassHeatingStep extends ClassThermoStep {
     let trace = 1,
       ln = this.ln + "testProcess(" + new Date().toLocaleTimeString() + ")::";
     // trace ? log("i", ln, `Started!!`) : null;
-
+    if (!(await super.testProcess())) {
+      return 1;
+    }
     //період опитування в мс, для диференціації часу опитування в залежності від стадії кроку
     let period = this.periodCheckT * 1000;
-
-    // якщо процесс в стані зупинки, помилки, кінця - виходимо
-    if (
-      this.state == "stoped" ||
-      this.state == "finished" ||
-      this.state == "error"
-    ) {
-      return this.state;
+    // якщо під-крок нагрівання - перевіряємо умови інакше витримка
+    if (this.heating) {
+      this.checkHeating(this.currT);
+    } else {
+      this.checkWave(this.currT);
+      period = this.wave.period * 1000;
     }
-
-    // якщо стан процесу:очікування, плануємо свій запуск пізніше та виходимо
-    if (this.state == "waiting") {
-      setTimeout(() => this.testProcess(), period * 2);
-      return;
-    }
-
-    // відмітка часу
-    this.currTime = (new Date().getTime() - this.startTime) / 1000;
-
-    // запит температури
-    let t = null;
-    try {
-      // if (trace) {
-      //   log("i", ln, `this=`);
-      //   console.dir(this);
-      // }
-      // запит температури
-      t = await this.getT();
-      trace ? log("", ln, `t=${t}C; Process time: ${this.currTime}s`) : null;
-
-      // якщо під-крок нагрівання - перевіряємо умови інакше витримка
-      if (this.heating) {
-        this.checkHeating(t);
-      } else {
-        this.checkWave(t);
-        period = this.wave.period * 1000;
-      }
-    } catch (error) {
-      this.logger("e", `Error when try execute function this.getT`);
-      console.dir(error);
-      this.error(error);
-      // на випадок помилки зв'язку не викидаємо помилку, а очікуємо відновлення
-      // return;
-    }
-
     // запускаємо наступну перевірку
     setTimeout(() => this.testProcess(), period);
   }
@@ -142,6 +108,7 @@ class ClassHeatingStep extends ClassThermoStep {
     sum = sum / this.wave.points;
     trace ? log("i", ln, `sum=`, sum) : null;
     if (sum <= this.wave.dT) {
+      this.logger("checkWave():: Stabilization finished!");
       this.finish({
         ua: `Нагрівання завершено`,
         en: `Heating finished`,

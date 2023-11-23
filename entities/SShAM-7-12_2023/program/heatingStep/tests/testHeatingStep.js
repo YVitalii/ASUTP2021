@@ -8,7 +8,7 @@ let trace = 1,
   ln = "createHeatingStep()::";
 
 props = {
-  title: { ua: `Нагрівання.`, en: `Heating.`, ru: `` },
+  title: { ua: `Нагрівання`, en: `Heating`, ru: `Нагрев` },
   taskT: 300,
   periodCheckT: 1,
   H: 0.5,

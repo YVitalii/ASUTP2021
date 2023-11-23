@@ -31,19 +31,26 @@ class ClassProgram extends ClassStep {
     this.ln = "ClassProgram()::";
     let trace = 1,
       ln = this.ln + "constructor()";
-    this.steps = []; // поточна програма
-    this.steps[0] = {}; // перший елемент масиву - загальний опис програми
+    // поточна програма
+    this.program = {};
+    // кроки програми. Один крок = массив підкроків що можуть виконуватися паралельно
+    // Наприклад: [[step1,step2],[step3],]
+    this.program.steps = [];
+    // description of program
+    this.program.note = {};
+
     this.state = {
       // поточний стан процесу
+      // id - зарезервовано для керування задачею
       before: 0, //попередній крок, для перевірки чи можна запускати наступний крок
       step: 0, // поточний крок
-      alert: null, // повідомлення в модальному вікні
+      //alert: null, // повідомлення в модальному вікні
     };
 
     /** Головні налаштування програми */
     this.task = {};
 
-    // потрібно запустити вимкнення аварії
+    //TODO потрібно запустити вимкнення аварії
   }
 
   parseHeatingStep(task, entity) {
@@ -114,6 +121,7 @@ class ClassProgram extends ClassStep {
     // що автоматично/вручну підлаштовується  під піч/садку
     this.pid = task.pid ? task.pid : { o: 10, dt: 0, di: 0 };
     // створюємо завдання для кроку Holding
+
     let title = `${task.tT} &deg;C;${task.holding}`;
 
     let params = {
@@ -126,14 +134,18 @@ class ClassProgram extends ClassStep {
       errT: { min: -25, max: 25 },
       // якщо азотування - гріємо доки не надійде команда стоп від процесу азотування
       // якщо просто нагрівання без азотування (Кн=0), то використовуємо: витримку з завдання + 5хв
-      // додаємо 5 хв, щоб програмно зупинити + коригування для багатозонних печей + самозупинка у випадку втрати звязку
-      Y: parseInt(task.Kn) ? 0 : task.holding + 5,
+      Y: parseInt(task.Kn) ? 0 : task.holding,
       periodCheckT: 2,
-
       getT: async () => {
         return entity.devices.retortTRP.getT();
       },
     };
+
+    // TODO додаємо 5 хв, щоб програмно зупинити ТРП, призначено :
+    //    - для очікування завершення процесу в усіх приладах для багатозонних печей
+    //    - самозупинка ТРП у випадку втрати звязку з АСУ
+    //    - для тестування додаємо 0,1хв=6сек - щоб довго не чекати
+
     return new Holding(params);
   }
 
@@ -145,66 +157,86 @@ class ClassProgram extends ClassStep {
       ln = this.ln + `setProgram(${task})`;
     this.task = task;
     this.state.before = this.state.step = 0;
-    // позиція 0 зарезервована під загальний опис програми
-    // TODO потрібно додати обробку опису програми
-    this.steps = [{}];
 
-    this.steps.push(this.parseHeatingStep(task, entity));
-    this.steps.push(this.parseHoldingStep(task, entity));
+    // TODO потрібно додати обробку опису програми
+    this.program.note = {
+      title: { ua: `Програма`, en: `Program`, ru: `Программа` },
+    };
+
+    this.program.steps = [];
+
+    this.program.steps.push(this.parseHeatingStep(task, entity));
+    this.program.steps.push(this.parseHoldingStep(task, entity));
 
     //let heating = new Heating();
     //this.program.push();
   }
 
-  /** запускає крок step[=0]  */
-  async start(step = 1) {
+  /** запускає крок step[=1]  */
+  async start(step = 0) {
     let trace = 1,
       ln = this.ln + `start(${step})::`;
-    if (this.steps.length <= 1) {
+    if (this.program.steps.length <= 1) {
       this.error({
         ua: `Не завантажена програма`,
         en: `Program wasn't loaded`,
         ru: `Программа не загружена`,
       });
     }
-    this.state.step = step - 1; // step=0 contains the description of program
+    // start from step 0 for using  next()
+    this.state.step = step - 1;
+    this.state.step = this.state.step < -1 ? -1 : this.state.step;
+    // call next();
     this.next();
+    // return Promise()
     return await super.start();
-
-    for (let i = step; i < this.steps.length; i++) {
-      let step = this.steps[i];
-      if (!Array.isArray(step)) {
-        step = [step];
-      }
-      for (let j = 0; j < step.length; j++) {
-        await step[j].start();
-      }
-      trace
-        ? log(
-            "",
-            ln,
-            ` ========= Start(${i}). ${this.steps[i].title} ==========`
-          )
-        : null;
-      if (trace) {
-        log("i", ln, `this.steps[i]=`);
-        console.dir(this.steps[i]);
-      }
-
-      // if (typeof step === "Array") {
-      //   await Promise.all(step);
-      // } else {
-      //await step.start();
-      // }
-    } //for
-    return 1;
   }
+
   /** запускає наступний крок */
   async next() {
     let trace = 1,
       ln = this.ln + `next()::`;
+    // якщо стан не going - тихо виходимо
+    if (
+      (this.state.id == "waiting") |
+      (this.state.id == "stoped") |
+      (this.state.id == "finished")
+    ) {
+      return 1;
+    }
+    // next step
     this.state.step += 1;
-  }
+    if (this.state.step >= this.program.steps.length) {
+      // program finished
+      this.state.step = 0;
+      this.finish({
+        ua: `Програму закінчено`,
+        en: `Program completed`,
+        ru: `Программа завершена`,
+      });
+    }
+    // Отримуємо поточний крок
+    let step = this.program.steps[this.state.step];
+    // якщо крок не масив - перетворюємо в масив для однакових дій
+    step = Array.isArray(step) ? step : [step];
+
+    // Формуємо масив функцій запуску кроків
+    let starts = [];
+    for (let i = 0; i < step.length; i++) {
+      this.logger(
+        "w",
+        `next():========= step(${this.state.step}). ${step[i].title.en}. Started! ==========`
+      );
+      starts.push(step[i].start());
+    }
+    if (trace) {
+      log("", ln, `starts=`);
+      console.dir(starts);
+    }
+    await Promise.all(starts);
+    this.next();
+  } //next()
+
   /** зупиняє виконання програми */
   async stop() {
     let trace = 1,
