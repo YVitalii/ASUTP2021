@@ -31,5 +31,5 @@ if (trace) {
   //   await entity.program.steps[1].start();
   await entity.program.start();
 
-  log("i", ln, "program finished");
+  log("i", ln, "------------- Great! Program finished successfully ------ ");
 })();

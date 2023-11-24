@@ -37,7 +37,7 @@ class ClassProgram extends ClassStep {
     // Наприклад: [[step1,step2],[step3],]
     this.program.steps = [];
     // description of program
-    this.program.note = {};
+    this.program.description = {};
 
     this.state = {
       // поточний стан процесу
@@ -68,9 +68,9 @@ class ClassProgram extends ClassStep {
         en: `Heating ${title}min`,
         ru: `Нагревание ${title}мин`,
       },
-      taskT: task.tT - firstWave_T,
+      taskT: task.tT - firstWave_T > 0 ? task.tT - firstWave_T : 0,
       errT: { min: 0, max: 100 },
-      H: task.heating - firstWave_time,
+      H: task.heating - firstWave_time > 0 ? task.heating - firstWave_time : 0,
       errH: 0,
       periodCheck: 2,
       getT: async () => {
@@ -159,15 +159,34 @@ class ClassProgram extends ClassStep {
     this.state.before = this.state.step = 0;
 
     // TODO потрібно додати обробку опису програми
-    this.program.note = {
+    this.program.description = {
       title: { ua: `Програма`, en: `Program`, ru: `Программа` },
     };
-
+    if (task.Kn > 0) {
+      if (task.Kc > 0) {
+        this.program.type = {
+          ua: `Нітрокарбюризація`,
+          en: `Nitrocarburization`,
+          ru: `Нитрокарбюризация`,
+        };
+      }
+      this.program.type = {
+        ua: `Азотування`,
+        en: `Nitriding`,
+        ru: `Азотирование`,
+      };
+    } else {
+      this.program.type = {
+        ua: `Термообробка`,
+        en: `Thermal Treatment`,
+        ru: `Термообработка`,
+      };
+    }
+    // очищуємо список кроків
     this.program.steps = [];
-
+    // створюємо кроки програми
     this.program.steps.push(this.parseHeatingStep(task, entity));
     this.program.steps.push(this.parseHoldingStep(task, entity));
-
     //let heating = new Heating();
     //this.program.push();
   }
@@ -198,22 +217,23 @@ class ClassProgram extends ClassStep {
       ln = this.ln + `next()::`;
     // якщо стан не going - тихо виходимо
     if (
-      (this.state.id == "waiting") |
-      (this.state.id == "stoped") |
-      (this.state.id == "finished")
+      (this.state._id == "waiting") |
+      (this.state._id == "stoped") |
+      (this.state._id == "finished")
     ) {
       return 1;
     }
     // next step
     this.state.step += 1;
     if (this.state.step >= this.program.steps.length) {
-      // program finished
+      // ---------- program finished --------------
       this.state.step = 0;
-      this.finish({
+      await this.finish({
         ua: `Програму закінчено`,
         en: `Program completed`,
         ru: `Программа завершена`,
       });
+      return 1;
     }
     // Отримуємо поточний крок
     let step = this.program.steps[this.state.step];
@@ -244,7 +264,7 @@ class ClassProgram extends ClassStep {
   }
 
   htmlFull = (entity) => {
-    return pug.renderFile(__dirname + "/views/process_full.pug", {
+    return pug.renderFile(__dirname + "/views/program_full.pug", {
       entity: entity,
     });
   };

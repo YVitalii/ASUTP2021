@@ -2,7 +2,10 @@
 const pug = require("pug");
 const entity = {};
 const devices = require("./devices/devices.js");
+const Program = require("./program/program/ClassProgram.js");
+
 const log = require("../../tools/log.js");
+
 let trace = 1,
   gln = "/SSham-7-12_2023/index.js::";
 entity.fullName = "Піч азотування СШАМ-7.12/7";
@@ -47,7 +50,8 @@ if (trace) {
   log("i", gln, `entity=`);
   console.dir(entity);
 }
-entity.program = new (require("./program/classProgram.js"))();
+// тут зберігається програма
+entity.program = new Program();
 
 module.exports = entity;
 

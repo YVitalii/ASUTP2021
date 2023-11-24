@@ -28,7 +28,7 @@ class ClassHoldingStep extends ClassThermoStep {
   }
 
   async start() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Start()::";
 
     this.startTime = new Date().getTime();
@@ -48,34 +48,45 @@ class ClassHoldingStep extends ClassThermoStep {
     }
 
     if (this.errT.min && this.currT < this.taskT + this.errT.min) {
+      let msg = `T=${this.currT}*C; Tmin = ${this.taskT + this.errT.min}*C::`;
       this.error({
-        ua: `Низька температура!`,
-        en: `Low temperature!`,
-        ru: `Низкая температура!`,
+        ua: `${msg}Низька температура! `,
+        en: `${msg}Low temperature!`,
+        ru: `${msg}Низкая температура!`,
       });
       return 1;
     }
 
     if (this.errT.max && this.currT > this.taskT + this.errT.max) {
+      let msg = `T=${this.currT}*C; Tmax = ${this.taskT + this.errT.max}*C::`;
       this.error({
-        ua: `Висока температура!`,
-        en: `Hight temperature!`,
-        ru: `Высокая температура!`,
+        ua: `${msg}Висока температура!`,
+        en: `${msg}Hight temperature!`,
+        ru: `${msg}Высокая температура!`,
       });
       return 1;
     }
 
     if (this.Y != 0) {
+      let trace = 0;
       trace
-        ? log("0", ln, `Y = ${this.Y * 60}s; currTime=${this.processTime}s`)
+        ? log(
+            "0",
+            ln,
+            `current T=${this.currT};Y = ${this.Y * 60}s; currTime=${
+              this.processTime
+            }s`
+          )
         : null;
       if (this.processTime > this.Y * 60) {
         // якщо час сплив
-
+        let msg = `currentT=${this.currT}*C; Duration = ${(
+          this.processTime / 60
+        ).toFixed(2)}m::`;
         this.finish({
-          ua: `Витримка завершена !!!`,
-          en: `Holding  finished !!!`,
-          ru: `Удержание завершено !!!`,
+          ua: `${msg}Витримка завершена !!!`,
+          en: `${msg}Holding  finished !!!`,
+          ru: `${msg}Удержание завершено !!!`,
         });
         return 1;
       }

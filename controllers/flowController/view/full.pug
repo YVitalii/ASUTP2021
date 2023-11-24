@@ -205,7 +205,7 @@ script.
     //trace ? console.log(ln,"Data received: res=",#{xhrt}.responseText):null;
     // плануємо наступний запуск через 2 сек
     setTimeout( () => {#{ctrl_id}.getRegs();},2000);
-    trace=1;
+    trace=0;
     let res;
     try {
       res=JSON.parse( #{xhrt}.responseText);

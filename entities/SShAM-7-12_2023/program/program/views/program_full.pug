@@ -45,11 +45,11 @@ script.
   #{props} = {} ;
 
   #{id}.minutesToTime  = function (min) { 
-    let time = (new Date(min*60*1000)).toLocaleTimeString().slice(0,5);
+    let time = (new Date(min*60*1000)).toISOString().slice(11,11+5);
     return time}
 
   #{props}.tT={
-    updateValue: (val) => {
+    set: (val) => {
       let el = document.getElementById("#{id}tT");
       el.dataset.before.value=el.value
       el.value = isFinite(val) ? val : undefined;
@@ -62,8 +62,8 @@ script.
   }
 
   #{props}.heating={
-    updateValue: (val) => {
-      let trace=1, ln = '#{props}.heating.updateValue('+val+')::'
+    set: (val) => {
+      let trace=1, ln = '#{props}.heating.set('+val+')::'
       //- val в хвилинах
       let el = document.getElementById("#{id}heating");
       trace ? console.log(ln+"el=",el):null;
@@ -78,8 +78,8 @@ script.
   }
 
   #{props}.holding={
-    updateValue: (val) => {
-      let trace=1, ln = '#{props}.holding.updateValue('+val+')::'
+    set: (val) => {
+      let trace=1, ln = '#{props}.holding.set('+val+')::'
       //- val в хвилинах
       let el = document.getElementById("#{id}holding");
       trace ? console.log(ln+"el=",el):null;
@@ -94,7 +94,7 @@ script.
   }
 
   #{props}.Kn={
-    updateValue: (val) => {
+    set: (val) => {
       let el = document.getElementById("#{id}Kn");
       el.dataset.before.value=el.value
       el.value = isFinite(val) ? val : undefined;
@@ -104,11 +104,35 @@ script.
         let val= document.getElementById("#{id}Kn").value;
         return  parseFloat(val)
     }
+    ,onchange: ()=>{
+
+      if (#{props}.Kn.get()<=0) {
+        // процесс = термообробка без ХТО, то вимикаємо Кс
+        #{props}.Kc.set(0);
+        let el = document.getElementById("#{id}heating");
+        el.disabled=false;
+      } else {
+        // процесс = ХТО, то встановлюємо час розігріву 180 хв, 
+        // так щоб відбулась продувка камери
+        #{props}.heating.set(180);
+        let el = document.getElementById("#{id}heating");
+        el.disabled=true;
+          #{props}.Kc.set(0);
+      }
+    }
   }
+  document.getElementById("#{id}Kn").onchange=#{props}.Kn.onchange;
 
   #{props}.Kc={
-    updateValue: (val) => {
+    set: (val) => {
       let el = document.getElementById("#{id}Kc");
+
+      if (#{props}.Kn.get() <= 0) {
+        el.disabled = true;
+      } else {el.disabled=null};
+
+      let Kn= document.getElementById("#{id}Kn").value;
+
       el.dataset.before.value=el.value
       el.value = isFinite(val) ? val : undefined;
       return val
@@ -120,7 +144,7 @@ script.
   }
 
   #{id}.homeUrl= (()=>{
-    let ent= "#{entity.id}";
+    let ent= `#{entity.id}`;
     let url=document.baseURI;
     let pos = url.indexOf(ent)
     return url.slice(0,pos+ent.length)+"/process"
@@ -158,4 +182,5 @@ script.
 
 
 hr
+//- pre= `${ #{id}.homeUrl }`
 pre #{JSON.stringify(entity.homeUrl)}

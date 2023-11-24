@@ -15,8 +15,8 @@ class ClassHeatingStep extends ClassThermoStep {
    * @property {Number} props.periodCheckT=5 - сек, період між опитуваннями поточної температури
    * @property {async Function} props.getT - функція запиту поточної температури
    * @property {Object} props.wave - параметри пошуку точки перегину тренду температури
-   *
-   * @property {Number} props.wave.period=30 - сек, період між опитуванням поточної температури
+   * При 10 точках х 30 сек = 3 хв, тобто якщо за 3 хв. температура зросла менше ніж 10*0,1=1*С - рахуємо що стабілізація виконана
+   * @property {Number} props.wave.period=30 - сек, період між опитуванням поточної температури.
    * @property {Number} props.wave.dT=0.1 - *С, рахується що настала вершина хвилі, коли середня похідна менше цього значення
    * @property {Number} props.wave.points=10, кількість точок для розрахунку середньої похідної
    */
@@ -81,7 +81,10 @@ class ClassHeatingStep extends ClassThermoStep {
       this.checkHeating(this.currT);
     } else {
       this.checkWave(this.currT);
+      // змінюємо період опитування
       period = this.wave.period * 1000;
+      // запамятовуємо час старту очікування хвилі
+      this.wave.start = this.processTime;
     }
     // запускаємо наступну перевірку
     setTimeout(() => this.testProcess(), period);
@@ -107,31 +110,40 @@ class ClassHeatingStep extends ClassThermoStep {
     }
     sum = sum / this.wave.points;
     trace ? log("i", ln, `sum=`, sum) : null;
+
     if (sum <= this.wave.dT) {
-      this.logger("checkWave():: Stabilization finished!");
+      let msg = `checkWave(); currT=${this.currT}*C; Duration = ${(
+        this.processTime - this.wave.start
+      ).toFixed(2)}m; average derivative=${sum.toFixed(2)}::`;
+
       this.finish({
-        ua: `Нагрівання завершено`,
-        en: `Heating finished`,
-        ru: `Нагрев завершен`,
+        ua: `${msg}Нагрівання завершено`,
+        en: `${msg}Heating finished`,
+        ru: `${msg}Нагрев завершен`,
       });
+      this.logger("checkWave()::${msg}::Stabilization finished!");
     }
   }
 
   checkHeating(t) {
     if (this.errT.max && t > this.taskT + this.errT.max) {
+      let msg = `checkHeating(T=${this.currT}*C; Tmax = ${
+        this.taskT + this.errT.max
+      }*C)::`;
       this.error({
-        ua: `Перевищена температура!`,
-        en: `Hight temperature!`,
-        ru: `Высокая температура!`,
+        ua: `${msg}Висока температура!`,
+        en: `${msg}Hight temperature!`,
+        ru: `${msg}Высокая температура!`,
       });
-      return;
+      return 1;
     }
 
     if (t >= this.taskT) {
       // температура досягнута, кінець
+      let msg = `checkHeating(taskT=${this.taskT}*C; current T = ${this.currT}*C)::`;
       this.logger(
         "w",
-        "Цільова температура досягнута! Очікуємо стабілізації. "
+        msg + "Цільова температура досягнута! Очікуємо стабілізації. "
       );
       this.heating = false;
       this.wave.beforeT = t;
@@ -143,10 +155,11 @@ class ClassHeatingStep extends ClassThermoStep {
 
       if (this.currTime > (this.H + this.errH) * 60) {
         // якщо час сплив
+        let msg = `H=${this.H}m; error Heating:${this.errH}m; current duration: ${this.processTime}m::`;
         this.error({
-          ua: `Перевищено час нагрівання !!!`,
-          en: `Heating time is over !!!`,
-          ru: `Превышено время разогрева !!!`,
+          ua: `${msg}Перевищено час нагрівання !!!`,
+          en: `${msg}Heating time is over !!!`,
+          ru: `${msg}Превышено время разогрева !!!`,
         });
         return;
       }
