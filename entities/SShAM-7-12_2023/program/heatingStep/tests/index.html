@@ -1,0 +1,9 @@
+<!DOCTYPE html><html class="h-100"><head><title>Тестування кроку Нагрівання</title><link rel="stylesheet" href="/stylesheets/style.css"><link rel="stylesheet" href="/bootstrap/bootstrap.min.css"><script src="/bootstrap/bootstrap.bundle.min.js"> </script><script>function getDate() {
+  var date = new Date().toLocaleString();
+  let arr = date.split(",");
+  date = arr[0] + "<br>" + arr[1];
+
+  document.getElementById("timedisplay").innerHTML = date.toLocaleString();
+}
+setInterval(getDate, 0);
+</script></head><body class="h-100"><div class="container-fluid h-100 d-flex flex-column"> <div class="row"><div class="col-3"><img src="/img/logo_bortek.png" alt="Бортек" id="logo"></div><div class="col my-auto mx-auto "><div class="h2 " id="pageTitle">Тестування кроку Нагрівання</div></div><div class="col-1 my-auto mx-auto "><div class="h5" id="timedisplay"></div></div><hr></div><div class="row h-100"><div class="col"><div class="h-100" id="pageBody"><table><tr><td class="h6" align="center" valign="center" title="&quot;Задана температура, &amp;deg;C&quot;">T, &amp;deg;C</td><td class="h6" align="center" valign="center" title="&quot;Тривалість нагрівання, хв&quot;">Н</td><td class="h6" align="center" valign="center" title="&quot;Тривалість витримки, хв&quot;">errH</td></tr></table></div></div></div></div><script src="/bootstrap/bootstrap.min.js"></script></body></html>

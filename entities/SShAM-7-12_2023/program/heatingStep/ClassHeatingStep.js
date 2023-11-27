@@ -1,5 +1,7 @@
+const { request } = require("express");
 const log = require("../../../../tools/log.js");
 let ClassThermoStep = require("../classStep/ClassThermoStep.js");
+const pug = require("pug");
 
 /**
  * Клас виконує крок "Нагрівання"
@@ -22,10 +24,10 @@ class ClassHeatingStep extends ClassThermoStep {
    */
 
   constructor(props) {
-    let trace = 1;
+    let trace = 0;
     trace ? log("i", "HeatingStep.constructor()::", `props=`, props) : null;
     super(props);
-
+    this.maxT = 750; //TODO додати в props автоматичне максимальну температуру
     this.ln = "ClassHeatingStep(" + this.title.ua + ")::";
 
     let ln = this.ln + "constructor()::";
@@ -164,6 +166,56 @@ class ClassHeatingStep extends ClassThermoStep {
         return;
       }
     }
+  }
+  getRegs() {
+    // {id:"",header:"",title:{ ua:`` , en: ``, ru: `` }, min:, max:,},
+    let regs = [
+      {
+        id: "tT",
+        type: "number",
+        header: "T, &deg;C",
+        title: {
+          ua: `Задана температура, &deg;C`,
+          en: `Task temperature, &deg;C`,
+          ru: `Заданная температура, &deg;C`,
+        },
+        min: 20,
+        max: this.maxT,
+      },
+      {
+        id: "Н",
+        type: "time",
+        header: "Н",
+        title: {
+          ua: `Тривалість нагрівання, хв`,
+          en: `Heating delay, min`,
+          ru: `Длительность нагревания, мин`,
+        },
+        min: 0,
+        max: 100,
+      },
+      {
+        id: "errH",
+        header: "errH",
+        type: "time",
+        title: {
+          ua: `Тривалість витримки, хв`,
+          en: `Holding delay, min`,
+          ru: `Длительность выдержки, мин`,
+        },
+        min: 0,
+        max: 120,
+        default: 30,
+      },
+    ];
+    return regs;
+  }
+
+  getHTML() {
+    let html = pug.renderFile(__dirname + "/html.pug", {
+      regs: this.getRegs(),
+    });
+    return html;
   }
 }
 

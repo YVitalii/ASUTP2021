@@ -30,25 +30,13 @@ if (emulate) {
 props.getT = async () => {
   return await dev.getT();
 };
+
 let step = new Heating(props);
+step.dev = dev;
+module.exports = step;
 
-(async () => {
-  log("w", "----------- нормальне завершення процесу ----------");
+// log("i", ln, `step=`);
+// console.dir(step);
 
-  setTimeout(async () => {
-    await dev.start();
-    await step.start();
-  }, 1000);
-
-  // log("w", "----------- завершення процесу по перевищенню часу  ----------");
-  // dev.heating.tT = props.taskT;
-  // dev.heating.time = (props.H + props.errH) * 60 * 2 + 10;
-  // await dev.start();
-  // await step.start();
-  // log("i", "CreateHeatingStep()::Finished!");
-})();
-
-if (trace) {
-  log("i", ln, `step=`);
-  console.dir(step);
+if (!module.parent) {
 }

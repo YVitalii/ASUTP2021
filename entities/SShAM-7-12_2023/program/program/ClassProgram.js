@@ -10,8 +10,8 @@ const test = true; //налаштування для режиму тестува
  * Завдання для створення програми
  * @typedef {Object} task
  * @property {string|number} tT - задана температура
- * @property {string|number} heating - хв, час розігрівання
- * @property {string|number} holding - хв, час витримки
+ * @property {string|number} H - хв, час розігрівання
+ * @property {string|number} Y - хв, час витримки
  * @property {string|number} Kn - азотний коефіцієнт
  * @property {string|number} Kc - вуглецевий коефіцієнт
  * @property {Object} pid_T - налаштування для основного ТРП
@@ -61,7 +61,7 @@ class ClassProgram extends ClassStep {
       firstWave_time: 10,
     };
     // створюємо завдання для кроку Heating
-    let title = `${task.tT} &deg;C;${task.heating}`;
+    let title = `${task.tT} &deg;C;${task.H}`;
     let props = {
       title: {
         ua: `Нагрівання ${title}хв`,
@@ -70,7 +70,7 @@ class ClassProgram extends ClassStep {
       },
       taskT: task.tT - firstWave_T > 0 ? task.tT - firstWave_T : 0,
       errT: { min: 0, max: 100 },
-      H: task.heating - firstWave_time > 0 ? task.heating - firstWave_time : 0,
+      H: task.H - firstWave_time > 0 ? task.H - firstWave_time : 0,
       errH: 0,
       periodCheck: 2,
       getT: async () => {

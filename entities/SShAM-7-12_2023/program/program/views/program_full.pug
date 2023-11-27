@@ -61,9 +61,9 @@ script.
     }
   }
 
-  #{props}.heating={
+  #{props}.H={
     set: (val) => {
-      let trace=1, ln = '#{props}.heating.set('+val+')::'
+      let trace=1, ln = '#{props}.H.set('+val+')::'
       //- val в хвилинах
       let el = document.getElementById("#{id}heating");
       trace ? console.log(ln+"el=",el):null;
@@ -77,9 +77,9 @@ script.
     }
   }
 
-  #{props}.holding={
+  #{props}.Y={
     set: (val) => {
-      let trace=1, ln = '#{props}.holding.set('+val+')::'
+      let trace=1, ln = '#{props}.Y.set('+val+')::'
       //- val в хвилинах
       let el = document.getElementById("#{id}holding");
       trace ? console.log(ln+"el=",el):null;
@@ -114,7 +114,7 @@ script.
       } else {
         // процесс = ХТО, то встановлюємо час розігріву 180 хв, 
         // так щоб відбулась продувка камери
-        #{props}.heating.set(180);
+        #{props}.H.set(180);
         let el = document.getElementById("#{id}heating");
         el.disabled=true;
           #{props}.Kc.set(0);

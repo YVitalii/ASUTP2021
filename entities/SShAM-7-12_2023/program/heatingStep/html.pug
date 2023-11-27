@@ -1,0 +1,14 @@
+- var lang="ua" 
+//- p #{JSON.stringify(regs)} 
+table
+  tr
+    - for (let i =0; i< regs.length; i++)
+      td(class="h6" align="center" valign="center", title=`"${regs[i].title[lang]}"`)= `${regs[i].header}`
+//-   
+//-   #{regs[i].header}
+//-   
+//- tr 
+//- 
+//-   li= regs[i]
+//-   td(class="h6" align="center" valign="center", title=#{list[i].title[#{lang}]})
+//-     #{val.title}
