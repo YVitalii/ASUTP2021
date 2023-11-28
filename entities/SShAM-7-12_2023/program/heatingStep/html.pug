@@ -1,10 +1,21 @@
 - var lang="ua" 
 //- p #{JSON.stringify(regs)} 
-table
+table(class="table table-bordered")
+
   tr
     - for (let i =0; i< regs.length; i++)
-      td(class="h6" align="center" valign="center", title=`"${regs[i].title[lang]}"`)= `${regs[i].header}`
-//-   
+      -var el=regs[i]
+      td(class="h6" align="center" valign="center", title=`${el.title[lang]}`)= `${regs[i].header}`
+    tr
+    - for (let i =0; i< regs.length; i++)
+      -var el=regs[i]
+        td
+          if el.type =="time"
+            input(type="time" class="form-control",value= `${el.value}`, id=`${step_id}_${el.id}`)
+          if el.type =="number"
+            input(type="number" class="form-control",value= `${el.value}`, id=`${step_id}_${el.id}`, min=`${el.min}`, max=`${el.max}`)
+
+
 //-   #{regs[i].header}
 //-   
 //- tr 
@@ -12,3 +23,4 @@ table
 //-   li= regs[i]
 //-   td(class="h6" align="center" valign="center", title=#{list[i].title[#{lang}]})
 //-     #{val.title}
+

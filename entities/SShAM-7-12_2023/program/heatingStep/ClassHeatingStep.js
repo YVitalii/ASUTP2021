@@ -1,5 +1,6 @@
 const { request } = require("express");
 const log = require("../../../../tools/log.js");
+const toTimeString = require("../../../../tools/general.js").toTimeString;
 let ClassThermoStep = require("../classStep/ClassThermoStep.js");
 const pug = require("pug");
 
@@ -173,47 +174,110 @@ class ClassHeatingStep extends ClassThermoStep {
       {
         id: "tT",
         type: "number",
-        header: "T, &deg;C",
+        value: this.tT,
+        header: "T,°C",
         title: {
-          ua: `Задана температура, &deg;C`,
-          en: `Task temperature, &deg;C`,
-          ru: `Заданная температура, &deg;C`,
+          ua: `Задана температура`,
+          en: `Task temperature`,
+          ru: `Заданная температура`,
         },
         min: 20,
         max: this.maxT,
       },
+
+      ,
       {
-        id: "Н",
+        id: "Y",
         type: "time",
-        header: "Н",
+        header: "Y",
+        value: toTimeString(this.Y),
         title: {
-          ua: `Тривалість нагрівання, хв`,
-          en: `Heating delay, min`,
-          ru: `Длительность нагревания, мин`,
+          ua: `Тривалість витримки температури`,
+          en: `Holding delay`,
+          ru: `Длительность удержания температуры`,
         },
         min: 0,
         max: 100,
       },
+
       {
         id: "errH",
         header: "errH",
-        type: "time",
+        type: "number",
+        value: toTimeString(this.errH),
         title: {
-          ua: `Тривалість витримки, хв`,
-          en: `Holding delay, min`,
-          ru: `Длительность выдержки, мин`,
+          ua: `Помилка тривалості нагрівання, хв, 0=вимкнути`,
+          en: `Error of heating duration, min, 0=disable`,
+          ru: `Ошибка длительности времени нагревания, мин. 0=отключить`,
         },
         min: 0,
         max: 120,
         default: 30,
       },
+      {
+        id: "firstWave_T",
+        header: "wT",
+        type: "number",
+        value: this.wave.dT,
+        title: {
+          ua: `Перерегулювання першої хвилі, °С`,
+          en: `Overheating for first wave, °С`,
+          ru: `Перерегулирование первой волны, °С`,
+        },
+        min: 0,
+        max: 200,
+        default: 10,
+      },
+      {
+        id: "firstWave_time",
+        header: "wH",
+        type: "number",
+        value: 5,
+        title: {
+          ua: `Орієнтовна тривалість першої хвилі перерегулювання, хв`,
+          en: `Approximate duration of first wave, min`,
+          ru: `Ориентировочная длительность первой волны, мин`,
+        },
+        min: 0,
+        max: 120,
+        default: 10,
+      },
+      {
+        id: "firstWave_time",
+        header: "wH",
+        type: "number",
+        value: 5,
+        title: {
+          ua: `Орієнтовна тривалість першої хвилі перерегулювання, хв`,
+          en: `Approximate duration of first wave, min`,
+          ru: `Ориентировочная длительность первой волны, мин`,
+        },
+        min: 0,
+        max: 120,
+        default: 10,
+      },
+      // {
+      //   id: "",
+      //   header: "",
+      //   type: "",
+      //   value: this.,
+      //   title: {
+      //     ua: `, хв`,
+      //     en: `, min`,
+      //     ru: `, мин`,
+      //   },
+      //   min: 0,
+      //   max: 120,
+      //   default: 30,
+      // },
     ];
     return regs;
   }
 
-  getHTML() {
+  getHTML(step_id) {
     let html = pug.renderFile(__dirname + "/html.pug", {
       regs: this.getRegs(),
+      step_id: step_id,
     });
     return html;
   }

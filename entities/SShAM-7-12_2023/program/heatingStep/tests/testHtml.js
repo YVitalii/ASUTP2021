@@ -6,9 +6,9 @@ const write = require("fs").writeFileSync;
 const pug = require("pug");
 const mainPath = "E:/node/ASUTP2021";
 
-let path = __dirname + "/index.html";
+let path = mainPath + "/public/tests/heatingStepTest.html";
 (async () => {
-  let html = step.getHTML();
+  let html = step.getHTML("pr_st_2");
   html = pug.renderFile(mainPath + "/views/main.pug", {
     pageTitle: "Тестування кроку Нагрівання",
     body: html,
