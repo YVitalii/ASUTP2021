@@ -1,0 +1,19 @@
+- var lang="ua" 
+p #{JSON.stringify(regs)} 
+- for (let i =0; i< regs.length; i++)
+  -var el=regs[i]
+    div(class="h5 col", title=`${el.title[lang]}`)= `${regs[i].header}`
+      if el.type =="time"
+        input(type="time" class="form-control",value= `${el.value}`, id=`${step_id}_${el.id}`)
+      if el.type =="number"
+        input(type="number" class="form-control",value= `${el.value}`, id=`${step_id}_${el.id}`, min=`${el.min}`, max=`${el.max}`)
+
+
+//-   #{regs[i].header}
+//-   
+//- tr 
+//- 
+//-   li= regs[i]
+//-   td(class="h6" align="center" valign="center", title=#{list[i].title[#{lang}]})
+//-     #{val.title}
+

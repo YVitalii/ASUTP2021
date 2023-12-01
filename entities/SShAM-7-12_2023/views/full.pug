@@ -20,11 +20,15 @@ div(class="row")
     div(class="col")
       div !{item.htmlFull()}
 hr
+
 div(class="row h-100")
-  div(class="col-3") !{entity.program.htmlFull(entity)}
+  // ----------- program section --------------
+  div(class="col-3") !{entity.program.htmlCompact(entity)}
+  // ----------- graph section ---------------------
   div(class="col")
     h3 Тут має бути графік
 
-
+// ----------- button "Controllers" --------------
 a(class="btn btn-primary" href=`${controllersButton.href}controllers/`  role="button")  
   #{controllersButton.title.ua}
+

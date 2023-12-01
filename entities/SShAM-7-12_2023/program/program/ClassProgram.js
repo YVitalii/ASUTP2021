@@ -1,4 +1,4 @@
-//const router = require("../routes/router");
+const router = require("../routes/programRouter");
 const pug = require("pug");
 const Heating = require("../heatingStep/ClassHeatingStep.js");
 const Holding = require("../holdingStep/ClassHoldingStep.js");
@@ -39,9 +39,9 @@ class ClassProgram extends ClassStep {
     // description of program
     this.program.description = {};
 
+    // поточний стан процесу
     this.state = {
-      // поточний стан процесу
-      // id - зарезервовано для керування задачею
+      // id - зарезервовано для керування задачею ???Додати опис бо незрозуміло
       before: 0, //попередній крок, для перевірки чи можна запускати наступний крок
       step: 0, // поточний крок
       //alert: null, // повідомлення в модальному вікні
@@ -264,10 +264,28 @@ class ClassProgram extends ClassStep {
   }
 
   htmlFull = (entity) => {
-    return pug.renderFile(__dirname + "/views/program_full.pug", {
+    let html = "";
+
+    html = pug.renderFile(__dirname + "/views/program_full.pug", {
+      entity: entity,
+    });
+    return html;
+  };
+  /**
+   * Створює елемент, що відображає скомпільовану програму, та поточний крок
+   * Використовується для головної сторінки
+   * @param {*} entity  - об'экт сутності (печі)
+   * @returns
+   */
+  htmlCompact = (entity) => {
+    return pug.renderFile(__dirname + "/views/compact.pug", {
       entity: entity,
     });
   };
+  //static router;
 }
+
+// роутер обробки гілки program
+ClassProgram.router = router;
 
 module.exports = ClassProgram;

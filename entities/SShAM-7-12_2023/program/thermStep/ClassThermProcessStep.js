@@ -13,17 +13,14 @@ const test = true; //налаштування для режиму тестува
  * @property {string|number} H=0 - хв, час розігрівання
  * @property {string|number} Y=0 - хв, час витримки
  * @property {string|number} errH=30 - хв, помилка часу розігрівання
- * @property {string|number} waveT=0 - °С, перерегулювання температури першої хвилі
- * @property {string|number} waveH=0 - хв, орієнтовна тривалість півхвилі першої пів-хвилі
- * @property {Object} errT - налаштування коридору температури
- * @property {string|number} errT.min = - 50 -  
- * @property {string|number} errT.min = + 50 - 
+ * @property {string|number} wT=0 - °С, перерегулювання температури першої хвилі
+ * @property {string|number} wH=0 - хв, орієнтовна тривалість півхвилі першої пів-хвилі
+ * @property {string|number} errTmin = - 100 - налаштування коридору температури
+ * @property {string|number} errTmin = + 25 -
  * @property {string} regMode="pid" / "pos" - тип регулювання ПІД / Позиційний
- * @property {Object} pid - налаштування ПІД закону
- * @property {string|number} pid.td 
- * @property {string|number} pid.ti
- * @property {string|number} pid.o
- 
+ * @property {string|number} pid_td
+ * @property {string|number} pid_ti
+ * @property {string|number} pid_o
  */
 
 class ClassProgram extends ClassStep {
@@ -35,117 +32,169 @@ class ClassProgram extends ClassStep {
   constructor(props) {
     super(props);
 
-    this.maxT = 750; //TODO максимальна температура в РЗ печі
-
     this.ln = "ClassThermStep()::";
     let trace = 1,
       ln = this.ln + "constructor()";
-    this.tT = {
+
+    //TODO максимальна температура в РЗ печі
+    this.maxT = 750;
+
+    // список регістрів-параметрів, щоб відділити від методів
+    this.regs = {};
+
+    this.regs.tT = {
       id: "tT",
       type: "number",
       value: props.tT ? props.tT : 20,
       header: "T,°C",
       title: {
-        ua: `Цільова температура`,
-        en: `Task temperature`,
-        ru: `Заданная температура`,
+        ua: `Цільова температура, °С`,
+        en: `Task temperature, °С`,
+        ru: `Заданная температура, °С`,
       },
       min: 20,
       max: this.maxT,
     };
-    this.H = {
+
+    this.regs.H = {
       id: "Н",
       type: "time",
       header: "Н",
       value: props.H ? props.H : 0,
       title: {
-        ua: `Тривалість нагрівання`,
-        en: `Heating delay`,
-        ru: `Длительность нагревания`,
+        ua: `Тривалість нагрівання, хв`,
+        en: `Heating delay, minute`,
+        ru: `Длительность нагревания, мин`,
       },
       min: 0,
       max: 5500,
     };
-    this.Y = {
+
+    this.regs.Y = {
       id: "Y",
       type: "time",
       header: "Y",
       value: props.Y ? props.Y : 0,
       title: {
-        ua: `Тривалість витримки температури`,
-        en: `Holding delay`,
-        ru: `Длительность удержания температуры`,
+        ua: `Тривалість витримки температури, хв`,
+        en: `Holding delay, minute`,
+        ru: `Длительность удержания температуры, мин`,
       },
       min: 0,
       max: 5500,
     };
-    this.errH = {
+
+    this.regs.errH = {
       id: "errH",
       header: "errH",
       type: "number",
       value: props.errH ? props.errH : 0,
       title: {
-        ua: `Помилка тривалості нагрівання, хв, 0=вимкнути`,
-        en: `Error of heating duration, min, 0=disable`,
-        ru: `Ошибка длительности времени нагревания, мин. 0=отключить`,
+        ua: `Помилка тривалості нагрівання (0=вимкнути), хв`,
+        en: `Error of heating duration (0=disable), minute`,
+        ru: `Ошибка длительности времени нагревания (0=отключить), мин`,
       },
       min: 0,
       max: 120,
       default: 30,
     };
-    this.firstWave_T = {
+
+    this.regs.wT = {
       id: "firstWave_T",
       header: "wT",
       type: "number",
-      value: this.wave.dT,
+      value: props.wT ? props.wT : 0,
       title: {
-        ua: `Перерегулювання першої хвилі, °С`,
-        en: `Overheating for first wave, °С`,
-        ru: `Перерегулирование первой волны, °С`,
+        ua: `Перерегулювання першої хвилі (0=вимкнути), °С`,
+        en: `Overheating for first wave (0=disable), °С`,
+        ru: `Перерегулирование первой волны (0=отключить), °С`,
       },
       min: 0,
       max: 200,
       default: 10,
     };
-    this.firstWave_time = {
+
+    this.regs.wH = {
       id: "firstWave_time",
       header: "wH",
       type: "number",
-      value: 5,
+      value: props.wH ? props.wH : 0,
       title: {
-        ua: `Орієнтовна тривалість першої хвилі перерегулювання, хв`,
-        en: `Approximate duration of first wave, min`,
-        ru: `Ориентировочная длительность первой волны, мин`,
+        ua: `Орієнтовна тривалість першої хвилі перерегулювання (0=вимкнути), хв`,
+        en: `Approximate duration of first wave (0=disable), min`,
+        ru: `Ориентировочная длительность первой волны (0=отключить), мин`,
       },
       min: 0,
       max: 120,
       default: 10,
     };
-    this.errTmin = {
+
+    this.regs.errTmin = {
       id: "errTmin",
       header: "errTmin",
       type: "number",
       value: props.errTmin ? props.errTmin : -50,
       title: {
-        ua: `Максимальне відхилення температури вниз, хв`,
-        en: `Limit of low temperature, min`,
-        ru: `Максимальное отклонение температуры вниз, мин`,
+        ua: `Максимальне відхилення температури вниз,°С`,
+        en: `Limit of low temperature,°С`,
+        ru: `Максимальное отклонение температуры вниз,°С`,
       },
       min: 0,
       max: -100,
     };
-    this.errTmax = {
+
+    this.regs.errTmax = {
       id: "errTmax",
       header: "errTmax",
       type: "number",
-      value: props.errTmin ? props.errTmin : -50,
+      value: props.errTmin ? props.errTmin : +25,
       title: {
-        ua: `Максимальне відхилення температури вниз, хв`,
-        en: `Limit of low temperature, min`,
-        ru: `Максимальное отклонение температуры вниз, мин`,
+        ua: `Максимальне перевищення температури,°С`,
+        en: `Limit of high temperature,°С`,
+        ru: `Максимальное превышение температуры,°С`,
       },
       min: 0,
-      max: -100,
+      max: +100,
+    };
+
+    this.regs.regMode = {
+      id: "regMode",
+      header: "regMode",
+      type: "list",
+      value: ["pid"], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
+      title: {
+        ua: `Закон регулювання`,
+        en: `Control type`,
+        ru: `Закон регулирования,°С`,
+      },
+    };
+
+    this.regs.pid_ti = {
+      id: "pid_ti",
+      header: "ti",
+      type: "number",
+      value: props.pid_ti ? props.pid_ti : 0,
+      title: {
+        ua: `Інтегральна складова`,
+        en: `the Integral gain`,
+        ru: `Интегральная составляющая`,
+      },
+      min: 0,
+      max: +1000,
+    };
+
+    this.regs.pid_td = {
+      id: "pid_td",
+      header: "td",
+      type: "number",
+      value: props.pid_td ? props.pid_td : 0,
+      title: {
+        ua: `Диференційна складова`,
+        en: `the derivative gain`,
+        ru: `Дифферинциальная составляющая`,
+      },
+      min: 0,
+      max: +1000,
     };
 
     // поточна програма
@@ -380,9 +429,9 @@ class ClassProgram extends ClassStep {
       ln = this.ln + `stop()`;
   }
 
-  htmlFull = (entity) => {
-    return pug.renderFile(__dirname + "/views/program_full.pug", {
-      entity: entity,
+  htmlFull = () => {
+    return pug.renderFile(__dirname + "/views/htmlFull.pug", {
+      regs: this.regs,
     });
   };
 }

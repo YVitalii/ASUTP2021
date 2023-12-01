@@ -14,8 +14,16 @@ entity.id = "SShAM-7-12_2023";
 entity.maxT = 700; // maximum
 
 entity.homeUrl = entity.id + "/";
+// пристрої
 entity.devices = devices;
+// контролери
 entity.controllers = require("./controllers/controllers.js");
+// тут зберігається програма
+entity.program = new Program();
+
+// тут зберігається програма
+entity.processes = {};
+// entity.processes.thermProcess = new ThermProcess();
 
 entity.htmlCompact = () => {
   let trace = 1,
@@ -50,8 +58,6 @@ if (trace) {
   log("i", gln, `entity=`);
   console.dir(entity);
 }
-// тут зберігається програма
-entity.program = new Program();
 
 module.exports = entity;
 

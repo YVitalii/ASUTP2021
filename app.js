@@ -9,7 +9,7 @@ const logName = "app.js::";
 const ipAddr = require("./config.js").ipAddr;
 const entities = require("./entities/general/entities.js");
 var passport = require("./tools/passport-loc.js");
-
+const ClassProgram = require("./entities/SShAM-7-12_2023/program/program/ClassProgram.js");
 //var flash = require("express-flash");
 
 var indexRouter = require("./entities/general/routes/entitiesRouter.js"); // require("./routes/index");
@@ -105,16 +105,16 @@ app.use("/", indexRouter);
 let traceEntity = (req, res, next) => {
   log(
     "w",
-    "----app.js---------->>>req.entity.mainProcess=",
-    req.entity.mainProcess
+    "----app.js---------->>>req.entity.mainProcess="
+    //req.entity.mainProcess
   );
   next();
 };
 
 // визначення сутності та запамятовування її в req.entity
 app.use("/entity/:id", (req, res, next) => {
-  let trace = 1,
-    ln = logName + "app.use(/:id)::";
+  let trace = 0,
+    ln = logName + "app.use(/entity/:id)::";
   trace ? log("i", ln, `Started`) : null;
   if (trace) {
     log("i", ln, `req.params=`);
@@ -141,8 +141,11 @@ app.use("/entity/:id", (req, res, next) => {
   next();
 });
 
-// процес, обробка запитів
-app.use("/entity/:id/process/", processRouter);
+// процес, обробка запитів програми
+app.route("/entity/:id/program/*").all((req, res, next) => {
+  log("w", "=========================================");
+  next();
+}, ClassProgram.router);
 
 // перевіряємо чи є такий контролер, якщо нема - повідомляємо про помилку
 app.use("/entity/:id/controllers/:contrId", (req, res, next) => {
@@ -214,6 +217,21 @@ app.use("/entity/:id/controllers", (req, res) => {
       `<br> <small> ${req.entity.controllers.about.fullName.ua} </small>`,
   });
 });
+
+// app.use("/entity/:id/program", (req, res) => {
+//   let trace = 0,
+//     ln = logName + `app.use("${req.originalUrl}")::`;
+//   if (trace) {
+//     log("i", ln, `req.entity.controllers.about=`);
+//     console.dir(req.entity.controllers.about);
+//   }
+//   res.render("main.pug", {
+//     body: req.entity.controllers.about.htmlFull(),
+//     pageTitle:
+//       req.entity.fullName +
+//       `<br> <small> ${req.entity.controllers.about.fullName.ua} </small>`,
+//   });
+// });
 
 // app.use("/entity/:id/process/", (req, res, next) => {
 //   let trace = 1,
