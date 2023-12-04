@@ -1,0 +1,13 @@
+-let lang="en"
+
+div(class="row")
+  div(class="col")
+    h3 Завдання
+    = `${settings}`
+
+  div(class="col")    
+    h3=`${{ua:`Програма` , en: `Program`, ru: `Программа` }[lang]}`
+    = `${program}`
+div(class="row")
+  div(class="col")
+    <button type="button" class="btn btn-primary">Застосувати</button>

@@ -16,14 +16,14 @@ const test = true; //налаштування для режиму тестува
  * @property {string|number} wT=0 - °С, перерегулювання температури першої хвилі
  * @property {string|number} wH=0 - хв, орієнтовна тривалість півхвилі першої пів-хвилі
  * @property {string|number} errTmin = - 100 - налаштування коридору температури
- * @property {string|number} errTmin = + 25 -
+ * @property {string|number} errTmax = + 25 -
  * @property {string} regMode="pid" / "pos" - тип регулювання ПІД / Позиційний
  * @property {string|number} pid_td
  * @property {string|number} pid_ti
  * @property {string|number} pid_o
  */
 
-class ClassProgram extends ClassStep {
+class ClassThermStep extends ClassStep {
   /**
    * Конструктор програми
    * @param {task} props
@@ -436,4 +436,9 @@ class ClassProgram extends ClassStep {
   };
 }
 
-module.exports = ClassProgram;
+ClassThermStep.about = {
+  id: "thermStep",
+  title: { ua: `Термообробка`, en: `Heat treatment`, ru: `Термообработка` },
+};
+
+module.exports = ClassThermStep;

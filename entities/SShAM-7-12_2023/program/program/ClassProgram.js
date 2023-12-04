@@ -6,20 +6,20 @@ const ClassStep = require("../classStep/ClassStep.js");
 const log = require("../../../../tools/log.js");
 const test = true; //налаштування для режиму тестування
 
-/**
- * Завдання для створення програми
- * @typedef {Object} task
- * @property {string|number} tT - задана температура
- * @property {string|number} H - хв, час розігрівання
- * @property {string|number} Y - хв, час витримки
- * @property {string|number} Kn - азотний коефіцієнт
- * @property {string|number} Kc - вуглецевий коефіцієнт
- * @property {Object} pid_T - налаштування для основного ТРП
- * @property {string|number} pid_T.td
- * @property {string|number} pid_T.ti
- * @property {string|number} pid_T.o
- * @property {string|number} pid_T.regMode
- */
+// /**
+//  * Завдання для створення програми
+//  * @typedef {Object} task
+//  * @property {string|number} tT - задана температура
+//  * @property {string|number} H - хв, час розігрівання
+//  * @property {string|number} Y - хв, час витримки
+//  * @property {string|number} Kn - азотний коефіцієнт
+//  * @property {string|number} Kc - вуглецевий коефіцієнт
+//  * @property {Object} pid_T - налаштування для основного ТРП
+//  * @property {string|number} pid_T.td
+//  * @property {string|number} pid_T.ti
+//  * @property {string|number} pid_T.o
+//  * @property {string|number} pid_T.regMode
+//  */
 
 class ClassProgram extends ClassStep {
   /**
@@ -31,13 +31,58 @@ class ClassProgram extends ClassStep {
     this.ln = "ClassProgram()::";
     let trace = 1,
       ln = this.ln + "constructor()";
-    // поточна програма
+
+    // массив завдань як на веб. сторінці
+    // TODO створити автоматичне завантаження останньої програми з файлу
+    this.tasks = [
+      {
+        // загальний опис програми
+        id: "_01",
+        title: "Програма 01",
+        note: "По замовчуванню.",
+      },
+      // {
+      //   id: "preparation",
+      // },
+      {
+        id: "thermStep",
+        tT: 520,
+        H: 0,
+        Y: 20,
+        errH: 0,
+        wT: 0,
+        wH: 0,
+        errTmin: 0,
+        errTmax: 50,
+        regMode: "pid",
+        pid_td: 0,
+        pid_ti: 0,
+        pid_o: 0,
+      },
+      {
+        id: "nitriding",
+        Kn: 0,
+        //Y: 12*60,
+        pid_ti: 0,
+        pid_td: 0,
+        pid_o: 0,
+      },
+      {
+        id: "nitrocarburizing",
+        Kc: 0,
+        //Y: 12*60,
+        pid_ti: 0,
+        pid_td: 0,
+        pid_o: 0,
+      },
+    ];
     this.program = {};
     // кроки програми. Один крок = массив підкроків що можуть виконуватися паралельно
     // Наприклад: [[step1,step2],[step3],]
     this.program.steps = [];
-    // description of program
-    this.program.description = {};
+
+    // перетворюємо програму в масив кроків
+    this.setProgram(this.tasks);
 
     // поточний стан процесу
     this.state = {
@@ -47,19 +92,16 @@ class ClassProgram extends ClassStep {
       //alert: null, // повідомлення в модальному вікні
     };
 
-    /** Головні налаштування програми */
-    this.task = {};
-
     //TODO потрібно запустити вимкнення аварії
   }
 
-  parseHeatingStep(task, entity) {
+  parseQuickHeatingStep(task, entity) {
     // TODO  поки заглушка, тут маємо отримати
     // параметри першої хвилі перерегулювання для вказаної температури
-    let { firstWave_T, firstWave_time } = {
-      firstWave_T: 50,
-      firstWave_time: 10,
-    };
+    if (task.wT == 0) {
+      //якщо не вказана температура першої хвилі - пропускаємо цей крок
+      return 1;
+    }
     // створюємо завдання для кроку Heating
     let title = `${task.tT} &deg;C;${task.H}`;
     let props = {
@@ -68,9 +110,9 @@ class ClassProgram extends ClassStep {
         en: `Heating ${title}min`,
         ru: `Нагревание ${title}мин`,
       },
-      taskT: task.tT - firstWave_T > 0 ? task.tT - firstWave_T : 0,
+      taskT: task.tT - wT > 0 ? task.tT - wT : 0,
       errT: { min: 0, max: 100 },
-      H: task.H - firstWave_time > 0 ? task.H - firstWave_time : 0,
+      H: task.H - wH > 0 ? task.H - wH : 0,
       errH: 0,
       periodCheck: 2,
       getT: async () => {
@@ -104,7 +146,7 @@ class ClassProgram extends ClassStep {
         tT: props.taskT,
         H: props.H,
         Y: 0, // утримуємо до завершення нагрівання реторти
-        regMode: 2, // ПОЗ, оскільки ми понизили температуру та скоротили час розігріву: див. firstWave_T, firstWave_time
+        regMode: 2, // ПОЗ, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
         o: 10,
         td: 0,
         ti: 0,
@@ -115,6 +157,8 @@ class ClassProgram extends ClassStep {
 
     return new Heating(props);
   }
+  // повільне догрівання до tT по ПІД закону
+  parsePidHeatingStep(task, entity) {}
 
   parseHoldingStep(task, entity) {
     // TODO заглушка, в цьому місці повинна бути функція таблиця для отримання коеф. з таблиці,
@@ -150,43 +194,59 @@ class ClassProgram extends ClassStep {
   }
 
   /** готує програму для виконання
-   * @param {task} task
+   * @param {task} tasks
    */
-  async setProgram(task, entity) {
+  setProgram(tasks, entity) {
     let trace = 1,
-      ln = this.ln + `setProgram(${task})`;
-    this.task = task;
+      ln = this.ln + `setProgram(${JSON.stringify(tasks)})`;
+    this.tasks = tasks;
     this.state.before = this.state.step = 0;
-
-    // TODO потрібно додати обробку опису програми
-    this.program.description = {
-      title: { ua: `Програма`, en: `Program`, ru: `Программа` },
-    };
-    if (task.Kn > 0) {
-      if (task.Kc > 0) {
-        this.program.type = {
-          ua: `Нітрокарбюризація`,
-          en: `Nitrocarburization`,
-          ru: `Нитрокарбюризация`,
-        };
-      }
+    log("w", ln, "Started !");
+    // очищуємо список кроків
+    this.program.steps = [];
+    // список пунктів на кроці "Підготовка"
+    let checkList = [];
+    checkList.push("Кришка печі закрита");
+    checkList.push("Затискачі кришки встановлені");
+    checkList.push("Вентилятор працює");
+    checkList.push('Перемикач керування в положенні "Газова стійка"');
+    checkList.push("Охолодження реторти та кришки ввімкнено");
+    // визначаємо тип кроку
+    if (tasks[2].Kn > 0) {
       this.program.type = {
         ua: `Азотування`,
         en: `Nitriding`,
         ru: `Азотирование`,
       };
+      checkList.push("Тиск азоту в нормі");
+      checkList.push("Тиск аміаку в нормі");
+      checkList.push(
+        'Вентилі керування ротаметрів "Азот" та "Аміак" відкрито повністю'
+      );
+      checkList.push("Вентиль ручної аварійної подачі азоту закритий");
+      checkList.push("Утилізатор. Нагрівання ввімкнено.");
+
+      if (tasks[3].Kc > 0) {
+        this.program.type = {
+          ua: `Нітрокарбюризація`,
+          en: `Nitrocarburization`,
+          ru: `Нитрокарбюризация`,
+        };
+        checkList.push("Тиск СО2 в нормі");
+        checkList.push(
+          'Витрата на ротаметрі "СО2" виставлена на рівні 0,5 м3/год'
+        );
+      }
     } else {
       this.program.type = {
         ua: `Термообробка`,
-        en: `Thermal Treatment`,
+        en: `Heat treatment`,
         ru: `Термообработка`,
       };
     }
-    // очищуємо список кроків
-    this.program.steps = [];
     // створюємо кроки програми
-    this.program.steps.push(this.parseHeatingStep(task, entity));
-    this.program.steps.push(this.parseHoldingStep(task, entity));
+    this.program.steps.push(this.parseQuickHeatingStep(tasks[1], entity));
+    this.program.steps.push(this.parseHoldingStep(tasks[1], entity));
     //let heating = new Heating();
     //this.program.push();
   }

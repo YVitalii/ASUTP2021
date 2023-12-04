@@ -111,7 +111,7 @@ let traceEntity = (req, res, next) => {
   next();
 };
 
-// визначення сутності та запамятовування її в req.entity
+// ----- визначення сутності по адресі та запамятовування її в req.entity
 app.use("/entity/:id", (req, res, next) => {
   let trace = 0,
     ln = logName + "app.use(/entity/:id)::";
@@ -142,10 +142,18 @@ app.use("/entity/:id", (req, res, next) => {
 });
 
 // процес, обробка запитів програми
-app.route("/entity/:id/program/*").all((req, res, next) => {
-  log("w", "=========================================");
-  next();
-}, ClassProgram.router);
+// app.use("/entity/:id/program/*", (req, res, next) => {
+//   log("w", "================  Program =========================");
+//   //res.send("Program!");
+//   ClassProgram.router(req, res, next);
+// });
+app.use("/entity/:id/program", ClassProgram.router);
+
+// процес, обробка запитів програми
+// app.route("/entity/:id/program/*").all((req, res, next) => {
+//   log("w", "=========================================");
+//   next();
+// }, ClassProgram.router);
 
 // перевіряємо чи є такий контролер, якщо нема - повідомляємо про помилку
 app.use("/entity/:id/controllers/:contrId", (req, res, next) => {
