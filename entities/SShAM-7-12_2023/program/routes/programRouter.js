@@ -9,7 +9,7 @@ let gTrace = 1; //=1 глобальная трассировка (трассир
 gTrace ? log("", logName, `Strated!`) : null;
 let viewsDir = path.normalize(__dirname.replace("\\routes", ""));
 
-router.use("/", (req, res, next) => {
+router.get("/", (req, res, next) => {
   let trace = 1,
     ln = logName + `${req.originalUrl}::`;
   if (trace) {
@@ -19,7 +19,7 @@ router.use("/", (req, res, next) => {
 
   let html = "";
 
-  let settings = req.entity.program.steps("thermStep").htmlFull();
+  let settings = req.entity.program.htmlFull();
 
   html = pug.renderFile(viewsDir + "\\program\\views\\full.pug", {
     entity: req.entity,

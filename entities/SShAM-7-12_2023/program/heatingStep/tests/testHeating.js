@@ -5,7 +5,7 @@ const step = require("./config");
 
 (async () => {
   setTimeout(async () => {
-    await step.dev.start();
+    step.dev.start();
     await step.start();
     log("w", "----------- нормальне завершення процесу ----------");
   }, 1000);

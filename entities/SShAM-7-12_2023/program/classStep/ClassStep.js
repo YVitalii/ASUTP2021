@@ -5,7 +5,10 @@ const dummy = require("../../../../tools/dummy.js").dummyPromise;
 class ClassStep {
   constructor(props = {}) {
     let trace = 0;
+    // тут зберігається стан кроку
     this.state = {};
+    //тут зберігаються основні налаштування
+    this.regs = {};
     // поточний стан кроку,
     // перелік можливих станів: "waiting","going","finished","stoped","error"
     this.state._id = "waiting";

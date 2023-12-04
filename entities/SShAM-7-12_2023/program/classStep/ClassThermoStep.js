@@ -15,16 +15,118 @@ class ClassThermoStep extends ClassStep {
     let ln = this.ln + "Constructor()::";
 
     trace ? log("i", ln, `props=`, props) : null;
+
     // задана температура
-    this.taskT = props.taskT
-      ? props.taskT
+    this.regs.tT = {
+      id: "tT",
+      type: "number",
+      value: undefined,
+      header: "T,°C",
+      title: {
+        ua: `Цільова температура, °С`,
+        en: `Task temperature, °С`,
+        ru: `Заданная температура, °С`,
+      },
+      min: 20,
+      max: 200,
+    };
+
+    this.regs.tT.value = props.tT
+      ? props.tT
       : (function () {
-          throw new Error("taskT must be defined! taskT=" + props.taskT);
+          throw new Error("taskT must be defined! taskT=" + props.tT);
         })();
+
+    // мінімальне відхилення температури від розрахункової
+    this.regs.errTmin = {
+      id: "errTmin",
+      header: "errTmin",
+      type: "number",
+      value: props.errTmin ? props.errTmin : -50,
+      title: {
+        ua: `Максимальне відхилення температури вниз,°С`,
+        en: `Limit of low temperature,°С`,
+        ru: `Максимальное отклонение температуры вниз,°С`,
+      },
+      min: 0,
+      max: -100,
+    };
+    // максимальне відхилення температури від розрахункової
+    this.regs.errTmax = {
+      id: "errTmax",
+      header: "errTmax",
+      type: "number",
+      value: props.errTmin ? props.errTmin : +25,
+      title: {
+        ua: `Максимальне перевищення температури,°С`,
+        en: `Limit of high temperature,°С`,
+        ru: `Максимальное превышение температуры,°С`,
+      },
+      min: 0,
+      max: +100,
+    };
+
+    //this.regs.errT = props.errT ? props.errT : { min: -25, max: +25 };
+    //  закон регулювання
+    this.regs.regMode = {
+      id: "regMode",
+      header: "regMode",
+      type: "list",
+      value: ["pid"], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
+      title: {
+        ua: `Закон регулювання`,
+        en: `Control type`,
+        ru: `Закон регулирования,°С`,
+      },
+    };
+    // ПІД коеф. інтегрування
+    this.regs.pid_ti = {
+      id: "pid_ti",
+      header: "ti",
+      type: "number",
+      value: props.pid_ti ? props.pid_ti : 0,
+      title: {
+        ua: `Інтегральна складова`,
+        en: `the Integral gain`,
+        ru: `Интегральная составляющая`,
+      },
+      min: 0,
+      max: +1000,
+    };
+    // ПІД коеф. диференціювання
+    this.regs.pid_td = {
+      id: "pid_td",
+      header: "td",
+      type: "number",
+      value: props.pid_td ? props.pid_td : 0,
+      title: {
+        ua: `Диференційна складова`,
+        en: `the derivative gain`,
+        ru: `Дифферинциальная составляющая`,
+      },
+      min: 0,
+      max: +1000,
+    };
+    // ПІД коеф. Підсилення
+    this.regs.pid_o = {
+      id: "pid_td",
+      header: "td",
+      type: "number",
+      value: props.pid_td ? props.pid_td : 0,
+      title: {
+        ua: `Диференційна складова`,
+        en: `the derivative gain`,
+        ru: `Дифферинциальная составляющая`,
+      },
+      min: 0,
+      max: +1000,
+    };
+
     // поточна тривалість процесу
     this.processTime = 0;
     // поточна температура процесу
     this.currT = undefined;
+
     // сек, період опитування поточної температури, по замовчуванню кожні 2 сек
     this.periodCheckT = props.periodCheckT ? props.periodCheckT : 2;
 
@@ -36,8 +138,6 @@ class ClassThermoStep extends ClassStep {
     }
     this.getT = props.getT;
 
-    // максимальне відхилення температури від розрахункової
-    this.errT = props.errT ? props.errT : { min: -25, max: +25 };
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
@@ -47,6 +147,7 @@ class ClassThermoStep extends ClassStep {
   logger(level, msg) {
     log(level, this.ln, "[", new Date().toLocaleTimeString() + "]::" + msg);
   }
+
   /**
    *
    * @returns true - якщо перевіряти далі, false - якщо процес завершено

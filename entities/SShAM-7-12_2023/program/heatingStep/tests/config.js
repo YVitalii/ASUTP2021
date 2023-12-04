@@ -9,11 +9,12 @@ let trace = 1,
 
 props = {
   title: { ua: `Нагрівання`, en: `Heating`, ru: `Нагрев` },
-  taskT: 300,
+  tT: 300,
   periodCheckT: 1,
   H: 0.5,
   errH: 0.5,
-  errT: { min: undefined, max: 100 },
+  errTmin: 0,
+  errTmax: 100,
   wave: {
     period: 1,
   },
@@ -22,13 +23,15 @@ props = {
 let dev;
 
 if (emulate) {
-  dev = new Device({ heating: { tT: props.taskT, time: props.H * 60 } });
+  dev = new Device({ heating: { tT: props.tT, time: props.H * 60 } });
 } else {
   dev = new TRP(iface, 1);
 }
 
 props.getT = async () => {
-  return await dev.getT();
+  let t = await dev.getT();
+  log(ln, "getT()::t=", t);
+  return t;
 };
 
 let step = new Heating(props);

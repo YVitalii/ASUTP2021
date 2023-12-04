@@ -37,38 +37,10 @@ class ClassThermStep extends ClassStep {
       ln = this.ln + "constructor()";
 
     //TODO максимальна температура в РЗ печі
-    this.maxT = 750;
+    this.maxT = 700;
 
     // список регістрів-параметрів, щоб відділити від методів
     this.regs = {};
-
-    this.regs.tT = {
-      id: "tT",
-      type: "number",
-      value: props.tT ? props.tT : 20,
-      header: "T,°C",
-      title: {
-        ua: `Цільова температура, °С`,
-        en: `Task temperature, °С`,
-        ru: `Заданная температура, °С`,
-      },
-      min: 20,
-      max: this.maxT,
-    };
-
-    this.regs.H = {
-      id: "Н",
-      type: "time",
-      header: "Н",
-      value: props.H ? props.H : 0,
-      title: {
-        ua: `Тривалість нагрівання, хв`,
-        en: `Heating delay, minute`,
-        ru: `Длительность нагревания, мин`,
-      },
-      min: 0,
-      max: 5500,
-    };
 
     this.regs.Y = {
       id: "Y",
@@ -84,36 +56,6 @@ class ClassThermStep extends ClassStep {
       max: 5500,
     };
 
-    this.regs.errH = {
-      id: "errH",
-      header: "errH",
-      type: "number",
-      value: props.errH ? props.errH : 0,
-      title: {
-        ua: `Помилка тривалості нагрівання (0=вимкнути), хв`,
-        en: `Error of heating duration (0=disable), minute`,
-        ru: `Ошибка длительности времени нагревания (0=отключить), мин`,
-      },
-      min: 0,
-      max: 120,
-      default: 30,
-    };
-
-    this.regs.wT = {
-      id: "firstWave_T",
-      header: "wT",
-      type: "number",
-      value: props.wT ? props.wT : 0,
-      title: {
-        ua: `Перерегулювання першої хвилі (0=вимкнути), °С`,
-        en: `Overheating for first wave (0=disable), °С`,
-        ru: `Перерегулирование первой волны (0=отключить), °С`,
-      },
-      min: 0,
-      max: 200,
-      default: 10,
-    };
-
     this.regs.wH = {
       id: "firstWave_time",
       header: "wH",
@@ -127,74 +69,6 @@ class ClassThermStep extends ClassStep {
       min: 0,
       max: 120,
       default: 10,
-    };
-
-    this.regs.errTmin = {
-      id: "errTmin",
-      header: "errTmin",
-      type: "number",
-      value: props.errTmin ? props.errTmin : -50,
-      title: {
-        ua: `Максимальне відхилення температури вниз,°С`,
-        en: `Limit of low temperature,°С`,
-        ru: `Максимальное отклонение температуры вниз,°С`,
-      },
-      min: 0,
-      max: -100,
-    };
-
-    this.regs.errTmax = {
-      id: "errTmax",
-      header: "errTmax",
-      type: "number",
-      value: props.errTmin ? props.errTmin : +25,
-      title: {
-        ua: `Максимальне перевищення температури,°С`,
-        en: `Limit of high temperature,°С`,
-        ru: `Максимальное превышение температуры,°С`,
-      },
-      min: 0,
-      max: +100,
-    };
-
-    this.regs.regMode = {
-      id: "regMode",
-      header: "regMode",
-      type: "list",
-      value: ["pid"], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
-      title: {
-        ua: `Закон регулювання`,
-        en: `Control type`,
-        ru: `Закон регулирования,°С`,
-      },
-    };
-
-    this.regs.pid_ti = {
-      id: "pid_ti",
-      header: "ti",
-      type: "number",
-      value: props.pid_ti ? props.pid_ti : 0,
-      title: {
-        ua: `Інтегральна складова`,
-        en: `the Integral gain`,
-        ru: `Интегральная составляющая`,
-      },
-      min: 0,
-      max: +1000,
-    };
-
-    this.regs.pid_td = {
-      id: "pid_td",
-      header: "td",
-      type: "number",
-      value: props.pid_td ? props.pid_td : 0,
-      title: {
-        ua: `Диференційна складова`,
-        en: `the derivative gain`,
-        ru: `Дифферинциальная составляющая`,
-      },
-      min: 0,
-      max: +1000,
     };
 
     // поточна програма
@@ -318,7 +192,7 @@ class ClassThermStep extends ClassStep {
   /** готує програму для виконання
    * @param {task} task
    */
-  async setProgram(task, entity) {
+  async parseProgram(task, entity) {
     let trace = 1,
       ln = this.ln + `setProgram(${task})`;
     this.task = task;

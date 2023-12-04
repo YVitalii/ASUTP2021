@@ -50,10 +50,10 @@ class ClassProgram extends ClassStep {
         H: 0,
         Y: 20,
         errH: 0,
-        wT: 0,
-        wH: 0,
-        errTmin: 0,
-        errTmax: 50,
+        wT: 50,
+        wH: 10,
+        errTmin: -15,
+        errTmax: 25,
         regMode: "pid",
         pid_td: 0,
         pid_ti: 0,
@@ -96,23 +96,12 @@ class ClassProgram extends ClassStep {
   }
 
   parseQuickHeatingStep(task, entity) {
-    // TODO  поки заглушка, тут маємо отримати
-    // параметри першої хвилі перерегулювання для вказаної температури
-    if (task.wT == 0) {
-      //якщо не вказана температура першої хвилі - пропускаємо цей крок
-      return 1;
-    }
     // створюємо завдання для кроку Heating
-    let title = `${task.tT} &deg;C;${task.H}`;
     let props = {
-      title: {
-        ua: `Нагрівання ${title}хв`,
-        en: `Heating ${title}min`,
-        ru: `Нагревание ${title}мин`,
-      },
-      taskT: task.tT - wT > 0 ? task.tT - wT : 0,
+      taskT: task.tT - task.wT > 0 ? task.tT - task.wT : 0,
       errT: { min: 0, max: 100 },
-      H: task.H - wH > 0 ? task.H - wH : 0,
+      wT: task.wT,
+      H: task.H - task.wH > 0 ? task.H - task.wH : 0,
       errH: 0,
       periodCheck: 2,
       getT: async () => {
@@ -120,34 +109,40 @@ class ClassProgram extends ClassStep {
       },
       wave: {
         period: test ? 1 : 60,
-        dT: 0.1,
+        dT: 0.1, // якщо за 6 хв температура зросла менш ніж на 1 *С, рахуємо - фініш
         points: 10,
       },
+    };
+    let title = `${props.taskT} &deg;C;${props.H}`;
+    props.title = {
+      ua: `Швидке нагрівання ${title} хв`,
+      en: `Quick heating ${title} min`,
+      ru: `Быстрый нагрев ${title} мин`,
     };
 
     // перед початком кроку програмуємо прилади
     props.beforeStart = async () => {
       // --- піч
       await entity.devices.furnaceTRP.stop();
-      let regs = {
+      let regsTRP = {
         tT: entity.maxT,
         H: 0, // не обмежуємо швидкість
         Y: 0, // утримуємо до завершення нагрівання реторти
         regMode: 1, // щоб по інерції не заскакував вище ОГР
-        o: 5, // почне знижувати потужність за 100/5=20С до заданої
+        o: 5, // почне знижувати потужність за 100/5=20С до tT
         td: 0,
         ti: 0,
       };
-      await entity.devices.furnaceTRP.setRegs(regs);
+      await entity.devices.furnaceTRP.setRegs(regsTRP);
       await entity.devices.furnaceTRP.start();
       // --- реторта
       await entity.devices.retortTRP.stop();
-      regs = {
+      regsTRP = {
         tT: props.taskT,
         H: props.H,
         Y: 0, // утримуємо до завершення нагрівання реторти
-        regMode: 2, // ПОЗ, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
-        o: 10,
+        regMode: 2, // ПОЗ-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
+        o: 5,
         td: 0,
         ti: 0,
       };
@@ -157,13 +152,62 @@ class ClassProgram extends ClassStep {
 
     return new Heating(props);
   }
+
   // повільне догрівання до tT по ПІД закону
-  parsePidHeatingStep(task, entity) {}
+  parsePidHeatingStep(task, entity) {
+    // створюємо завдання для кроку Heating
+    let props = {
+      taskT: task.tT,
+      errT: { min: task.errTmin, max: task.errTmax },
+      wT: 0,
+      H: 0,
+      errH: 0,
+      periodCheck: 2,
+
+      getT: async () => {
+        return entity.devices.retortTRP.getT();
+      },
+    };
+
+    let title = `${props.taskT} &deg;C;${props.H}`;
+    props.title = {
+      ua: `Догрівання ${title} `,
+      en: `Finishing heating ${title} min`,
+      ru: `Догревание ${title} мин`,
+    };
+    // перед початком кроку програмуємо прилади
+    props.beforeStart = async () => {
+      // --- піч --------
+      await entity.devices.furnaceTRP.stop();
+      let regsTRP = {
+        tT: entity.maxT,
+        H: 0, // не обмежуємо швидкість
+        Y: 0, // утримуємо до завершення нагрівання реторти
+        regMode: 1, // щоб по інерції не заскакував вище ОГР
+        o: 5, // почне знижувати потужність за 100/5=20С до tT
+        td: 0,
+        ti: 0,
+      };
+      await entity.devices.furnaceTRP.setRegs(regsTRP);
+      await entity.devices.furnaceTRP.start();
+      // --- реторта
+      await entity.devices.retortTRP.stop();
+      regsTRP = {
+        tT: props.taskT,
+        H: props.H,
+        Y: 0, // утримуємо до зовнішньої команди "Стоп"
+        regMode: 1, // ПІД-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
+        o: task.pid_o,
+        td: task.pid_td,
+        ti: task.pid_ti,
+      };
+      await entity.devices.retortTRP.setRegs(regs);
+      await entity.devices.retortTRP.start();
+    }; // beforeStart
+    return new Heating(props);
+  }
 
   parseHoldingStep(task, entity) {
-    // TODO заглушка, в цьому місці повинна бути функція таблиця для отримання коеф. з таблиці,
-    // що автоматично/вручну підлаштовується  під піч/садку
-    this.pid = task.pid ? task.pid : { o: 10, dt: 0, di: 0 };
     // створюємо завдання для кроку Holding
 
     let title = `${task.tT} &deg;C;${task.holding}`;
@@ -244,8 +288,10 @@ class ClassProgram extends ClassStep {
         ru: `Термообработка`,
       };
     }
+
     // створюємо кроки програми
     this.program.steps.push(this.parseQuickHeatingStep(tasks[1], entity));
+    this.program.steps.push(this.parsePidHeatingStep(tasks[1], entity));
     this.program.steps.push(this.parseHoldingStep(tasks[1], entity));
     //let heating = new Heating();
     //this.program.push();
