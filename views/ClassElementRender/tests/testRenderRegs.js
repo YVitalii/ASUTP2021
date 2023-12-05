@@ -1,0 +1,52 @@
+const regsRender = require("../regsRender");
+const log = require("../../../tools/log");
+let gln = "test::";
+
+let regs = {};
+
+regs.H = {
+  id: "Н",
+  type: "time",
+  header: "Н",
+  value: 0,
+  title: {
+    ua: `Тривалість нагрівання, хв`,
+    en: `Heating delay, min`,
+    ru: `Длительность нагревания, мин`,
+  },
+  min: "00:00",
+  max: "99:59",
+};
+
+// максимальний час запізнення нагрівання, після якого рахується помилка
+regs.errH = {
+  id: "errH",
+  header: "errH",
+  type: "number",
+  value: 0,
+  title: {
+    ua: `Помилка тривалості нагрівання (0=вимкнути), хв`,
+    en: `Error of heating duration (0=disable), minute`,
+    ru: `Ошибка длительности времени нагревания (0=отключить), мин`,
+  },
+  min: 0,
+  max: 120,
+};
+
+// температура першої хвилі перерегулювання, слугує для прийняття рішення про пропуск/очікування етапу першої хвилі
+regs.wT = {
+  id: "firstWave_T",
+  header: "wT",
+  type: "number",
+  value: 0,
+  title: {
+    ua: `Перерегулювання першої хвилі (0=вимкнути), °С`,
+    en: `Overheating for first wave (0=disable), °С`,
+    ru: `Перерегулирование первой волны (0=отключить), °С`,
+  },
+  min: 0,
+  max: 200,
+};
+
+log("w", "============================================================");
+log("w", regsRender(regs, "st1_", "en"));

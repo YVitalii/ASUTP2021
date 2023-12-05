@@ -1,0 +1,7 @@
+-var lang="ua"
+
+//- pre #{JSON.stringify(reg)} 
+
+div(class="col", title=`${reg.title[lang]}`)
+  -var id=`${prefix}${reg.id}`
+  input(type="number" id =`${id}` class="form-control", value=`${reg.value}`, min=`${reg.min}`, max=`${reg.max}`) 

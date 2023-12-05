@@ -234,9 +234,9 @@ class ClassHeatingStep extends ClassThermoStep {
     }
   }
   getRegs() {
-    return regs;
+    return this.regs;
   }
-
+  getTaskHtml() {}
   getHTML(step_id) {
     let html = pug.renderFile(__dirname + "/html.pug", {
       regs: this.getRegs(),
@@ -245,7 +245,7 @@ class ClassHeatingStep extends ClassThermoStep {
     return html;
   }
 }
-ClassHeatingStep.getTaskHtml = () => {
+ClassHeatingStep.getTaskHtml = (regs) => {
   return "Список параметрів";
 };
 module.exports = ClassHeatingStep;
