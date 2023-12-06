@@ -8,20 +8,21 @@ const gln = module.file;
 
 let viewsDir = require("path").normalize(__dirname + "\\views\\");
 
-function regsRender(regs, prefix = "", lang = "ua") {
+function regsRender(regs, prefix = "", language = "ua") {
   let trace = 1,
     ln = gln + "regsRender()::";
   if (!regs) {
     console.error("Не вказані регістри");
   }
-  let html = '<div class="row">\n';
+  let html = "";
   for (const key in regs) {
     if (regs.hasOwnProperty(key)) {
       trace ? log("i", ln, `reg=`, key) : null;
-      html += regRender(regs[key], prefix, lang);
+      html += regRender(regs[key], prefix, language);
+      html += "\n";
     }
   }
-  html += `\n<div> <!-- container ${prefix}  --> `;
+
   return html;
 }
 
@@ -38,17 +39,15 @@ function regsRender(regs, prefix = "", lang = "ua") {
  * @param {String} prefix - префікс назви регістру
  */
 
-function regRender(reg, prefix = "", lang = "ua") {
+function regRender(reg, prefix = "", language = "ua") {
   let trace = 1,
     ln = gln + "regRender()::";
   trace ? log("i", ln, `=`) : null;
   if (!reg) {
     console.error("Не вказаний регістр");
   }
-  let file = reg.type + ".pug";
-  let html = pug.renderFile(file, { reg, prefix, lang });
-  html += "\n";
-
+  let file = viewsDir + reg.type + ".pug";
+  let html = pug.renderFile(file, { reg, prefix, language });
   return html;
 }
 

@@ -35,7 +35,7 @@ regs.errH = {
 
 // температура першої хвилі перерегулювання, слугує для прийняття рішення про пропуск/очікування етапу першої хвилі
 regs.wT = {
-  id: "firstWave_T",
+  id: "wT",
   header: "wT",
   type: "number",
   value: 0,
@@ -48,5 +48,18 @@ regs.wT = {
   max: 200,
 };
 
+regs.regMode = {
+  id: "regMode",
+  header: "regMode",
+  type: "select",
+  value: ["pid", "pos"], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
+  title: {
+    ua: `Закон регулювання`,
+    en: `Control type`,
+    ru: `Закон регулирования`,
+  },
+};
+
 log("w", "============================================================");
-log("w", regsRender(regs, "st1_", "en"));
+
+log("w", regsRender(regs, "st1_", "ua"));

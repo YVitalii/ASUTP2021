@@ -1,9 +1,9 @@
-
+-var lang= language ? language : "ua";
 -var id=`${prefix}${reg.id}`
 
-
-//- pre #{JSON.stringify(reg)} 
+//- pre #{JSON.stringify({lang,language})} 
 
 div(class="col", title=`${reg.title[lang]}`)
-
+  label(for=`${id}`)
+    = `${reg.header}`
   input(type="time" id =`${id}` class="form-control", value=`${reg.value}`, min=`${reg.min}`, max=`${reg.max}`) 

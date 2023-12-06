@@ -71,12 +71,12 @@ class ClassThermoStep extends ClassStep {
     this.regs.regMode = {
       id: "regMode",
       header: "regMode",
-      type: "list",
+      type: "select",
       value: ["pid"], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
       title: {
         ua: `Закон регулювання`,
         en: `Control type`,
-        ru: `Закон регулирования,°С`,
+        ru: `Закон регулирования`,
       },
     };
     // ПІД коеф. інтегрування

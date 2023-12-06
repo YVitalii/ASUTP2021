@@ -1,0 +1,13 @@
+-var lang= language ? language : "ua";
+-var id=`${prefix}${reg.id}`
+
+//- -var array = 
+//- pre #{JSON.stringify({lang,language})} 
+
+//- pre #{JSON.stringify(reg)} 
+
+div(class="col", title=`${reg.title[lang]}`)
+  label(for=`${id}`)= `${reg.header}`
+  select(id =`${id}`, class="form-control")
+    -for (var x=0; x<reg.value.length; x++)
+      option= reg.value[x]

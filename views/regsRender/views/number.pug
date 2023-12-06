@@ -1,0 +1,25 @@
+-var lang= language ? language : "ua";
+-var id=`${prefix}${reg.id}`
+
+//- pre #{JSON.stringify({lang,language})} 
+
+//- pre #{JSON.stringify(reg)} 
+
+div(class="col", title=`${reg.title[lang]}`)
+  label(for=`${id}`)
+    = `${reg.header}`
+  input(type="number" id =`${id}` class="form-control", value=`${reg.value}`, min=`${reg.min}`, max=`${reg.max}`) 
+//- ------ JS -----------
+-let pageProps  = "pageProps";
+= `\n`
+script.
+  #{pageProps}["#{id}"] = {
+    get value() = () => {
+      let val=parseInt(document.getElementById("#{id}").value);
+      return val
+    }
+    set value(val) = () => {
+      document.getElementById("#{id}").value = val;
+    }
+
+  }
