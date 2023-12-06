@@ -14,7 +14,10 @@ function regsRender(regs, prefix = "", language = "ua") {
   if (!regs) {
     console.error("Не вказані регістри");
   }
-  let html = "";
+
+  let file = viewsDir + "header.pug";
+  let html = pug.renderFile(file, { prefix, language });
+
   for (const key in regs) {
     if (regs.hasOwnProperty(key)) {
       trace ? log("i", ln, `reg=`, key) : null;
@@ -40,7 +43,7 @@ function regsRender(regs, prefix = "", language = "ua") {
  */
 
 function regRender(reg, prefix = "", language = "ua") {
-  let trace = 1,
+  let trace = 0,
     ln = gln + "regRender()::";
   trace ? log("i", ln, `=`) : null;
   if (!reg) {

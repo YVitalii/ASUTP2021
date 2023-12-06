@@ -19,7 +19,6 @@ script.
       return val
     }
     set value(val) = () => {
-      document.getElementById("#{id}").value = val;
+      document.getElementById("#{id}").value = parseInt(val);
     }
-
   }
