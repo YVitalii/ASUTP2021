@@ -33,6 +33,10 @@ class ClassProgram extends ClassStep {
       ln = this.ln + "constructor()";
 
     // массив завдань як на веб. сторінці
+    this.tasks = {};
+    // this.task.registeredSteps = {};
+    // this.task.registeredSteps[Heating.id] = Heating;
+
     // TODO створити автоматичне завантаження останньої програми з файлу
     this.tasks = [
       {
@@ -45,11 +49,10 @@ class ClassProgram extends ClassStep {
       //   id: "preparation",
       // },
       {
-        id: "thermStep",
+        id: "heating",
         tT: 520,
         H: 0,
-        Y: 20,
-        errH: 0,
+        errH: 30,
         wT: 50,
         wH: 10,
         errTmin: -15,
@@ -98,8 +101,9 @@ class ClassProgram extends ClassStep {
   parseQuickHeatingStep(task, entity) {
     // створюємо завдання для кроку Heating
     let props = {
-      taskT: task.tT - task.wT > 0 ? task.tT - task.wT : 0,
-      errT: { min: 0, max: 100 },
+      tT: task.tT - task.wT > 0 ? task.tT - task.wT : 0,
+      errTmin: 0,
+      errTmax: 100,
       wT: task.wT,
       H: task.H - task.wH > 0 ? task.H - task.wH : 0,
       errH: 0,
@@ -113,7 +117,7 @@ class ClassProgram extends ClassStep {
         points: 10,
       },
     };
-    let title = `${props.taskT} &deg;C;${props.H}`;
+    let title = `${props.tT} &deg;C;${props.H}`;
     props.title = {
       ua: `Швидке нагрівання ${title} хв`,
       en: `Quick heating ${title} min`,
@@ -138,7 +142,7 @@ class ClassProgram extends ClassStep {
       // --- реторта
       await entity.devices.retortTRP.stop();
       regsTRP = {
-        tT: props.taskT,
+        tT: props.tT,
         H: props.H,
         Y: 0, // утримуємо до завершення нагрівання реторти
         regMode: 2, // ПОЗ-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
@@ -157,7 +161,7 @@ class ClassProgram extends ClassStep {
   parsePidHeatingStep(task, entity) {
     // створюємо завдання для кроку Heating
     let props = {
-      taskT: task.tT,
+      tT: task.tT,
       errT: { min: task.errTmin, max: task.errTmax },
       wT: 0,
       H: 0,
@@ -169,7 +173,7 @@ class ClassProgram extends ClassStep {
       },
     };
 
-    let title = `${props.taskT} &deg;C;${props.H}`;
+    let title = `${props.tT} &deg;C;${props.H}`;
     props.title = {
       ua: `Догрівання ${title} `,
       en: `Finishing heating ${title} min`,
@@ -193,7 +197,7 @@ class ClassProgram extends ClassStep {
       // --- реторта
       await entity.devices.retortTRP.stop();
       regsTRP = {
-        tT: props.taskT,
+        tT: props.tT,
         H: props.H,
         Y: 0, // утримуємо до зовнішньої команди "Стоп"
         regMode: 1, // ПІД-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
@@ -218,7 +222,7 @@ class ClassProgram extends ClassStep {
         en: `Holding ${title}min`,
         ru: `Удержание ${title}мин`,
       },
-      taskT: task.tT,
+      tT: task.tT,
       errT: { min: -25, max: 25 },
       // якщо азотування - гріємо доки не надійде команда стоп від процесу азотування
       // якщо просто нагрівання без азотування (Кн=0), то використовуємо: витримку з завдання + 5хв
@@ -372,7 +376,7 @@ class ClassProgram extends ClassStep {
   htmlFull = (entity) => {
     let html = "";
 
-    html = pug.renderFile(__dirname + "/views/program_full.pug", {
+    html = pug.renderFile(__dirname + "/views/full.pug", {
       entity: entity,
     });
     return html;

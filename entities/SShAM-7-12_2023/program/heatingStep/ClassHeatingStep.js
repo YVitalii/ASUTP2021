@@ -3,6 +3,7 @@ const log = require("../../../../tools/log.js");
 const toTimeString = require("../../../../tools/general.js").toTimeString;
 let ClassThermoStep = require("../classStep/ClassThermoStep.js");
 const pug = require("pug");
+const regsRender = require("../../../../views/regsRender/regsRender.js");
 
 /**
  * Клас виконує крок "Нагрівання"
@@ -38,7 +39,7 @@ class ClassHeatingStep extends ClassThermoStep {
 
     // хв, тривалість розігрівання, якщо 0 = максимально швидко
     this.regs.H = {
-      id: "Н",
+      id: "H",
       type: "time",
       header: "Н",
       value: props.H ? props.H : 0,
@@ -233,11 +234,24 @@ class ClassHeatingStep extends ClassThermoStep {
       }
     }
   }
+
   getRegs() {
     return this.regs;
   }
-  getTaskHtml() {}
-  getHTML(step_id) {
+
+  /**
+   *
+   * @param {Object} props
+   * @property {String}  props.prefix - префікс для формування id елементу в DOM-tree
+   * @property {String}  props.homeURL - базова адреса для POST запиту стану регістрів використовується в скрипті авт. опитування
+   */
+  getTaskHtml(props = {}) {
+    let prefix = props.prefix ? props.prefix : "heating_";
+    let homeURL = props.homeURL ? props.homeUrl : "emtyhomeURL";
+    return regsRender(this.regs, { prefix, homeURL });
+  }
+
+  getHTML() {
     let html = pug.renderFile(__dirname + "/html.pug", {
       regs: this.getRegs(),
       step_id: step_id,
@@ -245,7 +259,6 @@ class ClassHeatingStep extends ClassThermoStep {
     return html;
   }
 }
-ClassHeatingStep.getTaskHtml = (regs) => {
-  return "Список параметрів";
-};
+ClassHeatingStep.id = "heating";
+
 module.exports = ClassHeatingStep;

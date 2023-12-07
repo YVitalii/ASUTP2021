@@ -4,6 +4,25 @@
 //- pre #{JSON.stringify({lang,language})} 
 
 div(class="col", title=`${reg.title[lang]}`)
-  label(for=`${id}`)
+  label(for=`${id}` class="h6")
     = `${reg.header}`
-  input(type="time" id =`${id}` class="form-control", value=`${reg.value}`, min=`${reg.min}`, max=`${reg.max}`) 
+  input(type="time" id =`${id}` class="form-control form-control-lg", value=`${reg.value}`, min=`${reg.min}`, max=`${reg.max}`) 
+  small= `${reg.title[lang]}`
+
+//- ------ JS -----------
+-let pageProps  = `pageProps.${prefix}`;
+
+script.
+  #{pageProps}["#{id}"] = {
+    get value() {
+      let val=document.getElementById("#{id}").value;
+      let [h,m] = val.split(":");
+      val = parseInt(h)*60+parseInt(m);
+      return val
+    },
+    set value(val) {
+      let time= new Date(val*60*1000);
+      let l = time.toISOString().slice(11,10+6);
+      document.getElementById("#{id}").value = l;
+    }
+  }

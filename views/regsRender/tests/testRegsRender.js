@@ -1,14 +1,29 @@
 const regsRender = require("../regsRender");
 const log = require("../../../tools/log");
+const pug = require("pug");
+const writeFile = require("fs").writeFileSync;
+
 let gln = "test::";
 
 let regs = {};
 
+regs.regMode = {
+  id: "regMode",
+  header: "regMode",
+  type: "select",
+  value: ["pid"], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
+  title: {
+    ua: `Закон регулювання`,
+    en: `Control type`,
+    ru: `Закон регулирования`,
+  },
+};
+
 regs.H = {
-  id: "Н",
+  id: "H",
   type: "time",
-  header: "Н",
-  value: 0,
+  header: "H",
+  value: "00:00",
   title: {
     ua: `Тривалість нагрівання, хв`,
     en: `Heating delay, min`,
@@ -48,18 +63,14 @@ regs.wT = {
   max: 200,
 };
 
-regs.regMode = {
-  id: "regMode",
-  header: "regMode",
-  type: "select",
-  value: ["pid", "pos"], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
-  title: {
-    ua: `Закон регулювання`,
-    en: `Control type`,
-    ru: `Закон регулирования`,
-  },
-};
-
 log("w", "============================================================");
-
-log("w", regsRender(regs, "st1_", "ua"));
+let html = regsRender(regs, { prefix: "st1_", lang: "ua" });
+let fileName = __dirname + "\\index.html";
+let main = __dirname.slice(0, -16) + "main.pug";
+log("w", "main=", main);
+html = pug.renderFile(main, {
+  body: html,
+  pageTitle: "test regsRender",
+});
+writeFile(fileName, html);
+log("w", "Файл записано:", fileName);

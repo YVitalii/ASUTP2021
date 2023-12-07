@@ -11,7 +11,7 @@ props = {
   title: { ua: `Нагрівання`, en: `Heating`, ru: `Нагрев` },
   tT: 300,
   periodCheckT: 1,
-  H: 0.5,
+  H: 50,
   errH: 0.5,
   errTmin: 0,
   errTmax: 100,

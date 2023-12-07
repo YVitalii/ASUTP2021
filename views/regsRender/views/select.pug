@@ -3,11 +3,11 @@
 
 //- -var array = 
 //- pre #{JSON.stringify({lang,language})} 
-
 //- pre #{JSON.stringify(reg)} 
 
 div(class="col", title=`${reg.title[lang]}`)
-  label(for=`${id}`)= `${reg.header}`
-  select(id =`${id}`, class="form-control")
+  label(for=`${id}` class="h6")= `${reg.header}`
+  select(id =`${id}`, class="form-control form-control-lg")
     -for (var x=0; x<reg.value.length; x++)
       option= reg.value[x]
+  small= `${reg.title[lang]}`

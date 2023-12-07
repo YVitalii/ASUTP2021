@@ -7,7 +7,7 @@ div(class="row")
 
   div(class="col")    
     h3=`${{ua:`Програма` , en: `Program`, ru: `Программа` }[lang]}`
-    = `${program}`
+    = `${program.tasks.fullHtml()}`
 div(class="row")
   div(class="col")
     <button type="button" class="btn btn-primary">Застосувати</button>

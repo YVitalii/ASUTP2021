@@ -1,0 +1,41 @@
+<!DOCTYPE html><html class="h-100"><head><title>test regsRender</title><link rel="stylesheet" href="/stylesheets/style.css"><link rel="stylesheet" href="/bootstrap/bootstrap.min.css"><script src="/bootstrap/bootstrap.bundle.min.js"> </script><script>function getDate() {
+  var date = new Date().toLocaleString();
+  let arr = date.split(",");
+  date = arr[0] + "<br>" + arr[1];
+
+  document.getElementById("timedisplay").innerHTML = date.toLocaleString();
+}
+setInterval(getDate, 0);
+</script><script>var pageProps={};</script></head><body class="h-100"><div class="container-fluid h-100 d-flex flex-column"> <div class="row"><div class="col-3"><img src="/img/logo_bortek.png" alt="Бортек" id="logo"></div><div class="col my-auto mx-auto "><div class="h2 " id="pageTitle">test regsRender</div></div><div class="col-1 my-auto mx-auto "><div class="h5" id="timedisplay"></div></div><hr></div><div class="row h-100"><div class="col"><div class="h-100" id="pageBody"><div class="row"><script>pageProps["st1_"]= {};</script><div class="col" title="Закон регулювання"><label class="h6" for="st1_regMode">regMode</label><select class="form-control form-control-lg" id="st1_regMode"><option>pid</option></select><small>Закон регулювання</small></div>
+<div class="col" title="Тривалість нагрівання, хв"><label class="h6" for="st1_H">H</label><input class="form-control form-control-lg" type="time" id="st1_H" value="00:00" min="00:00" max="99:59"/><small>Тривалість нагрівання, хв</small></div><script>pageProps.st1_["st1_H"] = {
+  get value() {
+    let val=document.getElementById("st1_H").value;
+    let [h,m] = val.split(":");
+    val = parseInt(h)*60+parseInt(m);
+    return val
+  },
+  set value(val) {
+    let time= new Date(val*60*1000);
+    let l = time.toISOString().slice(11,10+6);
+    document.getElementById("st1_H").value = l;
+  }
+}</script>
+<div class="col" title="Помилка тривалості нагрівання (0=вимкнути), хв"><label class="h6" for="st1_errH">errH</label><input class="form-control form-control-lg" type="number" id="st1_errH" value="0" min="0" max="120"/><small>Помилка тривалості нагрівання (0=вимкнути), хв</small></div><script>pageProps.st1_["st1_errH"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_errH").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_errH").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="Перерегулювання першої хвилі (0=вимкнути), °С"><label class="h6" for="st1_wT">wT</label><input class="form-control form-control-lg" type="number" id="st1_wT" value="0" min="0" max="200"/><small>Перерегулювання першої хвилі (0=вимкнути), °С</small></div><script>pageProps.st1_["st1_wT"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_wT").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_wT").value = parseInt(val);
+  }
+}</script>
+</div></div></div></div></div><script src="/bootstrap/bootstrap.min.js"></script></body></html>

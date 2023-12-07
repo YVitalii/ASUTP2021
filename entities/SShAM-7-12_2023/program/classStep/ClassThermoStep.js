@@ -34,7 +34,7 @@ class ClassThermoStep extends ClassStep {
     this.regs.tT.value = props.tT
       ? props.tT
       : (function () {
-          throw new Error("taskT must be defined! taskT=" + props.tT);
+          throw new Error("tT must be defined! tT=" + props.tT);
         })();
 
     // мінімальне відхилення температури від розрахункової

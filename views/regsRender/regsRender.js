@@ -4,27 +4,40 @@
 
 const pug = require("pug");
 const log = require("../../tools/log");
-const gln = module.file;
+const gln = __dirname + "::";
 
 let viewsDir = require("path").normalize(__dirname + "\\views\\");
 
-function regsRender(regs, prefix = "", language = "ua") {
+/**
+ * Перетворює список регістрів в елементи DOM
+ * @param {*} regs - список регістрів
+ * @param {*} props - список налаштувань
+ * @property {String}  props.prefix - префікс для формування id елементу в DOM-tree
+ * @property {String}  props.homeUrl - базова адреса для POST запиту стану регістрів використовується в скрипті авт. опитування
+ * @returns
+ */
+
+function regsRender(regs, props = {}) {
   let trace = 1,
     ln = gln + "regsRender()::";
   if (!regs) {
     console.error("Не вказані регістри");
   }
+  let prefix = props.prefix ? props.prefix : "undefinedPrefix_";
+  let language = props.lang ? props.lang : "undefinedLanguage";
 
   let file = viewsDir + "header.pug";
-  let html = pug.renderFile(file, { prefix, language });
+  let html = '<div class="row">';
+  html += pug.renderFile(file, { prefix, language });
 
   for (const key in regs) {
     if (regs.hasOwnProperty(key)) {
-      trace ? log("i", ln, `reg=`, key) : null;
+      trace ? log("i", ln, `reg=`, key, ":", regs[key]) : null;
       html += regRender(regs[key], prefix, language);
       html += "\n";
     }
   }
+  html += "</div>";
 
   return html;
 }

@@ -6,4 +6,90 @@
   document.getElementById("timedisplay").innerHTML = date.toLocaleString();
 }
 setInterval(getDate, 0);
-</script></head><body class="h-100"><div class="container-fluid h-100 d-flex flex-column"> <div class="row"><div class="col-3"><img src="/img/logo_bortek.png" alt="Бортек" id="logo"></div><div class="col my-auto mx-auto "><div class="h2 " id="pageTitle">Тестування кроку Нагрівання</div></div><div class="col-1 my-auto mx-auto "><div class="h5" id="timedisplay"></div></div><hr></div><div class="row h-100"><div class="col"><div class="h-100" id="pageBody"><table><tr><td class="h6" align="center" valign="center" title="&quot;Задана температура, &amp;deg;C&quot;">T, &amp;deg;C</td><td class="h6" align="center" valign="center" title="&quot;Тривалість нагрівання, хв&quot;">Н</td><td class="h6" align="center" valign="center" title="&quot;Тривалість витримки, хв&quot;">errH</td></tr></table></div></div></div></div><script src="/bootstrap/bootstrap.min.js"></script></body></html>
+</script><script>var pageProps={};</script></head><body class="h-100"><div class="container-fluid h-100 d-flex flex-column"> <div class="row"><div class="col-3"><img src="/img/logo_bortek.png" alt="Бортек" id="logo"></div><div class="col my-auto mx-auto "><div class="h2 " id="pageTitle">Тестування кроку Нагрівання</div></div><div class="col-1 my-auto mx-auto "><div class="h5" id="timedisplay"></div></div><hr></div><div class="row h-100"><div class="col"><div class="h-100" id="pageBody"><div class="row"><script>pageProps["st1_"]= {};</script><div class="col" title="undefined"><label class="h6" for="st1_tT">T,°C</label><input class="form-control form-control-lg" type="number" id="st1_tT" value="300" min="20" max="200"/><small>undefined</small></div><script>pageProps.st1_["st1_tT"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_tT").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_tT").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_errTmin">errTmin</label><input class="form-control form-control-lg" type="number" id="st1_errTmin" value="-50" min="0" max="-100"/><small>undefined</small></div><script>pageProps.st1_["st1_errTmin"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_errTmin").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_errTmin").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_errTmax">errTmax</label><input class="form-control form-control-lg" type="number" id="st1_errTmax" value="25" min="0" max="100"/><small>undefined</small></div><script>pageProps.st1_["st1_errTmax"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_errTmax").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_errTmax").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_regMode">regMode</label><select class="form-control form-control-lg" id="st1_regMode"><option>pid</option></select><small>undefined</small></div>
+<div class="col" title="undefined"><label class="h6" for="st1_pid_ti">ti</label><input class="form-control form-control-lg" type="number" id="st1_pid_ti" value="0" min="0" max="1000"/><small>undefined</small></div><script>pageProps.st1_["st1_pid_ti"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_pid_ti").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_pid_ti").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_pid_td">td</label><input class="form-control form-control-lg" type="number" id="st1_pid_td" value="0" min="0" max="1000"/><small>undefined</small></div><script>pageProps.st1_["st1_pid_td"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_pid_td").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_pid_td").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_pid_td">td</label><input class="form-control form-control-lg" type="number" id="st1_pid_td" value="0" min="0" max="1000"/><small>undefined</small></div><script>pageProps.st1_["st1_pid_td"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_pid_td").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_pid_td").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_H">Н</label><input class="form-control form-control-lg" type="time" id="st1_H" value="50" min="0" max="5989"/><small>undefined</small></div><script>pageProps.st1_["st1_H"] = {
+  get value() {
+    let val=document.getElementById("st1_H").value;
+    let [h,m] = val.split(":");
+    val = parseInt(h)*60+parseInt(m);
+    return val
+  },
+  set value(val) {
+    let time= new Date(val*60*1000);
+    let l = time.toISOString().slice(11,10+6);
+    document.getElementById("st1_H").value = l;
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_errH">errH</label><input class="form-control form-control-lg" type="number" id="st1_errH" value="0.5" min="0" max="120"/><small>undefined</small></div><script>pageProps.st1_["st1_errH"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_errH").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_errH").value = parseInt(val);
+  }
+}</script>
+<div class="col" title="undefined"><label class="h6" for="st1_firstWave_T">wT</label><input class="form-control form-control-lg" type="number" id="st1_firstWave_T" value="0" min="0" max="200"/><small>undefined</small></div><script>pageProps.st1_["st1_firstWave_T"] = {
+  get value()  {
+    let val=parseInt(document.getElementById("st1_firstWave_T").value);
+    return val
+  },
+  set value(val) {
+    document.getElementById("st1_firstWave_T").value = parseInt(val);
+  }
+}</script>
+</div></div></div></div></div><script src="/bootstrap/bootstrap.min.js"></script></body></html>

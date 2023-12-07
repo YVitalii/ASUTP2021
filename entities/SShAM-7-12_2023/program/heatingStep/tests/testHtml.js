@@ -6,16 +6,18 @@ const write = require("fs").writeFileSync;
 const pug = require("pug");
 const mainPath = "E:/node/ASUTP2021";
 
-let path = mainPath + "/public/tests/heatingStepTest.html";
+let path = __dirname + "\\index.html";
+
 (async () => {
-  let html = step.getHTML("pr_st_2");
+  let html = step.getTaskHtml({ prefix: "st1_", homeUrl: "/12345/" });
   html = pug.renderFile(mainPath + "/views/main.pug", {
     pageTitle: "Тестування кроку Нагрівання",
     body: html,
   });
+
   write(path, html);
 
-  log("w", "file writed!");
+  log("w", "file:", path, " writed!");
   // console.dir(step.getHTML());
   // log("w", "----------- завершення процесу по перевищенню часу  ----------");
   // dev.heating.tT = props.taskT;
