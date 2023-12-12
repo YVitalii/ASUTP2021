@@ -38,8 +38,9 @@ let step = new Heating(props);
 step.dev = dev;
 module.exports = step;
 
-// log("i", ln, `step=`);
-// console.dir(step);
+log("i", ln, `classHeatingStep=`);
+console.dir(Heating);
 
-if (!module.parent) {
-}
+// if (!module.parent) {
+
+// }

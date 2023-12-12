@@ -4,7 +4,7 @@ const ClassStep = require("./ClassStep.js");
 /** Загальний клас кроку термічної програми, оcновна логіка та основні параметри */
 class ClassThermoStep extends ClassStep {
   /**
-   * Конструктор класу, оптимізованого під процеси термообробки
+   * Конструктор класу, оптимізованого під нагрівання
    * @param {*} props
    * @property {}
    */
@@ -15,7 +15,7 @@ class ClassThermoStep extends ClassStep {
     let ln = this.ln + "Constructor()::";
 
     trace ? log("i", ln, `props=`, props) : null;
-    this;
+
     // задана температура
     this.regs.tT = {
       id: "tT",

@@ -131,4 +131,6 @@ class ClassStep {
   }
 }
 
+ClassStep.regs = {};
+
 module.exports = ClassStep;

@@ -33,23 +33,23 @@ class ClassProgram extends ClassStep {
       ln = this.ln + "constructor()";
 
     // массив завдань як на веб. сторінці
-    this.tasks = {};
+    this.tasks = [];
     // this.task.registeredSteps = {};
-    // this.task.registeredSteps[Heating.id] = Heating;
+    //  his.task.registeredSteps[Heating.id] = Heating;
 
     // TODO створити автоматичне завантаження останньої програми з файлу
     this.tasks = [
       {
         // загальний опис програми
-        id: "_01",
+        type: "description",
         title: "Програма 01",
         note: "По замовчуванню.",
       },
-      // {
-      //   id: "preparation",
-      // },
       {
-        id: "heating",
+        id: "preparation",
+      },
+      {
+        type: "heating",
         tT: 520,
         H: 0,
         errH: 30,
@@ -62,8 +62,9 @@ class ClassProgram extends ClassStep {
         pid_ti: 0,
         pid_o: 0,
       },
+
       {
-        id: "nitriding",
+        type: "nitriding",
         Kn: 0,
         //Y: 12*60,
         pid_ti: 0,
@@ -71,7 +72,7 @@ class ClassProgram extends ClassStep {
         pid_o: 0,
       },
       {
-        id: "nitrocarburizing",
+        type: "nitrocarburizing",
         Kc: 0,
         //Y: 12*60,
         pid_ti: 0,
@@ -294,9 +295,9 @@ class ClassProgram extends ClassStep {
     }
 
     // створюємо кроки програми
-    this.program.steps.push(this.parseQuickHeatingStep(tasks[1], entity));
-    this.program.steps.push(this.parsePidHeatingStep(tasks[1], entity));
-    this.program.steps.push(this.parseHoldingStep(tasks[1], entity));
+    this.program.steps.push(this.parseQuickHeatingStep(tasks[2], entity));
+    this.program.steps.push(this.parsePidHeatingStep(tasks[2], entity));
+    //this.program.steps.push(this.parseHoldingStep(tasks[2], entity));
     //let heating = new Heating();
     //this.program.push();
   }
@@ -377,7 +378,7 @@ class ClassProgram extends ClassStep {
     let html = "";
 
     html = pug.renderFile(__dirname + "/views/full.pug", {
-      entity: entity,
+      program: entity.program,
     });
     return html;
   };
