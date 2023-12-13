@@ -7,6 +7,8 @@ class ClassTask {
   constructor(props = {}) {
     // Тут мають зберігатися регістри класу
     this.regs = {};
-    this.regs.type = "General";
+    this.type = "General";
   }
 } //class ClassThermoStep
+
+module.exports = ClassTask;
