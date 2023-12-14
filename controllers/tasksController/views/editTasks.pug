@@ -1,0 +1,21 @@
+-var lang="ua"
+
+p --------------------- debugging info -----------------------------
+pre #{JSON.stringify(types)}  
+p --------------------- debugging info -----------------------------
+
+
+div(class="row")
+  div(class="col")
+    h3=`${{ua:`Завдання` , en: `Tasks`, ru: `Задание` }[lang]}`
+
+script.
+  const tasks={};
+  tasks.types = JSON.parse( ' !{JSON.stringify(types)}' );
+
+
+//- кнопки 
+div(class="row")
+  div(class="col")
+    button(type="button" class="btn btn-primary")= `${{ua:"Застосувати" , en: "Accept", ru: "Применить" }[lang]}`
+    //-   Застосувати 

@@ -1,16 +1,16 @@
--let lang="en"
+-let lang="ua"
 
-pre #{JSON.stringify(entity)}  
-
+p --------------------- debugging info -----------------------------
+pre #{JSON.stringify(tasks)}  
+p --------------------- debugging info -----------------------------
 
 div(class="row")
   div(class="col")
-    h3 Завдання
-    = `${settings}`
+
+
+    div(class="container-fluide") !{tasks}
 
   div(class="col")    
     h3=`${{ua:`Програма` , en: `Program`, ru: `Программа` }[lang]}`
-    //- = `${entity.program.tasks[2].fullHtml()}`
-div(class="row")
-  div(class="col")
-    <button type="button" class="btn btn-primary">Застосувати</button>
+    //- #{program}
+

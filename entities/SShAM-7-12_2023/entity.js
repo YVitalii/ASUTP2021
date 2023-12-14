@@ -3,14 +3,16 @@ const pug = require("pug");
 const entity = {};
 const devices = require("./devices/devices.js");
 const Program = require("./program/program/ClassProgram.js");
-const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
+const TasksManager = require("../../controllers/tasksController/ClassTasksManager.js");
+//const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
 const log = require("../../tools/log.js");
 
-let trace = 1,
-  gln = "/SSham-7-12_2023/index.js::";
 entity.fullName = "Піч азотування СШАМ-7.12/7";
 entity.shortName = "СШАМ-7.12/7";
 entity.id = "SShAM-7-12_2023";
+
+let trace = 1,
+  gln = `${entity.id}::index.js::`;
 
 // maximum
 entity.maxT = 700;
@@ -27,8 +29,12 @@ entity.controllers = require("./controllers/controllers.js");
 entity.program = new Program();
 
 // список доступних кроків
-entity.steps = {};
-entity.steps[ThermStep.about.id] = ThermStep;
+entity.tasksManager = new TasksManager();
+
+//
+
+//entity.steps = {};
+// entity.steps[ThermStep.about.id] = ThermStep;
 
 // тут зберігається програма
 entity.processes = {};

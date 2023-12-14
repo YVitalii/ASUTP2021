@@ -9,6 +9,7 @@ class Class_Task_Thermo extends Class_Task_General {
 
   constructor(props = {}) {
     super(props);
+    // this.type;
     // задана температура
     props.tT = props.tT ? props.tT : {};
     this.regs.tT = {

@@ -19,12 +19,10 @@ router.get("/", (req, res, next) => {
 
   let html = "";
 
-  let settings = req.entity.program.htmlFull();
-
   html = pug.renderFile(viewsDir + "\\program\\views\\full.pug", {
     entity: req.entity,
-    settings: "Налаштування",
-    program: "Скомпільована програма",
+    tasks: req.entity.tasksManager.getFullHtml(),
+    program: req.entity.program.getFullHtml(),
   });
 
   res.render("main", {

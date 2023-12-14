@@ -1,7 +1,7 @@
 const router = require("../routes/programRouter");
 const pug = require("pug");
-const Heating = require("../heatingStep/ClassHeatingStep.js");
-const Holding = require("../holdingStep/ClassHoldingStep.js");
+// const Heating = require("../heatingStep/ClassHeatingStep.js");
+// const Holding = require("../holdingStep/ClassHoldingStep.js");
 const ClassStep = require("../classStep/ClassStep.js");
 const log = require("../../../../tools/log.js");
 const test = true; //налаштування для режиму тестування
@@ -99,148 +99,148 @@ class ClassProgram extends ClassStep {
     //TODO потрібно запустити вимкнення аварії
   }
 
-  parseQuickHeatingStep(task, entity) {
-    // створюємо завдання для кроку Heating
-    let props = {
-      tT: task.tT - task.wT > 0 ? task.tT - task.wT : 0,
-      errTmin: 0,
-      errTmax: 100,
-      wT: task.wT,
-      H: task.H - task.wH > 0 ? task.H - task.wH : 0,
-      errH: 0,
-      periodCheck: 2,
-      getT: async () => {
-        return entity.devices.retortTRP.getT();
-      },
-      wave: {
-        period: test ? 1 : 60,
-        dT: 0.1, // якщо за 6 хв температура зросла менш ніж на 1 *С, рахуємо - фініш
-        points: 10,
-      },
-    };
-    let title = `${props.tT} &deg;C;${props.H}`;
-    props.title = {
-      ua: `Швидке нагрівання ${title} хв`,
-      en: `Quick heating ${title} min`,
-      ru: `Быстрый нагрев ${title} мин`,
-    };
+  // parseQuickHeatingStep(task, entity) {
+  //   // створюємо завдання для кроку Heating
+  //   let props = {
+  //     tT: task.tT - task.wT > 0 ? task.tT - task.wT : 0,
+  //     errTmin: 0,
+  //     errTmax: 100,
+  //     wT: task.wT,
+  //     H: task.H - task.wH > 0 ? task.H - task.wH : 0,
+  //     errH: 0,
+  //     periodCheck: 2,
+  //     getT: async () => {
+  //       return entity.devices.retortTRP.getT();
+  //     },
+  //     wave: {
+  //       period: test ? 1 : 60,
+  //       dT: 0.1, // якщо за 6 хв температура зросла менш ніж на 1 *С, рахуємо - фініш
+  //       points: 10,
+  //     },
+  //   };
+  //   let title = `${props.tT} &deg;C;${props.H}`;
+  //   props.title = {
+  //     ua: `Швидке нагрівання ${title} хв`,
+  //     en: `Quick heating ${title} min`,
+  //     ru: `Быстрый нагрев ${title} мин`,
+  //   };
 
-    // перед початком кроку програмуємо прилади
-    props.beforeStart = async () => {
-      // --- піч
-      await entity.devices.furnaceTRP.stop();
-      let regsTRP = {
-        tT: entity.maxT,
-        H: 0, // не обмежуємо швидкість
-        Y: 0, // утримуємо до завершення нагрівання реторти
-        regMode: 1, // щоб по інерції не заскакував вище ОГР
-        o: 5, // почне знижувати потужність за 100/5=20С до tT
-        td: 0,
-        ti: 0,
-      };
-      await entity.devices.furnaceTRP.setRegs(regsTRP);
-      await entity.devices.furnaceTRP.start();
-      // --- реторта
-      await entity.devices.retortTRP.stop();
-      regsTRP = {
-        tT: props.tT,
-        H: props.H,
-        Y: 0, // утримуємо до завершення нагрівання реторти
-        regMode: 2, // ПОЗ-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
-        o: 5,
-        td: 0,
-        ti: 0,
-      };
-      await entity.devices.retortTRP.setRegs(regs);
-      await entity.devices.retortTRP.start();
-    }; // beforeStart
+  //   // перед початком кроку програмуємо прилади
+  //   props.beforeStart = async () => {
+  //     // --- піч
+  //     await entity.devices.furnaceTRP.stop();
+  //     let regsTRP = {
+  //       tT: entity.maxT,
+  //       H: 0, // не обмежуємо швидкість
+  //       Y: 0, // утримуємо до завершення нагрівання реторти
+  //       regMode: 1, // щоб по інерції не заскакував вище ОГР
+  //       o: 5, // почне знижувати потужність за 100/5=20С до tT
+  //       td: 0,
+  //       ti: 0,
+  //     };
+  //     await entity.devices.furnaceTRP.setRegs(regsTRP);
+  //     await entity.devices.furnaceTRP.start();
+  //     // --- реторта
+  //     await entity.devices.retortTRP.stop();
+  //     regsTRP = {
+  //       tT: props.tT,
+  //       H: props.H,
+  //       Y: 0, // утримуємо до завершення нагрівання реторти
+  //       regMode: 2, // ПОЗ-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
+  //       o: 5,
+  //       td: 0,
+  //       ti: 0,
+  //     };
+  //     await entity.devices.retortTRP.setRegs(regs);
+  //     await entity.devices.retortTRP.start();
+  //   }; // beforeStart
 
-    return new Heating(props);
-  }
+  //   return new Heating(props);
+  // }
 
-  // повільне догрівання до tT по ПІД закону
-  parsePidHeatingStep(task, entity) {
-    // створюємо завдання для кроку Heating
-    let props = {
-      tT: task.tT,
-      errT: { min: task.errTmin, max: task.errTmax },
-      wT: 0,
-      H: 0,
-      errH: 0,
-      periodCheck: 2,
+  // // повільне догрівання до tT по ПІД закону
+  // parsePidHeatingStep(task, entity) {
+  //   // створюємо завдання для кроку Heating
+  //   let props = {
+  //     tT: task.tT,
+  //     errT: { min: task.errTmin, max: task.errTmax },
+  //     wT: 0,
+  //     H: 0,
+  //     errH: 0,
+  //     periodCheck: 2,
 
-      getT: async () => {
-        return entity.devices.retortTRP.getT();
-      },
-    };
+  //     getT: async () => {
+  //       return entity.devices.retortTRP.getT();
+  //     },
+  //   };
 
-    let title = `${props.tT} &deg;C;${props.H}`;
-    props.title = {
-      ua: `Догрівання ${title} `,
-      en: `Finishing heating ${title} min`,
-      ru: `Догревание ${title} мин`,
-    };
-    // перед початком кроку програмуємо прилади
-    props.beforeStart = async () => {
-      // --- піч --------
-      await entity.devices.furnaceTRP.stop();
-      let regsTRP = {
-        tT: entity.maxT,
-        H: 0, // не обмежуємо швидкість
-        Y: 0, // утримуємо до завершення нагрівання реторти
-        regMode: 1, // щоб по інерції не заскакував вище ОГР
-        o: 5, // почне знижувати потужність за 100/5=20С до tT
-        td: 0,
-        ti: 0,
-      };
-      await entity.devices.furnaceTRP.setRegs(regsTRP);
-      await entity.devices.furnaceTRP.start();
-      // --- реторта
-      await entity.devices.retortTRP.stop();
-      regsTRP = {
-        tT: props.tT,
-        H: props.H,
-        Y: 0, // утримуємо до зовнішньої команди "Стоп"
-        regMode: 1, // ПІД-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
-        o: task.pid_o,
-        td: task.pid_td,
-        ti: task.pid_ti,
-      };
-      await entity.devices.retortTRP.setRegs(regs);
-      await entity.devices.retortTRP.start();
-    }; // beforeStart
-    return new Heating(props);
-  }
+  //   let title = `${props.tT} &deg;C;${props.H}`;
+  //   props.title = {
+  //     ua: `Догрівання ${title} `,
+  //     en: `Finishing heating ${title} min`,
+  //     ru: `Догревание ${title} мин`,
+  //   };
+  //   // перед початком кроку програмуємо прилади
+  //   props.beforeStart = async () => {
+  //     // --- піч --------
+  //     await entity.devices.furnaceTRP.stop();
+  //     let regsTRP = {
+  //       tT: entity.maxT,
+  //       H: 0, // не обмежуємо швидкість
+  //       Y: 0, // утримуємо до завершення нагрівання реторти
+  //       regMode: 1, // щоб по інерції не заскакував вище ОГР
+  //       o: 5, // почне знижувати потужність за 100/5=20С до tT
+  //       td: 0,
+  //       ti: 0,
+  //     };
+  //     await entity.devices.furnaceTRP.setRegs(regsTRP);
+  //     await entity.devices.furnaceTRP.start();
+  //     // --- реторта
+  //     await entity.devices.retortTRP.stop();
+  //     regsTRP = {
+  //       tT: props.tT,
+  //       H: props.H,
+  //       Y: 0, // утримуємо до зовнішньої команди "Стоп"
+  //       regMode: 1, // ПІД-закон, оскільки ми понизили температуру та скоротили час розігріву: див. wT, wH
+  //       o: task.pid_o,
+  //       td: task.pid_td,
+  //       ti: task.pid_ti,
+  //     };
+  //     await entity.devices.retortTRP.setRegs(regs);
+  //     await entity.devices.retortTRP.start();
+  //   }; // beforeStart
+  //   return new Heating(props);
+  // }
 
-  parseHoldingStep(task, entity) {
-    // створюємо завдання для кроку Holding
+  // parseHoldingStep(task, entity) {
+  //   // створюємо завдання для кроку Holding
 
-    let title = `${task.tT} &deg;C;${task.holding}`;
+  //   let title = `${task.tT} &deg;C;${task.holding}`;
 
-    let params = {
-      title: {
-        ua: `Витримка ${title}хв`,
-        en: `Holding ${title}min`,
-        ru: `Удержание ${title}мин`,
-      },
-      tT: task.tT,
-      errT: { min: -25, max: 25 },
-      // якщо азотування - гріємо доки не надійде команда стоп від процесу азотування
-      // якщо просто нагрівання без азотування (Кн=0), то використовуємо: витримку з завдання + 5хв
-      Y: parseInt(task.Kn) ? 0 : task.holding,
-      periodCheckT: 2,
-      getT: async () => {
-        return entity.devices.retortTRP.getT();
-      },
-    };
+  //   let params = {
+  //     title: {
+  //       ua: `Витримка ${title}хв`,
+  //       en: `Holding ${title}min`,
+  //       ru: `Удержание ${title}мин`,
+  //     },
+  //     tT: task.tT,
+  //     errT: { min: -25, max: 25 },
+  //     // якщо азотування - гріємо доки не надійде команда стоп від процесу азотування
+  //     // якщо просто нагрівання без азотування (Кн=0), то використовуємо: витримку з завдання + 5хв
+  //     Y: parseInt(task.Kn) ? 0 : task.holding,
+  //     periodCheckT: 2,
+  //     getT: async () => {
+  //       return entity.devices.retortTRP.getT();
+  //     },
+  //   };
 
-    // TODO додаємо 5 хв, щоб програмно зупинити ТРП, призначено :
-    //    - для очікування завершення процесу в усіх приладах для багатозонних печей
-    //    - самозупинка ТРП у випадку втрати звязку з АСУ
-    //    - для тестування додаємо 0,1хв=6сек - щоб довго не чекати
+  //   // TODO додаємо 5 хв, щоб програмно зупинити ТРП, призначено :
+  //   //    - для очікування завершення процесу в усіх приладах для багатозонних печей
+  //   //    - самозупинка ТРП у випадку втрати звязку з АСУ
+  //   //    - для тестування додаємо 0,1хв=6сек - щоб довго не чекати
 
-    return new Holding(params);
-  }
+  //   return new Holding(params);
+  // }
 
   /** готує програму для виконання
    * @param {task} tasks
@@ -295,8 +295,8 @@ class ClassProgram extends ClassStep {
     }
 
     // створюємо кроки програми
-    this.program.steps.push(this.parseQuickHeatingStep(tasks[2], entity));
-    this.program.steps.push(this.parsePidHeatingStep(tasks[2], entity));
+    // this.program.steps.push(this.parseQuickHeatingStep(tasks[2], entity));
+    // this.program.steps.push(this.parsePidHeatingStep(tasks[2], entity));
     //this.program.steps.push(this.parseHoldingStep(tasks[2], entity));
     //let heating = new Heating();
     //this.program.push();
@@ -374,12 +374,13 @@ class ClassProgram extends ClassStep {
       ln = this.ln + `stop()`;
   }
 
-  htmlFull = (entity) => {
-    let html = "";
-
-    html = pug.renderFile(__dirname + "/views/full.pug", {
-      program: entity.program,
-    });
+  getFullHtml = (entity) => {
+    let html = "<h4> Compiled program </h4>";
+    // html = entity.tasksManager.getFullHtml();
+    // html = pug.renderFile(__dirname + "/views/full.pug", {
+    //   tasks: html,
+    //   //program: entity.program,
+    // });
     return html;
   };
   /**
