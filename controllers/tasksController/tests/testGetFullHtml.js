@@ -1,3 +1,6 @@
+// supervisor  -w '.,./views' -e 'js,pug' --no-restart-on exit ./tests/testGetFullHtml.js
+//
+
 const manager = require("./testCreateTaskManager.js");
 const writeFile = require("fs").writeFileSync;
 const pathResolve = require("path").resolve;
