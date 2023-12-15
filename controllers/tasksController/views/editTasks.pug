@@ -1,17 +1,25 @@
 -var lang="ua"
 
 p --------------------- debugging info -----------------------------
-pre #{JSON.stringify(types)}  
+pre #{JSON.stringify(manager)}  
 p --------------------- debugging info -----------------------------
 
 
 div(class="row")
   div(class="col")
     h3=`${{ua:`Завдання` , en: `Tasks`, ru: `Задание` }[lang]}`
-
+div(class="row")
+  div(class="col", id="tasksContainer")
 script.
+  const lang= '!{lang}'; 
   const tasks={};
-  tasks.types = JSON.parse( ' !{JSON.stringify(types)}' );
+  tasks.types = JSON.parse(  '!{JSON.stringify(manager.types)}' );
+  tasks.list = JSON.parse(  '!{JSON.stringify(manager.list)}' );
+  tasks.container = document.getElementById( 'tasksContainer' );
+script  
+  include tasksR_general.js
+  include tasksR_elem_select.js
+
 
 
 //- кнопки 

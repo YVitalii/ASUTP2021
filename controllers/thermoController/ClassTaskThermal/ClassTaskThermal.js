@@ -8,6 +8,17 @@ class Class_Task_Thermo extends Class_Task_General {
    */
 
   constructor(props = {}) {
+    if (!props.type) {
+      props.type = {
+        id: "thermal",
+        title: {
+          ua: `Термообробка`,
+          en: `Heat treatment`,
+          ru: `Термообработка`,
+        },
+      };
+    }
+
     super(props);
     // this.type;
     // задана температура
