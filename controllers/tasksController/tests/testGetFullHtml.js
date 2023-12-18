@@ -1,5 +1,5 @@
 // supervisor  -w '.,./views' -e 'js,pug' --no-restart-on exit ./tests/testGetFullHtml.js
-//
+// browser-sync start --server --serveStatic '../../../public' --browser "Chrome" --files "stylesheets/*.css, *.html"
 
 const manager = require("./testCreateTaskManager.js");
 const writeFile = require("fs").writeFileSync;

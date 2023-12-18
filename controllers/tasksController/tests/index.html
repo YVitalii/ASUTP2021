@@ -23,22 +23,35 @@ let trace = 1,
  * @param {Object} reg - обєкт в якому визначена властивість "id"
  * @returns {String} "prefix__reg.id" - два підкреслення (щоб легко відділяти id регістру)
  */
-
+tasks.elementsTypes = {};
 tasks.createId = function (prefix, reg) {
   return (id = prefix + "__" + reg.id);
+};
+tasks.renderRegs = function (prefix, regsList) {
+  let trace = 1,
+    ln = "tasks.renderRegs()::";
+  for (let key in regsList) {
+    trace ? console.log(ln + "key=" + key) : null;
+    if (regsList.hasOwnProperty(key)) {
+      if (trace) {
+        console.dir(regsList[key]);
+      }
+    }
+  }
 };
 // -----------  element: select -------------------
 beforeTrace = trace;
 trace = 1;
 
 /**
- * Генерує елемент для вибору
+ * Генерує елемент для вибору можливих варіантів
  * @param {String} prefix
  * @param {Object} regsList - список об'єктів з яких потрібно побудувати елемент
  * @returns
  */
 
-tasks.createSelectItem = function (prefix, regsList) {
+tasks.elementsTypes.select = {};
+tasks.elementsTypes.select.set = function (prefix, regsList) {
   let ln = "createSelect::";
   let id = tasks.createId(prefix, regsList.type);
   // --- div
@@ -53,6 +66,7 @@ tasks.createSelectItem = function (prefix, regsList) {
   // --- select
   let select = document.createElement("select");
   select.classList.add("form-control");
+  label.classList.add(prefix);
   select.id = id;
   let keys = "";
   for (let key in regsList.regs) {
@@ -61,25 +75,46 @@ tasks.createSelectItem = function (prefix, regsList) {
     keys += `<option value='${key}'> ${regsList.regs[key].type.title[lang]} </option>`;
   }
   select.innerHTML = keys;
-  select.onchange = function (el, prefix) {
-    let trace = 1,
-      ln = el.id + "::onchange()::";
-    if (trace) {
-      console.log(id + "::onchange::this=");
-      console.dir(this);
-      console.log(id + "::onchange::prefix=" + prefix);
-      console.dir(prefix);
-    }
-  }.bind(regsList.regs, null, prefix);
+  select.onchange = function (event) {
+    let trace = 1;
+    let el = event.target;
+    let id = el.id;
+    //tasks.deleteRegs(regs);
+    //tasks.addRegs(regs);
+    // ,ln = el.id + "::onchange()::";
+    // if (trace) {
+    //   console.log(id + "::onchange::this=");
+    //   console.dir(this);
+    //   console.log(id + "::onchange::prefix=" + prefix);
+    //   console.dir(prefix);
+    //   console.log(id + "::el.dataset.regs=");
+    //   console.dir(el.dataset.regs);
+    // }
+    return function () {
+      if (trace) {
+        console.log(id + "::el.value=");
+        console.dir(el.value);
+
+        console.log(id + "::onchange::this=");
+        console.dir(this);
+        console.log(id + "::onchange::prefix=" + prefix);
+        console.dir(prefix);
+      }
+      tasks.renderRegs(prefix, this[el.value].regs);
+    }.bind(regsList.regs, null, prefix)();
+  }; //.bind(regsList.regs, null, prefix);
   div.appendChild(select);
   let title = document.createElement("small");
   title.innerHTML = regsList.type.title[lang];
   div.appendChild(title);
+  select.dataset.beforeValue = select.value;
+  select.dataset.regs = regsList;
   return div;
 };
 
 if (trace) {
-  let select = tasks.createSelectItem("st_01", tasks.types);
+  // для тестування, створює елемент в контейнері
+  let select = tasks.elementsTypes.select.set("st_01", tasks.types);
   tasks.container.appendChild(select);
 }
 

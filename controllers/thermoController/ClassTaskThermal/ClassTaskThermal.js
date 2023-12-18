@@ -73,7 +73,8 @@ class Class_Task_Thermo extends Class_Task_General {
       id: "pos",
       header: { ua: "Позиційний", en: "Positional", ru: "Позиционный" },
       type: "selectItem",
-      value: {},
+      value: undefined,
+      regs: {},
       title: {
         ua: `Позиційний закон регулювання`,
         en: `Positional regulation`,
@@ -98,8 +99,9 @@ class Class_Task_Thermo extends Class_Task_General {
     let pid = {
       id: "pid",
       header: { ua: "ПІД", en: "PID", ru: "ПИД" },
-      type: "selectItem",
-      value: {},
+      type: "select",
+      value: undefined,
+      regs: "",
       title: {
         ua: `ПІД закон регулювання`,
         en: `PID regulation`,
@@ -107,7 +109,7 @@ class Class_Task_Thermo extends Class_Task_General {
       },
     };
 
-    pid.value.o = {
+    pid.regs.o = {
       id: "o",
       header: {
         ua: "П",
@@ -124,8 +126,8 @@ class Class_Task_Thermo extends Class_Task_General {
       min: 0,
       max: 100,
     };
-    pid.value.i = {
-      id: "i",
+    pid.regs.i = {
+      id: "ti",
       header: {
         ua: "І",
         en: "I",
@@ -141,8 +143,8 @@ class Class_Task_Thermo extends Class_Task_General {
       min: 0,
       max: 100,
     };
-    pid.value.d = {
-      id: "d",
+    pid.regs.d = {
+      id: "td",
       header: {
         ua: "Д",
         en: "D",
@@ -163,7 +165,8 @@ class Class_Task_Thermo extends Class_Task_General {
       id: "regMode",
       header: { ua: "Регулювання", en: "Regulation", ru: "Регулирование" },
       type: "select",
-      value: [pos, pid], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
+      value: "pos",
+      regs: [pos, pid], // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
       title: {
         ua: `Закон регулювання`,
         en: `Control type`,
