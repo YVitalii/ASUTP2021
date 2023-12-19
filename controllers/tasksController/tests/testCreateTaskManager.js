@@ -6,19 +6,20 @@ let trace = 1,
   ln = __filename + "::";
 let props = {};
 props = {
-  id: "thermal",
+  id: "thermalStep",
   type: "thermal",
-  title: { ua: `Термообробка`, en: `Thermal`, ru: `Термообработка` },
+  comment: { ua: `Термообробка`, en: `Thermal`, ru: `Термообработка` },
+  value: 0,
 };
 
-let tasksManager = new ClassTasksManager(props);
+let tasksManager = new ClassTasksManager();
 
-let task = new ClassTasksThermal();
+let task = new ClassTasksThermal(props);
 
 tasksManager.addType(task);
 if (trace) {
   log("i", ln, `tasksManager=`);
-  console.dir(tasksManager.types, { depth: 3 });
+  console.dir(tasksManager.types, { depth: 2 });
 }
 
 module.exports = tasksManager;

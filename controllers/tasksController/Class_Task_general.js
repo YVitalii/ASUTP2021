@@ -1,5 +1,5 @@
 const log = require("../../tools/log");
-const ClassRegister = require("../ClassRegister");
+const ClassRegister = require("../regsController/ClassRegister");
 
 class ClassTask extends ClassRegister {
   /**
@@ -13,19 +13,17 @@ class ClassTask extends ClassRegister {
     this.ln = "Class_Task_general()::";
     let trace = 0,
       ln = this.ln + "constructor()::";
-    if (trace) {
-      log("i", ln, `props=`);
-      console.dir(props);
-    }
+
     // Тип задачі
     this.type = "task";
-    this.id = this.type;
+    // список регістрів
+    this.regs = {};
 
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
     }
-  }
+  } //constructor
 } //class ClassTask
 
 module.exports = ClassTask;

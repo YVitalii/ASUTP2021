@@ -1,36 +1,34 @@
 const pug = require("pug");
 const log = require("../../tools/log");
-const ClassRegister = require("../ClassRegister.js");
+const ClassReg_select = require("../regsController/ClassReg_select.js");
+const ClassRegister = require("../regsController/ClassRegister.js");
+const ClassTaskGeneral = require("../tasksController/Class_Task_general.js");
 
-class ClassTasksManager {
-  /**
-   * Конструктор класу, оптимізованого під процеси термообробки
-   * @param {*} props
-   * @property {}
-   */
-
+class ClassTasksManager extends ClassRegister {
   constructor(props = {}) {
-    let trace = 1;
-    this.ln = "ClassTasksManager(" + props.id + ")::";
-    let ln = this.ln + "constructor()::";
-    trace ? log("w", ln, `======= Started =====`) : null;
-    this.id = "TasksManager";
-    this.comment = {
+    props.id = "TasksManager";
+    props.comment = {
       ua: `Створення програми`,
       en: `Program creation`,
       ru: `Создание прграммы`,
     };
-    this.header = {
+    props.header = {
       ua: `Створення програми`,
       en: `Program creating`,
       ru: `Создание программы`,
     };
+    props.type = "tasksManager";
+    super(props);
+    this.ln = "ClassTasksManager(" + props.id + ")::";
+    let trace = 1,
+      ln = this.ln + "constructor()::";
+    trace ? log("w", ln, `======= Started =====`) : null;
+
     // Тут мають зберігатися всі можливі типи кроків
-    this.types = new ClassRegister({
+    this.types = new ClassReg_select({
       id: "taskType",
-      type: "select",
       header: {
-        ua: "Виберіть тип кроку",
+        ua: "Оберіть тип кроку",
         en: "Select type of step",
         ru: "Выберите тип шага",
       },
@@ -41,33 +39,34 @@ class ClassTasksManager {
       },
     });
 
+    // Додаємо пустий крок-заглушку
+    let emptyStep = new ClassTaskGeneral({
+      id: "empty",
+      type: "step",
+      header: {
+        ua: "Виберіть тип кроку",
+        en: "Select type of step",
+        ru: "Выберите тип шага",
+      },
+      comment: {
+        ua: `Тип кроку не вказано`,
+        en: `Type of the Step not defined`,
+        ru: `Тип шага не указан`,
+      },
+      type: "taskType",
+    });
+    this.addType(emptyStep);
+
     // Тут зберігається список впорядкованих кроків
     this.list = [];
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
     }
-    // Додаємо пустий крок-заглушку
-    this.addType(
-      new ClassRegister({
-        id: "empty",
-        header: {
-          ua: "Виберіть тип кроку",
-          en: "Select type of step",
-          ru: "Выберите тип шага",
-        },
-        comment: {
-          ua: `Тип кроку не вказано`,
-          en: `Type of the Step not defined`,
-          ru: `Тип шага не указан`,
-        },
-        type: "taskType",
-      })
-    );
   }
 
   addType(task = {}) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `addType()::`;
     if (trace) {
       log("i", ln, `task=`);
@@ -77,7 +76,7 @@ class ClassTasksManager {
       throw new Error(ln + "Тип кроку має бути вказаний");
     }
     if (this.types.regs[task.id]) {
-      throw new Error(ln + `Тип [${task.id}] вже зареєстрований!`);
+      throw new Error(ln + `Крок [${task.id}] вже зареєстрований!`);
     }
     this.types.regs[task.id] = task;
   }

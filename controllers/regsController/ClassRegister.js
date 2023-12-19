@@ -1,7 +1,11 @@
 class ClassRegister {
   constructor(props = {}) {
     /** Ідентифікатор  */
-    this.id = props.id ? props.id : new Error("id регістру має бути вказаний");
+    if (!props.id) {
+      new Error("id регістру має бути вказаний");
+      return;
+    }
+    this.id = props.id;
     this.ln = "ClassRegister(" + props.id + ")::";
     let trace = 1,
       ln = this.ln + "constructor()::";
@@ -23,9 +27,6 @@ class ClassRegister {
           en: "Note not defined",
           ru: "Описания нет",
         };
-
-    /** Місце для зберігання внутрішніх регістрів */
-    this.regs = {};
   } // constructor
 }
 
