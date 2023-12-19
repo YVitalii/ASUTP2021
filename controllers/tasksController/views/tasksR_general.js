@@ -11,10 +11,11 @@ let trace = 1,
  * @param {Object} reg - обєкт в якому визначена властивість "id"
  * @returns {String} "prefix__reg.id" - два підкреслення (щоб легко відділяти id регістру)
  */
-tasks.elementsTypes = {};
+
 tasks.createId = function (prefix, reg) {
   return (id = prefix + "__" + reg.id);
 };
+
 tasks.renderRegs = function (prefix, regsList) {
   let trace = 1,
     ln = "tasks.renderRegs()::";
@@ -28,8 +29,15 @@ tasks.renderRegs = function (prefix, regsList) {
   }
 };
 
-tasks.ClassElement = class ClassCreateElement {
-  constructor(props) {
+tasks.elementsTypes = {};
+
+class ClassCreateElement {
+  constructor(props = {}) {
+    this.ln = "ClassCreateElement()::";
+    let trace = 1,
+      ln = this.ln + "constructror()::";
+    trace ? console.log(ln + "props=") : null;
+    trace ? console.dir(props) : null;
     // -- тег основного елемента, щоб створити шаблон
     this.tag = props.tag;
     // -- префікс -----
@@ -45,18 +53,31 @@ tasks.ClassElement = class ClassCreateElement {
     this.label = document.createElement("label");
     this.label.setAttribute("for", this.id);
     this.label.classList.add("h6");
-    this.label.innerHTML = this.reg.header[lang];
+    this.label.innerHTML = reg.header[lang];
     // ---- <title> --------
     this.note = document.createElement("small");
-    this.title.innerHTML = regsList.title[lang];
+    this.title.innerHTML = reg.title[lang];
     // ---- Field --------
     this.field = document.createElement(this.tag);
     this.field.dataset.beforeValue = "";
+    this.field.classList.add("form-control");
+    this.field.classList.add(prefix);
+    this.field.id = this.id;
     this.div.appendChild(this.label);
     this.div.appendChild(this.field);
     this.div.appendChild(this.title);
   }
 
+  onchange(el) {
+    let trace = 1,
+      ln = this.ln + "onchange()::";
+    if (trace) {
+      console.log(ln + "this=");
+      console.dir(this);
+    }
+  }
   set(prefix, obj) {}
   get() {}
-};
+}
+
+tasks.ClassCreateElement = ClassCreateElement;

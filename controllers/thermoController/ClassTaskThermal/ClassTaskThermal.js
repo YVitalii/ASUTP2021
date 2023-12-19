@@ -1,4 +1,5 @@
 const Class_Task_General = require("../../tasksController/Class_Task_general.js");
+const ClassRegister = require("../../ClassRegister.js");
 
 class Class_Task_Thermo extends Class_Task_General {
   /**
@@ -20,22 +21,26 @@ class Class_Task_Thermo extends Class_Task_General {
     }
 
     super(props);
-    // this.type;
+
     // задана температура
     props.tT = props.tT ? props.tT : {};
-    this.regs.tT = {
+
+    this.regs.tT = new ClassRegister({
       id: "tT",
       type: "number",
-      value: props.tT.value ? props.tT.value : 100,
+      value: props.tT.value ? props.tT.value : 0,
       header: { ua: "T,°C", en: "T,°C", ru: "T,°C" },
-      title: {
+      comment: {
         ua: `Цільова температура, °С`,
         en: `Task temperature, °С`,
         ru: `Целевая температура, °С`,
       },
       min: 0,
       max: 150,
-    };
+    });
+    this.regs.tT.min = 0;
+    this.regs.tT.max = 150;
+
     // мінімальне відхилення температури від розрахункової
     props.errTmin = props.errTmin ? props.errTmin : {};
     this.regs.errTmin = {
@@ -82,7 +87,7 @@ class Class_Task_Thermo extends Class_Task_General {
       },
     };
 
-    pos.value.o = {
+    pos.regs.o = {
       id: "o",
       header: { ua: "Різниця", en: "Position", ru: "Рассогласование" },
       type: "number",
@@ -101,7 +106,7 @@ class Class_Task_Thermo extends Class_Task_General {
       header: { ua: "ПІД", en: "PID", ru: "ПИД" },
       type: "select",
       value: undefined,
-      regs: "",
+      regs: {},
       title: {
         ua: `ПІД закон регулювання`,
         en: `PID regulation`,
@@ -126,6 +131,7 @@ class Class_Task_Thermo extends Class_Task_General {
       min: 0,
       max: 100,
     };
+
     pid.regs.i = {
       id: "ti",
       header: {

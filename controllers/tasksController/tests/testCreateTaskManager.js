@@ -5,8 +5,9 @@ const ClassTasksThermal = require("../../thermoController/ClassTaskThermal/Class
 let trace = 1,
   ln = __filename + "::";
 let props = {};
-props.type = {
+props = {
   id: "thermal",
+  type: "thermal",
   title: { ua: `Термообробка`, en: `Thermal`, ru: `Термообработка` },
 };
 

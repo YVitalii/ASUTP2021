@@ -9,32 +9,24 @@ trace = 1;
  * @returns
  */
 
-tasks.elementsTypes.select = {
-  id: undefined,
-  set: () => {},
-  get: () => {},
-  delete: () => {},
-};
+tasks.elementsTypes.select = {};
 tasks.elementsTypes.select.set = function (prefix, regsList) {
-  let ln = "select.set::";
+  let ln = "createSelect::";
   let id = tasks.createId(prefix, regsList.type);
   // --- div
   let div = document.createElement("div");
   div.classList.add = "form-group";
-  // --- створюємо <label>
+  // --- label
   let label = document.createElement("label");
   label.setAttribute("for", id);
   label.classList.add("h6");
   label.innerHTML = regsList.type.header[lang];
   div.appendChild(label);
-
-  // --- створюємо <select>
+  // --- select
   let select = document.createElement("select");
   select.classList.add("form-control");
   label.classList.add(prefix);
   select.id = id;
-
-  // створюємо список <option>
   let keys = "";
   for (let key in regsList.regs) {
     let trace = 1;
@@ -45,6 +37,18 @@ tasks.elementsTypes.select.set = function (prefix, regsList) {
   select.onchange = function (event) {
     let trace = 1;
     let el = event.target;
+    let id = el.id;
+    //tasks.deleteRegs(regs);
+    //tasks.addRegs(regs);
+    // ,ln = el.id + "::onchange()::";
+    // if (trace) {
+    //   console.log(id + "::onchange::this=");
+    //   console.dir(this);
+    //   console.log(id + "::onchange::prefix=" + prefix);
+    //   console.dir(prefix);
+    //   console.log(id + "::el.dataset.regs=");
+    //   console.dir(el.dataset.regs);
+    // }
     return function () {
       if (trace) {
         console.log(id + "::el.value=");

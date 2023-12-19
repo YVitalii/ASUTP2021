@@ -1,4 +1,4 @@
-const Class_Task_Thermo = require("../Class_Task_Thermo.js");
+const Class_Task_Thermo = require("../ClassTaskThermal.js");
 
 const log = require("../../../../tools/log");
 let trace = 1,
