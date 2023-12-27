@@ -32,6 +32,13 @@ tasks.renderRegs = function (prefix, regsList) {
 tasks.elementsTypes = {};
 
 class ClassCreateElement {
+  /**
+   * Створює налаштований DOM-елемент загального типу
+   * @param {Object} props
+   * @property {string} props.prefix - префікс ля id елементу
+   * @property {string} props.tag - тип елементу (number,range,  select)
+   * @property {Object} props.reg  - типовий регістр
+   */
   constructor(props = {}) {
     this.ln = "ClassCreateElement()::";
     let trace = 1,
@@ -53,24 +60,24 @@ class ClassCreateElement {
     this.label = document.createElement("label");
     this.label.setAttribute("for", this.id);
     this.label.classList.add("h6");
-    this.label.innerHTML = reg.header[lang];
+    this.label.innerHTML = this.reg.header[lang];
     // ---- <title> --------
-    this.note = document.createElement("small");
-    this.title.innerHTML = reg.title[lang];
+    this.comment = document.createElement("small");
+    this.comment.innerHTML = this.reg.comment[lang];
     // ---- Field --------
     this.field = document.createElement(this.tag);
     this.field.dataset.beforeValue = "";
     this.field.classList.add("form-control");
-    this.field.classList.add(prefix);
+    this.field.classList.add(this.prefix);
     this.field.id = this.id;
     this.div.appendChild(this.label);
     this.div.appendChild(this.field);
-    this.div.appendChild(this.title);
+    this.div.appendChild(this.comment);
   }
 
-  onchange(el) {
-    let trace = 1,
-      ln = this.ln + "onchange()::";
+  onchange(event) {
+    let element = event.target;
+    let ln = this.ln + "onchange()::";
     if (trace) {
       console.log(ln + "this=");
       console.dir(this);
