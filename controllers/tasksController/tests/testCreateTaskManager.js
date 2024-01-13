@@ -19,7 +19,7 @@ let task = new ClassTasksThermal(props);
 tasksManager.addType(task);
 if (trace) {
   log("i", ln, `tasksManager=`);
-  console.dir(tasksManager.types, { depth: 2 });
+  console.dir(tasksManager, { depth: 2 });
 }
 
 module.exports = tasksManager;

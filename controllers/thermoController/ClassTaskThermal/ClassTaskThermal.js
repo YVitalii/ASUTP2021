@@ -11,12 +11,17 @@ class Class_Task_Thermo extends Class_Task_General {
    */
 
   constructor(props = {}) {
-    props.id = props.id ? props.id : "ClassTaskThermo";
+    props.id = "ClassTaskThermo";
+    props.header = {
+      ua: `Термообробка`,
+      en: `Heattreatment`,
+      ru: `Термообработка`,
+    };
     props.comment = props.comment
       ? props.comment
       : {
           ua: `Термообробка`,
-          en: `Heat treatment`,
+          en: `Heattreatment`,
           ru: `Термообработка`,
         };
     props.type = "step";
@@ -31,42 +36,42 @@ class Class_Task_Thermo extends Class_Task_General {
       value: props.tT.value ? props.tT.value : 0,
       header: { ua: "T,°C", en: "T,°C", ru: "T,°C" },
       comment: {
-        ua: `Цільова температура, °С`,
-        en: `Task temperature, °С`,
-        ru: `Целевая температура, °С`,
+        ua: `Цільова температура`,
+        en: `Task temperature`,
+        ru: `Целевая температура`,
       },
       min: 0,
       max: 150,
     });
 
-    // максимальне відхилення температури вниз від розрахункової
+    // максимальне відхилення температури вниз
     props.errTmin = props.errTmin ? props.errTmin : {};
     this.regs.errTmin = new ClassReg_number({
       id: "errTmin",
       header: { ua: "min dT,°C", en: "min dT,°C", ru: "min dT,°C" },
-      value: props.errTmin.value ? props.errTmin.value : 0,
+      value: props.errTmin.value ? props.errTmin.value : -25,
       comment: {
-        ua: `Максимальне відх. темп. вниз,°С (0=вимкнути)`,
-        en: `Limit of low temperature,°С, (0=disable)`,
-        ru: `Максим. отклонение темп. вниз,°С, (0=выключено)`,
+        ua: `Максим. відх. темп. вниз (0=вимкнути)`,
+        en: `Limit of low temperature (0=disable)`,
+        ru: `Максим. отклонение темп. вниз (0=выключено)`,
       },
-      min: 0,
-      max: -100,
+      min: -100,
+      max: 0,
     });
 
-    // максимальне відхилення температури від розрахункової
+    // максимальне відхилення температури
     props.errTmax = props.errTmax ? props.errTmax : {};
     this.regs.errTmax = new ClassReg_number({
       id: "errTmax",
       header: { ua: "max dT,°C", en: "max dT,°C", ru: "max dT,°C" },
       value: props.errTmax.value ? props.errTmax.value : +25,
       comment: {
-        ua: `Максимальне перевищення температури,°С, (0=вимкнути)`,
-        en: `Limit of high temperature,°С, (0=disable)`,
-        ru: `Максимальное превышение температуры,°С, (0=выключено)`,
+        ua: `Максим. перевищення температури (0=вимкнути)`,
+        en: `Limit of high temperature (0=disable)`,
+        ru: `Максим. превышение температуры (0=выключено)`,
       },
       min: 0,
-      max: +100,
+      max: 100,
     });
 
     //  закон регулювання "Позиційний"

@@ -13,13 +13,22 @@ div(class="row")
 script.
   const lang= '!{lang}'; 
   const tasks={};
-  tasks.types = JSON.parse(  '!{JSON.stringify(manager.types)}' );
-  tasks.list = JSON.parse(  '!{JSON.stringify(manager.list)}' );
+  tasks.reg = JSON.parse(  '!{JSON.stringify(manager.reg)}' );
+  tasks.type = "select"
+  tasks.program = JSON.parse(  '!{JSON.stringify(manager.list)}' );
   tasks.container = document.getElementById( 'tasksContainer' );
 script  
-  include tasksR_general.js
+  //- реєструємо всі типи регістрів 
+  //- загальний клас для всіх елементів
+  include tasksR_general.js  
+  //- елемент select
   include tasksR_elem_select.js
+  //- елемент number
+  include tasksR_elem_number.js
 
+script.
+  //- запускаємо відображення списку кроків програми
+  tasks.renderList();
 
 
 //- кнопки 

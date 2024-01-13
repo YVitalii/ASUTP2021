@@ -4,20 +4,20 @@ const ClassReg_select = require("../regsController/ClassReg_select.js");
 const ClassRegister = require("../regsController/ClassRegister.js");
 const ClassTaskGeneral = require("../tasksController/Class_Task_general.js");
 
-class ClassTasksManager extends ClassRegister {
+class ClassTasksManager extends ClassReg_select {
   constructor(props = {}) {
     props.id = "TasksManager";
     props.comment = {
-      ua: `Створення програми`,
-      en: `Program creation`,
-      ru: `Создание прграммы`,
+      ua: `Після редадгування програми натисніть кнопку [Застосувати]`,
+      en: `After program creation, push [Accept] button`,
+      ru: `После редактирования програмы, нажмите кнопку [Применить] `,
     };
     props.header = {
       ua: `Створення програми`,
       en: `Program creating`,
       ru: `Создание программы`,
     };
-    props.type = "tasksManager";
+    props.type = "select";
     super(props);
     this.ln = "ClassTasksManager(" + props.id + ")::";
     let trace = 1,
@@ -25,7 +25,7 @@ class ClassTasksManager extends ClassRegister {
     trace ? log("w", ln, `======= Started =====`) : null;
 
     // Тут мають зберігатися всі можливі типи кроків
-    this.types = new ClassReg_select({
+    this.reg = new ClassReg_select({
       id: "taskType",
       header: {
         ua: "Оберіть тип кроку",
@@ -37,6 +37,7 @@ class ClassTasksManager extends ClassRegister {
         en: `Avaliable tasks`,
         ru: `Доступные задачи `,
       },
+      regs: {},
     });
 
     // Додаємо пустий крок-заглушку
@@ -55,8 +56,8 @@ class ClassTasksManager extends ClassRegister {
       },
       type: "taskType",
     });
-    this.addType(emptyStep);
 
+    this.addType(emptyStep);
     // Тут зберігається список впорядкованих кроків
     this.list = [];
     if (trace) {
@@ -75,10 +76,10 @@ class ClassTasksManager extends ClassRegister {
     if (!task.type) {
       throw new Error(ln + "Тип кроку має бути вказаний");
     }
-    if (this.types.regs[task.id]) {
+    if (this.reg.regs[task.id]) {
       throw new Error(ln + `Крок [${task.id}] вже зареєстрований!`);
     }
-    this.types.regs[task.id] = task;
+    this.reg.regs[task.id] = task;
   }
 
   getFullHtml() {

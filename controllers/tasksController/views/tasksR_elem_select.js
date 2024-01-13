@@ -1,7 +1,10 @@
 // -----------  element: select -------------------
 beforeTrace = trace;
 trace = 1;
-
+/**
+ * Створює та повертає елемент вибору
+ *
+ */
 class ClassElementSelect extends ClassCreateElement {
   constructor(props = {}) {
     props.tag = "select";
@@ -13,11 +16,19 @@ class ClassElementSelect extends ClassCreateElement {
 
     // створюємо список <option>
     let keys = "";
-    for (let key in this.reg.regs) {
-      let trace = 1;
-      trace ? console.log(ln + "key=" + key) : null;
-      keys += `<option value='${key}'> ${this.reg.regs[key].comment[lang]} </option>`;
-    }
+    for (let key in this.regs) {
+      if (this.regs.hasOwnProperty(key)) {
+        let trace = 1;
+        // if (keys == "") {
+        //   // якщо це перша опція, вибираємо її як початкову
+        //   this.setValue(field.value = key;
+        //   this.field.dataset.beforeValue = key;
+        // }
+        trace ? console.log(ln + "key=" + key) : null;
+        keys += `<option value='${key}'> ${this.reg.regs[key].header[lang]} </option>`;
+      }
+    } //for
+    // -- опції вибору -------
     this.field.innerHTML = keys;
     // -- обробник зміни значення поля ----------
     this.field.onchange = this.onchange.bind(this);
@@ -28,53 +39,35 @@ class ClassElementSelect extends ClassCreateElement {
     }
   }
   onchange(event) {
-    let trace = 1;
+    let trace = 1,
+      ln = this.ln + "onchange()::";
     super.onchange(event);
+    let reg = this.regs[this.getValue()];
+    this.parseRegs(reg);
+  }
+  parseRegs(reg) {
+    let trace = 1,
+      ln = this.ln + `parseRegs(${reg.id})::`;
+    trace ? console.log(ln + `Started`) : null;
+
+    for (let key in reg.regs) {
+      if (reg.regs.hasOwnProperty(key)) {
+        let trace = 1;
+        trace ? console.log(ln + "for (key=" + key + ")::") : null;
+        let item = reg.regs[key];
+        if (tasks.elementsTypes[item.type]) {
+          let el = new tasks.elementsTypes[item.type]({
+            prefix: this.prefix,
+            reg: item,
+            container: this.container,
+          });
+          this.container.appendChild(el.div);
+        }
+      }
+    } //for
   }
 }
 
 tasks.elementsTypes["select"] = ClassElementSelect;
-
-/**
- * Генерує елемент для вибору можливих варіантів
- * @param {String} prefix
- * @param {Object} regsList - список об'єктів з яких потрібно побудувати елемент
- * @returns
- */
-
-// tasks.elementsTypes.select.set = function (prefix, regsList) {
-//   select.onchange = function (event) {
-//     let trace = 1;
-//     let el = event.target;
-//     return function () {
-//       if (trace) {
-//         console.log(id + "::el.value=");
-//         console.dir(el.value);
-
-//         console.log(id + "::onchange::this=");
-//         console.dir(this);
-//         console.log(id + "::onchange::prefix=" + prefix);
-//         console.dir(prefix);
-//       }
-//       tasks.renderRegs(prefix, this[el.value].regs);
-//     }.bind(regsList.regs, null, prefix)();
-//   }; //.bind(regsList.regs, null, prefix);
-//   div.appendChild(select);
-//   let title = document.createElement("small");
-//   title.innerHTML = regsList.type.title[lang];
-//   div.appendChild(title);
-//   select.dataset.beforeValue = select.value;
-
-//   return div;
-// };
-
-if (trace) {
-  // для тестування, створює елемент в контейнері
-  let select = new tasks.elementsTypes.select({
-    prefix: "st_01",
-    reg: tasks.types,
-  });
-  tasks.container.appendChild(select.div);
-}
 
 trace = beforeTrace;
