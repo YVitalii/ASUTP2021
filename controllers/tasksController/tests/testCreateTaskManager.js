@@ -1,22 +1,20 @@
 const ClassTasksManager = require("../ClassTasksManager");
 const log = require("../../../tools/log.js");
-const ClassTasksThermal = require("../../thermoController/ClassTaskThermal/ClassTaskThermal");
+const ClassTaskThermal = require("../../thermoController/ClassTaskThermal/ClassTaskThermal");
 
 let trace = 1,
   ln = __filename + "::";
-let props = {};
-props = {
-  id: "thermalStep",
-  type: "thermal",
-  comment: { ua: `Термообробка`, en: `Thermal`, ru: `Термообработка` },
-  value: 0,
-};
+// let props = {};
+// props = {
+
+// };
 
 let tasksManager = new ClassTasksManager();
 
-let task = new ClassTasksThermal(props);
+let task = new ClassTaskThermal();
 
 tasksManager.addType(task);
+
 if (trace) {
   log("i", ln, `tasksManager=`);
   console.dir(tasksManager, { depth: 2 });

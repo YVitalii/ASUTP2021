@@ -17,7 +17,8 @@ class ClassTasksManager extends ClassReg_select {
       en: `Program creating`,
       ru: `Создание программы`,
     };
-    props.type = "select";
+    props.type = "regsList";
+    props.value = "empty";
     super(props);
     this.ln = "ClassTasksManager(" + props.id + ")::";
     let trace = 1,
@@ -28,42 +29,68 @@ class ClassTasksManager extends ClassReg_select {
     this.reg = new ClassReg_select({
       id: "taskType",
       header: {
-        ua: "Оберіть тип кроку",
+        ua: "Тип кроку",
         en: "Select type of step",
-        ru: "Выберите тип шага",
+        ru: "Тип шага",
       },
       comment: {
-        ua: `Доступні задачі`,
-        en: `Avaliable tasks`,
-        ru: `Доступные задачи `,
+        ua: `Доступні типи`,
+        en: `Avaliable types`,
+        ru: `Доступные типы`,
       },
       regs: {},
+      type: "regsList",
     });
 
     // Додаємо пустий крок-заглушку
     let emptyStep = new ClassTaskGeneral({
       id: "empty",
-      type: "step",
+      type: "regsList",
       header: {
-        ua: "Виберіть тип кроку",
-        en: "Select type of step",
-        ru: "Выберите тип шага",
+        ua: "Пусто",
+        en: "Empty",
+        ru: "Пусто",
       },
       comment: {
         ua: `Тип кроку не вказано`,
         en: `Type of the Step not defined`,
         ru: `Тип шага не указан`,
       },
-      type: "taskType",
+      regs: {},
     });
 
     this.addType(emptyStep);
+
     // Тут зберігається список впорядкованих кроків
-    this.list = [];
+    this.list = this.loadList();
+
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
     }
+  }
+  loadList(name = "default.tsk") {
+    // TODO костиль тут має бути завантаження програми з файлу
+    let list = [];
+    list.push({
+      id: "TaskThermal",
+      tT: 500,
+      errTmin: -15,
+      errTmax: 15,
+      regMode: "pid",
+      o: 10,
+      i: 10,
+      d: 10,
+    });
+    list.push({
+      id: "TaskNitriding",
+      kN: 1.2,
+      regMode: "pid",
+      o: 10,
+      i: 10,
+      d: 10,
+    });
+    return list;
   }
 
   addType(task = {}) {

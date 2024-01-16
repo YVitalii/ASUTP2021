@@ -1,6 +1,7 @@
 const Class_Task_General = require("../../tasksController/Class_Task_general.js");
 const ClassRegister = require("../../regsController/ClassRegister.js");
 const ClassReg_number = require("../../regsController/ClassReg_number.js");
+const ClassReg_listRegs = require("../../regsController/ClassReg_listRegs.js");
 const ClassReg_select = require("../../regsController/ClassReg_select.js");
 
 class Class_Task_Thermo extends Class_Task_General {
@@ -11,7 +12,7 @@ class Class_Task_Thermo extends Class_Task_General {
    */
 
   constructor(props = {}) {
-    props.id = "ClassTaskThermo";
+    props.id = "TaskThermal";
     props.header = {
       ua: `Термообробка`,
       en: `Heattreatment`,
@@ -24,9 +25,9 @@ class Class_Task_Thermo extends Class_Task_General {
           en: `Heattreatment`,
           ru: `Термообработка`,
         };
-    props.type = "step";
+    props.type = "regsList";
     super(props);
-
+    this.ln = `ClassTaskThermal()::`;
     // задана температура
     props.tT = props.tT ? props.tT : {};
 
@@ -51,9 +52,9 @@ class Class_Task_Thermo extends Class_Task_General {
       header: { ua: "min dT,°C", en: "min dT,°C", ru: "min dT,°C" },
       value: props.errTmin.value ? props.errTmin.value : -25,
       comment: {
-        ua: `Максим. відх. темп. вниз (0=вимкнути)`,
+        ua: `Макс. відх. вниз (0=вимкн)`,
         en: `Limit of low temperature (0=disable)`,
-        ru: `Максим. отклонение темп. вниз (0=выключено)`,
+        ru: `Макс. откл. вниз (0=выкл)`,
       },
       min: -100,
       max: 0,
@@ -66,9 +67,9 @@ class Class_Task_Thermo extends Class_Task_General {
       header: { ua: "max dT,°C", en: "max dT,°C", ru: "max dT,°C" },
       value: props.errTmax.value ? props.errTmax.value : +25,
       comment: {
-        ua: `Максим. перевищення температури (0=вимкнути)`,
+        ua: `Макс. перевищ. (0=вимкн)`,
         en: `Limit of high temperature (0=disable)`,
-        ru: `Максим. превышение температуры (0=выключено)`,
+        ru: `Макс. превыш. (0=выкл)`,
       },
       min: 0,
       max: 100,
@@ -76,10 +77,9 @@ class Class_Task_Thermo extends Class_Task_General {
 
     //  закон регулювання "Позиційний"
 
-    let pos = new ClassReg_select({
+    let pos = new ClassReg_listRegs({
       id: "pos",
       header: { ua: "Позиційний", en: "Positional", ru: "Позиционный" },
-      value: 0,
       comment: {
         ua: `Позиційний закон регулювання`,
         en: `Positional regulation`,
@@ -100,10 +100,9 @@ class Class_Task_Thermo extends Class_Task_General {
       max: 0,
     });
 
-    let pid = new ClassReg_select({
+    let pid = new ClassReg_listRegs({
       id: "pid",
       header: { ua: "ПІД", en: "PID", ru: "ПИД" },
-      value: 0,
       comment: {
         ua: `ПІД закон регулювання`,
         en: `PID regulation`,
@@ -165,7 +164,7 @@ class Class_Task_Thermo extends Class_Task_General {
     this.regs.regMode = new ClassReg_select({
       id: "regMode",
       header: { ua: "Регулювання", en: "Regulation", ru: "Регулирование" },
-      value: "pos",
+      value: "pid",
       regs: { pos, pid }, // TODO Додати роботу при позиційному законі, поки реалізований тільки ПІД
       comment: {
         ua: `Закон регулювання`,

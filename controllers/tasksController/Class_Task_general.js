@@ -15,7 +15,7 @@ class ClassTask extends ClassRegister {
       ln = this.ln + "constructor()::";
 
     // Тип задачі
-    this.type = "task";
+    this.type = props.type;
     // список регістрів
     this.regs = {};
 

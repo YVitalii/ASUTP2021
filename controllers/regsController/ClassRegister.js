@@ -18,7 +18,7 @@ class ClassRegister {
       ? props.type
       : new Error(ln + "Тип регістру має бути вказаний");
     /** Поточне значення */
-    this.value = props.value | (props.value === 0) ? props.value : null;
+    this.value = props.value; // | (props.value === 0) ? props.value : null;
     /** Додатковий опис */
     this.comment = props.comment
       ? props.comment
@@ -27,6 +27,8 @@ class ClassRegister {
           en: "Note not defined",
           ru: "Описания нет",
         };
+    // дозвіл на редагування регістру
+    this.readonly = false;
   } // constructor
 }
 

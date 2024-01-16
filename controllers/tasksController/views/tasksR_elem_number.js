@@ -21,11 +21,13 @@ class ClassElementNumber extends ClassCreateElement {
 
     if (props.reg.min | (props.reg.min === 0)) {
       this.field.setAttribute("min", props.reg.min);
+      this.min = props.reg.min;
     }
     if (props.reg.max | (props.reg.max === 0)) {
       this.field.setAttribute("max", props.reg.max);
+      this.max = props.reg.max;
     }
-
+    this.field.setAttribute("value", props.reg.value);
     if (trace) {
       console.log(ln + "this=");
       console.dir(this);
@@ -35,6 +37,15 @@ class ClassElementNumber extends ClassCreateElement {
     let trace = 1,
       ln = this.ln + "onchange()::";
     super.onchange(event);
+    let val = this.getValue();
+    if (val > this.max) {
+      val = this.max;
+    }
+    if (val < this.min) {
+      val = this.min;
+    }
+    this.setValue(val);
+    this.field.value = this.value;
   }
 }
 

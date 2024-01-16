@@ -1,7 +1,7 @@
 -var lang="ua"
 
-p --------------------- debugging info -----------------------------
-pre #{JSON.stringify(manager)}  
+p --------------------- debugging info manager = -----------------------------
+  pre #{JSON.stringify(manager)}  
 p --------------------- debugging info -----------------------------
 
 
@@ -13,19 +13,25 @@ div(class="row")
 script.
   const lang= '!{lang}'; 
   const tasks={};
+  tasks.header = JSON.parse(  '!{JSON.stringify(manager.header)}' );
+  tasks.comment = JSON.parse(  '!{JSON.stringify(manager.comment)}' );
+  tasks.id=JSON.parse(  '!{JSON.stringify(manager.id)}' );
   tasks.reg = JSON.parse(  '!{JSON.stringify(manager.reg)}' );
   tasks.type = "select"
-  tasks.program = JSON.parse(  '!{JSON.stringify(manager.list)}' );
+  tasks.list = JSON.parse(  '!{JSON.stringify(manager.list)}' );
   tasks.container = document.getElementById( 'tasksContainer' );
 script  
   //- реєструємо всі типи регістрів 
   //- загальний клас для всіх елементів
   include tasksR_general.js  
   //- елемент select
+  include tasksR_elem_general.js
+  //- елемент select
   include tasksR_elem_select.js
   //- елемент number
   include tasksR_elem_number.js
-
+  //- елемент createStep.js
+  include tasks_createStep.js
 script.
   //- запускаємо відображення списку кроків програми
   tasks.renderList();
