@@ -127,7 +127,7 @@ class Class_Task_Thermo extends Class_Task_General {
       max: 100,
     });
 
-    pid.regs.i = new ClassReg_number({
+    pid.regs.ti = new ClassReg_number({
       id: "ti",
       header: {
         ua: "І",
@@ -144,7 +144,7 @@ class Class_Task_Thermo extends Class_Task_General {
       max: 100,
     });
 
-    pid.regs.d = new ClassReg_number({
+    pid.regs.td = new ClassReg_number({
       id: "td",
       header: {
         ua: "Д",
