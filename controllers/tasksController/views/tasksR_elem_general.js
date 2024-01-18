@@ -77,8 +77,8 @@ class ClassCreateElement {
       console.log(ln + "this=");
       console.dir(this);
     }
-    trace ? console.log(ln + "this.field.value=" + this.getValue()) : null;
-    //this.setValue(this.getValue());
+    trace ? console.log(ln + "this.field.value=" + this.getFieldValue()) : null;
+    //this.setValue(this.getFieldValue());
   }
 
   // створює ідентифікатор для елементу DOM
@@ -124,17 +124,17 @@ class ClassCreateElement {
     res =
       this.beforeValue == undefined
         ? true
-        : this.getValue() != this.getBeforeValue();
+        : this.getFieldValue() != this.getBeforeValue();
     trace
       ? console.log(
           ln +
-            `this.getBeforeValue()=${this.getBeforeValue()};this.getValue()=${this.getValue()}; res=${res}`
+            `this.getBeforeValue()=${this.getBeforeValue()};this.getFieldValue()=${this.getFieldValue()}; res=${res}`
         )
       : null;
     return res;
   }
 
-  getValue() {
+  getFieldValue() {
     return this.field.value;
   }
 }

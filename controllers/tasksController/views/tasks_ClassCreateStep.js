@@ -5,7 +5,7 @@ trace = 1;
  * Створює та повертає елемент вибору
  *
  */
-class ClassCreateStep {
+tasks.createStep = class ClassCreateStep {
   /**
    * Створює контейнер з регістрами
    * @param {*} props
@@ -17,14 +17,10 @@ class ClassCreateStep {
 
   constructor(props = {}) {
     this.ln = "ClassCreateStep(" + props.reg.id + ")::";
+
     let trace = 1,
       ln = this.ln + "Constructor()::";
-    //
-    if (trace) {
-      console.log(ln + `props=`);
-      console.dir(props);
-    }
-    this.types = props.types;
+
     //
     if (!props.reg) {
       throw new Error(ln + "No item 'props.reg' defined");
@@ -72,12 +68,17 @@ class ClassCreateStep {
     row.id = props.prefix;
     this.main.appendChild(row);
     this.container = row;
-
-    // список дітей, що створюються
-    this.children = {};
+    // рендеримо дітей
+    this.children = new tasks.ClassRegsList({
+      prefix: this.prefix,
+      container: this.container,
+      //parent: this,
+      regs: this.reg.regs,
+      types: props.types,
+    });
 
     // -- початкова ініціалізація -----------
-    this.renderRegs();
+    // this.renderRegs();
     // this.value = this.getValue();
     // trace ? console.log(ln + `this.value=${this.value}`) : null;
     // this.setValue(this.value);
@@ -140,7 +141,7 @@ class ClassCreateStep {
         : null;
     }
   }
-}
-tasks.createStep = ClassCreateStep;
+};
+// tasks.createStep = ClassCreateStep;
 
 trace = beforeTrace;

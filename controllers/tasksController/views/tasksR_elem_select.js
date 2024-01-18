@@ -13,7 +13,7 @@ class ClassElementSelect extends ClassCreateElement {
     let trace = 1,
       ln = this.ln + "Constructor()::";
     this.regs = this.reg.regs;
-    this.children = []; // список дітей, що створюються при виборі варіанту
+
     // створюємо список <option>
     let keys = "";
     let first = true;
@@ -37,13 +37,19 @@ class ClassElementSelect extends ClassCreateElement {
     // -- обробник зміни значення поля ----------
     this.field.onchange = this.onchange.bind(this);
     // -- початкова ініціалізація -----------
-
-    this.value = this.getValue();
+    this.value = this.getFieldValue();
     trace ? console.log(ln + `this.value=${this.value}`) : null;
     this.setValue(this.value);
-    this.renderRegs(this.regs[this.value]);
+    // create children
+    this.children = new tasks.ClassRegsList({
+      container: this.container,
+      prefix: this.prefix,
+      regs: this.regs[this.value].regs,
+      types: this.types,
+    });
+
     if (trace) {
-      console.log(ln + `this.getValue()=${this.getValue()}`);
+      console.log(ln + `this.getFieldValue()=${this.getFieldValue()}`);
       console.dir(this);
     }
   }
@@ -54,15 +60,10 @@ class ClassElementSelect extends ClassCreateElement {
     if (!this.hasChanged()) {
       return;
     }
-    let beforeRegs = this.regs[this.getBeforeValue()].regs;
-    trace
-      ? console.log(ln + `this.regs[${this.getBeforeValue()}]=${beforeRegs}`)
-      : null;
-    this.deleteBeforeRegs(beforeRegs);
+    this.children.remove();
+    this.children.render(this.regs[this.getFieldValue()].regs);
+    this.setValue(this.getFieldValue());
     super.onchange(event);
-    let reg = this.regs[this.getValue()];
-    this.renderRegs(reg);
-    this.setValue(reg.id);
   }
 
   // ----- видаляємо поля попереднього вибору ----------
@@ -70,26 +71,26 @@ class ClassElementSelect extends ClassCreateElement {
     let trace = 1,
       ln = this.ln + "deleteBeforeRegs()::";
     trace ? console.log(ln + `Started!`) : null;
-    for (let i = 0; i < this.children.length; i++) {
-      let child = this.children[i];
-      let lln = `child[${child.elId}]::`;
+    // for (let i = 0; i < this.children.length; i++) {
+    //   let child = this.children[i];
+    //   let lln = `child[${child.elId}]::`;
 
-      if (child.type == "select") {
-        console.log(
-          lln + "element Select found. Call his child.deleteBeforeRegs()."
-        );
-        child.deleteBeforeRegs();
-        //continue;
-      }
-      let el = document.getElementById(child.elId);
-      if (el) {
-        el.remove();
-        trace ? console.log(lln + `Was removed`) : null;
-      } else {
-        console.log(lln + `!!! Not removed`);
-      }
-    } // for
-    this.children = [];
+    //   if (child.type == "select") {
+    //     console.log(
+    //       lln + "element Select found. Call his child.deleteBeforeRegs()."
+    //     );
+    //     child.deleteBeforeRegs();
+    //     //continue;
+    //   }
+    //   let el = document.getElementById(child.elId);
+    //   if (el) {
+    //     el.remove();
+    //     trace ? console.log(lln + `Was removed`) : null;
+    //   } else {
+    //     console.log(lln + `!!! Not removed`);
+    //   }
+    // } // for
+    // this.children = [];
   }
 
   renderRegs(reg) {
@@ -129,7 +130,7 @@ class ClassElementSelect extends ClassCreateElement {
     trace
       ? console.log(ln + `this.children.length=${this.children.length}`)
       : null;
-  }
+  } // render()
 }
 
 tasks.elementsTypes["select"] = ClassElementSelect;
