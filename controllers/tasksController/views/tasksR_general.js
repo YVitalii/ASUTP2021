@@ -6,33 +6,16 @@ let trace = 1,
   beforeTrace = 0;
 
 /**
- * Створює відображення рядка кроку програми
+ * Створює рядка кроку програми
  * @param {Array} list
  *
  */
-
-// tasks.createRow = (container, prefix) => {
-//   let row = document.createElement("div");
-//   row.classList.add("row");
-//   row.classList.add("border");
-//   row.classList.add("border-secondary");
-//   row.id = prefix;
-//   let stepNumber = document.createElement("div");
-//   stepNumber.classList.add("col-1");
-//   stepNumber.classList.add("my-auto");
-//   stepNumber.classList.add("mx-auto");
-//   let header = document.createElement("div");
-//   header.classList.add("h5");
-//   header.innerHTML = prefix;
-//   stepNumber.appendChild(header);
-//   row.appendChild(stepNumber);
-//   return row;
-// };
 
 tasks.renderList = function () {
   let list = tasks.list;
   let trace = 1,
     ln = "tasks.renderList()::";
+
   // ------- створюємо заголовок ----------
   let header = document.createElement("div");
   header.classList.add("row");
@@ -43,6 +26,8 @@ tasks.renderList = function () {
   tasks.container.classList = "border";
   this.container.appendChild(header);
   //
+
+  tasks.model = [];
 
   if (list.length == 0) {
     // список програм пустий крок
@@ -71,11 +56,14 @@ tasks.renderList = function () {
         container: tasks.container,
         types: tasks.elementsTypes,
       });
+      el.setValues(step);
+      tasks.model.push(el);
       if (trace) {
         console.log(ln + `el=`);
         console.dir(el);
       }
     }
+    //tasks.model = el;
   } //for
 
   //tasks.container.appendChild(step);

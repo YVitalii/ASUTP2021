@@ -37,17 +37,29 @@ class ClassElementNumber extends ClassCreateElement {
     let trace = 1,
       ln = this.ln + "onchange()::";
     super.onchange(event);
-    let val = this.getValue();
+    let val = this.getFieldValue();
+    this.setValue(val);
+    //this.field.value = this.value;
+  } // onchange()
+
+  setValue(val) {
     if (val > this.max) {
+      console.error(
+        this.ln +
+          `Can't set ${val}, because max=${this.max}. Was setted max value!`
+      );
       val = this.max;
     }
     if (val < this.min) {
       val = this.min;
+      console.error(
+        this.ln +
+          `Can't set ${val}, because min=${this.min}. Was setted min value!`
+      );
     }
-    this.setValue(val);
-    this.field.value = this.value;
+    super.setValue(val);
   }
-}
+} // class
 
 tasks.elementsTypes["number"] = ClassElementNumber;
 

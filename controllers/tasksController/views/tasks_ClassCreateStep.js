@@ -68,6 +68,7 @@ tasks.createStep = class ClassCreateStep {
     row.id = props.prefix;
     this.main.appendChild(row);
     this.container = row;
+
     // рендеримо дітей
     this.children = new tasks.ClassRegsList({
       prefix: this.prefix,
@@ -76,72 +77,33 @@ tasks.createStep = class ClassCreateStep {
       regs: this.reg.regs,
       types: props.types,
     });
+    // console.log("------ getValues -------");
+    // console.log(this.children.getValues());
 
-    // -- початкова ініціалізація -----------
-    // this.renderRegs();
-    // this.value = this.getValue();
-    // trace ? console.log(ln + `this.value=${this.value}`) : null;
-    // this.setValue(this.value);
-    // this.renderRegs(this.regs[this.value]);
     if (trace) {
       console.log(ln + `this=${""}`);
       console.dir(this);
     }
   }
 
-  onchange(event) {}
-
-  renderRegs() {
-    let reg = this.reg;
-    let trace = 1,
-      ln = this.ln + `renderRegs(${reg.id})::`;
-    trace ? console.log(ln + `Started`) : null;
-    this.children = {};
-    if (reg.type == "regsList") {
-      // якщо це список регістрів - то розкриваємо
-      for (let key in reg.regs) {
-        if (reg.regs.hasOwnProperty(key)) {
-          let trace = 1;
-          let item = reg.regs[key];
-          trace
-            ? console.log(
-                ln +
-                  `for (key=${key}) item.id= ${item.id}; item.type=${item.type} )`
-              )
-            : null;
-
-          if (this.types[item.type]) {
-            let el = new this.types[item.type]({
-              prefix: this.prefix,
-              reg: item,
-              container: this.container,
-            });
-
-            this.container.appendChild(el.div);
-            this.children[el.id] = el;
-            trace
-              ? console.log(ln + `Created element DOM id= ${el.elId} )`)
-              : null;
-          } //if
-        }
-      } //for
-      return;
-    } //if (reg.type == 'regsList')
-
-    if (this.types[reg.type]) {
-      let el = new this.types[reg.type]({
-        prefix: this.prefix,
-        reg: reg,
-        container: this.container,
-      });
-      this.container.appendChild(el.div);
-      this.children.push(el);
-      trace
-        ? console.log(ln + `this.children.length=${this.children.length}`)
-        : null;
-    }
+  // onchange(event) {}
+  getValues() {
+    let res = {};
+    res["id"] = this.reg.id;
+    return Object.assign(res, this.children.getValues());
   }
-};
-// tasks.createStep = ClassCreateStep;
+
+  setValues(values) {
+    let trace = 1,
+      ln = this.ln + `setValues()::`;
+    trace ? console.log(ln + `Started`) : null;
+    for (let key in values) {
+      if (values.hasOwnProperty(key)) {
+        trace ? console.log(ln + `for(key=${key})=${values[key]}`) : null;
+        this.children.setRegister(key, values[key]);
+      } // if (value.hasOwnProperty(key))
+    } //for
+  }
+}; // ClassCreateStep
 
 trace = beforeTrace;

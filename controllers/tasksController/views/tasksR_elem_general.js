@@ -105,7 +105,12 @@ class ClassCreateElement {
             `Finished:this.beforeValue=${this.beforeValue};this.value=${this.value}`
         )
       : null;
-    //this.field.value = val;
+    this.field.value = val;
+    this.reg.value = val;
+  }
+
+  setProperty(key, value) {
+    console.log(this.ln + `setProperty[${key}]=${value}. Поки не реалізовано!`);
   }
 
   getBeforeValue() {

@@ -43,7 +43,7 @@ tasks.ClassRegsList = class ClassRegsList {
       throw new Error(ln + "'props.regs' not defined !!");
       props.regs = {};
     }
-    this.regs = props.regs;
+    //this.regs = props.regs;
 
     // prefix
     this.prefix = props.prefix ? props.prefix : "undefined_";
@@ -62,7 +62,7 @@ tasks.ClassRegsList = class ClassRegsList {
     this.children = {};
 
     // -- початкова ініціалізація -----------
-    this.render(this.regs);
+    this.render(props.regs);
 
     if (trace) {
       console.log(ln + `Was created element. this=${""}`);
@@ -93,6 +93,7 @@ tasks.ClassRegsList = class ClassRegsList {
     this.children = {};
     console.log(ln + "Completed!");
   }
+
   render(regs) {
     let trace = 1,
       ln = this.ln + `render(${this.prefix})::`;
@@ -118,6 +119,12 @@ tasks.ClassRegsList = class ClassRegsList {
             reg: item,
             container: this.container,
           });
+          // перевіряємо чи є елемент з таким id в DOM
+          if (document.getElementById(el.idEl)) {
+            throw Error(
+              ln + `DOM element with id = ${el.idEl} already presented!!`
+            );
+          }
           // додаємо в дерево DOM
           this.container.appendChild(el.div);
           // запамятовуємо в списку дітей
@@ -132,6 +139,107 @@ tasks.ClassRegsList = class ClassRegsList {
       ? console.log(ln + `Created this.children=${Object.keys(this.children)}`)
       : null;
   } //renderRegs()
+
+  /**
+   * Збирає значення регістрів всіх дітей
+   * @returns {Object} {reg1.id:reg1.value, reg2.id:reg2.value, } for example {'tT':500,'o':15,..}
+   */
+  getValues() {
+    let trace = 0,
+      ln = this.ln + ` getValues(${this.prefix})::`;
+    let children = this.children;
+    let res = {};
+    for (let key in children) {
+      if (children.hasOwnProperty(key)) {
+        let lln = ln + `for (${key})::`,
+          trace = 0;
+        let child = children[key];
+        if (trace) {
+          console.log(lln + `child=`);
+          console.dir(child);
+        }
+        res[child.id] = child.value;
+        if (child.children) {
+          let resChild = child.children.getValues();
+          Object.assign(res, resChild);
+        }
+      }
+    }
+    //trace = 1;
+    if (trace) {
+      console.log(ln + `Response=`);
+      console.dir(res);
+    }
+    return res;
+  } //getValues()
+
+  // /**
+  //  *
+  //  * @param {Object} values - {'tT':500,...} or {'tT':{value:500,enable:true,...},...}
+  //  */
+  // setValues(values) {
+  //   let trace = 0,
+  //     ln = this.ln + ` setValues(${this.prefix})::`;
+  //   let children = this.children;
+
+  //   for (let key in values) {
+  //     if (values.hasOwnProperty(key)) {
+  //       let el = values[key];
+  //     } //if (regs.hasOwnProperty(key))
+  //   } // for
+  // } //setValues(values)
+
+  setRegister(id, value) {
+    let trace = 0,
+      ln = this.ln + `setRegister(${id};${value})::`;
+    trace ? console.log(ln + `Started`) : null;
+    let reg = this.findRegister(id);
+    if (reg) {
+      // регістр знайдено
+      if (typeof value != "object") {
+        reg.setValue(value);
+        return value;
+      }
+      // якщо value - об'экт зі значеннями, то перебираємо ці значення
+      for (let key in value) {
+        if (value.hasOwnProperty(key)) {
+          if (reg[key]) {
+            // поле key  в регістрі знайдено
+            reg[key].setProperty(key, value[key]);
+          }
+        } //for
+      }
+    } // setRegister(id,values)
+  }
+
+  /**
+   * Знаходить серед дітей регістр з вказаним id
+   * @param {String} id
+   * @return {undefined | Object }
+   */
+  findRegister(id) {
+    let trace = 0,
+      ln = this.ln + `findRegister(${id}})::`;
+    trace ? console.log(ln + `Started`) : null;
+
+    let res = this.children[id];
+
+    if (!res) {
+      // якщо при прямому пошуку не знайдено
+      // шукаємо в регістрах з дітьми
+      for (let key in this.children) {
+        if (this.children.hasOwnProperty(key)) {
+          if (this.children[key].children) {
+            res = this.children[key].children.findRegister(id);
+            if (res) {
+              break;
+            }
+          }
+        }
+      } //for
+    }
+    return res;
+  }
 }; // Class
 
 trace = beforeTrace;

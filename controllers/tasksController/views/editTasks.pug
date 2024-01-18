@@ -42,5 +42,7 @@ script.
 //- кнопки 
 div(class="row")
   div(class="col")
-    button(type="button" class="btn btn-primary")= `${{ua:"Застосувати" , en: "Accept", ru: "Применить" }[lang]}`
+    button(type="button" class="btn btn-primary" id="buttonTasksAccept")= `${{ua:"Застосувати" , en: "Accept", ru: "Применить" }[lang]}`
     //-   Застосувати 
+script
+  include buttonTasksAccept.js

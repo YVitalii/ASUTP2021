@@ -1,8 +1,9 @@
 // -----------  element: select -------------------
 beforeTrace = trace;
 trace = 1;
+
 /**
- * Створює та повертає елемент вибору
+ * Створює елемент вибору select
  *
  */
 class ClassElementSelect extends ClassCreateElement {
@@ -39,14 +40,16 @@ class ClassElementSelect extends ClassCreateElement {
     // -- початкова ініціалізація -----------
     this.value = this.getFieldValue();
     trace ? console.log(ln + `this.value=${this.value}`) : null;
-    this.setValue(this.value);
+
     // create children
     this.children = new tasks.ClassRegsList({
       container: this.container,
-      prefix: this.prefix,
+      prefix: this.elId,
       regs: this.regs[this.value].regs,
       types: this.types,
     });
+
+    this.setValue(this.value);
 
     if (trace) {
       console.log(ln + `this.getFieldValue()=${this.getFieldValue()}`);
@@ -60,77 +63,20 @@ class ClassElementSelect extends ClassCreateElement {
     if (!this.hasChanged()) {
       return;
     }
-    this.children.remove();
-    this.children.render(this.regs[this.getFieldValue()].regs);
+    // this.children.remove();
+    // this.render(this.regs[this.getFieldValue()]);
     this.setValue(this.getFieldValue());
     super.onchange(event);
   }
 
-  // ----- видаляємо поля попереднього вибору ----------
-  deleteBeforeRegs() {
+  setValue(val) {
     let trace = 1,
-      ln = this.ln + "deleteBeforeRegs()::";
-    trace ? console.log(ln + `Started!`) : null;
-    // for (let i = 0; i < this.children.length; i++) {
-    //   let child = this.children[i];
-    //   let lln = `child[${child.elId}]::`;
-
-    //   if (child.type == "select") {
-    //     console.log(
-    //       lln + "element Select found. Call his child.deleteBeforeRegs()."
-    //     );
-    //     child.deleteBeforeRegs();
-    //     //continue;
-    //   }
-    //   let el = document.getElementById(child.elId);
-    //   if (el) {
-    //     el.remove();
-    //     trace ? console.log(lln + `Was removed`) : null;
-    //   } else {
-    //     console.log(lln + `!!! Not removed`);
-    //   }
-    // } // for
-    // this.children = [];
-  }
-
-  renderRegs(reg) {
-    let trace = 1,
-      ln = this.ln + `renderRegs(${reg.id})::`;
+      ln = this.ln + `setValue(${val})::`;
     trace ? console.log(ln + `Started`) : null;
-    this.children = [];
-
-    // if (this.beforValue == this.value) {
-    //   console.log(this.id+"::"+"Значення не змінилося")
-    // }
-    for (let key in reg.regs) {
-      if (reg.regs.hasOwnProperty(key)) {
-        let trace = 1;
-
-        let item = reg.regs[key];
-        trace
-          ? console.log(ln + `for (key=${key}) item.id= ${item.id} )`)
-          : null;
-        //let itemHidden = document.getElementById(item)
-        if (tasks.elementsTypes[item.type]) {
-          let el = new tasks.elementsTypes[item.type]({
-            prefix: this.prefix,
-            reg: item,
-            container: this.container,
-          });
-
-          this.container.appendChild(el.div);
-
-          trace
-            ? console.log(ln + `Created element DOM id= ${el.elId} )`)
-            : null;
-          this.children.push(el);
-        }
-      }
-    } //for
-    trace
-      ? console.log(ln + `this.children.length=${this.children.length}`)
-      : null;
-  } // render()
+    super.setValue(val);
+    this.children.remove();
+    this.children.render(this.regs[val].regs);
+  }
 }
 
 tasks.elementsTypes["select"] = ClassElementSelect;
