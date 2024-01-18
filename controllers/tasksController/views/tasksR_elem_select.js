@@ -49,8 +49,8 @@ class ClassElementSelect extends ClassCreateElement {
   }
 
   onchange(event) {
-    let trace = 1,
-      ln = this.ln + "onchange()::";
+    let ln = this.ln + "onchange()::elem_select()::";
+    let trace = 1;
     if (!this.hasChanged()) {
       return;
     }
@@ -69,21 +69,25 @@ class ClassElementSelect extends ClassCreateElement {
   deleteBeforeRegs() {
     let trace = 1,
       ln = this.ln + "deleteBeforeRegs()::";
-    trace
-      ? console.log(ln + `Started! children=${JSON.stringify(this.children)}`)
-      : null;
+    trace ? console.log(ln + `Started!`) : null;
     for (let i = 0; i < this.children.length; i++) {
       let child = this.children[i];
+      let lln = `child[${child.elId}]::`;
+
       if (child.type == "select") {
-        console.log(ln + "element Select found");
+        console.log(
+          lln + "element Select found. Call his child.deleteBeforeRegs()."
+        );
         child.deleteBeforeRegs();
+        //continue;
       }
       let el = document.getElementById(child.elId);
       if (el) {
         el.remove();
+        trace ? console.log(lln + `Was removed`) : null;
+      } else {
+        console.log(lln + `!!! Not removed`);
       }
-
-      trace ? console.log(ln + `child.elId=${child.elId}`) : null;
     } // for
     this.children = [];
   }

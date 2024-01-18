@@ -20,12 +20,21 @@ class ClassCreateStep {
     let trace = 1,
       ln = this.ln + "Constructor()::";
     //
+    if (trace) {
+      console.log(ln + `props=`);
+      console.dir(props);
+    }
     this.types = props.types;
     //
     if (!props.reg) {
-      throw new Error(ln + "No props.reg defined");
+      throw new Error(ln + "No item 'props.reg' defined");
     }
     this.reg = props.reg;
+    // prefix
+    if (!props.prefix) {
+      throw new Error(ln + "No item 'props.prefix' defined");
+    }
+    this.prefix = props.prefix;
 
     // створюємо контейнер для кроку
     this.main = document.createElement("div");
@@ -47,16 +56,9 @@ class ClassCreateStep {
       let headerTitle = document.createElement("div");
       headerTitle.classList.add("h6");
       headerTitle.innerHTML = this.reg.header[lang];
+
       if (trace) {
-        console.log(ln + `headerTitle=`);
-        console.dir(headerTitle);
-      }
-      if (trace) {
-        console.log(ln + `headerCol=`);
-        console.dir(headerCol);
-      }
-      if (trace) {
-        console.log(ln + `header=`);
+        console.log(ln + `Type "regsList" was found. Created header=`);
         console.dir(header);
       }
       headerCol.appendChild(headerTitle);

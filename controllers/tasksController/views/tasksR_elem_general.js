@@ -54,6 +54,7 @@ class ClassCreateElement {
     this.field = document.createElement(this.tag);
     this.field.classList.add("form-control");
     this.field.classList.add(this.prefix);
+    this.field.classList.add("field");
     this.field.id = this.elId + "_field";
     if (this.readonly) {
       this.field.classList.add("readonly");
@@ -87,16 +88,17 @@ class ClassCreateElement {
   }
 
   setValue(val) {
-    let trace = 1,
-      ln = this.ln + `setValue(${val})`;
+    let trace = 0,
+      ln = this.ln + `setValue(${val})::`;
     trace
       ? console.log(
           ln +
             `Started:this.beforeValue=${this.beforeValue};this.value=${this.value}`
         )
       : null;
-    this.beforeValue = this.value;
+    trace = 1;
     this.value = val;
+    this.beforeValue = this.value;
     trace
       ? console.log(
           ln +

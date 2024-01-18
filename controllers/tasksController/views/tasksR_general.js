@@ -63,7 +63,7 @@ tasks.renderList = function () {
   for (let i = 0; i < list.length; i++) {
     let step = list[i];
     let reg = tasks.reg.regs[step.id];
-    trace ? console.log(ln + `reg=${JSON.stringify(reg)}`) : null;
+    // trace ? console.log(ln + `reg=${JSON.stringify(reg)}`) : null;
     if (reg) {
       let el = new this.createStep({
         prefix: `st${i}`,
