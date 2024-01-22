@@ -4,7 +4,7 @@ const ClassReg_number = require("../../regsController/ClassReg_number.js");
 const ClassReg_listRegs = require("../../regsController/ClassReg_listRegs.js");
 const ClassReg_select = require("../../regsController/ClassReg_select.js");
 
-class Class_Task_Thermo extends Class_Task_General {
+class ClassTaskThermal extends Class_Task_General {
   /**
    * Конструктор класу, оптимізованого під процеси термообробки
    * @param {*} props
@@ -175,4 +175,4 @@ class Class_Task_Thermo extends Class_Task_General {
   } // constructor
 } //class ClassThermoStep
 
-module.exports = Class_Task_Thermo;
+module.exports = ClassTaskThermal;

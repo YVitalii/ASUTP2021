@@ -1,0 +1,65 @@
+
+@startuml ClassTasks
+
+class ClassRegister { 
+    +id : String; // ідентифікатор регістру
+    +ln : String; // Заголовок для логування роботи коду
+    +header : String; // Заголовок поля вводу
+    +type :  String; // Тип регістру
+    +value : String|Number = props.value | 0; // Поточне значення
+    +comment : String; // Додатковий опис
+    +readonly : Boolean; // Дозвіл на редагування значення регістру
+}
+
+class ClassTask {
+    +regs : Object = props.regs : {} // контейнер для списку регістрів
+}
+
+class ClassTaskThermal {
+    +regs.tT : ClassReg_number; //задана температура
+    +regs.errTmin :  ClassReg_number; //відхилення вниз
+    +regs.errTmax :  ClassReg_number; //відхилення вверх
+    +regs.regMode : ClassReg_select; // закон регулювання
+    +regs.regMode.regs.pos : ClassReg_listRegs; // ПОЗ закон регулювання
+    +regs.regMode.regs.pos.regs.o : ClassReg_number; // ПОЗ неузг.температури
+    +regs.regMode.regs.pid : ClassReg_listRegs; // ПІД закон регулювання
+    +regs.regMode.regs.pid.regs.o : ClassReg_number; // ПІД пропорційна складова
+    +regs.regMode.regs.pid.regs.ti : ClassReg_number; // ПІД інтегральна складова
+    +regs.regMode.regs.pid.regs.td : ClassReg_number; // ПІД диференційна складова
+ }
+
+class ClassTaskHeating {
+    +regs.H :  ClassReg_time; //хвилини, час нагрівання
+}
+
+class ClassTaskHeatingQuick {
+    +regs.wT :  ClassReg_number; //темп. вимкн. нагрівання
+}
+
+class ClassTaskHolding {
+    +regs.Y : ClassReg_time; //хвилини, витримка 
+} 
+
+ClassRegister <|-- ClassTask 
+ClassTask  <|--  ClassTaskThermal
+ClassTaskThermal  <|--  ClassTaskHeating
+ClassTaskThermal <|-- ClassTaskHeatingQuick
+ClassTaskThermal  <|-- ClassTaskHolding
+
+class ClassReg_number {
+    +type = "number"  // тип числовий
+    +min = 0 // мінімальне значення  
+    +max = 100 // максимальне значення
+}
+
+class ClassReg_select {
+    +type="select"  // тип список вибору
+    +regs : Object =props.regs | {} // список регістрів для вибору
+}
+
+ClassRegister <|-- ClassReg_number
+ClassRegister <|-- ClassReg_select
+@enduml
+
+
+

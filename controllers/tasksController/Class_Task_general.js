@@ -14,10 +14,8 @@ class ClassTask extends ClassRegister {
     let trace = 0,
       ln = this.ln + "constructor()::";
 
-    // Тип задачі
-    this.type = props.type;
     // список регістрів
-    this.regs = {};
+    this.regs = props.regs ? props.regs : {};
 
     if (trace) {
       log("i", ln, `this=`);
