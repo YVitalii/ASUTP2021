@@ -2,13 +2,13 @@ const pug = require("pug");
 const log = require("../../tools/log");
 const ClassReg_select = require("../regsController/ClassReg_select.js");
 const ClassRegister = require("../regsController/ClassRegister.js");
-const ClassTaskGeneral = require("../tasksController/Class_Task_general.js");
+const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
 
 class ClassTasksManager extends ClassReg_select {
   constructor(props = {}) {
     props.id = "TasksManager";
     props.comment = {
-      ua: `Після редадгування програми натисніть кнопку [Застосувати]`,
+      ua: `Після редагування програми натисніть кнопку [Застосувати]`,
       en: `After program creation, push [Accept] button`,
       ru: `После редактирования програмы, нажмите кнопку [Применить] `,
     };
@@ -20,6 +20,7 @@ class ClassTasksManager extends ClassReg_select {
     props.type = "regsList";
     props.value = "empty";
     super(props);
+
     this.ln = "ClassTasksManager(" + props.id + ")::";
     let trace = 1,
       ln = this.ln + "constructor()::";
@@ -72,8 +73,15 @@ class ClassTasksManager extends ClassReg_select {
   loadList(name = "default.tsk") {
     // TODO костиль тут має бути завантаження програми з файлу
     let list = [];
+
     list.push({
-      id: "TaskThermal",
+      id: "caption",
+      header: { ua: ``, en: ``, ru: `` },
+      note: "",
+    });
+
+    list.push({
+      id: "ClassTask_Heating",
       tT: 500,
       errTmin: -15,
       errTmax: 15,
@@ -82,6 +90,7 @@ class ClassTasksManager extends ClassReg_select {
       i: 10,
       d: 10,
     });
+
     list.push({
       id: "TaskNitriding",
       kN: 1.2,
@@ -90,6 +99,7 @@ class ClassTasksManager extends ClassReg_select {
       i: 10,
       d: 10,
     });
+
     return list;
   }
 

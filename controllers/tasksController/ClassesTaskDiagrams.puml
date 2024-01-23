@@ -5,60 +5,114 @@ class ClassRegister {
     +id : String; // ідентифікатор регістру
     +ln : String; // Заголовок для логування роботи коду
     +header : String; // Заголовок поля вводу
-    +type :  String; // Тип регістру
+    #type :  String; // Тип регістру
     +value : String|Number = props.value | 0; // Поточне значення
     +comment : String; // Додатковий опис
     +readonly : Boolean; // Дозвіл на редагування значення регістру
+    +setValue(val): return val; // встановлює this.value
+    +getValue(): return this.value; // встановлює this.value
 }
 
-class ClassTask {
+class ClassReg_regsList {
+    #type="regsList"  // тип список регістрів
+    +regs : Object =props.regs | {} // список регістрів для вибору
+}
+
+ClassRegister <|-- ClassReg_regsList
+
+class ClassTaskGeneral {
     +regs : Object = props.regs : {} // контейнер для списку регістрів
 }
+
+ClassReg_regsList <|-- ClassTaskGeneral
+
+class ClassControllerPID {
+    #range : Object {min=0,max=100} // межі вихідного сигналу
+    #dt : Number =10 // сек, період між опитуванням
+    #PV : async Function // get ProcessVariable
+    +SP : Number =0  // set point, завдання
+    +o : ClassReg_number; // ПІД пропорційна складова
+    +ti : ClassReg_number; // ПІД інтегральна складова
+    +td : ClassReg_number; // ПІД диференційна складова
+    +out : Number = 0; //вихідний сигнал 0..1
+    +SP.get() / set() : Number; //
+    +PV.get() : Number; //
+    +run() : null // Пуск
+    +stop() :null // Пуск
+}
+ClassReg_regsList <|-- ClassControllerPID
+' Поки закон ПОЗ - невикористовуємо
+' class POScontroller { 
+'     o : ClassReg_number; // неузг.температури
+' }
 
 class ClassTaskThermal {
     +regs.tT : ClassReg_number; //задана температура
     +regs.errTmin :  ClassReg_number; //відхилення вниз
     +regs.errTmax :  ClassReg_number; //відхилення вверх
     +regs.regMode : ClassReg_select; // закон регулювання
-    +regs.regMode.regs.pos : ClassReg_listRegs; // ПОЗ закон регулювання
-    +regs.regMode.regs.pos.regs.o : ClassReg_number; // ПОЗ неузг.температури
-    +regs.regMode.regs.pid : ClassReg_listRegs; // ПІД закон регулювання
-    +regs.regMode.regs.pid.regs.o : ClassReg_number; // ПІД пропорційна складова
-    +regs.regMode.regs.pid.regs.ti : ClassReg_number; // ПІД інтегральна складова
-    +regs.regMode.regs.pid.regs.td : ClassReg_number; // ПІД диференційна складова
+    ' +regs.regMode.regs.pos : POScontroller; // ПОЗ закон регулювання
+    +regs.regMode.regs.pid : ClassReg_PID // ПІД закон регулювання
+    
  }
 
-class ClassTaskHeating {
-    +regs.H :  ClassReg_time; //хвилини, час нагрівання
-}
+ClassTaskThermal *-- ClassControllerPID
+' ClassTaskThermal *-- POScontroller
 
-class ClassTaskHeatingQuick {
-    +regs.wT :  ClassReg_number; //темп. вимкн. нагрівання
+class ClassTaskHeating {
+    +regs.H :  ClassReg_timer; // час нагрівання
+    +regs.wT :  ClassReg_number; // tT-wT = темп. початку ПІД рег.
 }
 
 class ClassTaskHolding {
-    +regs.Y : ClassReg_time; //хвилини, витримка 
+    +regs.Y : ClassReg_timer; //витримка 
 } 
 
-ClassRegister <|-- ClassTask 
-ClassTask  <|--  ClassTaskThermal
+
+
+ClassTaskGeneral <|--  ClassTaskThermal
 ClassTaskThermal  <|--  ClassTaskHeating
-ClassTaskThermal <|-- ClassTaskHeatingQuick
-ClassTaskThermal  <|-- ClassTaskHolding
+ClassTaskHeating  <|-- ClassTaskHolding
+
+' -------------  Nitriding Process --------------------------------
+class ClassTaskNitriding {
+    +regs.KN : ClassReg_timer; //хвилини, витримка 
+    +regs.pid : ControllerPID; // Налаштування PID
+    +regs.Y : ClassReg_timer;
+    +regs.KC : ClassReg_check; //хвилини, витримка
+
+} 
+ClassTaskGeneral <|--  ClassTaskNitriding
+ClassTaskNitriding *-- ClassControllerPID
 
 class ClassReg_number {
-    +type = "number"  // тип числовий
-    +min = 0 // мінімальне значення  
-    +max = 100 // максимальне значення
+    #type = "number"  // тип числовий
+    +min = 0 : Number // мінімальне значення  
+    +max = 100 : Number // максимальне значення
 }
+ClassRegister <|-- ClassReg_number
+
+
+
+
 
 class ClassReg_select {
-    +type="select"  // тип список вибору
-    +regs : Object =props.regs | {} // список регістрів для вибору
+    #type="select"  // тип список вибору
 }
 
-ClassRegister <|-- ClassReg_number
-ClassRegister <|-- ClassReg_select
+ClassReg_regsList <|-- ClassReg_select
+
+
+class ClassReg_timer {
+    #type="timer"
+    +min = 0 // хв, мінімальне значення  
+    +max = 99*60 //хв, максимальне значення
+    +getValueMinutes(val="00:00") : Number
+    +setValueMinutes(Number) : String // встановлює у вигляді "00:00" 
+ }
+
+ ClassReg_number <|-- ClassReg_timer
+
 @enduml
 
 

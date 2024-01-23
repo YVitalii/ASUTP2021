@@ -68,7 +68,10 @@ class ClassCreateElement {
       this.beforeValue = props.reg.value;
       this.setValue(this.value);
     }
+    // додаємо в контейнер елемент
     this.container.appendChild(this.div);
+    // привязуємо this до обробника до this
+    this.field.onchange = this.onchange.bind(this);
   }
 
   onchange(event) {

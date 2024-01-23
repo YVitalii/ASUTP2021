@@ -13,20 +13,22 @@ class ClassElementNumber extends ClassCreateElement {
     let trace = 1,
       ln = this.ln + "Constructor()::";
 
-    // -- опції вибору -------
-    //this.field.innerHTML = keys;
+    // -- тип поля Number -------
+    this.field.setAttribute("type", "number");
+
     // -- обробник зміни значення поля ----------
     this.field.onchange = this.onchange.bind(this);
-    this.field.setAttribute("type", "number");
 
     if (props.reg.min | (props.reg.min === 0)) {
       this.field.setAttribute("min", props.reg.min);
       this.min = props.reg.min;
     }
+
     if (props.reg.max | (props.reg.max === 0)) {
       this.field.setAttribute("max", props.reg.max);
       this.max = props.reg.max;
     }
+
     this.field.setAttribute("value", props.reg.value);
     if (trace) {
       console.log(ln + "this=");

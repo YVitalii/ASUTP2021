@@ -1,10 +1,11 @@
-const Class_Task_General = require("../../tasksController/Class_Task_general.js");
+const ClassTaskGeneral = require("../../tasksController/ClassTaskGeneral.js");
 const ClassRegister = require("../../regsController/ClassRegister.js");
 const ClassReg_number = require("../../regsController/ClassReg_number.js");
-const ClassReg_listRegs = require("../../regsController/ClassReg_listRegs.js");
+const ClassReg_regsList = require("../../regsController/ClassReg_regsList.js");
 const ClassReg_select = require("../../regsController/ClassReg_select.js");
+const ClassControllerPID = require("../../controllerPID/ClassControllerPID.js");
 
-class ClassTaskThermal extends Class_Task_General {
+class ClassTaskThermal extends ClassTaskGeneral {
   /**
    * Конструктор класу, оптимізованого під процеси термообробки
    * @param {*} props
@@ -12,29 +13,31 @@ class ClassTaskThermal extends Class_Task_General {
    */
 
   constructor(props = {}) {
-    props.id = "TaskThermal";
-    props.header = {
-      ua: `Термообробка`,
-      en: `Heattreatment`,
-      ru: `Термообработка`,
-    };
-    props.comment = props.comment
-      ? props.comment
+    super(props);
+    this.id = this.id ? this.id : "TaskThermal";
+    this.header = this.header
+      ? this.header
       : {
           ua: `Термообробка`,
           en: `Heattreatment`,
           ru: `Термообработка`,
         };
-    props.type = "regsList";
-    super(props);
+    this.comment = this.comment
+      ? this.comment
+      : {
+          ua: `Термообробка`,
+          en: `Heattreatment`,
+          ru: `Термообработка`,
+        };
     this.ln = `ClassTaskThermal()::`;
+
     // задана температура
-    props.tT = props.tT ? props.tT : {};
+    //props.tT = props.tT ? props.tT : {};
 
     this.regs.tT = new ClassReg_number({
       id: "tT",
       type: "number",
-      value: props.tT.value ? props.tT.value : 0,
+      value: props.tT ? props.tT : 0,
       header: { ua: "T,°C", en: "T,°C", ru: "T,°C" },
       comment: {
         ua: `Цільова температура`,
@@ -46,11 +49,11 @@ class ClassTaskThermal extends Class_Task_General {
     });
 
     // максимальне відхилення температури вниз
-    props.errTmin = props.errTmin ? props.errTmin : {};
+    //props.errTmin = props.errTmin ? props.errTmin : {};
     this.regs.errTmin = new ClassReg_number({
       id: "errTmin",
-      header: { ua: "min dT,°C", en: "min dT,°C", ru: "min dT,°C" },
-      value: props.errTmin.value ? props.errTmin.value : -25,
+      header: { ua: "errTmin,°C", en: "errTmin,°C", ru: "errTmin,°C" },
+      value: props.errTmin ? props.errTmin : -0,
       comment: {
         ua: `Макс. відх. вниз (0=вимкн)`,
         en: `Limit of low temperature (0=disable)`,
@@ -61,15 +64,15 @@ class ClassTaskThermal extends Class_Task_General {
     });
 
     // максимальне відхилення температури
-    props.errTmax = props.errTmax ? props.errTmax : {};
+    //props.errTmax = props.errTmax ? props.errTmax : {};
     this.regs.errTmax = new ClassReg_number({
       id: "errTmax",
-      header: { ua: "max dT,°C", en: "max dT,°C", ru: "max dT,°C" },
-      value: props.errTmax.value ? props.errTmax.value : +25,
+      header: { ua: "errTmax,°C", en: "errTmax,°C", ru: "errTmax,°C" },
+      value: props.errTmax ? props.errTmax : +0,
       comment: {
-        ua: `Макс. перевищ. (0=вимкн)`,
+        ua: `Макс. відх. вверх (0=вимкн)`,
         en: `Limit of high temperature (0=disable)`,
-        ru: `Макс. превыш. (0=выкл)`,
+        ru: `Макс. откл. вверх (0=выкл)`,
       },
       min: 0,
       max: 100,
@@ -77,7 +80,7 @@ class ClassTaskThermal extends Class_Task_General {
 
     //  закон регулювання "Позиційний"
 
-    let pos = new ClassReg_listRegs({
+    let pos = new ClassReg_regsList({
       id: "pos",
       header: { ua: "Позиційний", en: "Positional", ru: "Позиционный" },
       comment: {
@@ -100,66 +103,7 @@ class ClassTaskThermal extends Class_Task_General {
       max: 0,
     });
 
-    let pid = new ClassReg_listRegs({
-      id: "pid",
-      header: { ua: "ПІД", en: "PID", ru: "ПИД" },
-      comment: {
-        ua: `ПІД закон регулювання`,
-        en: `PID regulation`,
-        ru: `ПИД закон регуллирования`,
-      },
-    });
-
-    pid.regs.o = new ClassReg_number({
-      id: "o",
-      header: {
-        ua: "П",
-        en: "P",
-        ru: "П",
-      },
-      value: 5,
-      comment: {
-        ua: "Пропорційна складова",
-        en: "Proportional gain",
-        ru: "Пропорциональная составляющая",
-      },
-      min: 0,
-      max: 100,
-    });
-
-    pid.regs.ti = new ClassReg_number({
-      id: "ti",
-      header: {
-        ua: "І",
-        en: "I",
-        ru: "И",
-      },
-      value: 5,
-      comment: {
-        ua: "Інтегральна складова",
-        en: "Integral gain",
-        ru: "Интегральная составляющая",
-      },
-      min: 0,
-      max: 100,
-    });
-
-    pid.regs.td = new ClassReg_number({
-      id: "td",
-      header: {
-        ua: "Д",
-        en: "D",
-        ru: "Д",
-      },
-      value: 5,
-      comment: {
-        ua: "Диференційна складова",
-        en: "Differencial gain",
-        ru: "Диферинциальная составляющая",
-      },
-      min: 0,
-      max: 100,
-    });
+    let pid = new ClassControllerPID();
 
     this.regs.regMode = new ClassReg_select({
       id: "regMode",

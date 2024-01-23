@@ -1,7 +1,7 @@
 const log = require("../../tools/log");
-const ClassRegister = require("../regsController/ClassRegister");
+const ClassReg_regsList = require("../regsController/ClassReg_regsList");
 
-class ClassTask extends ClassRegister {
+class ClassTaskGeneral extends ClassReg_regsList {
   /**
    * Конструктор класу, оптимізованого під процеси термообробки
    * @param {*} props
@@ -19,9 +19,9 @@ class ClassTask extends ClassRegister {
 
     if (trace) {
       log("i", ln, `this=`);
-      console.dir(this);
+      console.dir(this, { depth: 3 });
     }
   } //constructor
 } //class ClassTask
 
-module.exports = ClassTask;
+module.exports = ClassTaskGeneral;

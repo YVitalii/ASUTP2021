@@ -1,6 +1,6 @@
 const ClassTasksManager = require("../ClassTasksManager");
 const log = require("../../../tools/log.js");
-const ClassTaskThermal = require("../../thermoController/ClassTaskThermal/ClassTaskThermal");
+const ClassTaskThermal = require("../../thermoController/heating/ClassTask_Heating.js");
 
 let trace = 1,
   ln = __filename + "::";
@@ -9,7 +9,7 @@ let trace = 1,
 
 // };
 
-let tasksManager = new ClassTasksManager();
+let tasksManager = new ClassTasksManager({ editable: true });
 
 let task = new ClassTaskThermal();
 

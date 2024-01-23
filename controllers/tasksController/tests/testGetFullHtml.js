@@ -15,5 +15,5 @@ fName = pathResolve(homeDir + "/tasks.json");
 writeFile(fName, JSON.stringify(manager));
 
 console.log("File: [" + fName + "] writed!");
-
+console.log(new Date().toLocaleTimeString());
 //  browser-sync start --server --serveStatic '../../../public' --browser "Chrome" --files "stylesheets/*.css, *.html"

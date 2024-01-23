@@ -10,6 +10,22 @@ let trace = 1,
  * @param {Array} list
  *
  */
+tasks.newStep = (prefix) => {
+  let trace = 1,
+    ln = `tasks.newStep(${prefix})::`;
+  trace ? console.log(ln + `Started!`) : null;
+  let el = new tasks.createStep({
+    prefix: prefix,
+    reg: tasks.reg,
+    container: tasks.container,
+    types: tasks.elementsTypes,
+  });
+  if (trace) {
+    console.log(ln + `el=`);
+    console.dir(el);
+  }
+  return el;
+};
 
 tasks.renderList = function () {
   let list = tasks.list;
@@ -31,27 +47,17 @@ tasks.renderList = function () {
 
   if (list.length == 0) {
     // список програм пустий крок
-
-    let el = new this.createStep({
-      prefix: "st1",
-      reg: tasks.reg,
-      container: tasks.container,
-      types: tasks.elementsTypes,
-    });
-    if (trace) {
-      console.log(ln + `el=`);
-      console.dir(el);
-    }
+    tasks.model.push(tasks.newStep("st1"));
     return;
   } //if (list.length == 0)
-
-  for (let i = 0; i < list.length; i++) {
+  let i = 1;
+  for (i = 1; i < list.length; i++) {
     let step = list[i];
     let reg = tasks.reg.regs[step.id];
     // trace ? console.log(ln + `reg=${JSON.stringify(reg)}`) : null;
     if (reg) {
       let el = new this.createStep({
-        prefix: `st${i}`,
+        prefix: `st${i + 1}`,
         reg: reg,
         container: tasks.container,
         types: tasks.elementsTypes,
@@ -65,16 +71,11 @@ tasks.renderList = function () {
     }
     //tasks.model = el;
   } //for
-
-  //tasks.container.appendChild(step);
-  // for (let key in list) {
-  //   trace ? console.log(ln + "key=" + key) : null;
-  //   if (regsList.hasOwnProperty(key)) {
-  //     if (trace) {
-  //       console.dir(list[key]);
-  //     }
-  //   }
-  // }
+  i += 1;
+  if (tasks.reg.editable || list.length === 0) {
+    tasks.model.push(tasks.newStep(`st${("0" + i).slice(-2)}`));
+    return;
+  }
 };
 
 /** список доступних класів типів регістрів,
