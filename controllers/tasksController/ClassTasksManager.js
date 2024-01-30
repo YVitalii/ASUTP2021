@@ -44,23 +44,23 @@ class ClassTasksManager extends ClassReg_select {
     });
 
     // Додаємо пустий крок-заглушку
-    let emptyStep = new ClassTaskGeneral({
-      id: "empty",
-      type: "regsList",
-      header: {
-        ua: "Пусто",
-        en: "Empty",
-        ru: "Пусто",
-      },
-      comment: {
-        ua: `Тип кроку не вказано`,
-        en: `Type of the Step not defined`,
-        ru: `Тип шага не указан`,
-      },
-      regs: {},
-    });
+    // let emptyStep = new ClassTaskGeneral({
+    //   id: "empty",
+    //   type: "regsList",
+    //   header: {
+    //     ua: "Пусто",
+    //     en: "Empty",
+    //     ru: "Пусто",
+    //   },
+    //   comment: {
+    //     ua: `Тип кроку не вказано`,
+    //     en: `Type of the Step not defined`,
+    //     ru: `Тип шага не указан`,
+    //   },
+    //   regs: {},
+    // });
 
-    this.addType(emptyStep);
+    // this.addType(emptyStep);
 
     // Тут зберігається список впорядкованих кроків
     this.list = this.loadList();
@@ -82,13 +82,23 @@ class ClassTasksManager extends ClassReg_select {
 
     list.push({
       id: "ClassTask_Heating",
-      tT: 500,
+      tT: 80,
       errTmin: -15,
       errTmax: 15,
       regMode: "pid",
       o: 10,
       i: 10,
       d: 10,
+    });
+    list.push({
+      id: "ClassTask_Heating",
+      tT: 120,
+      errTmin: -10,
+      errTmax: 10,
+      regMode: "pid",
+      o: 20,
+      i: 20,
+      d: 20,
     });
 
     list.push({

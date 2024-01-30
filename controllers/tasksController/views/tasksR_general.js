@@ -1,36 +1,223 @@
-// створюємо прапорці трасування, так як в нас багато файлів нам потрыбно в кожному
+// створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
 // з них вмикати трасування окремо від інших , тому кожний файл з кодом
 // перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
 // після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
 let trace = 1,
   beforeTrace = 0;
 
+// аналог list, але в ньому зберігаються всі створені js-об'єкти регістрів
+// для швидкого доступу
+tasks.model = {};
+tasks.model.data = [];
+
 /**
- * Створює рядка кроку програми
+ * Створює пустий рядок кроку програми
  * @param {Array} list
  *
  */
-tasks.newStep = (prefix) => {
+
+// tasks.newStep = (prefix) => {
+//   let trace = 1,
+//     ln = `tasks.newStep(${prefix})::`;
+//   trace ? console.log(ln + `Started!`) : null;
+//   let el = new tasks.createStep({
+//     prefix: prefix,
+//     reg: tasks.reg,
+//     container: tasks.container,
+//     types: tasks.elementsTypes,
+//   });
+//   if (trace) {
+//     console.log(ln + `el=`);
+//     console.dir(el);
+//   }
+//   return el;
+// };
+
+tasks.model.renumber = (array, start = 1) => {
+  if (!array) {
+    array = tasks.model.data;
+  }
+  if (start < 1) {
+    start = 1;
+  }
+  for (let i = start; i < array.length; i++) {
+    const element = array[i];
+    if (Array.isArray(element)) {
+      // TODO це масив підкроків
+      let msg = ln + "Паралельні кроки поки не підтримуються !!";
+      console.error(msg);
+      throw new Error(msg);
+    }
+    if (typeof element == "object" && element.hasOwnProperty("stepNumber")) {
+      element.renumber(i);
+    }
+  }
+}; //tasks.model.renumber
+
+tasks.model.deleteStep = (stepNumber) => {
+  stepNumber = parseInt(stepNumber);
+  let model = tasks.model;
+  console.log("======model======");
+  console.dir(model);
+  if (!stepNumber || stepNumber === 0 || stepNumber > model.data.length - 1) {
+    throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
+    return;
+  }
+
   let trace = 1,
-    ln = `tasks.newStep(${prefix})::`;
+    ln = `tasks.model.deleteStep(${stepNumber})::`;
   trace ? console.log(ln + `Started!`) : null;
-  let el = new tasks.createStep({
-    prefix: prefix,
-    reg: tasks.reg,
-    container: tasks.container,
-    types: tasks.elementsTypes,
+
+  if (model.data.length <= 2) {
+    alert(
+      {
+        ua: `Не можливо видалити останній крок  ${stepNumber}!`,
+        en: `You can't delete the last step N ${stepNumber}!`,
+        ru: `Невозмозно удалить последний шаг N${stepNumber}!`,
+      }[lang]
+    );
+    throw new Error(ln + `Last step can't be deleted ! `);
+    return;
+  }
+  if (
+    !confirm(
+      {
+        ua: `Ви дійсно бажаєте видалити крок N ${stepNumber}?`,
+        en: `Are You really want to delete step N ${stepNumber}?`,
+        ru: `Вы действительно хотите удалить шаг N${stepNumber}?`,
+      }[lang]
+    )
+  ) {
+    console.log(ln + "Cancelled by user.");
+    return;
+  }
+  // find element
+  let el = model.data[stepNumber];
+  trace ? console.log(ln + `el=${el.prefix}`) : null;
+  // delete from DOM
+  document.getElementById(el.prefix).remove();
+  // delete from tasks.model.data
+  model.data.splice(stepNumber, 1);
+  tasks.model.renumber(stepNumber - 1);
+};
+
+tasks.model.insertStep = (stepNumber = 0) => {
+  stepNumber = parseInt(stepNumber);
+
+  if (!stepNumber) {
+    // якщо попередній крок не вказано, то додаємо в кінець масиву
+    stepNumber = tasks.model.data.length;
+  }
+
+  let trace = 1,
+    ln = `tasks.model.insertStep(after N${stepNumber})::`;
+  trace ? console.log(ln + `Started!`) : null;
+
+  let model = tasks.model;
+
+  // визначаємо тип кроку
+  let stepType = undefined;
+  let stepTypes = Object.keys(tasks.reg.regs);
+  if (stepTypes.length <= 1) {
+    // у нас тільки один тип кроку, беремо його
+    stepType = stepTypes[0];
+  } else {
+    // більше одного типу кроків, окно вибору
+    // TODO Доробити цей варіант
+    tasks.modalWindow.setHeader(
+      {
+        ua: `Виберіть тип кроку`,
+        en: `Select step type`,
+        ru: `Выберите тип шага`,
+      }[lang]
+    );
+    tasks.modalWindow.window.show();
+  }
+  trace ? console.log(ln + `New stepType=${stepType}`) : null;
+  // створюємо схований div в якому будемо рендерити новий крок
+  // потім ми вставимо його на потрібне місце
+  // TODO так як всі елементи рендеряться відразу в контейнер, був вимушений
+  // створити цей костиль, бо багато переробляти
+  let hiddenStep = tasks.model.hiddenStep;
+
+  let el = tasks.createStep({
+    stepNumber: 99,
+    id: stepType,
+    container: hiddenStep,
   });
+  // крок після якого додавати новий
+  let previousStep = document.getElementById(model.data[stepNumber].prefix);
   if (trace) {
-    console.log(ln + `el=`);
-    console.dir(el);
+    console.log(ln + `previousStep=`);
+    console.dir(previousStep);
+  }
+  // додаємо крок в DOM
+  previousStep.after(hiddenStep.lastChild.cloneNode(true));
+  // додаємо крок в model.data
+  //model.data.splice(stepNumber, 0, el);
+  // перенумеровуємо список
+  //model.renumber(stepNumber);
+  // видаляємо вміст прихованого поля
+  //hiddenStep.innerHTML = "";
+};
+
+// прихований контейнер, використовується для тимчасового зберігання/створення кроків
+tasks.model.hiddenStep = document.createElement("div");
+tasks.model.hiddenStep.hidden = true;
+tasks.container.appendChild(tasks.model.hiddenStep);
+
+tasks.model.moveUp = (stepNumber = undefined) => {
+  stepNumber = parseInt(stepNumber);
+  if (!stepNumber || stepNumber < 2) {
+    throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
+    return;
+  }
+  let trace = 1,
+    ln = `tasks.model.moveUp(${stepNumber})::`;
+  trace ? console.log(ln + `Started!`) : null;
+};
+
+tasks.model.moveDown = (stepNumber = undefined) => {
+  stepNumber = parseInt(stepNumber);
+  if (!stepNumber || stepNumber > tasks.model.data.length - 1) {
+    throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
+  }
+  let trace = 1,
+    ln = `tasks.model.moveDown(${stepNumber})::`;
+  trace ? console.log(ln + `Started!`) : null;
+};
+
+tasks.createStep = (props = {}) => {
+  let reg = tasks.reg.regs[props.id];
+  let el;
+  if (reg) {
+    el = new tasks.ClassCreateStep({
+      //editable: false, //tasks.reg.editable,
+      model: tasks.model,
+      stepNumber: props.stepNumber,
+      reg: reg,
+      container: props.container ? props.container : tasks.container,
+      types: tasks.elementsTypes,
+    });
+    if (props.values) {
+      el.setValues(props.values);
+    }
   }
   return el;
 };
 
 tasks.renderList = function () {
-  let list = tasks.list;
   let trace = 1,
     ln = "tasks.renderList()::";
+
+  // очищуємо модель
+  tasks.model.data = [];
+  // TODO Костиль з описом програми потрібно рендер опису
+  tasks.model.data.push({ name: "Програма 1" });
+  // очищуємо контейнер
+  this.container.innerHTML = "";
+  // для скорочення коду
+  let list = tasks.list;
 
   // ------- створюємо заголовок ----------
   let header = document.createElement("div");
@@ -41,41 +228,51 @@ tasks.renderList = function () {
   header.appendChild(title);
   tasks.container.classList = "border";
   this.container.appendChild(header);
-  //
 
-  tasks.model = [];
+  // if (list.length == 0) {
+  //   // список програм пустий крок
+  //   tasks.model.data.push(tasks.newStep("st1"));
+  //   return;
+  // } //if (list.length == 0)
 
-  if (list.length == 0) {
-    // список програм пустий крок
-    tasks.model.push(tasks.newStep("st1"));
-    return;
-  } //if (list.length == 0)
   let i = 1;
   for (i = 1; i < list.length; i++) {
     let step = list[i];
-    let reg = tasks.reg.regs[step.id];
-    // trace ? console.log(ln + `reg=${JSON.stringify(reg)}`) : null;
-    if (reg) {
-      let el = new this.createStep({
-        prefix: `st${i + 1}`,
-        reg: reg,
-        container: tasks.container,
-        types: tasks.elementsTypes,
-      });
-      el.setValues(step);
-      tasks.model.push(el);
-      if (trace) {
-        console.log(ln + `el=`);
-        console.dir(el);
-      }
+    let props = {
+      id: step.id,
+      stepNumber: i,
+      values: step,
+    };
+    let el = tasks.createStep(props);
+    // let reg = tasks.reg.regs[step.id];
+    // // trace ? console.log(ln + `reg=${JSON.stringify(reg)}`) : null;
+    // if (reg) {
+    //   let el = new this.ClassCreateStep({
+    //     //editable: false, //tasks.reg.editable,
+    //     model: tasks.model,
+    //     stepNumber: i,
+    //     reg: reg,
+    //     container: tasks.container,
+    //     types: tasks.elementsTypes,
+    //   });
+    //   //tasks.container.appendChild(el.main);
+    //   el.setValues(step);
+    if (!el) {
+      console.error(`Помилка створення кроку: ${JSON.stringify(props)}`);
+      continue;
+    }
+    tasks.model.data.push(el);
+    if (trace) {
+      console.log(ln + `el=`);
+      console.dir(el);
     }
     //tasks.model = el;
   } //for
-  i += 1;
-  if (tasks.reg.editable || list.length === 0) {
-    tasks.model.push(tasks.newStep(`st${("0" + i).slice(-2)}`));
-    return;
-  }
+  // i += 1;
+  // if (tasks.reg.editable || list.length === 0) {
+  //   tasks.model.data.push(tasks.newStep(`st${("0" + i).slice(-2)}`));
+  //   return;
+  // }
 };
 
 /** список доступних класів типів регістрів,
@@ -83,5 +280,3 @@ tasks.renderList = function () {
  * {select:ClassElementSelect, number:ClassElementNumber, ...}
  */
 tasks.elementsTypes = {};
-
-//tasks.ClassCreateElement = ClassCreateElement;
