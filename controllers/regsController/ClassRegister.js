@@ -1,4 +1,21 @@
+/**
+ * Базовий клас, від нього наслідуються всі регістри
+ * Забеспечує загальну для всіх регістрів функціональність
+ */
+
 class ClassRegister {
+  /**
+   * --- Конструктор
+   * @param {Object} props
+   * @property {String} props.id - ідентифікатор (імя) регістру, наприклад 'tT' 'regMode'
+   * @property {String} props.ln - заголовок повідомлення для запису подій логування (файл та консоль)
+   * @property {String} props.type - тип регістру (для побудови елементу в браузері)
+   * @property {Number|String} props.value=undefined - значення регістру
+   * @property {Object} props.header - багатомовний заголовок регістру ={ ua:`` , en: ``, ru: `` };
+   * @property {Object} props.comment - багатомовна примітка-опис регістру ={ ua:`` , en: ``, ru: `` };
+   * @property {Boolean} props.editable=true - дозволяє/забороняє редагування регістру в браузері
+   */
+
   constructor(props = {}) {
     /** Ідентифікатор  */
     if (!props.id) {
@@ -11,7 +28,7 @@ class ClassRegister {
 
     // ідентифікатор
     this.id = props.id;
-    this.ln = "ClassRegister(" + props.id + ")::";
+    this.ln = props.ln ? props.ln : "ClassRegister(" + props.id + ")::";
     let trace = 1,
       ln = this.ln + "constructor()::";
 
@@ -46,7 +63,7 @@ class ClassRegister {
         };
 
     // дозвіл на редагування регістру
-    this.editable = props.editable ? props.editable : true;
+    this.editable = props.editable === undefined ? true : props.editable;
   } // constructor
 
   getValue() {
@@ -57,7 +74,6 @@ class ClassRegister {
     let trace = 1,
       ln = this.ln + `setValue(${val})`;
     this.value = val;
-
     return this.value;
   }
 }

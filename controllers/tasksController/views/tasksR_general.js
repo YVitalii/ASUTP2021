@@ -98,7 +98,7 @@ tasks.model.deleteStep = (stepNumber) => {
   document.getElementById(el.prefix).remove();
   // delete from tasks.model.data
   model.data.splice(stepNumber, 1);
-  tasks.model.renumber(stepNumber - 1);
+  tasks.model.renumber();
 };
 
 tasks.model.insertStep = (stepNumber = 0) => {
@@ -118,12 +118,13 @@ tasks.model.insertStep = (stepNumber = 0) => {
   // визначаємо тип кроку
   let stepType = undefined;
   let stepTypes = Object.keys(tasks.reg.regs);
-  if (stepTypes.length <= 1) {
-    // у нас тільки один тип кроку, беремо його
-    stepType = stepTypes[0];
+  if (stepTypes.length <= 2) {
+    // під номером [0] йде опис програми, тому якщо в stepTypes тільки 2 елементи
+    // то у нас тільки один тип кроку, беремо його
+    stepType = stepTypes[1];
   } else {
     // більше одного типу кроків, окно вибору
-    // TODO Доробити цей варіант
+    // TODO Доробити цей варіант з модальним окном
     tasks.modalWindow.setHeader(
       {
         ua: `Виберіть тип кроку`,
@@ -134,37 +135,28 @@ tasks.model.insertStep = (stepNumber = 0) => {
     tasks.modalWindow.window.show();
   }
   trace ? console.log(ln + `New stepType=${stepType}`) : null;
-  // створюємо схований div в якому будемо рендерити новий крок
-  // потім ми вставимо його на потрібне місце
-  // TODO так як всі елементи рендеряться відразу в контейнер, був вимушений
-  // створити цей костиль, бо багато переробляти
-  let hiddenStep = tasks.model.hiddenStep;
+
+  // крок після якого додавати новий
+  let previousStep = document.getElementById(model.data[stepNumber].prefix);
 
   let el = tasks.createStep({
     stepNumber: 99,
     id: stepType,
-    container: hiddenStep,
+    //container: hiddenStep,
+    previousStep: previousStep,
   });
-  // крок після якого додавати новий
-  let previousStep = document.getElementById(model.data[stepNumber].prefix);
+
   if (trace) {
     console.log(ln + `previousStep=`);
     console.dir(previousStep);
   }
-  // додаємо крок в DOM
-  previousStep.after(hiddenStep.lastChild.cloneNode(true));
-  // додаємо крок в model.data
-  //model.data.splice(stepNumber, 0, el);
-  // перенумеровуємо список
-  //model.renumber(stepNumber);
-  // видаляємо вміст прихованого поля
-  //hiddenStep.innerHTML = "";
-};
 
-// прихований контейнер, використовується для тимчасового зберігання/створення кроків
-tasks.model.hiddenStep = document.createElement("div");
-tasks.model.hiddenStep.hidden = true;
-tasks.container.appendChild(tasks.model.hiddenStep);
+  // додаємо крок в model.data
+  model.data.splice(stepNumber + 1, 0, el);
+  // перенумеровуємо список
+  model.renumber();
+  // видаляємо вміст прихованого поля
+};
 
 tasks.model.moveUp = (stepNumber = undefined) => {
   stepNumber = parseInt(stepNumber);
@@ -198,6 +190,7 @@ tasks.createStep = (props = {}) => {
       reg: reg,
       container: props.container ? props.container : tasks.container,
       types: tasks.elementsTypes,
+      previousStep: props.previousStep,
     });
     if (props.values) {
       el.setValues(props.values);
@@ -212,10 +205,13 @@ tasks.renderList = function () {
 
   // очищуємо модель
   tasks.model.data = [];
+
   // TODO Костиль з описом програми потрібно рендер опису
   tasks.model.data.push({ name: "Програма 1" });
+
   // очищуємо контейнер
   this.container.innerHTML = "";
+
   // для скорочення коду
   let list = tasks.list;
 
@@ -235,8 +231,8 @@ tasks.renderList = function () {
   //   return;
   // } //if (list.length == 0)
 
-  let i = 1;
-  for (i = 1; i < list.length; i++) {
+  let i = 0;
+  for (i = 0; i < list.length; i++) {
     let step = list[i];
     let props = {
       id: step.id,

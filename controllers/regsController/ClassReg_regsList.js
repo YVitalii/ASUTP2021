@@ -1,6 +1,15 @@
 const ClassRegister = require("./ClassRegister.js");
+/**
+ * Створює регістр в якому є вкладений список регістрів
+ */
 
 module.exports = class ClassReg_regsList extends ClassRegister {
+  /**
+   *
+   * @param {Object} props
+   * @property {String} props.regs={} - список регістрів
+   */
+
   constructor(props = {}) {
     props.type = "regsList";
     super(props);

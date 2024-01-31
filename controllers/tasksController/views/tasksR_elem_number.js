@@ -5,7 +5,7 @@ trace = 1;
  * Створює та повертає елемент вибору
  *
  */
-class ClassElementNumber extends ClassCreateElement {
+class ClassElementNumber extends tasks.ClassCreateElement {
   constructor(props = {}) {
     props.tag = "input";
     super(props);

@@ -1,6 +1,7 @@
 const pug = require("pug");
 const log = require("../../tools/log");
 const ClassReg_select = require("../regsController/ClassReg_select.js");
+const ClassReg_regsList = require("../regsController/ClassReg_regsList.js");
 const ClassRegister = require("../regsController/ClassRegister.js");
 const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
 
@@ -43,24 +44,42 @@ class ClassTasksManager extends ClassReg_select {
       type: "regsList",
     });
 
-    // Додаємо пустий крок-заглушку
-    // let emptyStep = new ClassTaskGeneral({
-    //   id: "empty",
-    //   type: "regsList",
-    //   header: {
-    //     ua: "Пусто",
-    //     en: "Empty",
-    //     ru: "Пусто",
-    //   },
-    //   comment: {
-    //     ua: `Тип кроку не вказано`,
-    //     en: `Type of the Step not defined`,
-    //     ru: `Тип шага не указан`,
-    //   },
-    //   regs: {},
-    // });
+    // Додаємо крок-опис програми
+    let description = new ClassReg_regsList({
+      id: "description",
+      ln: "tasksDescription::",
+      header: {
+        ua: "Програма ",
+        en: "Program",
+        ru: "Программа",
+      },
+      comment: {
+        ua: ``,
+        en: ``,
+        ru: ``,
+      },
+      editable: false,
+      regs: {
+        name: new ClassRegister({
+          id: "name",
+          type: "text",
+          ln: "tasks.description.fileName::",
+          value: "empty",
+          header: {
+            ua: `Назва програми`,
+            en: `Program name`,
+            ru: `Наименование программы`,
+          },
+          comment: {
+            ua: `Коротка назва програми (3..20 символів)`,
+            en: `Short name of the program (3..2 characters)`,
+            ru: `Короткое имя программы (3..20 символов)`,
+          },
+        }),
+      },
+    });
 
-    // this.addType(emptyStep);
+    this.addType(description);
 
     // Тут зберігається список впорядкованих кроків
     this.list = this.loadList();
@@ -75,9 +94,15 @@ class ClassTasksManager extends ClassReg_select {
     let list = [];
 
     list.push({
-      id: "caption",
-      header: { ua: ``, en: ``, ru: `` },
-      note: "",
+      id: "description",
+      name: "prg01",
+      created: "2023-05-03T11:04:49.715Z",
+      header: {
+        ua: `Опис програми`,
+        en: `Program description`,
+        ru: `Описание программы`,
+      },
+      note: "Короткий опис програми",
     });
 
     list.push({

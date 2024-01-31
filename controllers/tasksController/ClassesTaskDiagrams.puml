@@ -8,7 +8,7 @@ class ClassRegister {
     #type :  String; // Тип регістру
     +value : String|Number = props.value | 0; // Поточне значення
     +comment : String; // Додатковий опис
-    +readonly : Boolean; // Дозвіл на редагування значення регістру
+    +editable : Boolean; // Дозвіл на редагування значення регістру
     +setValue(val): return val; // встановлює this.value
     +getValue(): return this.value; // встановлює this.value
 }
@@ -21,7 +21,7 @@ class ClassReg_regsList {
 ClassRegister <|-- ClassReg_regsList
 
 class ClassTaskGeneral {
-    +regs : Object = props.regs : {} // контейнер для списку регістрів
+'    //+regs : Object = props.regs : {} // контейнер для списку регістрів
 }
 
 ClassReg_regsList <|-- ClassTaskGeneral

@@ -81,7 +81,11 @@ tasks.ClassRegsList = class ClassRegsList {
       trace ? console.log(ln + `key=${key}`) : null;
       if (regs.hasOwnProperty(key)) {
         let child = regs[key];
-        document.getElementById(child.div.id).remove();
+
+        let el = document.getElementById(child.div.id);
+        if (el) {
+          el.remove();
+        }
         trace
           ? console.log(
               lln + `Was removed element from DOM id= ${child.div.id} )`
@@ -132,6 +136,11 @@ tasks.ClassRegsList = class ClassRegsList {
           trace
             ? console.log(ln + `Created element DOM id= ${el.elId} )`)
             : null;
+        } else {
+          console.error(
+            ln +
+              `Not found in tasks.elementsTypes(=this.types) type: item.type=${item.type}`
+          );
         } //if
       } //if (regs.hasOwnProperty(key))
     } // for

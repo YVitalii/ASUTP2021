@@ -1,4 +1,4 @@
-class ClassCreateElement {
+tasks.ClassCreateElement = class ClassCreateElement {
   /**
    * Створює налаштований DOM-елемент загального типу
    * @param {Object} props
@@ -145,4 +145,4 @@ class ClassCreateElement {
   getFieldValue() {
     return this.field.value;
   }
-}
+};

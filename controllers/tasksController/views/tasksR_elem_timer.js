@@ -10,7 +10,7 @@ trace = 1;
 //
 
 tasks.elementsTypes["timer"] = class ClassElementTimer extends (
-  ClassCreateElement
+  tasks.ClassCreateElement
 ) {
   constructor(props = {}) {
     props.tag = "input";

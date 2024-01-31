@@ -13,6 +13,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
    * @property {String} props.stepNumber - номер кроку в tasks.model.data "01","02:02"
    * @property {Object} props.reg - регістр, що містить в собі опис кроку
    * @property {Object} props.types - список доступних класів, що рендерять елементи
+   * @property {Object} props.previousStep=undefined - елемент DOM після якого вставляти новий крок
    */
 
   constructor(props = {}) {
@@ -20,18 +21,23 @@ tasks.ClassCreateStep = class ClassCreateStep {
 
     let trace = 1,
       ln = this.ln + "Constructor()::";
-
+    if (trace) {
+      console.log(ln + `props=`);
+      console.dir(props);
+    }
     //
     if (!props.reg) {
       throw new Error(ln + "No item 'props.reg' defined");
     }
     this.reg = props.reg;
     // for testing this.reg.editable = false;
-    // prefix
-    if (!props.stepNumber) {
+    // номер кроку
+    if (!props.stepNumber && props.stepNumber != 0) {
       throw new Error(ln + "No item 'props.stepNumber' defined");
     }
     this.stepNumber = props.stepNumber;
+
+    // створюємо унікальний префікс
     this.prefix = "id" + `${new Date().getTime().toString().slice(-6)}`;
 
     // this.types
@@ -52,14 +58,25 @@ tasks.ClassCreateStep = class ClassCreateStep {
     this.main.classList.add("border");
     this.main.classList.add("border-secondary");
     this.main.id = this.prefix;
-    if (!props.container) {
-      throw new Error(ln + "No props.container defined");
-    }
-    props.container.appendChild(this.main);
 
-    //  створюємо заголовок при будь-яких умовах
-    // if (! this.reg.editable ) якщо це список регістрів то
-    //
+    // ------- додаємо контейнер в документ --------
+    if (props.previousStep === undefined) {
+      // попередній елемент не вказано,
+      if (!props.container) {
+        // контейнер не вказано - Помилка
+        throw new Error(ln + "No props.container defined");
+        return;
+      } else {
+        //додаємо rhjr в кінець контейнера
+        props.container.appendChild(this.main);
+      }
+    } else {
+      // вставляємо крок після попереднього елементу
+      props.previousStep.after(this.main);
+    }
+
+    //  створюємо заголовок
+
     {
       let trace = 1;
       let header = document.createElement("div");
@@ -67,7 +84,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
 
       // номер кроку
       let numberCol = document.createElement("div");
-      numberCol.classList.add("col-1");
+      numberCol.classList.add("col-md-auto");
       this.numberField = document.createElement("span");
       this.numberField.classList.add("h5");
       this.renumber(this.stepNumber);

@@ -6,7 +6,7 @@ trace = 1;
  * Створює елемент вибору select
  *
  */
-class ClassElementSelect extends ClassCreateElement {
+class ClassElementSelect extends tasks.ClassCreateElement {
   constructor(props = {}) {
     props.tag = "select";
     super(props);
