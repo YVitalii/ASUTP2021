@@ -4,11 +4,11 @@
 class ClassRegister { 
     +id : String; // ідентифікатор регістру
     +ln : String; // Заголовок для логування роботи коду
-    +header : String; // Заголовок поля вводу
+    +header : Object; // {ua,en,ru}  Заголовок поля вводу
     #type :  String; // Тип регістру
     +value : String|Number = props.value | 0; // Поточне значення
-    +comment : String; // Додатковий опис
-    +editable : Boolean; // Дозвіл на редагування значення регістру
+    +comment : Object; // {ua,en,ru} Додатковий опис
+    +editable : Boolean = true // Дозвіл на редагування значення регістру
     +setValue(val): return val; // встановлює this.value
     +getValue(): return this.value; // встановлює this.value
 }

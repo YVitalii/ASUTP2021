@@ -1,6 +1,7 @@
 const ClassTasksManager = require("../ClassTasksManager");
 const log = require("../../../tools/log.js");
 const ClassTaskThermal = require("../../thermoController/heating/ClassTask_Heating.js");
+const homeDir = __dirname + "";
 
 let trace = 1,
   ln = __filename + "::";
@@ -9,15 +10,15 @@ let trace = 1,
 
 // };
 
-let tasksManager = new ClassTasksManager({ editable: true });
+let tasksManager = new ClassTasksManager({ editable: true, homeDir });
 
 let task = new ClassTaskThermal();
 
 tasksManager.addType(task);
 
 if (trace) {
-  log("i", ln, `tasksManager=`);
-  console.dir(tasksManager, { depth: 2 });
+  log("i", ln, `tasksManager.fileManager=`);
+  console.dir(tasksManager.fileManager, { depth: 3 });
 }
 
 module.exports = tasksManager;

@@ -5,6 +5,7 @@ tasks.ClassCreateElement = class ClassCreateElement {
    * @property {string} props.prefix - префікс для id елементу
    * @property {string} props.tag - тип елементу (number, range, select)
    * @property {Object} props.reg  - типовий регістр
+   * //@property {Function} props.onchange  - додаткова локальна функція обробки події
    * @property {Object} props.container - контейнер в якому потрібно розмістити елемент
    */
   constructor(props = {}) {
@@ -31,22 +32,19 @@ tasks.ClassCreateElement = class ClassCreateElement {
     this.type = props.reg.type;
 
     // дозвіл на зміну значення
-    this.readonly = props.reg.readonly;
-
+    // this.readonly = props.reg.readonly;
+    this.editable = props.reg.editable;
+    // поточне значення
     this.value = props.reg.value;
     this.beforeValue = props.reg.value;
     // -- id - елементу DOM
-    this.elId = this.getElId();
+    this.elId = this.prefix + "__" + this.id; //два підкреслення (щоб легко відділяти id регістру)
     // контейнер для всього елементу
     this.div = document.createElement("div");
-    this.div.id = this.getElId();
+    this.div.id = this.elId;
     this.div.classList.add("col");
     this.div.classList.add("form-group");
-    // ---- <label=header> --------
-    this.label = document.createElement("label");
-    this.label.setAttribute("for", this.id);
-    this.label.classList.add("h6");
-    this.label.innerHTML = this.reg.header[lang];
+
     // ---- <comment> --------
     this.comment = document.createElement("small");
     this.comment.innerHTML = this.reg.comment[lang];
@@ -56,9 +54,15 @@ tasks.ClassCreateElement = class ClassCreateElement {
     this.field.classList.add(this.prefix);
     this.field.classList.add("field");
     this.field.id = this.elId + "_field";
-    if (this.readonly) {
+    if (!this.editable) {
       this.field.classList.add("readonly");
     }
+    // ---- <label=header> --------
+    this.label = document.createElement("label");
+    this.label.setAttribute("for", this.field.id);
+    this.label.classList.add("h6");
+    this.label.innerHTML = this.reg.header[lang];
+    // ---- зв'язуємо разом ----------
     this.div.appendChild(this.label);
     this.div.appendChild(this.field);
     this.div.appendChild(this.comment);
@@ -80,15 +84,13 @@ tasks.ClassCreateElement = class ClassCreateElement {
       console.log(ln + "this=");
       console.dir(this);
     }
-    trace ? console.log(ln + "this.field.value=" + this.getFieldValue()) : null;
-    //this.setValue(this.getFieldValue());
+    trace ? console.log(ln + "this.field.value=" + this.field.value) : null;
   }
 
-  // створює ідентифікатор для елементу DOM
-  getElId(id = null) {
-    id = id === null ? this.id : id;
-    return this.prefix + "__" + id; //два підкреслення (щоб легко відділяти id регістру)
-  }
+  // // створює ідентифікатор для елементу DOM
+  // getElId(id = null) {
+  //   return this.elId //два підкреслення (щоб легко відділяти id регістру)
+  // }
 
   setValue(val) {
     let trace = 0,
@@ -132,16 +134,16 @@ tasks.ClassCreateElement = class ClassCreateElement {
     res =
       this.beforeValue == undefined
         ? true
-        : this.getFieldValue() != this.getBeforeValue();
+        : this.field.value != this.beforeValue;
     trace
       ? console.log(
           ln +
-            `this.getBeforeValue()=${this.getBeforeValue()};this.getFieldValue()=${this.getFieldValue()}; res=${res}`
+            `this.beforeValue=${this.beforeValue};this.field.value=${this.field.value}; res=${res}`
         )
       : null;
     return res;
   }
-
+  /** Повертає значення з DOM елементу field */
   getFieldValue() {
     return this.field.value;
   }

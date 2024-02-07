@@ -2,11 +2,11 @@
  * @param {Number} period=1000 - мс, період очікування
  * @param {Boolean} randomize=false - якщо true то період множиться на випадковий коефіцієнт
  */
-async function dummyPromise(period = 1000, randomize = false) {
+async function dummyPromise(period = 1000, randomize = false, trace = false) {
   return new Promise((resolve, reject) => {
     let time = parseInt(period * (randomize ? Math.random() : 1));
     setTimeout(() => {
-      //console.log(ln, "Dummy(): Task complete");
+      trace ? console.log(`DummyPromise(${period}): Task complete`) : null;
       resolve();
     }, time);
   });

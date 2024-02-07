@@ -1,0 +1,15 @@
+
+script.
+  tasks.fileManager= JSON.parse( '!{JSON.stringify(manager.fileManager.reg)}' );
+  {
+    let t = tasks.fileManager;
+    t.container = document.getElementById( 'fileManagerContainer' );
+    t.regs.buttonSave = new tasks.ClassCreateElement({
+
+    })
+    t.render= () => {
+
+    }
+  }
+//-   tasks.fileManager = 
+//-   tasks.fileManager.container =

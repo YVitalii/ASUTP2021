@@ -18,15 +18,14 @@ tasks.ClassRegsList = class ClassRegsList {
 
   constructor(props = {}) {
     this.ln = `ClassRegsList(${props.prefix})::`;
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "сonstructor()::";
     //
     if (trace) {
       console.log(ln + `props=`);
       console.dir(props);
     }
-    // тип
-    // this.type = "listRegs";
+
     // об'єкт, що містить в собі список доступних типів (класів) регістрів,
     // що використовуються для їх створення
     if (!props.types) {
@@ -40,20 +39,19 @@ tasks.ClassRegsList = class ClassRegsList {
 
     // список регістрів
     if (!props.regs) {
-      throw new Error(ln + "'props.regs' not defined !!");
       props.regs = {};
+      throw new Error(ln + "'props.regs' not defined !!");
     }
-    //this.regs = props.regs;
 
     // prefix
     this.prefix = props.prefix ? props.prefix : "undefined_";
 
     // контейнер DOM, в якому буде розміщено елемент
     if (!props.container) {
+      props.container = document.body;
       throw new Error(
         ln + "'props.container' not defined !! Was selected 'document.body' "
       );
-      props.container = document.body;
     }
     this.container = props.container;
 
@@ -186,17 +184,6 @@ tasks.ClassRegsList = class ClassRegsList {
   //  *
   //  * @param {Object} values - {'tT':500,...} or {'tT':{value:500,enable:true,...},...}
   //  */
-  // setValues(values) {
-  //   let trace = 0,
-  //     ln = this.ln + ` setValues(${this.prefix})::`;
-  //   let children = this.children;
-
-  //   for (let key in values) {
-  //     if (values.hasOwnProperty(key)) {
-  //       let el = values[key];
-  //     } //if (regs.hasOwnProperty(key))
-  //   } // for
-  // } //setValues(values)
 
   setRegister(id, value) {
     let trace = 0,

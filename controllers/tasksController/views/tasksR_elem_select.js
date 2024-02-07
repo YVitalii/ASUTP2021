@@ -11,7 +11,7 @@ class ClassElementSelect extends tasks.ClassCreateElement {
     props.tag = "select";
     super(props);
     this.ln = "ClassElementSelect(" + props.reg.id + ")::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Constructor()::";
     this.regs = this.reg.regs;
 
@@ -20,7 +20,7 @@ class ClassElementSelect extends tasks.ClassCreateElement {
     let first = true;
     for (let key in this.regs) {
       if (this.regs.hasOwnProperty(key)) {
-        let trace = 1;
+        let trace = 0;
         let selected = "";
         // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
         if (!first & (keys == this.value)) {
@@ -36,7 +36,7 @@ class ClassElementSelect extends tasks.ClassCreateElement {
     // -- опції вибору -------
     this.field.innerHTML = keys;
     // -- обробник зміни значення поля ----------
-    this.field.onchange = this.onchange.bind(this);
+    // this.field.onchange = this.onchange.bind(this);
     // -- початкова ініціалізація -----------
     this.value = this.getFieldValue();
     trace ? console.log(ln + `this.value=${this.value}`) : null;

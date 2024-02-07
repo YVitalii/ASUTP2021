@@ -1,0 +1,3 @@
+[{"id":"description","name":"prg01","created":"2023-05-03T11:04:49.715Z","note":"Короткий опис програми"},{"id":"ClassTask_Heating","tT":80,"errTmin":-15,"errTmax":15,"regMode":"pid","o":10,"i":10,"d":10},{"id":"ClassTask_Heating","tT":120,"errTmin":-10,"errTmax":10,"regMode":"pid","o":20,"i":20,"d":20},{"id":"TaskNitriding","kN":1.2,"regMode":"pid","o":10,"i":10,"d":10}]
+ Was apended data =14:45:02
+ Was apended data =14:45:03

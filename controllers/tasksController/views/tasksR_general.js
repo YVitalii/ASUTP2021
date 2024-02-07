@@ -63,17 +63,17 @@ tasks.model.deleteStep = (stepNumber) => {
     throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
     return;
   }
-
+  let stepString = ("00" + stepNumber).slice(-2);
   let trace = 1,
-    ln = `tasks.model.deleteStep(${stepNumber})::`;
+    ln = `tasks.model.deleteStep(${stepString})::`;
   trace ? console.log(ln + `Started!`) : null;
 
   if (model.data.length <= 2) {
     alert(
       {
-        ua: `Не можливо видалити останній крок  ${stepNumber}!`,
-        en: `You can't delete the last step N ${stepNumber}!`,
-        ru: `Невозмозно удалить последний шаг N${stepNumber}!`,
+        ua: `Не можливо видалити останній крок  ${stepString}!`,
+        en: `You can't delete the last step  ${stepString}!`,
+        ru: `Невозмозно удалить последний шаг ${stepString}!`,
       }[lang]
     );
     throw new Error(ln + `Last step can't be deleted ! `);
@@ -82,9 +82,9 @@ tasks.model.deleteStep = (stepNumber) => {
   if (
     !confirm(
       {
-        ua: `Ви дійсно бажаєте видалити крок N ${stepNumber}?`,
-        en: `Are You really want to delete step N ${stepNumber}?`,
-        ru: `Вы действительно хотите удалить шаг N${stepNumber}?`,
+        ua: `Ви дійсно бажаєте видалити крок № ${stepString}?`,
+        en: `Are You really want to delete step № ${stepString}?`,
+        ru: `Вы действительно хотите удалить шаг № ${stepString}?`,
       }[lang]
     )
   ) {
@@ -158,25 +158,41 @@ tasks.model.insertStep = (stepNumber = 0) => {
   // видаляємо вміст прихованого поля
 };
 
-tasks.model.moveUp = (stepNumber = undefined) => {
-  stepNumber = parseInt(stepNumber);
-  if (!stepNumber || stepNumber < 2) {
-    throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
-    return;
+/** Функція проходить по всім елементам tasks.model.data
+ * та повертає значення регістрів та записує їх до масиву tasks.list
+ * повертає масив з даними
+ */
+
+tasks.model.getValues = () => {
+  let modelData = tasks.model.data;
+  let data = [];
+  for (let i = 0; i < modelData.length; i++) {
+    data.push(modelData[i].getValues());
   }
-  let trace = 1,
-    ln = `tasks.model.moveUp(${stepNumber})::`;
-  trace ? console.log(ln + `Started!`) : null;
+  tasks.list = data;
+  return data;
+};
+
+/** 2024-02-07 поки не використовується, та й чи потрібні взагалі?*/
+tasks.model.moveUp = (stepNumber = undefined) => {
+  // stepNumber = parseInt(stepNumber);
+  // if (!stepNumber || stepNumber < 2) {
+  //   throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
+  //   return;
+  // }
+  // let trace = 1,
+  //   ln = `tasks.model.moveUp(${stepNumber})::`;
+  // trace ? console.log(ln + `Started!`) : null;
 };
 
 tasks.model.moveDown = (stepNumber = undefined) => {
-  stepNumber = parseInt(stepNumber);
-  if (!stepNumber || stepNumber > tasks.model.data.length - 1) {
-    throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
-  }
-  let trace = 1,
-    ln = `tasks.model.moveDown(${stepNumber})::`;
-  trace ? console.log(ln + `Started!`) : null;
+  // stepNumber = parseInt(stepNumber);
+  // if (!stepNumber || stepNumber > tasks.model.data.length - 1) {
+  //   throw new Error(`Uncompatible stepNumber=${stepNumber} ! `);
+  // }
+  // let trace = 1,
+  //   ln = `tasks.model.moveDown(${stepNumber})::`;
+  // trace ? console.log(ln + `Started!`) : null;
 };
 
 tasks.createStep = (props = {}) => {
@@ -206,9 +222,6 @@ tasks.renderList = function () {
   // очищуємо модель
   tasks.model.data = [];
 
-  // TODO Костиль з описом програми потрібно рендер опису
-  tasks.model.data.push({ name: "Програма 1" });
-
   // очищуємо контейнер
   this.container.innerHTML = "";
 
@@ -222,7 +235,7 @@ tasks.renderList = function () {
   title.classList.add("col");
   title.innerHTML = `<h6>${tasks.header[lang]}</h6>`;
   header.appendChild(title);
-  tasks.container.classList = "border";
+  tasks.container.classList.add("border");
   this.container.appendChild(header);
 
   // if (list.length == 0) {

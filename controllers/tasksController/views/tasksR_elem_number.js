@@ -10,14 +10,14 @@ class ClassElementNumber extends tasks.ClassCreateElement {
     props.tag = "input";
     super(props);
     this.ln = "ClassElementNumber(" + props.reg.id + ")::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Constructor()::";
 
     // -- тип поля Number -------
     this.field.setAttribute("type", "number");
 
     // -- обробник зміни значення поля ----------
-    this.field.onchange = this.onchange.bind(this);
+    // this.field.onchange = this.onchange.bind(this);
 
     if (props.reg.min | (props.reg.min === 0)) {
       this.field.setAttribute("min", props.reg.min);

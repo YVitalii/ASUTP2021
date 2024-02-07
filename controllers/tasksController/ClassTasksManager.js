@@ -4,28 +4,77 @@ const ClassReg_select = require("../regsController/ClassReg_select.js");
 const ClassReg_regsList = require("../regsController/ClassReg_regsList.js");
 const ClassRegister = require("../regsController/ClassRegister.js");
 const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
+const ClassFileManager = require("../fileManager/ClassFileManager.js");
+const pathNormalize = require("path").normalize;
+
+/**
+ * Клас виконує керування завданнями
+ *
+ */
 
 class ClassTasksManager extends ClassReg_select {
   constructor(props = {}) {
+    // ідентифікатор
     props.id = "TasksManager";
+
     props.comment = {
       ua: `Після редагування програми натисніть кнопку [Застосувати]`,
       en: `After program creation, push [Accept] button`,
       ru: `После редактирования програмы, нажмите кнопку [Применить] `,
     };
+
     props.header = {
       ua: `Створення програми`,
       en: `Program creating`,
       ru: `Создание программы`,
     };
+
     props.type = "regsList";
     props.value = "empty";
+
     super(props);
 
-    this.ln = "ClassTasksManager(" + props.id + ")::";
-    let trace = 1,
+    this.ln = "ClassTasksManager::";
+    let trace = 0,
       ln = this.ln + "constructor()::";
     trace ? log("w", ln, `======= Started =====`) : null;
+    //
+    if (!props.homeDir) {
+      throw new Error(this.ln + "homeDir not defined! ");
+    }
+    this.homeDir = pathNormalize(props.homeDir + "\\tasks");
+    this.fileManager = new ClassFileManager({
+      homeDir: this.homeDir,
+      ln: this.ln,
+    });
+    this.fileManager.reg = new ClassReg_regsList({
+      id: "tasksList",
+      header: {
+        ua: `Робота зі списком завдань`,
+        en: `Working with list of tasks`,
+        ru: `Работа со списком заданий`,
+      },
+      comment: {
+        ua: ``,
+        en: ``,
+        ru: ``,
+      },
+    });
+    this.fileManager.reg.regs.fileNames = new ClassRegister({
+      id: "fileNames",
+      type: "simpleSelect",
+      header: {
+        ua: `Перелік програм`,
+        en: `The list of programs`,
+        ru: `Список программ`,
+      },
+      comment: {
+        ua: `Виберіть програму`,
+        en: `Select program`,
+        ru: `Выберите програму`,
+      },
+    });
+    this.fileManager.reg.regs.fileNames.list = this.fileManager.filesList;
 
     // Тут мають зберігатися всі можливі типи кроків
     this.reg = new ClassReg_select({
@@ -44,14 +93,14 @@ class ClassTasksManager extends ClassReg_select {
       type: "regsList",
     });
 
-    // Додаємо крок-опис програми
+    // Додаємо крок 0 = опис програми
     let description = new ClassReg_regsList({
       id: "description",
       ln: "tasksDescription::",
       header: {
-        ua: "Програма ",
-        en: "Program",
-        ru: "Программа",
+        ua: "Загальна інформація",
+        en: "General descriptiom of program",
+        ru: "Общее описание програмы",
       },
       comment: {
         ua: ``,
@@ -63,7 +112,7 @@ class ClassTasksManager extends ClassReg_select {
         name: new ClassRegister({
           id: "name",
           type: "text",
-          ln: "tasks.description.fileName::",
+          ln: "tasks.description.name::",
           value: "empty",
           header: {
             ua: `Назва програми`,
@@ -71,71 +120,50 @@ class ClassTasksManager extends ClassReg_select {
             ru: `Наименование программы`,
           },
           comment: {
-            ua: `Коротка назва програми (3..20 символів)`,
-            en: `Short name of the program (3..2 characters)`,
-            ru: `Короткое имя программы (3..20 символов)`,
+            ua: `3..20 символів`,
+            en: `3..20 characters`,
+            ru: `3..20 символов`,
+          },
+        }),
+        note: new ClassRegister({
+          id: "note",
+          type: "textarea",
+          ln: "tasks.description.note::",
+          value: "empty",
+          header: {
+            ua: "Примітки",
+            en: "Notes",
+            ru: "Примечания",
+          },
+          comment: {
+            ua: `Опис програми`,
+            en: `Program description`,
+            ru: `Описание программы`,
           },
         }),
       },
     });
 
     this.addType(description);
-
+    this.list = [];
     // Тут зберігається список впорядкованих кроків
-    this.list = this.loadList();
+    this.loadList();
 
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
     }
   }
-  loadList(name = "default.tsk") {
-    // TODO костиль тут має бути завантаження програми з файлу
-    let list = [];
 
-    list.push({
-      id: "description",
-      name: "prg01",
-      created: "2023-05-03T11:04:49.715Z",
-      header: {
-        ua: `Опис програми`,
-        en: `Program description`,
-        ru: `Описание программы`,
-      },
-      note: "Короткий опис програми",
-    });
-
-    list.push({
-      id: "ClassTask_Heating",
-      tT: 80,
-      errTmin: -15,
-      errTmax: 15,
-      regMode: "pid",
-      o: 10,
-      i: 10,
-      d: 10,
-    });
-    list.push({
-      id: "ClassTask_Heating",
-      tT: 120,
-      errTmin: -10,
-      errTmax: 10,
-      regMode: "pid",
-      o: 20,
-      i: 20,
-      d: 20,
-    });
-
-    list.push({
-      id: "TaskNitriding",
-      kN: 1.2,
-      regMode: "pid",
-      o: 10,
-      i: 10,
-      d: 10,
-    });
-
-    return list;
+  /** Завантажує список задач з файлу */
+  async loadList(fName = "default.json") {
+    let data = "";
+    try {
+      data = await this.fileManager.readFile(fName);
+      this.list = JSON.parse(data);
+    } catch (error) {
+      throw error;
+    }
   }
 
   addType(task = {}) {

@@ -1,25 +1,33 @@
 -var lang="ua"
 
 p --------------------- debugging info manager = -----------------------------
-  pre #{JSON.stringify(manager)}  
+  pre #{JSON.stringify(manager.fileManager)}  
 p --------------------- debugging info -----------------------------
 
 
-div(class="row")
-  div(class="col")
-    h3=`${{ua:`Завдання` , en: `Tasks`, ru: `Задание` }[lang]}`
-div(class="row")
-  div(class="col", id="tasksContainer")
+//- div(class="row")
+//-   div(class="col")
+//-     h3=`${{ua:`Завдання` , en: `Tasks`, ru: `Задание` }[lang]}`
+div(class="container-fluide")
+  div(class="row")
+    div(class="col-2 border")
+      div(class="container-fluide", id="fileManagerContainer")
+      p Тут має бути вибір програми
+    div(class="col")
+      div(class="container-fluide", id="tasksContainer")
 script.
   const lang= '!{lang}'; 
   const tasks={};
   tasks.header = JSON.parse(  '!{JSON.stringify(manager.header)}' );
-  tasks.comment = JSON.parse(  '!{JSON.stringify(manager.comment)}' );
+  //- tasks.comment = JSON.parse(  '!{JSON.stringify(manager.comment)}' );
   tasks.id=JSON.parse(  '!{JSON.stringify(manager.id)}' );
   tasks.reg = JSON.parse(  '!{JSON.stringify(manager.reg)}' );
-  tasks.type = "select"
+  //- tasks.type = "select"
   tasks.list = JSON.parse(  '!{JSON.stringify(manager.list)}' );
   tasks.container = document.getElementById( 'tasksContainer' );
+  //- tasks.fileManager={};
+  //- tasks.fileManager = JSON.parse( '!{JSON.stringify(manager.fileManager.reg)}' );
+include tasks_fileManager.pug
 script  
   //- реєструємо всі типи регістрів 
   //- загальний клас для всіх елементів

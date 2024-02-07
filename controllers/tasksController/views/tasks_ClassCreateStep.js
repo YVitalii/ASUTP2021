@@ -53,11 +53,21 @@ tasks.ClassCreateStep = class ClassCreateStep {
     this.model = props.model;
 
     // створюємо контейнер для кроку
-    this.main = document.createElement("div");
-    this.main.classList.add("container");
-    this.main.classList.add("border");
-    this.main.classList.add("border-secondary");
-    this.main.id = this.prefix;
+    {
+      let row = document.createElement("div");
+      row.classList.add("row");
+      let col = document.createElement("div");
+      col.classList.add("col");
+      let main = document.createElement("div");
+      main.classList.add("container-fluide");
+      main.classList.add("border");
+      main.classList.add("border-secondary");
+      main.id = this.prefix;
+      col.appendChild(main);
+      row.appendChild(col);
+      this.main = row;
+      this.main.id = this.prefix;
+    }
 
     // ------- додаємо контейнер в документ --------
     if (props.previousStep === undefined) {
@@ -67,7 +77,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
         throw new Error(ln + "No props.container defined");
         return;
       } else {
-        //додаємо rhjr в кінець контейнера
+        //додаємо крок в кінець контейнера
         props.container.appendChild(this.main);
       }
     } else {
@@ -188,27 +198,27 @@ tasks.ClassCreateStep = class ClassCreateStep {
       return but;
     };
 
-    // -- buttom UP
-    let but_up = createButton({
-      style: "btn-secondary",
-      name: "_up",
-      title: { ua: `Вище`, en: `Move up`, ru: `Вверх` },
-      innerHTML: "<h6>&#9650;</h6>",
-      this: this,
-    });
-    buttonGroupe.appendChild(but_up);
+    // // -- buttom UP
+    // let but_up = createButton({
+    //   style: "btn-secondary",
+    //   name: "_up",
+    //   title: { ua: `Вище`, en: `Move up`, ru: `Вверх` },
+    //   innerHTML: "<h6>&#9650;</h6>",
+    //   this: this,
+    // });
+    // buttonGroupe.appendChild(but_up);
 
-    // -- buttom DOWN
+    // // -- buttom DOWN
 
-    let but_down = createButton({
-      style: "btn-secondary",
-      name: "_down",
-      title: { ua: `Нижче`, en: `Move down`, ru: `Вниз` },
-      innerHTML: "<h6>&#9660;</h6>",
-      this: this,
-    });
+    // let but_down = createButton({
+    //   style: "btn-secondary",
+    //   name: "_down",
+    //   title: { ua: `Нижче`, en: `Move down`, ru: `Вниз` },
+    //   innerHTML: "<h6>&#9660;</h6>",
+    //   this: this,
+    // });
 
-    buttonGroupe.appendChild(but_down);
+    // buttonGroupe.appendChild(but_down);
 
     // -- buttom insert
     let but_insert = createButton({
