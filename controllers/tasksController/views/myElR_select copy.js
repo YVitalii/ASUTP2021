@@ -6,11 +6,12 @@ trace = 1;
  * Створює елемент вибору select
  *
  */
-class ClassElementSelect extends tasks.ClassCreateElement {
+myElementsRender["select"] = class ClassElementSelectRegsList extends (
+  myElementsRender.selectGeneral
+) {
   constructor(props = {}) {
-    props.tag = "select";
     super(props);
-    this.ln = "ClassElementSelect(" + props.reg.id + ")::";
+    this.ln = "ClassElementSelectRegsList(" + props.reg.id + ")::";
     let trace = 0,
       ln = this.ln + "Constructor()::";
     this.regs = this.reg.regs;
@@ -77,8 +78,6 @@ class ClassElementSelect extends tasks.ClassCreateElement {
     this.children.remove();
     this.children.render(this.regs[val].regs);
   }
-}
-
-tasks.elementsTypes["select"] = ClassElementSelect;
+};
 
 trace = beforeTrace;

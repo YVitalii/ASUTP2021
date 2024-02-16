@@ -1,4 +1,4 @@
-tasks.ClassCreateElement = class ClassCreateElement {
+myElementsRender["ClassCreateElement"] = class ClassCreateElement {
   /**
    * Створює налаштований DOM-елемент загального типу
    * @param {Object} props
@@ -30,6 +30,12 @@ tasks.ClassCreateElement = class ClassCreateElement {
     this.reg = props.reg;
     // тип регистру
     this.type = props.reg.type;
+
+    // зовнішня функція для обробки події зміни значення
+    // запускається коли значення змінилося
+    this.afterChange = props.afterChange;
+    // ? props.afterChange.bind(this)
+    // : async () => {};
 
     // дозвіл на зміну значення
     // this.readonly = props.reg.readonly;
@@ -79,6 +85,7 @@ tasks.ClassCreateElement = class ClassCreateElement {
   }
 
   onchange(event) {
+    let trace = 0;
     let ln = this.ln + "onchange()::";
     if (trace) {
       console.log(ln + "this=");
@@ -87,13 +94,12 @@ tasks.ClassCreateElement = class ClassCreateElement {
     trace ? console.log(ln + "this.field.value=" + this.field.value) : null;
   }
 
-  // // створює ідентифікатор для елементу DOM
-  // getElId(id = null) {
-  //   return this.elId //два підкреслення (щоб легко відділяти id регістру)
-  // }
+  async _afterChange(parent) {
+    await this.afterChange(parent);
+  }
 
   setValue(val) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `setValue(${val})::`;
     trace
       ? console.log(
@@ -113,10 +119,12 @@ tasks.ClassCreateElement = class ClassCreateElement {
     this.field.value = val;
     this.reg.value = val;
   }
+  // /** встановлює атрибути елемента Field */
+  // setProperties(el = "field", obj = {}) {
+  //   //let el;
 
-  setProperty(key, value) {
-    console.log(this.ln + `setProperty[${key}]=${value}. Поки не реалізовано!`);
-  }
+  //   console.log(this.ln + `setProperty[${key}]=${value}. Поки не реалізовано!`);
+  // }
 
   getBeforeValue() {
     return this.beforeValue;

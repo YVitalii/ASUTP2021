@@ -9,8 +9,8 @@ trace = 1;
 
 //
 
-tasks.elementsTypes["timer"] = class ClassElementTimer extends (
-  tasks.ClassCreateElement
+myElementsRender["timer"] = class ClassElementTimer extends (
+  myElementsRender.ClassCreateElement
 ) {
   constructor(props = {}) {
     props.tag = "input";
@@ -92,5 +92,5 @@ tasks.elementsTypes["timer"] = class ClassElementTimer extends (
     this.field.value = this.minutesToString(val);
   }
 }; // class
-
+console.log("Element type : timer loaded");
 trace = beforeTrace;

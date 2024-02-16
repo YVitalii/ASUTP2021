@@ -1,37 +1,7 @@
-// створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
-// з них вмикати трасування окремо від інших , тому кожний файл з кодом
-// перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
-// після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
-let trace = 1,
-  beforeTrace = 0;
-
 // аналог list, але в ньому зберігаються всі створені js-об'єкти регістрів
 // для швидкого доступу
 tasks.model = {};
 tasks.model.data = [];
-
-/**
- * Створює пустий рядок кроку програми
- * @param {Array} list
- *
- */
-
-// tasks.newStep = (prefix) => {
-//   let trace = 1,
-//     ln = `tasks.newStep(${prefix})::`;
-//   trace ? console.log(ln + `Started!`) : null;
-//   let el = new tasks.createStep({
-//     prefix: prefix,
-//     reg: tasks.reg,
-//     container: tasks.container,
-//     types: tasks.elementsTypes,
-//   });
-//   if (trace) {
-//     console.log(ln + `el=`);
-//     console.dir(el);
-//   }
-//   return el;
-// };
 
 tasks.model.renumber = (array, start = 1) => {
   if (!array) {
@@ -253,19 +223,6 @@ tasks.renderList = function () {
       values: step,
     };
     let el = tasks.createStep(props);
-    // let reg = tasks.reg.regs[step.id];
-    // // trace ? console.log(ln + `reg=${JSON.stringify(reg)}`) : null;
-    // if (reg) {
-    //   let el = new this.ClassCreateStep({
-    //     //editable: false, //tasks.reg.editable,
-    //     model: tasks.model,
-    //     stepNumber: i,
-    //     reg: reg,
-    //     container: tasks.container,
-    //     types: tasks.elementsTypes,
-    //   });
-    //   //tasks.container.appendChild(el.main);
-    //   el.setValues(step);
     if (!el) {
       console.error(`Помилка створення кроку: ${JSON.stringify(props)}`);
       continue;
@@ -275,17 +232,5 @@ tasks.renderList = function () {
       console.log(ln + `el=`);
       console.dir(el);
     }
-    //tasks.model = el;
   } //for
-  // i += 1;
-  // if (tasks.reg.editable || list.length === 0) {
-  //   tasks.model.data.push(tasks.newStep(`st${("0" + i).slice(-2)}`));
-  //   return;
-  // }
 };
-
-/** список доступних класів типів регістрів,
- * що створюють відповідні елементи
- * {select:ClassElementSelect, number:ClassElementNumber, ...}
- */
-tasks.elementsTypes = {};

@@ -7,24 +7,29 @@ class ClassCreateElement {
     +tag : String; // імя HTML тегу для створення node DOM = this.field
     +container : nodeDOM; // Батьківський контейнер для розміщення компоненту
     +reg : Object; // Типовий регістр ClassRegister та його нащадки
-    #type :  String; // Тип регістру
-    #editable : Boolean = true // Дозвіл на редагування значення регістру
-    #elId : String; // ідентифікатор для батьківського елементу = prefix+"__"+id
-    #value : String|Number // Поточне значення
+	+type :  String; // Тип регістру
+	+editable : Boolean = true // Дозвіл на редагування значення регістру
+	+value : String|Number // Поточне значення
+	---
+    #elId : String; // element Id ідентифікатор для батьківського елементу = prefix+"__"+id
     #beforeValue : String|Number // попереднє значення
     #div : node DOM   // батьківський контейнер для створення елементу class="col form-group" id=elId
     #field : node DOM  // контейнер для поля вводу class="col form-group" id = elId+"_field"
     #label : node DOM   // контейнер для створення елементу   class="col form-group" for=field.id
-     
+    ---
     +onchange(event) : // обробник зміни значення елементу; onchange.bind(this)
     +setValue(val) : return val; // встановлює this.value
     +getValue() : return this.value; // встановлює this.value
     +getFieldValue() : return this.field.value
+	+getBeforeValue() : return before value of field
+	+hasChanged() : return true if before != field.value
+	+getFieldValue() : return field.value
     ---
     розташування : "/controllers/tasksController/views/"
-    модуль: tasksR_elem_general.js 
+    модуль: myElR_ClassCreateElement.js 
     
 }
+
 class ClassElementNumber {
     +ln : String ="ClassElementNumber::"
     +tag : ="input" // тег input
@@ -37,30 +42,45 @@ class ClassElementNumber {
 }
 ClassCreateElement <|-- ClassElementNumber
 
-class ClassElementSelect {
+class ClassElementSelectGeneral {
     +tag : ="select" // тег select
-    +ln : String ="ClassElementSelect::"
+    +ln : String ="ClassElementSelectGeneral::"
+    +regs:Object = список елементів вибору
+    ---
+	getOption(val) : функція пост обробки val
+	setOption(val) : функція перед обробки val
+	---
+    модуль : "myElR_selectGeneral.js" 
+}
+ClassCreateElement <|-- ClassElementSelectGeneral
+
+class ClassElementSelectRegsList {
+    
+    +ln : String ="ClassElementSelectRegsList::"
+	---
+	---
     +children : instanceof ClassRegsList // список регістрів-дітей 
     +setValue(val) : //додано children.remove та children.render
     ---
-    модуль : "tasksR_elem_select.js" 
+    модуль : "myElR_select.js" 
 }
-ClassCreateElement <|-- ClassElementSelect
+ClassElementSelectGeneral <|-- ClassElementSelectRegsList
 
 
 class ClassRegsList {
     
-    +ln : String  = "ClassRegsList()::"
-    +types : Object // список типів конструкторів класів  з яких створюються елементи 
+    ** constructor **
+    +types=myElementsRender : Object // список типів конструкторів класів  з яких створюються елементи 
     +regs  : Object // список регістрів-дітей для створення DOM nodes
     +prefix : String; // префікс до id елементу 
+	---
+	+ln : String  = "ClassRegsList(${prefix})::"
     +children :  Object // список регістрів-дітей
     +remove() : // Видаляє всіх зі списку children
     +render(regs) : // Створює всіх дітей в списку regs
     +getValues() : //Проходить по списку всіх дітей та отримує значення {'tT':500,'o':15,..}
     +findRegister(id): Object | undefined // шукає серед усіх нащадків регістр з вказаним id
     +setRegister(id, value) : Встановлює для регістра id вказане value 
-
     ---
     розташування : "/controllers/tasksController/views/"
     модуль: tasks_ClassRegsList.js 

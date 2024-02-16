@@ -1,12 +1,12 @@
-// -----------  element: select -------------------
+// -----------  element: textarea;  file: myElR_textarea  -------------------
 beforeTrace = trace;
 trace = 1;
 /**
- * Створює та повертає елемент вибору
+ * Створює та повертає елемент багаторядкового тексту
  *
  */
-tasks.elementsTypes["textarea"] = class ClassElementNumber extends (
-  tasks.ClassCreateElement
+myElementsRender["textarea"] = class ClassElementNumber extends (
+  myElementsRender.ClassCreateElement
 ) {
   constructor(props = {}) {
     props.tag = "textarea";

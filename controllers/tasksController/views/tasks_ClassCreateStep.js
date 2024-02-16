@@ -178,7 +178,11 @@ tasks.ClassCreateStep = class ClassCreateStep {
       let but = document.createElement("button");
       but.classList.add("btn");
       but.classList.add(props.style ? props.style : "btn-secondary");
-      but.id = props.this.prefix + (props.name ? props.name : "noNameButton");
+      but.id =
+        props.this.prefix +
+        (props.name
+          ? props.name
+          : "noNameButton" + new Date().getTime().toString().slice(-7));
       but.setAttribute(
         "title",
         props.title

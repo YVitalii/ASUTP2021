@@ -1,11 +1,13 @@
-// -----------  element: select -------------------
+// -----------  element: input type="number" -------------------
 beforeTrace = trace;
 trace = 1;
 /**
- * Створює та повертає елемент вибору
- *
+ * Створює та повертає елемент вводу числа
+ * має min та max
  */
-class ClassElementNumber extends tasks.ClassCreateElement {
+myElementsRender["number"] = class ClassElementNumber extends (
+  myElementsRender.ClassCreateElement
+) {
   constructor(props = {}) {
     props.tag = "input";
     super(props);
@@ -30,6 +32,7 @@ class ClassElementNumber extends tasks.ClassCreateElement {
     }
 
     this.field.setAttribute("value", props.reg.value);
+
     if (trace) {
       console.log(ln + "this=");
       console.dir(this);
@@ -61,8 +64,6 @@ class ClassElementNumber extends tasks.ClassCreateElement {
     }
     super.setValue(val);
   }
-} // class
-
-tasks.elementsTypes["number"] = ClassElementNumber;
+}; // class
 
 trace = beforeTrace;

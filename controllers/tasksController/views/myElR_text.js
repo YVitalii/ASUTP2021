@@ -5,8 +5,8 @@ trace = 1;
  * Створює та повертає елемент вибору
  *
  */
-tasks.elementsTypes["text"] = class ClassElementNumber extends (
-  tasks.ClassCreateElement
+myElementsRender["text"] = class ClassElementNumber extends (
+  myElementsRender.ClassCreateElement
 ) {
   constructor(props = {}) {
     props.tag = "input";

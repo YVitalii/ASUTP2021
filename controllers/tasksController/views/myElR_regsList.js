@@ -1,11 +1,12 @@
-// -----------  element: select -------------------
+// -----------  element: regsList -------------------
 beforeTrace = trace;
 trace = 1;
 /**
- * Створює та повертає список об'єктів регістрів та їх DOM - елементи
+ * Створює та повертає колекцію об'єктів регістрів та їх DOM - елементи
  *
  */
-tasks.ClassRegsList = class ClassRegsList {
+
+myElementsRender["regsList"] = class ClassRegsList {
   /**
    * Створює контейнер з регістрами
    * @param {*} props
@@ -14,7 +15,6 @@ tasks.ClassRegsList = class ClassRegsList {
    * @property {Object} props.regs - список регістрів
    * @property {Object} props.types - список доступних класів, що рендерять елементи
    */
-  #type = "regsList";
 
   constructor(props = {}) {
     this.ln = `ClassRegsList(${props.prefix})::`;
@@ -28,14 +28,8 @@ tasks.ClassRegsList = class ClassRegsList {
 
     // об'єкт, що містить в собі список доступних типів (класів) регістрів,
     // що використовуються для їх створення
-    if (!props.types) {
-      // TODO Виправити костиля. Ймовірно список типів
-      // потріпно зберігати у властивостях класу  ClassRegsList.types
-      // в цьому разі він буде завжди з цим класом
-      props.types = tasks.elementsTypes;
-      //throw new Error(ln + "'props.types' not defined !!");
-    }
-    this.types = props.types;
+
+    this.types = myElementsRender;
 
     // список регістрів
     if (!props.regs) {

@@ -4,52 +4,53 @@ p --------------------- debugging info manager = -----------------------------
   pre #{JSON.stringify(manager.fileManager)}  
 p --------------------- debugging info -----------------------------
 
-
-//- div(class="row")
-//-   div(class="col")
-//-     h3=`${{ua:`Завдання` , en: `Tasks`, ru: `Задание` }[lang]}`
+//- створюємо контейнери для вмісту
 div(class="container-fluide")
   div(class="row")
     div(class="col-2 border")
       div(class="container-fluide", id="fileManagerContainer")
-      p Тут має бути вибір програми
+      //- p Тут має бути вибір зі списку програм
     div(class="col")
       div(class="container-fluide", id="tasksContainer")
+
+//- готуємо початкові дані 
 script.
   const lang= '!{lang}'; 
   const tasks={};
+  //- створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
+  //- з них вмикати трасування окремо від інших , тому кожний файл з кодом
+  //- перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
+  //- після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
+  let trace = 1, beforeTrace = 0;
+
   tasks.header = JSON.parse(  '!{JSON.stringify(manager.header)}' );
-  //- tasks.comment = JSON.parse(  '!{JSON.stringify(manager.comment)}' );
   tasks.id=JSON.parse(  '!{JSON.stringify(manager.id)}' );
   tasks.reg = JSON.parse(  '!{JSON.stringify(manager.reg)}' );
-  //- tasks.type = "select"
   tasks.list = JSON.parse(  '!{JSON.stringify(manager.list)}' );
   tasks.container = document.getElementById( 'tasksContainer' );
-  //- tasks.fileManager={};
-  //- tasks.fileManager = JSON.parse( '!{JSON.stringify(manager.fileManager.reg)}' );
-include tasks_fileManager.pug
+
+//- рендер елементів
+include myElementsRender.pug
+script.
+  // додано для сумісності з попереднім кодом
+  tasks.elementsTypes = myElementsRender;
+  tasks.ClassRegsList = myElementsRender.regsList;
+
+
 script  
-  //- реєструємо всі типи регістрів 
-  //- загальний клас для всіх елементів
-  include tasksR_general.js  
-  //- елемент select
-  include tasksR_elem_general.js
-  //- елемент select
-  include tasksR_elem_select.js
-  //- елемент number
-  include tasksR_elem_number.js
-  //- елемент number
-  include tasksR_elem_timer.js
-  //- елемент textarea
-  include tasksR_elem_textarea.js
-  //- елемент text
-  include tasksR_elem_text.js
-  //- елемент createStep.js
-  include tasks_ClassRegsList.js
+  //- загальний клас для керування всіма елементами на сторінці
+  include tasksR_general.js
+
   //- елемент createStep.js
   include tasks_ClassCreateStep.js
   //- елемент createMModalWindow.js
   include createModalWindow.js
+
+//- менеджер файлів
+include tasks_fileManager.pug
+
+
+
 
 script.
   //- запускаємо відображення списку кроків програми

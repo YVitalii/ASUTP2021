@@ -1,0 +1,30 @@
+script.
+  //-  список доступних класів типів регістрів,
+  //-   що створюють відповідні елементи
+  //- {select:ClassElementSelect, number:ClassElementNumber, ...}
+  const myElementsRender = {};
+
+
+script  
+  //- реєструємо всі типи регістрів 
+  //- myElementsRender["elementType"] = class ... extends myElementsRender.ClassCreateElement 
+
+  //- елемент загального типу 
+  include myElR_ClassCreateElement.js
+  //- елемент select
+  include myElR_selectGeneral.js
+  //- елемент select
+  include myElR_select.js
+  //- елемент number
+  include myElR_number.js
+  //- елемент number
+  include myElR_timer.js
+  //- елемент textarea
+  include myElR_textarea.js
+  //- елемент text
+  include myElR_text.js
+  //- елемент regsList.js
+  include myElR_regsList.js
+  //- елемент regsList.js
+  include myElR_button.js
+
