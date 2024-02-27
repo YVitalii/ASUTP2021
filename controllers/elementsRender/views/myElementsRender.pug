@@ -8,8 +8,9 @@ script.
 script  
   //- реєструємо всі типи регістрів 
   //- myElementsRender["elementType"] = class ... extends myElementsRender.ClassCreateElement 
-
   //- елемент загального типу 
+  include myElR_ClassGeneralElement.js
+  //- елемент типу регістр (поле вводу) 
   include myElR_ClassCreateElement.js
   //- елемент select
   include myElR_selectGeneral.js
@@ -23,8 +24,11 @@ script
   include myElR_textarea.js
   //- елемент text
   include myElR_text.js
-  //- елемент regsList.js
+  //- елемент regsList
   include myElR_regsList.js
-  //- елемент regsList.js
+  //- елемент button
   include myElR_button.js
+  //- елемент buttonGroup
+  include myElR_buttonGroup.js
+
 

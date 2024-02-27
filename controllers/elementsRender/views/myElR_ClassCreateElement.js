@@ -1,4 +1,6 @@
-myElementsRender["ClassCreateElement"] = class ClassCreateElement {
+myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
+  myElementsRender.ClassGeneralElement
+) {
   /**
    * Створює налаштований DOM-елемент загального типу
    * @param {Object} props
@@ -9,37 +11,21 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement {
    * @property {Object} props.container - контейнер в якому потрібно розмістити елемент
    */
   constructor(props = {}) {
-    this.ln = "ClassCreateElement()::";
+    props.ln = props.ln ? props.ln : "ClassCreateElement()::";
+    super(props);
+
     let trace = 1,
       ln = this.ln + "constructror()::";
     trace ? console.log(ln + "props=") : null;
     trace ? console.dir(props) : null;
-    // -- батьківський контейнер для елементу -----
-    if (!props.container) {
-      console.error(ln + "Не вказано батьківський контейнер!!!");
-    } else {
-      this.container = props.container;
-    }
+
     // -- тег основного елемента, щоб створити шаблон
     this.tag = props.tag;
-    // -- префікс -----
-    this.prefix = props.prefix;
-    // -- id -----
-    this.id = props.reg.id;
-    // -- регістр
-    this.reg = props.reg;
-    // тип регистру
-    this.type = props.reg.type;
 
     // зовнішня функція для обробки події зміни значення
     // запускається коли значення змінилося
     this.afterChange = props.afterChange;
-    // ? props.afterChange.bind(this)
-    // : async () => {};
 
-    // дозвіл на зміну значення
-    // this.readonly = props.reg.readonly;
-    this.editable = props.reg.editable;
     // поточне значення
     this.value = props.reg.value;
     this.beforeValue = props.reg.value;

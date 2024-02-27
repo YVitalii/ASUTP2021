@@ -65,7 +65,7 @@ myElementsRender["regsList"] = class ClassRegsList {
   onchange(event) {}
 
   remove() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `remove(${this.prefix})::`;
     let regs = this.children;
     for (let key in regs) {
@@ -91,7 +91,7 @@ myElementsRender["regsList"] = class ClassRegsList {
   }
 
   render(regs) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `render(${this.prefix})::`;
     trace ? console.log(ln + `Started`) : null;
     trace ? console.log(ln + `regs=${regs}`) : null;

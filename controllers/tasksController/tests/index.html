@@ -6,25 +6,103 @@
   document.getElementById("timedisplay").innerHTML = date.toLocaleString();
 }
 setInterval(getDate, 0);
-</script><script>var pageProps={};</script></head><body class="h-100"><div class="container-fluid h-100 d-flex flex-column"> <div class="row"><div class="col-3"><img src="/img/logo_bortek.png" alt="Бортек" id="logo"></div><div class="col my-auto mx-auto "><div class="h2 " id="pageTitle">pageTitle: not defined</div></div><div class="col-1 my-auto mx-auto "><div class="h5" id="timedisplay"></div></div><hr></div><div class="row h-100"><div class="col"><div class="h-100" id="pageBody"><p>--------------------- debugging info manager = -----------------------------<pre>{&quot;homeDir&quot;:&quot;F:\\node\\ASUTP2021\\controllers\\tasksController\\tests\\tasks&quot;,&quot;ln&quot;:&quot;ClassTasksManager::ClassFileManager::&quot;,&quot;filesList&quot;:[&quot;default.json&quot;,&quot;task01.json&quot;,&quot;колесаВеликі відпал.json&quot;],&quot;reg&quot;:{&quot;id&quot;:&quot;tasksList&quot;,&quot;ln&quot;:&quot;ClassReg_regsList(tasksList)::&quot;,&quot;header&quot;:{&quot;ua&quot;:&quot;Робота зі списком завдань&quot;,&quot;en&quot;:&quot;Working with list of tasks&quot;,&quot;ru&quot;:&quot;Работа со списком заданий&quot;},&quot;type&quot;:&quot;regsList&quot;,&quot;comment&quot;:{&quot;ua&quot;:&quot;&quot;,&quot;en&quot;:&quot;&quot;,&quot;ru&quot;:&quot;&quot;},&quot;editable&quot;:true,&quot;regs&quot;:{&quot;fileNames&quot;:{&quot;id&quot;:&quot;fileNames&quot;,&quot;ln&quot;:&quot;ClassRegister(fileNames)::&quot;,&quot;header&quot;:{&quot;ua&quot;:&quot;Перелік програм&quot;,&quot;en&quot;:&quot;The list of programs&quot;,&quot;ru&quot;:&quot;Список программ&quot;},&quot;type&quot;:&quot;simpleSelect&quot;,&quot;comment&quot;:{&quot;ua&quot;:&quot;Виберіть програму&quot;,&quot;en&quot;:&quot;Select program&quot;,&quot;ru&quot;:&quot;Выберите програму&quot;},&quot;editable&quot;:true,&quot;list&quot;:[&quot;default.json&quot;,&quot;task01.json&quot;,&quot;колесаВеликі відпал.json&quot;]}}}}  </pre></p><p>--------------------- debugging info -----------------------------</p><div class="container-fluide"><div class="row"><div class="col-2 border"><div class="container-fluide" id="fileManagerContainer"></div></div><div class="col"><div class="container-fluide" id="tasksContainer"></div></div></div></div><script>const lang= 'ua'; 
-const tasks={};
-//- створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
-//- з них вмикати трасування окремо від інших , тому кожний файл з кодом
-//- перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
-//- після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
-let trace = 1, beforeTrace = 0;
-
-tasks.header = JSON.parse(  '{"ua":"Створення програми","en":"Program creating","ru":"Создание программы"}' );
-tasks.id=JSON.parse(  '"TasksManager"' );
-tasks.reg = JSON.parse(  '{"id":"taskType","ln":"ClassReg_select(taskType)::","header":{"ua":"Тип кроку","en":"Select type of step","ru":"Тип шага"},"type":"select","comment":{"ua":"Доступні типи","en":"Avaliable types","ru":"Доступные типы"},"editable":true,"regs":{"description":{"id":"description","ln":"ClassReg_regsList(description)::","header":{"ua":"Загальна інформація","en":"General descriptiom of program","ru":"Общее описание програмы"},"type":"regsList","comment":{"ua":"","en":"","ru":""},"editable":false,"regs":{"name":{"id":"name","ln":"tasks.description.name::","header":{"ua":"Назва програми","en":"Program name","ru":"Наименование программы"},"type":"text","value":"empty","comment":{"ua":"3..20 символів","en":"3..20 characters","ru":"3..20 символов"},"editable":true},"note":{"id":"note","ln":"tasks.description.note::","header":{"ua":"Примітки","en":"Notes","ru":"Примечания"},"type":"textarea","value":"empty","comment":{"ua":"Опис програми","en":"Program description","ru":"Описание программы"},"editable":true}}},"ClassTask_Heating":{"id":"ClassTask_Heating","ln":"ClassTaskThermal()::","header":{"ua":"Нагрівання","en":"Heating","ru":"Нагревание"},"type":"regsList","comment":{"ua":"Немає опису","en":"Note not defined","ru":"Описания нет"},"editable":true,"regs":{"tT":{"id":"tT","ln":"ClassReg_number(tT)::","header":{"ua":"T,°C","en":"T,°C","ru":"T,°C"},"type":"number","value":0,"comment":{"ua":"Цільова температура","en":"Task temperature","ru":"Целевая температура"},"editable":true,"min":0,"max":150},"errTmin":{"id":"errTmin","ln":"ClassReg_number(errTmin)::","header":{"ua":"errTmin,°C","en":"errTmin,°C","ru":"errTmin,°C"},"type":"number","value":0,"comment":{"ua":"Макс. відх. вниз (0=вимкн)","en":"Limit of low temperature (0=disable)","ru":"Макс. откл. вниз (0=выкл)"},"editable":true,"min":-100,"max":0},"errTmax":{"id":"errTmax","ln":"ClassReg_number(errTmax)::","header":{"ua":"errTmax,°C","en":"errTmax,°C","ru":"errTmax,°C"},"type":"number","value":0,"comment":{"ua":"Макс. відх. вверх (0=вимкн)","en":"Limit of high temperature (0=disable)","ru":"Макс. откл. вверх (0=выкл)"},"editable":true,"min":0,"max":100},"regMode":{"id":"regMode","ln":"ClassReg_select(regMode)::","header":{"ua":"Регулювання","en":"Regulation","ru":"Регулирование"},"type":"select","value":"pid","comment":{"ua":"Закон регулювання","en":"Control type","ru":"Закон регулирования"},"editable":true,"regs":{"pos":{"id":"pos","ln":"ClassReg_regsList(pos)::","header":{"ua":"Позиційний","en":"Positional","ru":"Позиционный"},"type":"regsList","comment":{"ua":"Позиційний закон регулювання","en":"Positional regulation","ru":"Позиционный закон регуллирования"},"editable":true,"regs":{"o":{"id":"o","ln":"ClassReg_number(o)::","header":{"ua":"Неузгодження","en":"Difference","ru":"Рассогласование"},"type":"number","value":-2,"comment":{"ua":"Неузгодження температур,°С","en":"Temperature difference,°С","ru":"Рассогласование температур,°С"},"editable":true,"min":-20,"max":0}}},"pid":{"id":"pid","ln":"ClassReg_regsList(pid)::","header":{"ua":"ПІД","en":"PID","ru":"ПИД"},"type":"regsList","comment":{"ua":"ПІД закон регулювання","en":"PID regulation","ru":"ПИД закон регуллирования"},"editable":true,"regs":{"o":{"id":"o","ln":"ClassReg_number(o)::","header":{"ua":"П","en":"P","ru":"П"},"type":"number","value":5,"comment":{"ua":"Пропорційна складова","en":"Proportional gain","ru":"Пропорциональная составляющая"},"editable":true,"min":0,"max":100},"ti":{"id":"ti","ln":"ClassReg_number(ti)::","header":{"ua":"І","en":"I","ru":"И"},"type":"number","value":5,"comment":{"ua":"Інтегральна складова","en":"Integral gain","ru":"Интегральная составляющая"},"editable":true,"min":0,"max":100},"td":{"id":"td","ln":"ClassReg_number(td)::","header":{"ua":"Д","en":"D","ru":"Д"},"type":"number","value":5,"comment":{"ua":"Диференційна складова","en":"Differencial gain","ru":"Диферинциальная составляющая"},"editable":true,"min":0,"max":100}}}}},"wT":{"id":"wT","ln":"ClassReg_number(wT)::","header":{"ua":"wT,°C","en":"wT,°C","ru":"wT,°C"},"type":"number","value":0,"comment":{"ua":"Початок ПІД рег. (=0 вимкн.)","en":"Start PID regulation (=0 off)","ru":"Начало ПИД рег. (=0-выкл.)"},"editable":true,"min":-200,"max":0},"H":{"id":"H","ln":"ClassReg_timer(H)::","header":{"ua":"Нагрівання","en":"Heating","ru":"Нагревание"},"type":"timer","value":0,"comment":{"ua":"Час нагрівання (=0 - макс. швидко)","en":"Heating time (=0 quick)","ru":"Время нагревания (=0 макс. быстро)"},"editable":true,"min":0,"max":1439}}}}}' );
-tasks.list = JSON.parse(  '[{"id":"description","name":"prg01","note":"Короткий опис програми"},{"id":"ClassTask_Heating","tT":0,"errTmin":-15,"errTmax":15,"regMode":"pid","o":0,"ti":0,"td":0,"wT":0,"H":0}]' );
-tasks.container = document.getElementById( 'tasksContainer' );
-</script><script>//-  список доступних класів типів регістрів,
+</script><script>var pageProps={};</script></head><body class="h-100"><div class="container-fluid h-100 d-flex flex-column"> <div class="row"><div class="col-3"><img src="/img/logo_bortek.png" alt="Бортек" id="logo"></div><div class="col my-auto mx-auto "><div class="h2 " id="pageTitle">pageTitle: not defined</div></div><div class="col-1 my-auto mx-auto "><div class="h5" id="timedisplay"></div></div><hr></div><div class="row h-100"><div class="col"><div class="h-100" id="pageBody"><p>--------------------- debugging info manager = -----------------------------<pre>{&quot;homeDir&quot;:&quot;F:\\node\\ASUTP2021\\controllers\\tasksController\\tests\\tasks&quot;,&quot;ln&quot;:&quot;ClassTasksManager::ClassFileManager::&quot;,&quot;filesList&quot;:[&quot;default.json&quot;,&quot;task01.json&quot;,&quot;колесаВеликі відпал.json&quot;],&quot;reg&quot;:{&quot;id&quot;:&quot;tasksList&quot;,&quot;ln&quot;:&quot;ClassReg_regsList(tasksList)::&quot;,&quot;header&quot;:{&quot;ua&quot;:&quot;Робота зі списком завдань&quot;,&quot;en&quot;:&quot;Working with list of tasks&quot;,&quot;ru&quot;:&quot;Работа со списком заданий&quot;},&quot;type&quot;:&quot;regsList&quot;,&quot;comment&quot;:{&quot;ua&quot;:&quot;&quot;,&quot;en&quot;:&quot;&quot;,&quot;ru&quot;:&quot;&quot;},&quot;editable&quot;:true,&quot;regs&quot;:{&quot;fileNames&quot;:{&quot;id&quot;:&quot;fileNames&quot;,&quot;ln&quot;:&quot;ClassRegister(fileNames)::&quot;,&quot;header&quot;:{&quot;ua&quot;:&quot;Перелік програм&quot;,&quot;en&quot;:&quot;The list of programs&quot;,&quot;ru&quot;:&quot;Список программ&quot;},&quot;type&quot;:&quot;simpleSelect&quot;,&quot;comment&quot;:{&quot;ua&quot;:&quot;Виберіть програму&quot;,&quot;en&quot;:&quot;Select program&quot;,&quot;ru&quot;:&quot;Выберите програму&quot;},&quot;editable&quot;:true,&quot;list&quot;:[&quot;default.json&quot;,&quot;task01.json&quot;,&quot;колесаВеликі відпал.json&quot;]}}}}  </pre></p><p>--------------------- debugging info -----------------------------</p><script>let trace = 1, beforeTrace = 0;
+const lang= 'ua'; </script><script>//-  список доступних класів типів регістрів,
 //-   що створюють відповідні елементи
 //- {select:ClassElementSelect, number:ClassElementNumber, ...}
 const myElementsRender = {};
 
-</script><script> myElementsRender["ClassCreateElement"] = class ClassCreateElement {
+</script><script> myElementsRender["ClassGeneralElement"] = class ClassGeneralElement {
+  /**
+   * Створює налаштований DOM-елемент загального типу
+   * @param {Object} props
+   * @property {string} props.id -  id елементу
+   * @property {string} props.prefix - префікс для id елементу
+   * @property {Object} props.reg  - типовий регістр з описом елементу
+   * @property {Object} props.container - контейнер в якому потрібно розмістити елемент
+   * @property {String} props.type - тип елементу (ключ в  myElementsRender)
+   */
+  constructor(props = {}) {
+    this.ln = props.ln ? props.ln : undefined;
+
+    let trace = 0,
+      ln = this.ln + "constructror()::";
+
+    trace ? console.log(ln + "props=") : null;
+    trace ? console.dir(props) : null;
+    // -- батьківський контейнер для елементу -----
+    if (!props.container) {
+      console.error(ln + "Не вказано батьківський контейнер!!!");
+    } else {
+      this.container = props.container;
+    }
+    // -- id -----
+    this.id = props.reg.id
+      ? props.reg.id
+      : "id" + new Date().getTime().toString().slice(-8);
+    // -- префікс -----
+
+    this.prefix = props.prefix ? props.prefix : this.id + "_";
+
+    // -- регістр з загальним описом елементу
+
+    this.reg = props.reg;
+
+    // тип регистру
+
+    this.type = props.reg.type;
+
+    // дозвіл на зміну значення
+
+    this.editable =
+      props.reg.editable === undefined ? true : props.reg.editable;
+  } //constructor
+
+  /**
+   * Додає до елементу класи, вказані в classList
+   * @param {*} el - елемент до якого застосовуються класи
+   * @param {Array | String} classList - масив класів або рядок з розділовими пробілами
+   */
+
+  setClassList(el, classList) {
+    if (typeof classList === "string") {
+      classList = classList.split(" ");
+    }
+    if (!Array.isArray(classList)) {
+      console.error(
+        "ClassGeneralElement.setClassList must be Array! classList=" +
+          `${classList}`
+      );
+      return;
+    }
+    for (var i = 0; i < classList.length; i++) {
+      el.classList.add(classList[i]);
+    }
+  } //setClassList
+
+  /**
+   * Додає до елементу атрибути, вказані в atributesList
+   * @param {*} el - елемент до якого застосовуються атрибути
+   * @param {Object} list - об'єкт з атрибутами елементу {enable:"true", ..}
+   */
+  setAtributes(el, list = {}) {
+    if (typeof list != "object") {
+      console.error(
+        "ClassGeneralElement.setAttributes() must be Object! But list=" +
+          `${list}`
+      );
+      return;
+    }
+    for (let key in list) {
+      if (list.hasOwnProperty(key)) {
+        el.setAttribute(key, list[key]);
+      }
+    }
+  } //setAtributes
+};
+myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
+  myElementsRender.ClassGeneralElement
+) {
   /**
    * Створює налаштований DOM-елемент загального типу
    * @param {Object} props
@@ -35,37 +113,21 @@ const myElementsRender = {};
    * @property {Object} props.container - контейнер в якому потрібно розмістити елемент
    */
   constructor(props = {}) {
-    this.ln = "ClassCreateElement()::";
+    props.ln = props.ln ? props.ln : "ClassCreateElement()::";
+    super(props);
+
     let trace = 1,
       ln = this.ln + "constructror()::";
     trace ? console.log(ln + "props=") : null;
     trace ? console.dir(props) : null;
-    // -- батьківський контейнер для елементу -----
-    if (!props.container) {
-      console.error(ln + "Не вказано батьківський контейнер!!!");
-    } else {
-      this.container = props.container;
-    }
+
     // -- тег основного елемента, щоб створити шаблон
     this.tag = props.tag;
-    // -- префікс -----
-    this.prefix = props.prefix;
-    // -- id -----
-    this.id = props.reg.id;
-    // -- регістр
-    this.reg = props.reg;
-    // тип регистру
-    this.type = props.reg.type;
 
     // зовнішня функція для обробки події зміни значення
     // запускається коли значення змінилося
     this.afterChange = props.afterChange;
-    // ? props.afterChange.bind(this)
-    // : async () => {};
 
-    // дозвіл на зміну значення
-    // this.readonly = props.reg.readonly;
-    this.editable = props.reg.editable;
     // поточне значення
     this.value = props.reg.value;
     this.beforeValue = props.reg.value;
@@ -228,49 +290,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
       : (val) => {
           return val;
         };
-
-    // створюємо список <option>
-    let keys = "";
-    let first = true;
-    let currKey = "";
-    if (typeof this.regs == "object" && !Array.isArray(this.regs)) {
-      for (let key in this.regs) {
-        let trace = 0;
-        if (this.regs.hasOwnProperty(key)) {
-          let selected = "";
-          // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
-          if (!first && key == this.value) {
-            selected = "selected";
-            currKey = key;
-          }
-          trace ? console.log(ln + "key=" + key) : null;
-          keys += `<option value='${this.setOption(key)}' ${selected}> ${
-            this.reg.regs[key].header[lang]
-          } </option>`;
-        }
-      } //for
-    } // if (typeof this.regs == "object")
-
-    if (Array.isArray(this.regs)) {
-      let trace = 1;
-      for (let i = 0; i < this.regs.length; i++) {
-        const key = this.regs[i];
-        let selected = "";
-        // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
-        if (!first && key == this.value) {
-          selected = "selected";
-          currKey = key;
-        }
-        let opt = `<option value='${key}' ${selected}> ${this.setOption(
-          key
-        )} </option>`;
-        trace ? console.log(ln + "opt=" + opt) : null;
-        keys += opt;
-      }
-    }
-    // -- опції вибору -------
-    this.field.innerHTML = keys;
-
+    this.renderOptions();
     // -- початкова ініціалізація -----------
     this.value = this.getFieldValue();
     trace ? console.log(ln + `this.value=${this.value}`) : null;
@@ -300,7 +320,54 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     let trace = 1,
       ln = this.ln + `setValue(${val})::`;
     trace ? console.log(ln + `Started`) : null;
-    super.setValue(val);
+    //super.setValue(val);
+  }
+
+  renderOptions() {
+    // знищуємо всіх дітей
+    this.field.innerHTML = "";
+
+    // створюємо список <option>
+    let keys = "";
+    let first = true;
+    let currKey = "";
+    if (typeof this.regs == "object" && !Array.isArray(this.regs)) {
+      for (let key in this.regs) {
+        let trace = 0;
+        if (this.regs.hasOwnProperty(key)) {
+          let selected = "";
+          // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
+          if (!first && key == this.value) {
+            selected = "selected";
+            currKey = key;
+          }
+          trace ? console.log(ln + "key=" + key) : null;
+          keys += `<option value='${this.setOption(key)}' ${selected}> ${
+            this.regs[key].header[lang]
+          } </option>`;
+        }
+      } //for
+    } // if (typeof this.regs == "object")
+
+    if (Array.isArray(this.regs)) {
+      let trace = 1;
+      for (let i = 0; i < this.regs.length; i++) {
+        const key = this.regs[i];
+        let selected = "";
+        // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
+        if (!first && key == this.value) {
+          selected = "selected";
+          currKey = key;
+        }
+        let opt = `<option value='${key}' ${selected}> ${this.setOption(
+          key
+        )} </option>`;
+        trace ? console.log(ln + "opt=" + opt) : null;
+        keys += opt;
+      }
+    }
+    // -- опції вибору -------
+    this.field.innerHTML = keys;
   }
 };
 
@@ -362,7 +429,7 @@ myElementsRender["select"] = class ClassElementSelectRegsList extends (
 trace = beforeTrace;
 // -----------  element: input type="number" -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /**
  * Створює та повертає елемент вводу числа
  * має min та max
@@ -401,7 +468,7 @@ myElementsRender["number"] = class ClassElementNumber extends (
     }
   }
   onchange(event) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "onchange()::";
     super.onchange(event);
     let val = this.getFieldValue();
@@ -712,7 +779,7 @@ myElementsRender["regsList"] = class ClassRegsList {
   onchange(event) {}
 
   remove() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `remove(${this.prefix})::`;
     let regs = this.children;
     for (let key in regs) {
@@ -738,7 +805,7 @@ myElementsRender["regsList"] = class ClassRegsList {
   }
 
   render(regs) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `render(${this.prefix})::`;
     trace ? console.log(ln + `Started`) : null;
     trace ? console.log(ln + `regs=${regs}`) : null;
@@ -887,46 +954,290 @@ trace = 1;
  *
  */
 
-myElementsRender["button"] = class ClassButton {
+myElementsRender["button"] = class ClassButton extends (
+  myElementsRender.ClassGeneralElement
+) {
   /**
-   * Створює DOM елемент кнопки та зберігає в this.btn
+   * Створює DOM елемент кнопки та зберігає в this.el
    * @param {*} props
    *
    */
   constructor(props = {}) {
+    props.ln = props.ln ? props.ln : `ClassButton(${props.reg.id})::`;
+
+    super(props);
+
+    let trace = 1,
+      ln = this.ln + "ClassButton::constructor::";
+
+    if (trace) {
+      console.log(ln + `props=`);
+      console.dir(props);
+    }
+
+    this.parent = props.parent;
+    // створюємо елемент ДОМ
     let but = document.createElement("button");
     but.id =
-      props.prefix +
-      "_btn_" +
-      (props.name
-        ? props.name
-        : "noNameButton_" + new Date().getTime().toString().slice(-7));
-
+      parent.id + this.id
+        ? this.id
+        : console.error(this.ln + "Id of button not defined!");
+    // оформлюємо кнопку
     but.classList.add("btn");
-    if (Array.isArray(props.classes)) {
-      for (let i = 0; i < props.classes.length; i++) {
-        but.classList.add(props.classes[i]);
-      }
+    if (props.reg.classes) {
+      this.setClassList(but, props.reg.classes);
     }
-
-    if (typeof props.attributes == "object") {
-      for (let key in props.attributes) {
-        if (props.attributes.hasOwnProperty(key)) {
-          but.setAttribute(key, props.attributes[key]);
-        }
-      } // for
+    if (props.reg.attributes) {
+      this.setAtributes(but, props.reg.attributes);
     }
+    //  напис на кнопці
     but.setAttribute("type", "button");
-    but.innerHTML = props.innerHTML ? props.innerHTML : "<h6>???</h6>";
-    but.onclick = this.onclick.bind(this);
-    this.btn = but;
+    but.innerHTML = props.reg.header[lang]
+      ? props.reg.header[lang]
+      : "<h6>???</h6>";
+    // обробник кліку
+    but.onclick = props.reg.onclick
+      ? props.reg.onclick.bind(this)
+      : this.onclick;
+    // зберігаємо кнопку
+    this.el = but;
+    this.container.appendChild(but);
   } // constructor
   onclick(event) {
     let trace = 1,
-      ln = `${this.btn.id}::Was pressed!!`;
+      ln = `${this.el.id}::Was pressed!! External event listener not defined!   `;
     trace ? console.log(ln) : null;
   }
 };
+// ------- myElR_buttonGroup.js -----------------------------------
+beforeTrace = trace;
+trace = 1;
+/** Створює та повертає елемент buttonGroupe
+ *
+ */
+myElementsRender["buttonGroup"] = class ClassButtonGroup extends (
+  myElementsRender.ClassGeneralElement
+) {
+  constructor(props = {}) {
+    props.ln = props.ln ? props.ln : `buttonGroup()::`;
+    super(props);
+    let trace = 1,
+      ln = this.ln + "Constructor()::";
+    if (trace) {
+      console.log(ln + `props=`);
+      console.dir(props);
+    }
+    // список типів для рендерингу елементів
+    this.types = props.types
+      ? props.types
+      : console.error(this.ln + " types is not defined! ");
+    // створюємо группу кнопок
+    let btnGroup = document.createElement("div");
+    // налаштовуємо класи
+    if (this.reg.classes) {
+      this.setClassList(btnGroup, this.reg.classes);
+    } else {
+      this.setClassList(btnGroup, "col btn-group-vertical");
+    }
+    btnGroup.setAttribute("role", "group");
+    // налаштовуємо атрибути, якщо вони є
+    if (this.reg.attributes) {
+      this.setAttributes(btnGroup, this.attributes);
+    }
+    this.btnGroup = btnGroup;
+    // створюємо кнопки
+    this.children = {};
+    for (let key in this.reg.regs) {
+      if (this.reg.regs.hasOwnProperty(key)) {
+        let trace = 1,
+          ln = this.ln + `CreateButton(${key})::`;
+        let btn = {};
+        btn.reg = this.reg.regs[key];
+        btn.reg.id = this.id + "_" + key;
+        //btn.ln = ln;
+        btn.container = this.btnGroup;
+        btn.parent = this;
+        if (trace) {
+          console.log(ln + `btn=`);
+          console.dir(btn);
+        }
+        this.children[key] = new this.types["button"](btn);
+      }
+    }
+    this.el = btnGroup;
+    this.container.appendChild(this.el);
+    if (trace) {
+      console.log(ln + `this=`);
+      console.dir(this);
+    }
+  } // costructor
+};
+</script><div class="container-fluide"><div class="row"><div class="col-2 border"><div class="container-fluide" id="fileManagerContainer"><div class="row" id="el_fileMan_btnGroup"></div><div class="row" id="el_fileMan_listFiles"></div><script>const ClassFileManager = class FileManager {
+  constructor(props) {
+    this.ln = `ClassFileManager(${props.id})::`;
+    let trace = 1,
+      ln = this.ln + "constructor()::";
+    if (trace) {
+      console.log(ln + `props=`);
+      console.dir(props);
+    }
+    this.id = props.id;
+    // list of types
+    this.types = props.types;
+
+    // container
+    this.container = props.container
+      ? props.container
+      : console.error(this.ln + "Container not defined!");
+
+    // list of buttons
+    this.buttons = {};
+    if (props.buttons) {
+      props.buttons.types = this.types;
+      this.buttons = new this.types["buttonGroup"](props.buttons);
+    }
+    // listFiles
+    this.listFiles = new this.types["selectGeneral"](props.listFiles);
+
+    this.getListFiles = props.getListFiles
+      ? props.getListFiles
+      : () => {
+          console.log(this.ln + "Function getListFiles() not defined");
+          return [];
+        };
+  } //constructor
+};
+//- парсимо отримані з сервера дані, та зберігаємо їх в fileManager
+//let fileManager= JSON.parse( '!{JSON.stringify(manager.fileManager.reg)}' );
+// передаємо контейнер в якому буде побудований менеджер файлів
+let props = {};
+props.container = document.getElementById("fileManagerContainer");
+props.types = myElementsRender;
+props.id = "fileManager";
+//- props.reg ={
+//-   id:"fileManager",
+//-   header:{ua:"",en:"",ry:""},
+//-   ln:"tasks_fileManager.js::"
+//- }
+props.buttons = {
+  container: document.getElementById("el_fileMan_btnGroup"),
+  reg: {
+    id: props.id + "_btnGroup",
+    header: { ua: "", en: "", ru: "" },
+    type: "buttonGroup",
+    regs: {},
+  },
+};
+
+props.buttons.reg.regs.btnSave = {
+  classes: ["btn-primary"],
+  header: { ua: "Зберегти", en: "Save", ru: "Сохранить" },
+  onclick: function (e) {
+    let trace = 1,
+      ln = "btnAccept::onClick::";
+    trace ? console.log(ln + ` Pressed!`) : null;
+    let data = tasks.model.getValues();
+    if (
+      !confirm(
+        {
+          ua: `Ви дійсно бажаєте зберегти програму "${data[0].name}"?`,
+          en: `Do You really want to save the program  "${data[0].name}"?`,
+          ru: `Вы действительно хотите сохранить программу "${data[0].name}"?`,
+        }[lang]
+      )
+    ) {
+      console.log(ln + "Cancelled by user.");
+      return;
+    }
+  },
+};
+
+props.buttons.reg.regs.btnAccept = {
+  classes: ["btn-success"],
+  header: { ua: "Застосувати", en: "Accept", ru: "Применить" },
+  onclick: async function (e) {
+    let trace = 1,
+      ln = "btnAccept::onClick::";
+    trace ? console.log(ln + ` Pressed!`) : null;
+    let data = tasks.model.getValues();
+    if (
+      !confirm(
+        {
+          ua: `Ви дійсно бажаєте завантажити програму "${data[0].name}"?`,
+          en: `Do You really want to load program  "${data[0].name}"?`,
+          ru: `Вы действительно хотите загрузить программу "${data[0].name}"?`,
+        }[lang]
+      )
+    ) {
+      console.log(ln + "Cancelled by user.");
+      return;
+    }
+
+    if (trace) {
+      console.log(ln + `data=`);
+      console.dir(data);
+    }
+  }, // onclick
+};
+
+props.buttons.reg.regs.btnDelete = {
+  classes: ["btn-warning"],
+  header: { ua: "Видалити", en: "Delete", ru: "Удалить" },
+  onclick: function (e) {
+    let trace = 1,
+      ln = "btnDelete::onClick::";
+    trace ? console.log(ln + ` Pressed!`) : null;
+    let data = tasks.model.getValues();
+    if (
+      !confirm(
+        {
+          ua: `Ви дійсно бажаєте видалити програму "${data[0].name}"?`,
+          en: `Do You really want to delete the program  "${data[0].name}"?`,
+          ru: `Вы действительно хотите удалить программу "${data[0].name}"?`,
+        }[lang]
+      )
+    ) {
+      console.log(ln + "Cancelled by user.");
+      return;
+    }
+  },
+};
+
+props.listFiles = {
+  container: document.getElementById("el_fileMan_listFiles"),
+  reg: {
+    id: props.id + "fileList",
+    reg: {
+      id: "fileList",
+      header: {
+        ua: `Список програм`,
+        en: `The list of program`,
+        ru: `Список программ`,
+      },
+      cooment: {
+        ua: `Виберіть програму`,
+        en: `Select a program`,
+        ru: `Выберите программу`,
+      },
+      type: "selectGeneral",
+      regs: ["Пусто"],
+    },
+  },
+};
+
+const fileManager = new ClassFileManager(props);
+</script></div></div><div class="col"><div class="container-fluide" id="tasksContainer"></div></div></div></div><script>const tasks={};
+//- створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
+//- з них вмикати трасування окремо від інших , тому кожний файл з кодом
+//- перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
+//- після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
+
+tasks.header = JSON.parse(  '{"ua":"Створення програми","en":"Program creating","ru":"Создание программы"}' );
+tasks.id=JSON.parse(  '"TasksManager"' );
+tasks.reg = JSON.parse(  '{"id":"taskType","ln":"ClassReg_select(taskType)::","header":{"ua":"Тип кроку","en":"Select type of step","ru":"Тип шага"},"type":"select","comment":{"ua":"Доступні типи","en":"Avaliable types","ru":"Доступные типы"},"editable":true,"regs":{"description":{"id":"description","ln":"ClassReg_regsList(description)::","header":{"ua":"Загальна інформація","en":"General descriptiom of program","ru":"Общее описание програмы"},"type":"regsList","comment":{"ua":"","en":"","ru":""},"editable":false,"regs":{"name":{"id":"name","ln":"tasks.description.name::","header":{"ua":"Назва програми","en":"Program name","ru":"Наименование программы"},"type":"text","value":"empty","comment":{"ua":"3..20 символів","en":"3..20 characters","ru":"3..20 символов"},"editable":true},"note":{"id":"note","ln":"tasks.description.note::","header":{"ua":"Примітки","en":"Notes","ru":"Примечания"},"type":"textarea","value":"empty","comment":{"ua":"Опис програми","en":"Program description","ru":"Описание программы"},"editable":true}}},"ClassTask_Heating":{"id":"ClassTask_Heating","ln":"ClassTaskThermal()::","header":{"ua":"Нагрівання","en":"Heating","ru":"Нагревание"},"type":"regsList","comment":{"ua":"Немає опису","en":"Note not defined","ru":"Описания нет"},"editable":true,"regs":{"tT":{"id":"tT","ln":"ClassReg_number(tT)::","header":{"ua":"T,°C","en":"T,°C","ru":"T,°C"},"type":"number","value":0,"comment":{"ua":"Цільова температура","en":"Task temperature","ru":"Целевая температура"},"editable":true,"min":0,"max":150},"errTmin":{"id":"errTmin","ln":"ClassReg_number(errTmin)::","header":{"ua":"errTmin,°C","en":"errTmin,°C","ru":"errTmin,°C"},"type":"number","value":0,"comment":{"ua":"Макс. відх. вниз (0=вимкн)","en":"Limit of low temperature (0=disable)","ru":"Макс. откл. вниз (0=выкл)"},"editable":true,"min":-100,"max":0},"errTmax":{"id":"errTmax","ln":"ClassReg_number(errTmax)::","header":{"ua":"errTmax,°C","en":"errTmax,°C","ru":"errTmax,°C"},"type":"number","value":0,"comment":{"ua":"Макс. відх. вверх (0=вимкн)","en":"Limit of high temperature (0=disable)","ru":"Макс. откл. вверх (0=выкл)"},"editable":true,"min":0,"max":100},"regMode":{"id":"regMode","ln":"ClassReg_select(regMode)::","header":{"ua":"Регулювання","en":"Regulation","ru":"Регулирование"},"type":"select","value":"pid","comment":{"ua":"Закон регулювання","en":"Control type","ru":"Закон регулирования"},"editable":true,"regs":{"pos":{"id":"pos","ln":"ClassReg_regsList(pos)::","header":{"ua":"Позиційний","en":"Positional","ru":"Позиционный"},"type":"regsList","comment":{"ua":"Позиційний закон регулювання","en":"Positional regulation","ru":"Позиционный закон регуллирования"},"editable":true,"regs":{"o":{"id":"o","ln":"ClassReg_number(o)::","header":{"ua":"Неузгодження","en":"Difference","ru":"Рассогласование"},"type":"number","value":-2,"comment":{"ua":"Неузгодження температур,°С","en":"Temperature difference,°С","ru":"Рассогласование температур,°С"},"editable":true,"min":-20,"max":0}}},"pid":{"id":"pid","ln":"ClassReg_regsList(pid)::","header":{"ua":"ПІД","en":"PID","ru":"ПИД"},"type":"regsList","comment":{"ua":"ПІД закон регулювання","en":"PID regulation","ru":"ПИД закон регуллирования"},"editable":true,"regs":{"o":{"id":"o","ln":"ClassReg_number(o)::","header":{"ua":"П","en":"P","ru":"П"},"type":"number","value":5,"comment":{"ua":"Пропорційна складова","en":"Proportional gain","ru":"Пропорциональная составляющая"},"editable":true,"min":0,"max":100},"ti":{"id":"ti","ln":"ClassReg_number(ti)::","header":{"ua":"І","en":"I","ru":"И"},"type":"number","value":5,"comment":{"ua":"Інтегральна складова","en":"Integral gain","ru":"Интегральная составляющая"},"editable":true,"min":0,"max":100},"td":{"id":"td","ln":"ClassReg_number(td)::","header":{"ua":"Д","en":"D","ru":"Д"},"type":"number","value":5,"comment":{"ua":"Диференційна складова","en":"Differencial gain","ru":"Диферинциальная составляющая"},"editable":true,"min":0,"max":100}}}}},"wT":{"id":"wT","ln":"ClassReg_number(wT)::","header":{"ua":"wT,°C","en":"wT,°C","ru":"wT,°C"},"type":"number","value":0,"comment":{"ua":"Початок ПІД рег. (=0 вимкн.)","en":"Start PID regulation (=0 off)","ru":"Начало ПИД рег. (=0-выкл.)"},"editable":true,"min":-200,"max":0},"H":{"id":"H","ln":"ClassReg_timer(H)::","header":{"ua":"Нагрівання","en":"Heating","ru":"Нагревание"},"type":"timer","value":0,"comment":{"ua":"Час нагрівання (=0 - макс. швидко)","en":"Heating time (=0 quick)","ru":"Время нагревания (=0 макс. быстро)"},"editable":true,"min":0,"max":1439}}}}}' );
+tasks.list = JSON.parse(  '[{"id":"description","name":"prg01","note":"Короткий опис програми"},{"id":"ClassTask_Heating","tT":0,"errTmin":-15,"errTmax":15,"regMode":"pid","o":0,"ti":0,"td":0,"wT":0,"H":0}]' );
+tasks.container = document.getElementById( 'tasksContainer' );
+
 </script><script>// додано для сумісності з попереднім кодом
 tasks.elementsTypes = myElementsRender;
 tasks.ClassRegsList = myElementsRender.regsList;
@@ -1472,9 +1783,13 @@ tasks.ClassCreateStep = class ClassCreateStep {
 }; // ClassCreateStep
 
 trace = beforeTrace;
-tasks.modalWindow = {};
+//myModalWindow = {};
 
-tasks.modalWindow = new (class ModalWindow {
+const myModalWindow = new (class ModalWindow {
+  /**
+   * Модальне вікно для спілкування з користувачем
+   * @param {*} props
+   */
   constructor(props = {}) {
     this.header = props.header ? props.header : "Undefined";
     this.id = props.id
@@ -1559,83 +1874,7 @@ tasks.modalWindow = new (class ModalWindow {
   }
   setFooter(content) {}
 })();
-</script><script>tasks.fileManager= JSON.parse( '{"id":"tasksList","ln":"ClassReg_regsList(tasksList)::","header":{"ua":"Робота зі списком завдань","en":"Working with list of tasks","ru":"Работа со списком заданий"},"type":"regsList","comment":{"ua":"","en":"","ru":""},"editable":true,"regs":{"fileNames":{"id":"fileNames","ln":"ClassRegister(fileNames)::","header":{"ua":"Перелік програм","en":"The list of programs","ru":"Список программ"},"type":"simpleSelect","comment":{"ua":"Виберіть програму","en":"Select program","ru":"Выберите програму"},"editable":true,"list":["default.json","task01.json","колесаВеликі відпал.json"]}}}' );
-
-{
-  let t = tasks.fileManager;
-  t.container = document.getElementById( 'fileManagerContainer' );
-  let btnGroup =document.createElement('div' );
-  btnGroup.classList.add("col"); 
-
-  btnGroup.classList.add( 'btn-group-vertical' );
-  let btnSave = new myElementsRender["button"]({
-    name:"save",
-    prefix: t.id,
-    classes:["btn-primary"],
-    innerHTML: {ua:"Зберегти", en:"Save", ru:"Сохранить"}[lang],
-    parent:t,
-    onclick:t.save,
-  });
-  btnGroup.appendChild( btnSave.btn );
-
-  let btnAccept = new myElementsRender["button"]({
-    name:"accept",
-    prefix: t.id,
-    classes:["btn-success"],
-    innerHTML: {ua:"Застосувати", en:"Accept", ru:"Применить"}[lang],
-    parent:t,
-    onclick:t.accept,
-  });
-  btnGroup.appendChild( btnAccept.btn );
-
-  let btnDelete = new myElementsRender["button"]({
-    name:"delete",
-    prefix: t.id,
-    classes:["btn-warning"],
-    innerHTML: {ua:"Видалити", en:"Delete", ru:"Удалить"}[lang],
-    parent:t,
-    onclick:t.delete,
-  });
-  btnGroup.appendChild( btnDelete.btn );
-  let divButton = document.createElement("div");
-  divButton.className = "row";
-
-  divButton.appendChild( btnGroup);
-  t.container.appendChild(divButton);
-
-  let rowFileList = document.createElement("div");
-  rowFileList.className = "row"
-  let colFileList = document.createElement("div");
-  colFileList.className = "col"
-  rowFileList.appendChild(colFileList);
-
-  t.fileList = new myElementsRender["selectGeneral"](
-    { 
-      id: t.regs.fileNames.id,
-      prefix: t.regs.fileNames.id,
-      reg: t.regs.fileNames,
-      value: t.value,
-      regs: t.regs.fileNames.list,
-      container:colFileList,
-      setOption: (val) =>{
-        return val.split(".")[0]
-      },
-      afterChange : async (parent) => {
-        console.log(`parent=`)
-        console.dir(parent)
-      }
-    }
-  )
-  colFileList.appendChild(t.fileList.div);
-  t.container.appendChild(rowFileList);
-
-  //- t.regs.buttonSave = new myElementsRender.ClassCreateElement({
-
-  //- })
-  //- t.render= () => {
-
-  //- }
-}</script><script>//- запускаємо відображення списку кроків програми
+</script><script>//- запускаємо відображення списку кроків програми
 tasks.renderList();
 
 </script><div class="row"><div class="col"><button class="btn btn-primary" type="button" id="buttonTasksAccept">Застосувати</button></div></div><script>buttonTasksAccept.onclick = (e) => {

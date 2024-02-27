@@ -44,49 +44,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
       : (val) => {
           return val;
         };
-
-    // створюємо список <option>
-    let keys = "";
-    let first = true;
-    let currKey = "";
-    if (typeof this.regs == "object" && !Array.isArray(this.regs)) {
-      for (let key in this.regs) {
-        let trace = 0;
-        if (this.regs.hasOwnProperty(key)) {
-          let selected = "";
-          // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
-          if (!first && key == this.value) {
-            selected = "selected";
-            currKey = key;
-          }
-          trace ? console.log(ln + "key=" + key) : null;
-          keys += `<option value='${this.setOption(key)}' ${selected}> ${
-            this.reg.regs[key].header[lang]
-          } </option>`;
-        }
-      } //for
-    } // if (typeof this.regs == "object")
-
-    if (Array.isArray(this.regs)) {
-      let trace = 1;
-      for (let i = 0; i < this.regs.length; i++) {
-        const key = this.regs[i];
-        let selected = "";
-        // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
-        if (!first && key == this.value) {
-          selected = "selected";
-          currKey = key;
-        }
-        let opt = `<option value='${key}' ${selected}> ${this.setOption(
-          key
-        )} </option>`;
-        trace ? console.log(ln + "opt=" + opt) : null;
-        keys += opt;
-      }
-    }
-    // -- опції вибору -------
-    this.field.innerHTML = keys;
-
+    this.renderOptions();
     // -- початкова ініціалізація -----------
     this.value = this.getFieldValue();
     trace ? console.log(ln + `this.value=${this.value}`) : null;
@@ -116,7 +74,54 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     let trace = 1,
       ln = this.ln + `setValue(${val})::`;
     trace ? console.log(ln + `Started`) : null;
-    super.setValue(val);
+    //super.setValue(val);
+  }
+
+  renderOptions() {
+    // знищуємо всіх дітей
+    this.field.innerHTML = "";
+
+    // створюємо список <option>
+    let keys = "";
+    let first = true;
+    let currKey = "";
+    if (typeof this.regs == "object" && !Array.isArray(this.regs)) {
+      for (let key in this.regs) {
+        let trace = 0;
+        if (this.regs.hasOwnProperty(key)) {
+          let selected = "";
+          // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
+          if (!first && key == this.value) {
+            selected = "selected";
+            currKey = key;
+          }
+          trace ? console.log(ln + "key=" + key) : null;
+          keys += `<option value='${this.setOption(key)}' ${selected}> ${
+            this.regs[key].header[lang]
+          } </option>`;
+        }
+      } //for
+    } // if (typeof this.regs == "object")
+
+    if (Array.isArray(this.regs)) {
+      let trace = 1;
+      for (let i = 0; i < this.regs.length; i++) {
+        const key = this.regs[i];
+        let selected = "";
+        // якщо this.value не вказано, то перший елемент в списку опцій обирається автоматично браузером
+        if (!first && key == this.value) {
+          selected = "selected";
+          currKey = key;
+        }
+        let opt = `<option value='${key}' ${selected}> ${this.setOption(
+          key
+        )} </option>`;
+        trace ? console.log(ln + "opt=" + opt) : null;
+        keys += opt;
+      }
+    }
+    // -- опції вибору -------
+    this.field.innerHTML = keys;
   }
 };
 

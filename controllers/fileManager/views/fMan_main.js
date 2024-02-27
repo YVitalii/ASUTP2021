@@ -1,0 +1,69 @@
+{
+  // для скорочення записів при ініціалізації вводимо змінну-посилання на fileManager
+  let t = fileManager;
+  // // створюємо группу кнопок
+  // let btnGroup = document.createElement("div");
+
+  // btnGroup.classList.add("col");
+  // btnGroup.classList.add("btn-group-vertical");
+  let btnSave = new myElementsRender["button"]();
+  btnGroup.appendChild(btnSave.btn);
+
+  // let btnAccept = new myElementsRender["button"]({
+  //   name: "accept",
+  //   prefix: t.id,
+  //   classes: ["btn-success"],
+  //   innerHTML: { ua: "Застосувати", en: "Accept", ru: "Применить" }[lang],
+  //   parent: t,
+  //   onclick: t.accept,
+  // });
+  // btnGroup.appendChild(btnAccept.btn);
+
+  let btnDelete = new myElementsRender["button"]({
+    name: "delete",
+    prefix: t.id,
+    classes: ["btn-warning"],
+    innerHTML: { ua: "Видалити", en: "Delete", ru: "Удалить" }[lang],
+    parent: t,
+    onclick: t.delete,
+  });
+  btnGroup.appendChild(btnDelete.btn);
+  let divButton = document.createElement("div");
+  divButton.className = "row";
+
+  divButton.appendChild(btnGroup);
+  t.container.appendChild(divButton);
+
+  let rowFileList = document.createElement("div");
+  rowFileList.className = "row";
+  let colFileList = document.createElement("div");
+  colFileList.className = "col";
+  rowFileList.appendChild(colFileList);
+
+  t.fileList = new myElementsRender["selectGeneral"]({
+    id: t.regs.fileNames.id,
+    prefix: t.regs.fileNames.id,
+    reg: t.regs.fileNames,
+    value: t.value,
+    regs: t.regs.fileNames.list,
+    container: colFileList,
+    setOption: (val) => {
+      return val.split(".")[0];
+    },
+    afterChange: async (parent) => {
+      console.log(`parent=`);
+      console.dir(parent);
+      console.log("this=");
+      console.dir(this);
+    },
+  });
+  colFileList.appendChild(t.fileList.div);
+  t.container.appendChild(rowFileList);
+
+  //- t.regs.buttonSave = new myElementsRender.ClassCreateElement({
+
+  //- })
+  //- t.render= () => {
+
+  //- }
+}

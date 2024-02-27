@@ -1,6 +1,6 @@
 // -----------  element: input type="number" -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /**
  * Створює та повертає елемент вводу числа
  * має min та max
@@ -39,7 +39,7 @@ myElementsRender["number"] = class ClassElementNumber extends (
     }
   }
   onchange(event) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "onchange()::";
     super.onchange(event);
     let val = this.getFieldValue();

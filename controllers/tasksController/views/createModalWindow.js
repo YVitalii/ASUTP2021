@@ -1,6 +1,10 @@
-tasks.modalWindow = {};
+//myModalWindow = {};
 
-tasks.modalWindow = new (class ModalWindow {
+const myModalWindow = new (class ModalWindow {
+  /**
+   * Модальне вікно для спілкування з користувачем
+   * @param {*} props
+   */
   constructor(props = {}) {
     this.header = props.header ? props.header : "Undefined";
     this.id = props.id

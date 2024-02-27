@@ -1,16 +1,28 @@
 @startuml DOM_elements
-class ClassCreateElement {
-    
-    +id : String; // ідентифікатор регістру
-    +ln : String  = "ClassCreateElement()::"
-    +prefix : String; // префікс до id елементу 
-    +tag : String; // імя HTML тегу для створення node DOM = this.field
-    +container : nodeDOM; // Батьківський контейнер для розміщення компоненту
-    +reg : Object; // Типовий регістр ClassRegister та його нащадки
-	+type :  String; // Тип регістру
-	+editable : Boolean = true // Дозвіл на редагування значення регістру
-	+value : String|Number // Поточне значення
+
+class ClassGeneralElement {
+    ** constructor **
+	+container : nodeDOM; // Батьківський контейнер для розміщення компоненту
+	+reg : Object; // Типовий регістр ClassRegister та його нащадки
 	---
+    +this.id = reg.id: String; // ідентифікатор регістру 
+    +this.prefix = reg.id | id+timeStamp: String; // префікс до id елементу 
+	+this.type = reg.type :  String; // Тип регістру
+	+this.editable = reg.editable : Boolean // Дозвіл на редагування значення регістру
+	---
+	this.setClassList(el, classList) - додає до елементу класи
+	this.setAtributes(el, list) - додає до елементу атрибути 
+}
+ ClassGeneralElement <|-- ClassCreateElement
+ 
+class ClassCreateElement {
+    ** constructor **
+    +tag : String; // імя HTML тегу для створення node DOM = this.field
+	+value : String|Number // Поточне значення
+	+afterChange() : async Function // Запускається після зміни значення поля
+	
+	---
+	+ln : String  = "ClassCreateElement()::"
     #elId : String; // element Id ідентифікатор для батьківського елементу = prefix+"__"+id
     #beforeValue : String|Number // попереднє значення
     #div : node DOM   // батьківський контейнер для створення елементу class="col form-group" id=elId
@@ -67,8 +79,7 @@ class ClassElementSelectRegsList {
 ClassElementSelectGeneral <|-- ClassElementSelectRegsList
 
 
-class ClassRegsList {
-    
+class ClassRegsList {   
     ** constructor **
     +types=myElementsRender : Object // список типів конструкторів класів  з яких створюються елементи 
     +regs  : Object // список регістрів-дітей для створення DOM nodes

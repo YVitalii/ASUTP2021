@@ -3,25 +3,30 @@
 p --------------------- debugging info manager = -----------------------------
   pre #{JSON.stringify(manager.fileManager)}  
 p --------------------- debugging info -----------------------------
-
+script.
+  let trace = 1, beforeTrace = 0;
+  const lang= '!{lang}'; 
+//- рендер елементів
+include ../../elementsRender/views/myElementsRender.pug
 //- створюємо контейнери для вмісту
 div(class="container-fluide")
   div(class="row")
     div(class="col-2 border")
       div(class="container-fluide", id="fileManagerContainer")
+        //- менеджер файлів
+        include tasks_fileManager.pug
       //- p Тут має бути вибір зі списку програм
     div(class="col")
       div(class="container-fluide", id="tasksContainer")
 
 //- готуємо початкові дані 
 script.
-  const lang= '!{lang}'; 
+
   const tasks={};
   //- створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
   //- з них вмикати трасування окремо від інших , тому кожний файл з кодом
   //- перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
   //- після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
-  let trace = 1, beforeTrace = 0;
 
   tasks.header = JSON.parse(  '!{JSON.stringify(manager.header)}' );
   tasks.id=JSON.parse(  '!{JSON.stringify(manager.id)}' );
@@ -29,8 +34,7 @@ script.
   tasks.list = JSON.parse(  '!{JSON.stringify(manager.list)}' );
   tasks.container = document.getElementById( 'tasksContainer' );
 
-//- рендер елементів
-include myElementsRender.pug
+
 script.
   // додано для сумісності з попереднім кодом
   tasks.elementsTypes = myElementsRender;
@@ -46,8 +50,7 @@ script
   //- елемент createMModalWindow.js
   include createModalWindow.js
 
-//- менеджер файлів
-include tasks_fileManager.pug
+
 
 
 

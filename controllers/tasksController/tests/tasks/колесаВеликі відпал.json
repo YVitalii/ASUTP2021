@@ -1,12 +1,12 @@
 [
 	{
 		"id": "description",
-		"name": "prg01",
-		"note": "Короткий опис програми"
+		"name": "Колесо2013",
+		"note": "Колеса великі відпалювання"
 	},
 	{
 		"id": "ClassTask_Heating",
-		"tT": 80,
+		"tT": 30,
 		"errTmin": -15,
 		"errTmax": 15,
 		"regMode": "pid",
@@ -18,7 +18,7 @@
 	},
 	{
 		"id": "ClassTask_Heating",
-		"tT": 120,
+		"tT": 140,
 		"errTmin": -10,
 		"errTmax": 10,
 		"regMode": "pid",
