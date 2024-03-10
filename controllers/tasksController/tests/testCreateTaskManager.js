@@ -3,7 +3,7 @@ const log = require("../../../tools/log.js");
 const ClassTaskThermal = require("../../thermoController/heating/ClassTask_Heating.js");
 const homeDir = __dirname + "";
 
-let trace = 1,
+let trace = 0,
   ln = __filename + "::";
 // let props = {};
 // props = {

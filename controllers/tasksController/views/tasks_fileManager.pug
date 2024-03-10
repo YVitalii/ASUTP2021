@@ -1,4 +1,6 @@
-
+p --------------------- debugging info manager = -----------------------------
+  pre manager.fileManager=#{JSON.stringify(manager.fileManager)}  
+p --------------------- debugging info -----------------------------
 
 div(class="row" id="el_fileMan_btnGroup")
 div(class="row" id="el_fileMan_listFiles")
@@ -10,6 +12,10 @@ script
   include ../../fileManager/views/fMan_Class.js
   include ./tasks_fileManager.js
 
+script.
+  //fileManager.filesList.reg.regs = ;
+  fileManager.renderFilesList(JSON.parse(  '!{JSON.stringify(manager.fileManager.filesList)}' ))
+  fileManager.homeURL = JSON.parse(  '!{JSON.stringify(manager.fileManager.homeURL)}' )
 //- script
 //- include ../../fileManager/views/fMan_main.js
 

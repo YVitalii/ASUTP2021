@@ -1,4 +1,10 @@
 const ClassFileManager = class FileManager {
+  /**
+   *
+   * @param {Object} props - список параметрів
+   *
+   */
+
   constructor(props) {
     this.ln = `ClassFileManager(${props.id})::`;
     let trace = 1,
@@ -23,13 +29,71 @@ const ClassFileManager = class FileManager {
       this.buttons = new this.types["buttonGroup"](props.buttons);
     }
     // listFiles
-    this.listFiles = new this.types["selectGeneral"](props.listFiles);
+    this.filesList = new this.types["selectGeneral"](props.filesList);
 
-    this.getListFiles = props.getListFiles
-      ? props.getListFiles
+    this.getFilesList = props.getFilesList
+      ? props.getFilesList
       : () => {
           console.log(this.ln + "Function getListFiles() not defined");
           return [];
         };
   } //constructor
+
+  getFileName = () => {
+    return this.filesList.getValue();
+  };
+
+  renderFilesList(regs) {
+    // промальовує елемент
+    this.filesList.render(regs);
+  }
+
+  async loadFilesList() {
+    try {
+      // запит на сервер
+      let { err, data } = await fileManager.post("getFilesList", {});
+      // Підтвердження
+      this.renderFilesList(data);
+    } catch (error) {
+      console.error(error);
+    } // try catch
+  }
+
+  async post(path, addData = {}) {
+    let trace = 1,
+      ln = this.ln + `.post(${path})::`;
+    // адреса для запиту
+    let baseUrl = this.homeURL;
+    // імя файлу
+    let fileName = addData.fileName
+      ? addData.fileName
+      : this.filesList.getValue();
+    addData["fileName"] = fileName;
+    // запит POST
+    let response = await fetch(baseUrl + path, {
+      method: "POST",
+      headers: { "Content-type": "application/json;charset=utf-8" },
+      body: JSON.stringify(addData), //  ,
+    });
+    if (response.status === 200) {
+      // отримуємо результат
+      let result = await response.json();
+      console.log(
+        ln + `url=${baseUrl + path}?fileName=${fileName}. Успішно виконаний!`
+      );
+      if (trace) {
+        console.log(ln + `result=`);
+        console.dir(result);
+      }
+      if (result.err != null) {
+        console.error(ln + "Error" + err[lang]);
+        throw new Error(ln + err[lang]);
+      }
+      return result;
+    } else {
+      let msg = ln + "Error post request code=" + response.status;
+      console.error(msg);
+      throw new Error(ln + msg);
+    } //if (response.status === 200)
+  } // post()
 };

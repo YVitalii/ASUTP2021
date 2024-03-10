@@ -185,7 +185,7 @@ tasks.createStep = (props = {}) => {
   return el;
 };
 
-tasks.renderList = function () {
+tasks.renderList = function (list = undefined) {
   let trace = 1,
     ln = "tasks.renderList()::";
 
@@ -196,7 +196,10 @@ tasks.renderList = function () {
   this.container.innerHTML = "";
 
   // для скорочення коду
-  let list = tasks.list;
+  if (list != undefined && Array.isArray(list)) {
+    tasks.list = list;
+  }
+  list = tasks.list;
 
   // ------- створюємо заголовок ----------
   let header = document.createElement("div");

@@ -16,6 +16,7 @@ class ClassFileManager {
       throw new Error("ClassFileManager:: Error! Not defined home directory!");
     }
     this.homeDir = pathNormalize(pathResolve(props.homeDir));
+
     this.ln = (props.ln ? props.ln : "") + `ClassFileManager::`;
 
     let trace = 1,
@@ -24,6 +25,9 @@ class ClassFileManager {
       log("", ln, `props=`);
       console.dir(props);
     }
+
+    // URL адреса на яку надсилаються запити, якщо не вказана - то коренева
+    this.homeURL = props.homeURL ? props.homeURL : "/";
 
     // перевіряємо наявність вказаної директорії
     if (!fs.existsSync(this.homeDir)) {
@@ -48,8 +52,9 @@ class ClassFileManager {
     this.filesList = fs.readdirSync(this.homeDir);
     return this.filesList;
   }
+
   //** синхронна, повертає збережений в памяті список */
-  getFileList() {
+  getFilesList() {
     return this.filesList;
   }
 
@@ -59,9 +64,13 @@ class ClassFileManager {
     if (fName == undefined) {
       return Promise.reject(ln + "File name not defined!");
     }
-    let data = await fsPromises.readFile(pathJoin(this.homeDir, fName));
-    log("w", ln + "File was readed.");
-    return data;
+    try {
+      let data = await fsPromises.readFile(pathJoin(this.homeDir, fName));
+      log("w", ln + "File was readed.");
+      return data.toString();
+    } catch (error) {
+      log("e", ln + "Can't read file:" + fName);
+    }
   }
 
   async deleteFile(fName) {
@@ -105,7 +114,8 @@ class ClassFileManager {
     }
     fsPromises.appendFile(pathJoin(this.homeDir, fName), data);
   }
-  /** повертає вірно якщо файл з ім'ям fName існує */
+
+  /** повертає true якщо файл з ім'ям fName існує */
   exist(fName) {
     let trace = 1,
       ln = this.ln + `exist(${fName})::`;

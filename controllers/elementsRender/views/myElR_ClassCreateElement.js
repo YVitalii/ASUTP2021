@@ -4,9 +4,7 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
   /**
    * Створює налаштований DOM-елемент загального типу
    * @param {Object} props
-   * @property {string} props.prefix - префікс для id елементу
    * @property {string} props.tag - тип елементу (number, range, select)
-   * @property {Object} props.reg  - типовий регістр
    * //@property {Function} props.onchange  - додаткова локальна функція обробки події
    * @property {Object} props.container - контейнер в якому потрібно розмістити елемент
    */
@@ -21,10 +19,6 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
 
     // -- тег основного елемента, щоб створити шаблон
     this.tag = props.tag;
-
-    // зовнішня функція для обробки події зміни значення
-    // запускається коли значення змінилося
-    this.afterChange = props.afterChange;
 
     // поточне значення
     this.value = props.reg.value;
@@ -46,6 +40,12 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
     this.field.classList.add(this.prefix);
     this.field.classList.add("field");
     this.field.id = this.elId + "_field";
+    if (typeof props.attributes == "object") {
+      this.setAtributes(this.field, props.attributes);
+    }
+    if (typeof props.classes == "object") {
+      this.setClassList(this.field, props.classes);
+    }
     if (!this.editable) {
       this.field.classList.add("readonly");
     }
@@ -80,9 +80,9 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
     trace ? console.log(ln + "this.field.value=" + this.field.value) : null;
   }
 
-  async _afterChange(parent) {
-    await this.afterChange(parent);
-  }
+  // async _afterChange(parent) {
+  //   await this.afterChange(parent);
+  // }
 
   setValue(val) {
     let trace = 1,
@@ -104,6 +104,7 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
       : null;
     this.field.value = val;
     this.reg.value = val;
+    this.afterChange(this);
   }
   // /** встановлює атрибути елемента Field */
   // setProperties(el = "field", obj = {}) {
@@ -140,5 +141,8 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
   /** Повертає значення з DOM елементу field */
   getFieldValue() {
     return this.field.value;
+  }
+  getValue() {
+    return this.value;
   }
 };

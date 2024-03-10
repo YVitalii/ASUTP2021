@@ -23,23 +23,38 @@ props.buttons = {
 props.buttons.reg.regs.btnSave = {
   classes: ["btn-primary"],
   header: { ua: "Зберегти", en: "Save", ru: "Сохранить" },
-  onclick: function (e) {
+  onclick: async function (e) {
     let trace = 1,
       ln = "btnAccept::onClick::";
     trace ? console.log(ln + ` Pressed!`) : null;
-    let data = tasks.model.getValues();
+    // Отримуємо дані
+    let content = tasks.model.getValues();
+    let fileName = content[0].name;
     if (
       !confirm(
         {
-          ua: `Ви дійсно бажаєте зберегти програму "${data[0].name}"?`,
-          en: `Do You really want to save the program  "${data[0].name}"?`,
-          ru: `Вы действительно хотите сохранить программу "${data[0].name}"?`,
+          ua: `Ви дійсно бажаєте зберегти програму "${fileName}"?`,
+          en: `Do You really want to save the program  "${fileName}"?`,
+          ru: `Вы действительно хотите сохранить программу "${fileName}"?`,
         }[lang]
       )
     ) {
       console.log(ln + "Cancelled by user.");
       return;
     }
+
+    try {
+      // запит на сервер
+      let { err, data } = await fileManager.post("writeFile", {
+        fileName,
+        content,
+      });
+      await fileManager.loadFilesList();
+      // Підтвердження
+      alert(data[lang]);
+    } catch (error) {
+      console.error(error);
+    } // try catch
   },
 };
 
@@ -74,46 +89,80 @@ props.buttons.reg.regs.btnAccept = {
 props.buttons.reg.regs.btnDelete = {
   classes: ["btn-warning"],
   header: { ua: "Видалити", en: "Delete", ru: "Удалить" },
-  onclick: function (e) {
+  onclick: async function (e) {
     let trace = 1,
       ln = "btnDelete::onClick::";
     trace ? console.log(ln + ` Pressed!`) : null;
-    let data = tasks.model.getValues();
+    if (trace) {
+      console.log(ln + `this=`);
+      console.dir(this);
+    }
+    let fileName = fileManager.getFileName(); //tasks.model.getValues();
     if (
       !confirm(
         {
-          ua: `Ви дійсно бажаєте видалити програму "${data[0].name}"?`,
-          en: `Do You really want to delete the program  "${data[0].name}"?`,
-          ru: `Вы действительно хотите удалить программу "${data[0].name}"?`,
+          ua: `Ви дійсно бажаєте видалити програму "${fileName}"?`,
+          en: `Do You really want to delete the program  "${fileName}"?`,
+          ru: `Вы действительно хотите удалить программу "${fileName}"?`,
         }[lang]
       )
     ) {
       console.log(ln + "Cancelled by user.");
       return;
     }
-  },
+    try {
+      // запит на сервер
+      let { err, data } = await fileManager.post("deleteFile", {
+        fileName,
+      });
+      await fileManager.loadFilesList();
+      // Підтвердження
+      alert(data[lang]);
+    } catch (error) {
+      console.error(error);
+    } // try catch
+  }, //oclick,
 };
 
-props.listFiles = {
+props.filesList = {
   container: document.getElementById("el_fileMan_listFiles"),
-  reg: {
-    id: props.id + "fileList",
-    reg: {
-      id: "fileList",
-      header: {
-        ua: `Список програм`,
-        en: `The list of program`,
-        ru: `Список программ`,
-      },
-      cooment: {
-        ua: `Виберіть програму`,
-        en: `Select a program`,
-        ru: `Выберите программу`,
-      },
-      type: "selectGeneral",
-      regs: ["Пусто"],
-    },
+  attributes: { size: 10 },
+  afterChange: async () => {
+    // функція обробки зміни поля filesList
+    let trace = 1,
+      ln = "fileList::afterChange::";
+    try {
+      let { err, data } = await fileManager.post("readFile");
+      tasks.renderList(data);
+    } catch (error) {
+      console.error(ln + error.message);
+    }
   },
+
+  reg: {
+    prefix: props.id,
+    id: "filesList",
+    value: "task01.json",
+    header: {
+      ua: `Список програм`,
+      en: `The list of program`,
+      ru: `Список программ`,
+    },
+    comment: {
+      ua: `Виберіть програму`,
+      en: `Select a program`,
+      ru: `Выберите программу`,
+    },
+    type: "selectGeneral",
+    regs: ["Пусто", "Prg1"],
+  },
+  setOption: (val) => {
+    return val.split(".")[0];
+  },
+  // непотрібна так як в value елемента зберігається імя файла повністю
+  // getOption: (val) => {
+  //   return "" + val + ".json";
+  // },
 };
 
 const fileManager = new ClassFileManager(props);

@@ -1,12 +1,13 @@
 myElementsRender["ClassGeneralElement"] = class ClassGeneralElement {
   /**
-   * Створює налаштований DOM-елемент загального типу
+   * Створює заготовку об'єкту загального типу
    * @param {Object} props
    * @property {string} props.id -  id елементу
    * @property {string} props.prefix - префікс для id елементу
    * @property {Object} props.reg  - типовий регістр з описом елементу
    * @property {Object} props.container - контейнер в якому потрібно розмістити елемент
    * @property {String} props.type - тип елементу (ключ в  myElementsRender)
+   * @property {async Function} props.afterChange - зовнішня функція, що запускається після зміни значення
    */
   constructor(props = {}) {
     this.ln = props.ln ? props.ln : undefined;
@@ -42,6 +43,22 @@ myElementsRender["ClassGeneralElement"] = class ClassGeneralElement {
 
     this.editable =
       props.reg.editable === undefined ? true : props.reg.editable;
+
+    // зовнішня функція для обробки події зміни значення
+    // запускається коли значення змінилося
+    if (typeof props.afterChange === "function") {
+      this.afterChange = props.afterChange.bind(this);
+    } else {
+      this.afterChange = async (el = {}) => {
+        let trace = 1,
+          ln = el.ln + "afterChange()::";
+        if (trace) {
+          console.log(ln + `this.value=`);
+          console.dir(this.value);
+        }
+        return 0;
+      };
+    }
   } //constructor
 
   /**

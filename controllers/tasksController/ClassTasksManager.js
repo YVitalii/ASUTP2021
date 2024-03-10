@@ -35,17 +35,23 @@ class ClassTasksManager extends ClassReg_select {
     super(props);
 
     this.ln = "ClassTasksManager::";
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "constructor()::";
-    trace ? log("w", ln, `======= Started =====`) : null;
+
+    if (trace) {
+      console.log(ln + `======= Started ===== props=`);
+      console.dir(props);
+    }
     //
     if (!props.homeDir) {
       throw new Error(this.ln + "homeDir not defined! ");
     }
     this.homeDir = pathNormalize(props.homeDir + "\\tasks");
+    this.homeURL = props.homeURL ? props.homeURL : "/";
     this.fileManager = new ClassFileManager({
       homeDir: this.homeDir,
       ln: this.ln,
+      homeURL: this.homeURL + "fileManager/",
     });
     this.fileManager.reg = new ClassReg_regsList({
       id: "tasksList",
@@ -157,11 +163,14 @@ class ClassTasksManager extends ClassReg_select {
 
   /** Завантажує список задач з файлу */
   async loadList(fName = "default.json") {
+    let trace = 1,
+      ln = this.ln + `loadList(${fName})::`;
     let data = "";
     try {
       data = await this.fileManager.readFile(fName);
       this.list = JSON.parse(data);
     } catch (error) {
+      log("e", ln + "Can`t read default tasks file! Create it!");
       throw error;
     }
   }
@@ -189,6 +198,6 @@ class ClassTasksManager extends ClassReg_select {
     });
     return html;
   }
-} //class ClassThermoStep
+} //class ClassTasksManager
 
 module.exports = ClassTasksManager;

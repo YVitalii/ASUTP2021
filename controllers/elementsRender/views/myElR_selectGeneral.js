@@ -44,9 +44,10 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
       : (val) => {
           return val;
         };
-    this.renderOptions();
+    // промальовуємо список
+    this.render();
     // -- початкова ініціалізація -----------
-    this.value = this.getFieldValue();
+    // this.value = this.getFieldValue();
     trace ? console.log(ln + `this.value=${this.value}`) : null;
 
     if (trace) {
@@ -65,7 +66,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     // this.render(this.regs[this.getFieldValue()]);
     this.setValue(this.getOption(this.getFieldValue()));
 
-    await this._afterChange(this);
+    await this.afterChange(this);
 
     super.onchange(event);
   }
@@ -74,17 +75,37 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     let trace = 1,
       ln = this.ln + `setValue(${val})::`;
     trace ? console.log(ln + `Started`) : null;
-    //super.setValue(val);
+    super.setValue(val);
   }
 
-  renderOptions() {
-    // знищуємо всіх дітей
-    this.field.innerHTML = "";
+  render(regs = undefined) {
+    let trace = 1,
+      ln = this.ln + "render()::";
+    trace ? console.log(ln + `Started::this.value=${this.value}`) : null;
+
+    if (!regs) {
+      // якщо список не вказано то приймаємо поточне значення
+      regs = this.regs;
+    } else {
+      if (typeof regs === "object") {
+        // знищуємо всіх дітей
+        this.field.innerHTML = "";
+        this.regs = undefined;
+        // створюємо нових
+        this.regs = regs;
+      } else {
+        console.error(ln + "regs must be an Object");
+        return;
+      }
+    }
 
     // створюємо список <option>
     let keys = "";
     let first = true;
     let currKey = "";
+    let firstKey = "";
+
+    // якщо  regs - Об'єкт
     if (typeof this.regs == "object" && !Array.isArray(this.regs)) {
       for (let key in this.regs) {
         let trace = 0;
@@ -96,15 +117,32 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
             currKey = key;
           }
           trace ? console.log(ln + "key=" + key) : null;
-          keys += `<option value='${this.setOption(key)}' ${selected}> ${
-            this.regs[key].header[lang]
-          } </option>`;
+          // перший елемент не записуємо, а запамятовуємо, щоб зробити його selected
+          // якщо не вибрано інший елемент
+          if (first) {
+            firstKey = key;
+            first = false;
+            continue;
+          }
+
+          let option = (keys += `<option value='${this.setOption(
+            key
+          )}' ${selected}> ${this.regs[key].header[lang]} </option>\n`);
         }
       } //for
+      // -- активуємо перший варіант, якщо не обрано іншого
+      let selected = currKey === "" ? "selected" : "";
+      // додаємо перший варіант
+      keys =
+        `<option value='${this.setOption(firstKey)}' ${selected}> ${
+          this.regs[firstKey].header[lang]
+        } </option>\n` + keys;
     } // if (typeof this.regs == "object")
 
+    // якщо  regs - Масив
     if (Array.isArray(this.regs)) {
       let trace = 1;
+
       for (let i = 0; i < this.regs.length; i++) {
         const key = this.regs[i];
         let selected = "";
@@ -112,16 +150,48 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
         if (!first && key == this.value) {
           selected = "selected";
           currKey = key;
+          trace ? console.log(ln + `Selected: key=${key}`) : null;
+        }
+        // перший елемент не записуємо, а запамятовуємо, щоб зробити його selected
+        // якщо не вибрано інший елемент
+        if (first) {
+          firstKey = key;
+          first = false;
+          continue;
         }
         let opt = `<option value='${key}' ${selected}> ${this.setOption(
           key
-        )} </option>`;
+        )} </option>\n`;
         trace ? console.log(ln + "opt=" + opt) : null;
         keys += opt;
       }
-    }
+      // -- активуємо перший варіант, якщо не обрано іншого
+      let selected = currKey === "" ? "selected" : "";
+
+      // додаємо перший варіант
+      keys =
+        `<option value='${firstKey}' ${selected} > ${this.setOption(
+          firstKey
+        )} </option>\n` + keys;
+    } //if (Array.isArray
+
     // -- опції вибору -------
     this.field.innerHTML = keys;
+    // -- даємо час щоби створити елементи
+
+    setTimeout(() => {
+      // оновлюємо поточне значення
+      let trace = 1,
+        ln = this.ln + "setTimeOut()::";
+
+      let val = this.getFieldValue();
+      trace
+        ? console.log(
+            ln + `----- Started! this.id=${this.id}; field.value = ${val}`
+          )
+        : null;
+      this.setValue(val);
+    }, 500);
   }
 };
 

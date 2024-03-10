@@ -1,13 +1,20 @@
--var lang="ua"
 
 p --------------------- debugging info manager = -----------------------------
-  pre #{JSON.stringify(manager.fileManager)}  
+  pre manager.fileManager=#{JSON.stringify(manager.fileManager)}  
 p --------------------- debugging info -----------------------------
+
+//- створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
+//- з них вмикати трасування окремо від інших , тому кожний файл з кодом
+//- перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
+//- після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
+
 script.
-  let trace = 1, beforeTrace = 0;
-  const lang= '!{lang}'; 
-//- рендер елементів
+  let trace = 1, beforeTrace = 0; 
+
+
+//- завантажуємо рендер елементів
 include ../../elementsRender/views/myElementsRender.pug
+
 //- створюємо контейнери для вмісту
 div(class="container-fluide")
   div(class="row")
@@ -23,10 +30,7 @@ div(class="container-fluide")
 script.
 
   const tasks={};
-  //- створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
-  //- з них вмикати трасування окремо від інших , тому кожний файл з кодом
-  //- перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
-  //- після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
+
 
   tasks.header = JSON.parse(  '!{JSON.stringify(manager.header)}' );
   tasks.id=JSON.parse(  '!{JSON.stringify(manager.id)}' );
@@ -48,7 +52,7 @@ script
   //- елемент createStep.js
   include tasks_ClassCreateStep.js
   //- елемент createMModalWindow.js
-  include createModalWindow.js
+  //- include createModalWindow.js
 
 
 
