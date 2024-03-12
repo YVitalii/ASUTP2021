@@ -3,13 +3,18 @@
 // передаємо контейнер в якому буде побудований менеджер файлів
 let props = {};
 props.container = document.getElementById("fileManagerContainer");
+// тут зберігаються всі елементи
 props.types = myElementsRender;
+
+//props.value = tasks.value;
+
 props.id = "fileManager";
 //- props.reg ={
 //-   id:"fileManager",
 //-   header:{ua:"",en:"",ry:""},
 //-   ln:"tasks_fileManager.js::"
 //- }
+
 props.buttons = {
   container: document.getElementById("el_fileMan_btnGroup"),
   reg: {
@@ -65,24 +70,40 @@ props.buttons.reg.regs.btnAccept = {
     let trace = 1,
       ln = "btnAccept::onClick::";
     trace ? console.log(ln + ` Pressed!`) : null;
-    let data = tasks.model.getValues();
+    //let data = tasks.model.getValues();
+    // Беремо імя файлу зі списку файлів а не з форми, так як там можуть бути
+    // змінені та не збережені дані, тобто спочатку зберегти - потім Застосувати
+    let fileName = fileManager.getFileName();
     if (
       !confirm(
         {
-          ua: `Ви дійсно бажаєте завантажити програму "${data[0].name}"?`,
-          en: `Do You really want to load program  "${data[0].name}"?`,
-          ru: `Вы действительно хотите загрузить программу "${data[0].name}"?`,
+          ua: `Ви дійсно бажаєте завантажити програму "${fileName}"?`,
+          en: `Do You really want to load program  "${fileName}"?`,
+          ru: `Вы действительно хотите загрузить программу "${fileName}"?`,
         }[lang]
       )
     ) {
       console.log(ln + "Cancelled by user.");
       return;
     }
-
-    if (trace) {
-      console.log(ln + `data=`);
-      console.dir(data);
-    }
+    try {
+      // запит на сервер
+      let { err, data } = await acceptFile(tasks.homeURL + "acceptFile", {
+        fileName,
+      });
+      if (err) {
+        throw new Error(error[lang]);
+      }
+      if (trace) {
+        console.log(ln + `data=`);
+        console.dir(data);
+      }
+      fileManager.currPrg.setValue(fileName);
+    } catch (error) {
+      console.error(error);
+      // Помилка
+      alert(error.message);
+    } // try catch
   }, // onclick
 };
 
@@ -115,10 +136,13 @@ props.buttons.reg.regs.btnDelete = {
       let { err, data } = await fileManager.post("deleteFile", {
         fileName,
       });
+      if (err) {
+        alert(err[lang]);
+      }
       await fileManager.loadFilesList();
-      // Підтвердження
-      alert(data[lang]);
     } catch (error) {
+      // Помилка
+      alert(error.message);
       console.error(error);
     } // try catch
   }, //oclick,
@@ -142,7 +166,7 @@ props.filesList = {
   reg: {
     prefix: props.id,
     id: "filesList",
-    value: "task01.json",
+    value: props.value,
     header: {
       ua: `Список програм`,
       en: `The list of program`,
@@ -166,3 +190,60 @@ props.filesList = {
 };
 
 const fileManager = new ClassFileManager(props);
+
+fileManager.currPrg = new props.types["text"]({
+  container: document.getElementById("fileMan_currPrg"),
+  attributes: { size: 10 },
+  reg: {
+    id: "currPrg",
+    value: "default",
+    header: {
+      ua: `Програма для виконання`,
+      en: `The active program`,
+      ru: `Текущая программа`,
+    },
+    comment: {
+      ua: `Для зміни програми натисніть кнопку "Застосувати"`,
+      en: `For set The active program push "Accept" button`,
+      ru: `Для выбора активной программы нажмите кнопку "Применить"`,
+    },
+    type: "text",
+    editable: false,
+  },
+});
+
+async function acceptFile(path, addData = {}) {
+  let trace = 1,
+    ln = `tasks_fileManager.js::.post(${path})::`;
+  trace
+    ? console.log(ln + `Started: path=${path}; fileName=${addData.fileName}`)
+    : null;
+  // запит POST
+  let response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-type": "application/json;charset=utf-8" },
+    body: JSON.stringify(addData), //  ,
+  });
+  if (response.status === 200) {
+    // отримуємо результат
+    let result = await response.json();
+    trace
+      ? console.log(
+          ln + `url=${path}?fileName=${addData.fileName}. Успішно виконаний!`
+        )
+      : null;
+    if (trace) {
+      console.log(ln + `result=`);
+      console.dir(result);
+    }
+    if (result.err != null) {
+      console.error(ln + "Error" + err[lang]);
+      throw new Error(ln + err[lang]);
+    }
+    return result;
+  } else {
+    let msg = ln + "Error post request code=" + response.status;
+    console.error(msg);
+    throw new Error(ln + msg);
+  } //if (response.status === 200)
+} // acceptFile(

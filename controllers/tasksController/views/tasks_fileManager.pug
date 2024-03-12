@@ -1,8 +1,16 @@
-p --------------------- debugging info manager = -----------------------------
-  pre manager.fileManager=#{JSON.stringify(manager.fileManager)}  
-p --------------------- debugging info -----------------------------
+//- p --------------------- debugging info manager = -----------------------------
+//-   pre manager.fileManager=#{JSON.stringify(manager.fileManager)}  
+//- p --------------------- debugging info -----------------------------
 
+//-  контейнер для відображення поточної активної програми
+div(class="row" id="fileMan_currPrg")
+
+
+
+//-  контейнер для розташування кнопок керування
 div(class="row" id="el_fileMan_btnGroup")
+
+//-  контейнер для розташування списку файлів
 div(class="row" id="el_fileMan_listFiles")
 
 
@@ -10,14 +18,14 @@ script
   //- створює змінну fileManager
   //- fileManager.Class  імпортує клас, що створює обєкт fileManager
   include ../../fileManager/views/fMan_Class.js
+  //- налаштовує fileManager
   include ./tasks_fileManager.js
 
 script.
   //fileManager.filesList.reg.regs = ;
+  //-  при ініціалізації використовуємо поточний список файлів, що є на сервері
   fileManager.renderFilesList(JSON.parse(  '!{JSON.stringify(manager.fileManager.filesList)}' ))
-  fileManager.homeURL = JSON.parse(  '!{JSON.stringify(manager.fileManager.homeURL)}' )
-//- script
-//- include ../../fileManager/views/fMan_main.js
-
-//-   tasks.fileManager = 
-//-   tasks.fileManager.container =
+  fileManager.acceptedFile = JSON.parse(  '!{JSON.stringify(manager.value)}' );
+  //- встановлюємо домашній шлях до tasksManager
+  fileManager.homeURL = JSON.parse(  '!{JSON.stringify(manager.fileManager.homeURL)}' );
+  fileManager.currPrg.setValue(JSON.parse(  '!{JSON.stringify(manager.value)}' ));

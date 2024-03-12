@@ -1,6 +1,6 @@
 
 p --------------------- debugging info manager = -----------------------------
-  pre manager.fileManager=#{JSON.stringify(manager.fileManager)}  
+  pre manager=#{JSON.stringify(manager.fileManager)}  
 p --------------------- debugging info -----------------------------
 
 //- створюємо прапорці трасування, так як в нас багато файлів нам потрібно в кожному
@@ -36,7 +36,10 @@ script.
   tasks.id=JSON.parse(  '!{JSON.stringify(manager.id)}' );
   tasks.reg = JSON.parse(  '!{JSON.stringify(manager.reg)}' );
   tasks.list = JSON.parse(  '!{JSON.stringify(manager.list)}' );
+  tasks.homeURL = JSON.parse(  '!{JSON.stringify(manager.homeURL)}' );
   tasks.container = document.getElementById( 'tasksContainer' );
+  // поточна активна програма
+  tasks.value  =  JSON.parse( '!{JSON.stringify(manager.value)}');
 
 
 script.
@@ -64,10 +67,10 @@ script.
   tasks.renderList();
 
 
-//- кнопки 
-div(class="row")
-  div(class="col")
-    button(type="button" class="btn btn-primary" id="buttonTasksAccept")= `${{ua:"Застосувати" , en: "Accept", ru: "Применить" }[lang]}`
-    //-   Застосувати 
-script
-  include buttonTasksAccept.js
+//- //- кнопки 
+//- div(class="row")
+//-   div(class="col")
+//-     button(type="button" class="btn btn-primary" id="buttonTasksAccept")= `${{ua:"Застосувати" , en: "Accept", ru: "Применить" }[lang]}`
+//-     //-   Застосувати 
+//- script
+//-   include buttonTasksAccept.js

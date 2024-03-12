@@ -105,6 +105,7 @@ router.post("/readFile", async (req, res, next) => {
     };
     log("e", ln + err.ua);
     res.status(404).send({ err: err, data: null });
+    return;
   }
   try {
     let data = await req.fileManager.readFile(fileName);

@@ -3,9 +3,10 @@ const log = require("../../tools/log");
 const ClassReg_select = require("../regsController/ClassReg_select.js");
 const ClassReg_regsList = require("../regsController/ClassReg_regsList.js");
 const ClassRegister = require("../regsController/ClassRegister.js");
-const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
+// const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const pathNormalize = require("path").normalize;
+const { readFileSync, writeFile } = require("fs");
 
 /**
  * Клас виконує керування завданнями
@@ -13,6 +14,11 @@ const pathNormalize = require("path").normalize;
  */
 
 class ClassTasksManager extends ClassReg_select {
+  /**
+   * Створює менеджер задач
+   * @param {Object} props - параметри
+   *
+   */
   constructor(props = {}) {
     // ідентифікатор
     props.id = "TasksManager";
@@ -24,13 +30,13 @@ class ClassTasksManager extends ClassReg_select {
     };
 
     props.header = {
-      ua: `Створення програми`,
-      en: `Program creating`,
-      ru: `Создание программы`,
+      ua: `Редагування програми`,
+      en: `Program editing`,
+      ru: `Редактирование программы`,
     };
 
-    props.type = "regsList";
-    props.value = "empty";
+    props.type = "regsList"; // ?
+    props.value = "empty"; //?
 
     super(props);
 
@@ -46,26 +52,61 @@ class ClassTasksManager extends ClassReg_select {
     if (!props.homeDir) {
       throw new Error(this.ln + "homeDir not defined! ");
     }
-    this.homeDir = pathNormalize(props.homeDir + "\\tasks");
-    this.homeURL = props.homeURL ? props.homeURL : "/";
-    this.fileManager = new ClassFileManager({
+    // домашня директорія
+    this.homeDir = pathNormalize(props.homeDir);
+
+    // робота з файлом поточного стану
+    this.lastState = new ClassFileManager({
       homeDir: this.homeDir,
+      ln: this.ln + "lastState::",
+    });
+    this.lastState.fileName = "state.info";
+    if (!this.lastState.exist(this.lastState.fileName)) {
+      // якщо файлу зі збереженим станом немає - створюємо його
+      this.lastState.writeFile(
+        this.lastState.fileName,
+        JSON.stringify({ value: "default" })
+      );
+      this.value = "default";
+    } else {
+      // якщо файл існує - завантажуємо
+      let trace = 1,
+        ln = this.ln + "loadLastState::";
+      let data = this.lastState.readFileSync(this.lastState.fileName);
+      trace ? log(ln, `data=`, data) : null;
+      data = JSON.parse(data ? data : "{value:default}");
+      this.value = data.value ? data.value : "default";
+    }
+    // кореневий URL
+    this.homeURL = props.homeURL ? props.homeURL : "/";
+
+    // файловий менеджер, що відповідає за роботу з файлами завдань
+    this.fileManager = new ClassFileManager({
+      homeDir: this.homeDir + "/tasksList",
       ln: this.ln,
       homeURL: this.homeURL + "fileManager/",
     });
+
+    // Опис для елементу DOM fileManager
     this.fileManager.reg = new ClassReg_regsList({
       id: "tasksList",
       header: {
+        // заголовок
         ua: `Робота зі списком завдань`,
         en: `Working with list of tasks`,
         ru: `Работа со списком заданий`,
       },
       comment: {
+        // коментарій
         ua: ``,
         en: ``,
         ru: ``,
       },
+      value: this.value,
     });
+
+    // в список регістрів додаємо опис поля вибору файлів
+    // за потреби можна додати інші регістри
     this.fileManager.reg.regs.fileNames = new ClassRegister({
       id: "fileNames",
       type: "simpleSelect",
@@ -113,8 +154,9 @@ class ClassTasksManager extends ClassReg_select {
         en: ``,
         ru: ``,
       },
-      editable: false,
+      editable: false, //крок не можна видаляти/додавати
       regs: {
+        // опис поля Ім'я програми
         name: new ClassRegister({
           id: "name",
           type: "text",
@@ -132,6 +174,7 @@ class ClassTasksManager extends ClassReg_select {
           },
         }),
         note: new ClassRegister({
+          // опис поля примітки для програми
           id: "note",
           type: "textarea",
           ln: "tasks.description.note::",
@@ -149,11 +192,15 @@ class ClassTasksManager extends ClassReg_select {
         }),
       },
     });
-
+    // додаємо крок
     this.addType(description);
+
+    // Тут зберігається список кроків поточного завдання
     this.list = [];
-    // Тут зберігається список впорядкованих кроків
-    this.loadList();
+
+    // завантажуємо поточний крок
+    this.setCurrentValue(this.value);
+    // this.loadTask();
 
     if (trace) {
       log("i", ln, `this=`);
@@ -161,14 +208,40 @@ class ClassTasksManager extends ClassReg_select {
     }
   }
 
-  /** Завантажує список задач з файлу */
-  async loadList(fName = "default.json") {
+  /** Встановлює поточний список задач */
+  async setCurrentValue(val) {
     let trace = 1,
-      ln = this.ln + `loadList(${fName})::`;
+      ln = this.ln + `setValue(${val})::`;
+    if (trace) {
+      log("e", ln, `this.fileManager=`);
+      console.dir(this.fileManager);
+    }
+    // якщо такого файлу не існує - помилка
+    if (!this.fileManager.exist(val)) {
+      let msg = ln + "Incorrect fileName: " + `[ ${val} ]`;
+      throw new Error(msg);
+    }
+    super.setValue(val);
+    await this.loadTask(val);
+
+    await this.lastState.writeFile(
+      this.lastState.fileName,
+      JSON.stringify({ value: this.value })
+    );
+  }
+
+  /** Завантажує список задач з файлу */
+  async loadTask(fName = "default") {
+    let trace = 1,
+      ln = this.ln + `loadTask(${fName})::`;
     let data = "";
     try {
       data = await this.fileManager.readFile(fName);
       this.list = JSON.parse(data);
+      if (trace) {
+        log("i", ln, `this.list=`);
+        console.dir(this.list);
+      }
     } catch (error) {
       log("e", ln + "Can`t read default tasks file! Create it!");
       throw error;

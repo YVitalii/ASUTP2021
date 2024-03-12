@@ -75,20 +75,21 @@ const ClassFileManager = class FileManager {
       headers: { "Content-type": "application/json;charset=utf-8" },
       body: JSON.stringify(addData), //  ,
     });
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 400) {
       // отримуємо результат
       let result = await response.json();
-      console.log(
-        ln + `url=${baseUrl + path}?fileName=${fileName}. Успішно виконаний!`
-      );
+
       if (trace) {
         console.log(ln + `result=`);
         console.dir(result);
       }
       if (result.err != null) {
-        console.error(ln + "Error" + err[lang]);
-        throw new Error(ln + err[lang]);
+        //console.error(ln + "Error::" + result.err[lang]);
+        throw new Error(result.err[lang]);
       }
+      console.log(
+        ln + `url=${baseUrl + path}?fileName=${fileName}. Успішно виконаний!`
+      );
       return result;
     } else {
       let msg = ln + "Error post request code=" + response.status;

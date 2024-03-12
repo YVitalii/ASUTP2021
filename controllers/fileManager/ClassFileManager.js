@@ -11,6 +11,14 @@ const pathNormalize = require("path").normalize;
 const ClassRegister = require("../regsController/ClassRegister");
 
 class ClassFileManager {
+  /**
+   * Робота з локальними файлами
+   * @param {Object} props
+   * @property {String} props.homeDir - домашня директорія
+   * @property {String} props.homeURL - URL по якому буде відповідати менеджер (схоже що потр. реалізувати в іншому місці)
+   * @property {String} props.ln - заголовок повідомлення для логу
+   */
+
   constructor(props = {}) {
     if (!props.homeDir) {
       throw new Error("ClassFileManager:: Error! Not defined home directory!");
@@ -42,9 +50,13 @@ class ClassFileManager {
     //** Список файлів */
     this.filesList = [];
     this.readFileList();
-    trace
-      ? log("i", ln, `this.filesList=`, JSON.stringify(this.filesList))
-      : null;
+    if (trace) {
+      log("i", ln, `this=`);
+      console.dir(this);
+    }
+    // trace
+    //   ? log("i", ln, `this.filesList=`, JSON.stringify(this.filesList))
+    // : null;
   } //constructor
 
   //** синхронна, Фізично считує вміст директорії */
@@ -64,13 +76,31 @@ class ClassFileManager {
     if (fName == undefined) {
       return Promise.reject(ln + "File name not defined!");
     }
+    let path = pathJoin(this.homeDir, fName);
     try {
-      let data = await fsPromises.readFile(pathJoin(this.homeDir, fName));
+      let data = await fsPromises.readFile(path);
       log("w", ln + "File was readed.");
       return data.toString();
     } catch (error) {
-      log("e", ln + "Can't read file:" + fName);
+      log("e", ln + "Can't read file:" + path);
     }
+  }
+
+  readFileSync(fName) {
+    let trace = 0,
+      ln = this.ln + `readFileSync(${fName})::`;
+    trace ? log("i", ln, `Started fName=`, fName) : null;
+    if (fName == undefined) {
+      return Promise.reject(ln + "File name not defined!");
+    }
+    let path = pathJoin(this.homeDir, fName);
+    let data = fs.readFileSync(path);
+    log("w", ln + "File was readed.");
+    if (trace) {
+      log("i", ln, `data=`);
+      console.dir(data);
+    }
+    return data.toString();
   }
 
   async deleteFile(fName) {
@@ -88,6 +118,7 @@ class ClassFileManager {
   async writeFile(fName, data) {
     let trace = 1,
       ln = this.ln + `writeFile(${fName})::`;
+    trace ? log("i", ln, `data=`, data) : null;
     if (fName == undefined) {
       return Promise.reject(ln + "File name not defined!");
     }
@@ -97,6 +128,7 @@ class ClassFileManager {
     if (typeof data != "string") {
       data = JSON.stringify(data);
     }
+
     let res = await fsPromises.writeFile(pathJoin(this.homeDir, fName), data);
     this.readFileList();
     log("w", ln + "File created.");

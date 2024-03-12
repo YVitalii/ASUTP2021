@@ -40,15 +40,18 @@ if (trace) {
     fName = "test2.js";
     await fileManager.writeFile(fName, data);
     await dummy();
+    // ---- append -------
     await fileManager.appendFile(
       fName,
       "\n Was apended data =" + new Date().toLocaleTimeString()
     );
     await dummy();
-    await fileManager.appendFile(
-      fName,
-      "\n Was apended data =" + new Date().toLocaleTimeString()
-    );
+    data = "\n Was apended data =" + new Date().toLocaleTimeString();
+    await fileManager.appendFile(fName, data);
+    log("i", ln, data);
+    // ---- readSync --------------------------------
+    log("i", ln, "data=", fileManager.readFileSync(fName));
+    // ---- exist -------
     log("i", ln, `fileManager.exist(${fName})=`, fileManager.exist(fName));
     log(
       "i",

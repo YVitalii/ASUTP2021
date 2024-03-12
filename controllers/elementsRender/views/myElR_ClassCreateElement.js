@@ -47,7 +47,7 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
       this.setClassList(this.field, props.classes);
     }
     if (!this.editable) {
-      this.field.classList.add("readonly");
+      this.setAtributes(this.field, { readonly: "true" });
     }
     // ---- <label=header> --------
     this.label = document.createElement("label");
