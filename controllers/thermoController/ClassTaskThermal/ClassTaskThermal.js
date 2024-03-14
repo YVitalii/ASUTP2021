@@ -1,39 +1,47 @@
 const ClassTaskGeneral = require("../../tasksController/ClassTaskGeneral.js");
-const ClassRegister = require("../../regsController/ClassRegister.js");
+// const ClassRegister = require("../../regsController/ClassRegister.js");
 const ClassReg_number = require("../../regsController/ClassReg_number.js");
 const ClassReg_regsList = require("../../regsController/ClassReg_regsList.js");
 const ClassReg_select = require("../../regsController/ClassReg_select.js");
 const ClassControllerPID = require("../../controllerPID/ClassControllerPID.js");
-
+const ClassReg_timer = require("../../regsController/ClassReg_timer");
+const ClassHeatingStep = require("../heating/ClassThermalHeatingStep.js");
 class ClassTaskThermal extends ClassTaskGeneral {
   /**
-   * Конструктор класу, оптимізованого під процеси термообробки
+   * Конструктор класу, оптимізованого під процес термообробки
    * @param {*} props
+   * @property {Object} - стартові налаштування
    * @property {}
    */
 
   constructor(props = {}) {
+    props.header = props.header
+      ? props.header
+      : {
+          ua: `Термообробка`,
+          en: `Heattreatment`,
+          ru: `Термообработка`,
+        };
+    props.comment = props.comment
+      ? props.comment
+      : {
+          ua: `Термообробка`,
+          en: `Heattreatment`,
+          ru: `Термообработка`,
+        };
+
+    props.id = props.id ? props.id : "TaskThermal";
+    props.ln = props.ln ? props.ln : props.id;
+
     super(props);
-    this.id = this.id ? this.id : "TaskThermal";
-    this.header = this.header
-      ? this.header
-      : {
-          ua: `Термообробка`,
-          en: `Heattreatment`,
-          ru: `Термообработка`,
-        };
-    this.comment = this.comment
-      ? this.comment
-      : {
-          ua: `Термообробка`,
-          en: `Heattreatment`,
-          ru: `Термообработка`,
-        };
-    this.ln = `ClassTaskThermal()::`;
+    // максимальна температура
+    if (!props.maxT || props.maxT < 0) {
+      throw new Error(
+        this.ln + `Property "maxT" must be cpeciefied! maxT=${props.maxT}`
+      );
+    }
 
     // задана температура
-    //props.tT = props.tT ? props.tT : {};
-
     this.regs.tT = new ClassReg_number({
       id: "tT",
       type: "number",
@@ -49,7 +57,6 @@ class ClassTaskThermal extends ClassTaskGeneral {
     });
 
     // максимальне відхилення температури вниз
-    //props.errTmin = props.errTmin ? props.errTmin : {};
     this.regs.errTmin = new ClassReg_number({
       id: "errTmin",
       header: { ua: "errTmin,°C", en: "errTmin,°C", ru: "errTmin,°C" },
@@ -64,7 +71,6 @@ class ClassTaskThermal extends ClassTaskGeneral {
     });
 
     // максимальне відхилення температури
-    //props.errTmax = props.errTmax ? props.errTmax : {};
     this.regs.errTmax = new ClassReg_number({
       id: "errTmax",
       header: { ua: "errTmax,°C", en: "errTmax,°C", ru: "errTmax,°C" },
@@ -78,11 +84,47 @@ class ClassTaskThermal extends ClassTaskGeneral {
       max: 100,
     });
 
+    // час нагрівання, хв
+    this.regs.H = new ClassReg_timer({
+      id: "H",
+      value: props.H ? props.H : 0,
+      header: {
+        ua: "Час нагрівання",
+        en: "Time of Heating",
+        ru: "Время разогрева",
+      },
+      comment: {
+        ua: `0 = макс. швидко`,
+        en: `0 = quick`,
+        ru: `0 = макс. быстро`,
+      },
+      min: 0,
+      max: 24 * 60 - 1, // input time має максимум 23:59, за потреби довше - дублювати кроки
+    }); //this.regs.wT
+
+    // час нагрівання, хв
+    this.regs.Y = new ClassReg_timer({
+      id: "H",
+      value: props.H ? props.H : 0,
+      header: {
+        ua: "Час витримки",
+        en: "Time of Holding",
+        ru: "Время выдержки",
+      },
+      comment: {
+        ua: `0 = зовнішній стоп`,
+        en: `0 = external stop`,
+        ru: `0 = внешний стоп`,
+      },
+      min: 0,
+      max: 24 * 60 - 1, // input time має максимум 23:59, за потреби довше - дублювати кроки
+    }); //this.regs.wT
+
     //  закон регулювання "Позиційний"
 
     let pos = new ClassReg_regsList({
       id: "pos",
-      header: { ua: "Позиційний", en: "Positional", ru: "Позиционный" },
+      header: { ua: "ПОЗ", en: "POS", ru: "ПОЗ" },
       comment: {
         ua: `Позиційний закон регулювання`,
         en: `Positional regulation`,
@@ -116,6 +158,11 @@ class ClassTaskThermal extends ClassTaskGeneral {
         ru: `Закон регулирования`,
       },
     });
+
+    // завантажуємо кроки процессу
+    this.quickHeatingStep;
+    this.heatingStep;
+    this.holdingStep;
   } // constructor
 } //class ClassThermoStep
 

@@ -92,5 +92,5 @@ myElementsRender["timer"] = class ClassElementTimer extends (
     this.field.value = this.minutesToString(val);
   }
 }; // class
-console.log("Element type : timer loaded");
+// console.log("Element type : timer loaded");
 trace = beforeTrace;

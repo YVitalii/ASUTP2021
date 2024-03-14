@@ -1,9 +1,8 @@
 var express = require("express");
 var router = express.Router();
-var entityRouter = require("./entityRouter.js");
 
 // отримуємо список печей
-const entities = require("../entities.js");
+// const entities = require("../entities.js");
 
 // ------------ логгер  --------------------
 let log = require("../../../tools/log.js"); // логер
@@ -14,88 +13,69 @@ gTrace ? log("i", logName) : null;
 // // ------------- костиль для отримання термічного процессу печі -----
 // const thermProcess = require("../../../config.js").entities[0].thermProcess;
 
-// ----- визначення сутності по адресі та запамятовування її в req.entity
-router.use("/entity/:id", (req, res, next) => {
-  let trace = 0,
-    ln = logName + "app.use(/entity/:id)::";
+router.get("/controllers", function (req, res, next) {
+  // сторінка зі списком печей
+  let trace = 1,
+    ln = logName + "controllers/"; // + `get(/${req.entity.id}/)::`;
   trace ? log("i", ln, `Started`) : null;
-  if (trace) {
-    log("i", ln, `req.params=`);
-    console.dir(req.params);
-  }
-
-  // шукаємо сутність в списку
-  let entName = req.params.id.trim();
-  let ent = entities[entName];
-  // якщо така сутність не знайдена - повертаємо помилку
-  if (!ent) {
-    res.status(404).send(`Entity [${entName}] not found!`);
-    log("e", `Entity ${entName} not found! `);
-    return;
-  }
-
-  // запамятовуємо id сутності в об'єкті запиту
-  req.entity = ent;
-  //trace ? log("i", ln, `req.entity.id=`, req.entity.id) : null;
   if (trace) {
     log("i", ln, `req.entity=`);
     console.dir(req.entity);
   }
-  // передаємо керування далі
-  next();
-});
-
-// ----- викликаємо роутер entity
-
-router.use("/entity/:id", (req, res, next) => {
-  let trace = 1,
-    ln = logName + `app.use(${req.baseUrl})::`;
-  trace ? log("i", ln, `Started`) : null;
-  if (trace) {
-    log("i", ln, `req.entity.id=`);
-    console.dir(req.entity.id);
-  }
-  next();
-});
-
-/**
- * Коренева тека. Тут сторінка зі списком печей
- */
-
-router.get("/", function (req, res, next) {
-  // сторінка зі списком печей
-  let trace = 1,
-    ln = logName + `get(${req.originalUrl})::`;
-  trace ? log("i", ln, `Started`) : null;
-
-  res.render("main.pug", {
-    body: entities.about.htmlFull(req.user.lang),
-    pageTitle: entities.about.fullName,
-    lang: req.user.lang,
-  });
+  res.send("Controllers");
+  // res.render("main.pug", {
+  //   body: req.entity.controllers.htmlFull(),
+  //   pageTitle: req.entity.fullName,
+  // });
+  //res.render("main.pug", { body: entities.about.htmlFull() });
   return; //
 });
 
-// res.render("main.pug", {
-//   body: ent.htmlFull(),
-//   backButton: { path: "/", title: { ua: `Назад`, en: `Back`, ru: `Назад` } },
-//   pageTitle: ent.fullName,
-// });
-//   return; //
-// });
+/**
+ * Коренева тека печі.
+ */
+router.get("/", function (req, res, next) {
+  // сторінка зі списком печей
+  let trace = 1,
+    ln = logName + `get(/${req.entity.id}/)::`;
+  trace ? log("i", ln, `Started`) : null;
+  res.render("main.pug", {
+    body: req.entity.htmlFull(),
+    pageTitle: req.entity.fullName,
+  });
+  //res.render("main.pug", { body: entities.about.htmlFull() });
+  return; //
+});
 
-// router.use(entityRouter);
-
-// router.get("/SShAM-7-12_2023", (req, res, next) => {
+// router.get("/:id", function (req, res, next) {
 //   let trace = 1,
-//     ln = logName + `get/${req.entity.id}/::`;
+//     ln = logName + `get/${req.params.id}::`;
 //   trace ? log("i", ln, `Started`) : null;
 //   if (trace) {
 //     log("i", ln, `entities=`);
 //     console.dir(entities);
 //   }
-//   return req.entity.router(req, res, next);
-//   //res.send(ln);
+//   // шукаємо сутність в списку
+//   let entName = req.params.id.trim();
+//   let ent = entities[entName];
+
+//   // якщо така сутність не знайдена - повертаємо помилку
+//   if (!ent) {
+//     res.status(404).send(`Entity [${entName}] not found!`);
+//     return;
+//   }
+//   // запамятовуємо id сутності в об'єкті запиту
+//   req.entity = ent;
+//   trace ? log("i", ln, `req.entity=`, req.entity) : null;
+//   // передаємо керування далі
+
+//   next();
+//   // res.render("main.pug", {
+//   //   body: ent.htmlFull(),
+//   //   backButton: { path: "/", title: { ua: `Назад`, en: `Back`, ru: `Назад` } },
+//   //   pageTitle: ent.fullName,
+//   // });
+//   return; //
 // });
 
 // /** POST - зупинка процессу  */

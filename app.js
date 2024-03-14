@@ -13,6 +13,7 @@ const ClassProgram = require("./entities/SShAM-7-12_2023/program/program/ClassPr
 //var flash = require("express-flash");
 
 var indexRouter = require("./entities/general/routes/entitiesRouter.js"); // require("./routes/index");
+
 const SShAM_7_12_Router = require("./entities/SShAM-7-12_2023/routes/entityRouter.js");
 // var graphRouter = require("./routes/graph");
 // var akonRouter = require("./routes/akon");
@@ -99,8 +100,14 @@ app.use(passport.session(), (req, res, next) => {
 
 app.use("/login", loginRouter);
 app.use(passport.testLogin); // проверяем авторизованный пользователь или нет, если нет перенаправляем на страничку /login
+// TODO Костиль - додаємо мову користувача в майбутньому потрібно брати з бази
+app.use((req, res, next) => {
+  req.user.lang = "en";
+  next();
+});
 // початкова сторінка
 app.use("/", indexRouter);
+
 // - функція для трасування entity
 let traceEntity = (req, res, next) => {
   log(
@@ -111,43 +118,14 @@ let traceEntity = (req, res, next) => {
   next();
 };
 
-// ----- визначення сутності по адресі та запамятовування її в req.entity
-app.use("/entity/:id", (req, res, next) => {
-  let trace = 0,
-    ln = logName + "app.use(/entity/:id)::";
-  trace ? log("i", ln, `Started`) : null;
-  if (trace) {
-    log("i", ln, `req.params=`);
-    console.dir(req.params);
-  }
-
-  // шукаємо сутність в списку
-  let entName = req.params.id.trim();
-  let ent = entities[entName];
-  // якщо така сутність не знайдена - повертаємо помилку
-  if (!ent) {
-    res.status(404).send(`Entity [${entName}] not found!`);
-    return;
-  }
-
-  // запамятовуємо id сутності в об'єкті запиту
-  req.entity = ent;
-  //trace ? log("i", ln, `req.entity.id=`, req.entity.id) : null;
-  if (trace) {
-    log("i", ln, `req.entity.mainProcess=`);
-    console.dir(req.entity.mainProcess);
-  }
-  // передаємо керування далі
-  next();
-});
-
 // процес, обробка запитів програми
 // app.use("/entity/:id/program/*", (req, res, next) => {
 //   log("w", "================  Program =========================");
 //   //res.send("Program!");
 //   ClassProgram.router(req, res, next);
 // });
-app.use("/entity/:id/program", ClassProgram.router);
+
+// 2024-03-14 app.use("/entity/:id/program", ClassProgram.router);
 
 // процес, обробка запитів програми
 // app.route("/entity/:id/program/*").all((req, res, next) => {

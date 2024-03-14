@@ -1,3 +1,7 @@
+/** tasksControler/routes/
+ * Роутер taskControllera
+ */
+
 var express = require("express");
 var router = express.Router();
 const pathResolve = require("path").resolve;
@@ -7,7 +11,7 @@ const mainPug = pathResolve("../../../../views/main.pug");
 console.log(`Resolved mainPug= ${mainPug}`);
 const log = require("../../../tools/log");
 let ln = __dirname + "::",
-  trace = 1;
+  trace = 0;
 const getFileName = require("../../../tools/reqTools.js").reqGetFileName;
 
 if (trace) {
@@ -28,7 +32,7 @@ router.post("/acceptFile", async function (req, res, next) {
     let data = {
       ua: `Программа успішно завантажена!`,
       en: `Program succesfully accepted!`,
-      ru: `РускійВаєннійКарабльІдіНаХ!`,
+      ru: `Программа успешно загружена!`,
     };
     res.send({ err: null, data: JSON.stringify(data) });
     return;
@@ -49,6 +53,7 @@ router.use("/fileManager", (req, res, next) => {
   req.fileManager = req.tasksManager.fileManager;
   next();
 });
+
 router.use("/fileManager/deleteFile", (req, res, next) => {
   let fileName = getFileName(req);
   if (fileName === req.tasksManager.value) {
@@ -71,11 +76,18 @@ router.use("/fileManager", (req, res, next) => {
   next();
 });
 
+// передаємо керування fileManager
 router.use("/fileManager", fileManagerRouter);
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
-  res.send(pug.renderFile(mainPug, { body: req.tasksManager.getFullHtml() }));
+  res.send(
+    pug.renderFile(mainPug, {
+      pageTitle: `Сторінка для тестування роботи tasksManager <br> <small>
+      /controllers/tasksController </small>`,
+      body: req.tasksManager.getFullHtml(),
+    })
+  );
   //res.render("index", { title: req.tasksManager.ln });
 });
 

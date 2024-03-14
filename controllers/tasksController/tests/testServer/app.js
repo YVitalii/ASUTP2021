@@ -8,11 +8,12 @@ var indexRouter = require("../../routes/index");
 
 var usersRouter = require("./routes/users");
 
-// створюємо instance of ClaaaTasksManager
+// створюємо тестовий instance of ClaaaTasksManager
 var tasksManager = require("../testCreateTaskManager");
 console.log(
   `---------------- server started at ${new Date().toLocaleTimeString()} --------`
 );
+
 var app = express();
 
 // view engine setup

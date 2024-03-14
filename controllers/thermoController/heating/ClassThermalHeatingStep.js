@@ -1,6 +1,6 @@
 const { request } = require("express");
-const log = require("../../../../tools/log.js");
-const toTimeString = require("../../../../tools/general.js").toTimeString;
+const log = require("../../../tools/log.js");
+const toTimeString = require("../../../tools/general.js").toTimeString;
 let ClassThermoStep = require("../classStep/ClassThermoStep.js");
 const pug = require("pug");
 const regsRender = require("../../../../views/regsRender/regsRender.js");

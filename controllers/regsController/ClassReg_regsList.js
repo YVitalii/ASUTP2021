@@ -13,7 +13,7 @@ module.exports = class ClassReg_regsList extends ClassRegister {
   constructor(props = {}) {
     props.type = "regsList";
     super(props);
-    this.ln = "ClassReg_regsList(" + this.id + ")::";
+    //this.ln = this.ln ? this.ln :"ClassReg_regsList(" + this.id + ")::";
     let trace = 1,
       ln = this.ln + "constructor()::";
     /** список регістрів для вибору */

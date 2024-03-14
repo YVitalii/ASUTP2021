@@ -4,7 +4,7 @@ class ClassGeneralElement {
     ** constructor **
 	+container : nodeDOM; // Батьківський контейнер для розміщення компоненту
 	+reg : Object; // Типовий регістр ClassRegister та його нащадки
-	+afterChang {async function} = async () {0} :  // зовнішня функція що викликається після зміни значення
+	+afterChange {async function} = async () {0} :  // зовнішня функція що викликається після зміни значення
 	---
     +this.id = reg.id: String; // ідентифікатор регістру 
     +this.prefix = reg.id | id+timeStamp: String; // префікс до id елементу 

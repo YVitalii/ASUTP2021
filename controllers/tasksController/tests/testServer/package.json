@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "supervisor --no-restart-on error  --watch ./,../,../../,../../../fileManager/ ./bin/www"
+    "start": "supervisor --no-restart-on error  --watch ./,../,../../,../../../tasksController/,../../../thermoController/ ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

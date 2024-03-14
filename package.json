@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "supervisor --no-restart-on error  --watch ./routes,./,./views,./tools ./bin/www",
+    "start": "supervisor --no-restart-on error  --watch ./routes,./,./views,./entyties/* ./bin/www",
     "jsdoc": "jsdoc --configure ./config_jsdoc.js --recurse"
   },
   "dependencies": {

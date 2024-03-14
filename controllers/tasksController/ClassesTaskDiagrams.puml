@@ -5,7 +5,7 @@ class ClassRegister {
     +id : String; // ідентифікатор регістру
     +ln : String; // Заголовок для логування роботи коду
     +header : Object; // {ua,en,ru}  Заголовок поля вводу
-    #type :  String; // Тип регістру
+    #type :  String; // Тип регістру для рендерингу в myElementsRender
     +value : String|Number = props.value | 0; // Поточне значення
     +comment : Object; // {ua,en,ru} Додатковий опис
     +editable : Boolean = true // Дозвіл на редагування значення регістру
@@ -114,6 +114,7 @@ class ClassReg_timer {
  ClassReg_number <|-- ClassReg_timer
 
 @enduml
+
 
 
 

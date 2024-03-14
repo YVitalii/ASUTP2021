@@ -10,14 +10,16 @@ const { readFileSync, writeFile } = require("fs");
 
 /**
  * Клас виконує керування завданнями
- *
+ * для тестування при розробці створено локальний сервер
+ * що знаходиться в теці ./tests/testServer/ npm start
  */
 
 class ClassTasksManager extends ClassReg_select {
   /**
    * Створює менеджер задач
    * @param {Object} props - параметри
-   *
+   * @property {String} props.homeDir
+   * @property {String} props.homeURL
    */
   constructor(props = {}) {
     // ідентифікатор
@@ -40,8 +42,8 @@ class ClassTasksManager extends ClassReg_select {
 
     super(props);
 
-    this.ln = "ClassTasksManager::";
-    let trace = 1,
+    this.ln = this.ln ? this.ln : "ClassTasksManager::";
+    let trace = 0,
       ln = this.ln + "constructor()::";
 
     if (trace) {
@@ -54,7 +56,8 @@ class ClassTasksManager extends ClassReg_select {
     }
     // домашня директорія
     this.homeDir = pathNormalize(props.homeDir);
-
+    // кореневий URL
+    this.homeURL = props.homeURL ? props.homeURL : "/";
     // робота з файлом поточного стану
     this.lastState = new ClassFileManager({
       homeDir: this.homeDir,
@@ -77,8 +80,6 @@ class ClassTasksManager extends ClassReg_select {
       data = JSON.parse(data ? data : "{value:default}");
       this.value = data.value ? data.value : "default";
     }
-    // кореневий URL
-    this.homeURL = props.homeURL ? props.homeURL : "/";
 
     // файловий менеджер, що відповідає за роботу з файлами завдань
     this.fileManager = new ClassFileManager({
@@ -210,10 +211,10 @@ class ClassTasksManager extends ClassReg_select {
 
   /** Встановлює поточний список задач */
   async setCurrentValue(val) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setValue(${val})::`;
     if (trace) {
-      log("e", ln, `this.fileManager=`);
+      log("w", ln, `this.fileManager=`);
       console.dir(this.fileManager);
     }
     // якщо такого файлу не існує - помилка
@@ -221,13 +222,15 @@ class ClassTasksManager extends ClassReg_select {
       let msg = ln + "Incorrect fileName: " + `[ ${val} ]`;
       throw new Error(msg);
     }
-    super.setValue(val);
     await this.loadTask(val);
 
-    await this.lastState.writeFile(
-      this.lastState.fileName,
-      JSON.stringify({ value: this.value })
-    );
+    if (this.value != val) {
+      super.setValue(val);
+      await this.lastState.writeFile(
+        this.lastState.fileName,
+        JSON.stringify({ value: this.value })
+      );
+    }
   }
 
   /** Завантажує список задач з файлу */

@@ -1,5 +1,6 @@
 doctype html
--var _pageTitle = pageTitle ? pageTitle : 'pageTitle: not defined'
+-var _lang = lang ? lang : 'ua'
+-var _pageTitle = pageTitle[_lang] ? pageTitle[_lang] : 'pageTitle: not defined'
 html(class="h-100")
   head
     title !{_pageTitle}
@@ -12,7 +13,7 @@ html(class="h-100")
       include ../public/timedisplay.js
     script.
       var pageProps={};
-      var lang = "ua";
+      const lang = "!{_lang}";
     //- script
     //-   include ../tools/createGraph.js
     //- script
@@ -20,6 +21,7 @@ html(class="h-100")
 
   body(class="h-100"  )
     div(class="container-fluid h-100 d-flex flex-column" ) 
+      //- header
       div(class="row")
         div(class="col-3")
           img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
@@ -27,12 +29,15 @@ html(class="h-100")
           div(class="h2 " id="pageTitle") !{_pageTitle}
         div(class="col-1 my-auto mx-auto ")
           div( class="h5" id="timedisplay" )
-        hr
+      hr
+      //- pageBody 
       div(class="row h-100" )
         div(class="col")
-          div(id="pageBody" class="h-100") !{body}
+          div(id="pageBody" class="container-fluide h-100") !{body}
 
-      -var _footerContent = footerContent ? footerContent : 'footerContent : not defined'
+      //- від footera поки відмовився
+
+      //- -var _footerContent = footerContent ? footerContent : 'footerContent : not defined'
 
       //- div(class="row fixed-bottom")
       //-   hr
@@ -72,4 +77,5 @@ html(class="h-100")
     //- //-     a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Вийти
     //- //-   - }
     //- script(src="/bootstrap/popper.min.js")
+
     script(src="/bootstrap/bootstrap.min.js")

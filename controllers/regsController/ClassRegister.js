@@ -18,23 +18,32 @@ class ClassRegister {
 
   constructor(props = {}) {
     /** Ідентифікатор  */
+
     if (!props.id) {
       new Error("id регістру має бути вказаний");
       return;
     }
+    // ідентифікатор
+    this.id = props.id;
 
     // логер
     this.log = require("../../tools/log");
 
-    // ідентифікатор
-    this.id = props.id;
+    // заголовок для логів
     this.ln = props.ln ? props.ln : "ClassRegister(" + props.id + ")::";
+
     let trace = 1,
       ln = this.ln + "constructor()::";
 
     /** Заголовок */
     this.header = props.header
-      ? props.header
+      ? props.header.ua
+        ? props.header
+        : {
+            ua: "Невірний формат header",
+            en: "Bad format header",
+            ru: "Неправильный формат заглавия",
+          }
       : { ua: "Заголовок", en: "Header", ru: "Заглавие" };
 
     /** Тип регістру */
@@ -45,6 +54,7 @@ class ClassRegister {
           `props.type=${props.type}`
       );
     }
+
     this.type = props.type;
 
     /** Поточне значення */
@@ -71,7 +81,7 @@ class ClassRegister {
   }
 
   setValue(val) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setValue(${val})`;
     this.value = val;
     return this.value;

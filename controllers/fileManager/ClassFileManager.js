@@ -1,7 +1,8 @@
 /**
  * Клас виконує керування файлами
- *
+ * працює на сервері
  */
+// TODO Написати автотести для цього модуля
 const log = require("../../tools/log");
 const fs = require("fs");
 const fsPromises = require("fs/promises");
@@ -15,11 +16,15 @@ class ClassFileManager {
    * Робота з локальними файлами
    * @param {Object} props
    * @property {String} props.homeDir - домашня директорія
-   * @property {String} props.homeURL - URL по якому буде відповідати менеджер (схоже що потр. реалізувати в іншому місці)
+   * @property {String} props.homeURL - URL по якому буде відповідати менеджер
+   * (схоже що потр. реалізувати в іншому місці)
+   * хоча ми використовуємо його для побудови маршрутів,
+   * але достатньо памятати тільки кінець маршруту типу:
+   * /deleteFile .. /readFile()
    * @property {String} props.ln - заголовок повідомлення для логу
    */
-
   constructor(props = {}) {
+    // TODO Видалити з файлового менеджера homeURL - він має приходити зовні з роутерів
     if (!props.homeDir) {
       throw new Error("ClassFileManager:: Error! Not defined home directory!");
     }
@@ -27,7 +32,7 @@ class ClassFileManager {
 
     this.ln = (props.ln ? props.ln : "") + `ClassFileManager::`;
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
     if (trace) {
       log("", ln, `props=`);
