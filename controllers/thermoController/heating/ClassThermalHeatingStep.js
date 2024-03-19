@@ -4,7 +4,7 @@ const toTimeString = require("../../../tools/general.js").toTimeString;
 let ClassThermoStep = require("../classStep/ClassThermoStep.js");
 const pug = require("pug");
 const regsRender = require("../../../../views/regsRender/regsRender.js");
-const ClassThermStep = require("../thermStep/ClassThermProcessStep.js");
+//const ClassThermStep = require("../thermStep/ClassThermProcessStep.js");
 
 /**
  * Клас виконує крок "Нагрівання"

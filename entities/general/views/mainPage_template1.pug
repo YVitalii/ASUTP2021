@@ -3,7 +3,7 @@
 //- entity_controlPanel
 //- entity_grap
 
-- var trace = 0;
+- var trace = 1;
 - var border = trace ? "border border-secondary" : "";
 
 //-  Описує загальну структуру body сторінки
@@ -14,14 +14,14 @@ div(class="row")
       if trace
         h5 id="entity_currentValues"
 div(class="row h-100")
-  div(class=`col-3 ${border}` id="entity_controlPanel")
-    div(class="container h-100" id="entity_graph")
+  div(class=`col-3 ${border}` id="")
+    div(class="container h-100" id="entity_programContainer")
       if trace
         h5 id="entity_controlPanel"
   div(class=`col ${border}`)
     div(class="container h-100" id="entity_graph")
       if trace
-        h5 id="entity_controlPanel"
+        h5 id="entity_programContainer"
 
 //-  завантажуємо потрібну нам оснастку для вимальовування компонентів
 script.

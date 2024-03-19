@@ -1,5 +1,8 @@
 @startuml DOM_elements
 
+!import ../tasksController/
+!include  "ClassesTaskDiagrams.puml"
+
 class ClassGeneralElement {
     ** constructor **
 	+container : nodeDOM; // Батьківський контейнер для розміщення компоненту
@@ -13,7 +16,10 @@ class ClassGeneralElement {
 	---
 	this.setClassList(el, classList) - додає до елементу класи
 	this.setAtributes(el, list) - додає до елементу атрибути 
+	---
+	модуль: controllers\elementsRender\views\myElR_ClassGeneralElement.js
 }
+
  ClassGeneralElement <|-- ClassCreateElement
  
 class ClassCreateElement {
@@ -42,6 +48,13 @@ class ClassCreateElement {
     модуль: myElR_ClassCreateElement.js 
     
 }
+
+class ClassButton {
+	** constructor **
+	+ parent: - посилання на батьківську структуру даних(для вик. в обробниках подій
+	
+}
+ClassGeneralElement <|-- ClassButton
 
 class ClassElementNumber {
     +ln : String ="ClassElementNumber::"

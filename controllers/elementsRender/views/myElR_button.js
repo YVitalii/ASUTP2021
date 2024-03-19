@@ -27,6 +27,7 @@ myElementsRender["button"] = class ClassButton extends (
     }
 
     this.parent = props.parent;
+
     // створюємо елемент ДОМ
     let but = document.createElement("button");
     but.id =

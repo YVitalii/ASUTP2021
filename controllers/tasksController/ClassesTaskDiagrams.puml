@@ -1,7 +1,8 @@
-
 @startuml ClassTasks
 
-class ClassRegister { 
+!include  
+
+class "ClassRegister" as register { 
     +id : String; // ідентифікатор регістру
     +ln : String; // Заголовок для логування роботи коду
     +header : Object; // {ua,en,ru}  Заголовок поля вводу

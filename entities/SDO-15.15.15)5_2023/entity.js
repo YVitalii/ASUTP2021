@@ -49,7 +49,7 @@ entity.tasksManager = new TasksManager({
 });
 
 // реєструємо задачу термообробки в менеджері програм
-entity.tasksManager.addType(new ClassTaskThermal());
+entity.tasksManager.addType(new ClassTaskThermal({ maxT: entity.maxT }));
 
 //  завантажуємо контролери
 // entity.controllers = require("./controllers/controllers.js");

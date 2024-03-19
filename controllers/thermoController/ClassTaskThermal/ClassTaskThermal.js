@@ -5,13 +5,18 @@ const ClassReg_regsList = require("../../regsController/ClassReg_regsList.js");
 const ClassReg_select = require("../../regsController/ClassReg_select.js");
 const ClassControllerPID = require("../../controllerPID/ClassControllerPID.js");
 const ClassReg_timer = require("../../regsController/ClassReg_timer");
-const ClassHeatingStep = require("../heating/ClassThermalHeatingStep.js");
+// const ClassHeatingStep = require("../heating/ClassThermalHeatingStep.js");
+
 class ClassTaskThermal extends ClassTaskGeneral {
   /**
    * Конструктор класу, оптимізованого під процес термообробки
-   * @param {*} props
-   * @property {Object} - стартові налаштування
-   * @property {}
+   * @param {Object} props - стартові налаштування
+   * @property {Number}  props.maxT - максимальна температура об'єкту керування
+   * @property {Number} props.errTmin=0 - температурний коридор, нижня границя, 0=вимкнено
+   * @property {Number} props.errTmax=0 - температурний коридор, верхня границя, 0=вимкнено
+   * @property {Number} props.H=0 -хвилини, час нагрівання, 0 = макс. швидко
+   * @property {Number} props.Y=0 -хвилини, час витримки, 0 = зовнішній стоп
+   *
    */
 
   constructor(props = {}) {
@@ -60,7 +65,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
     this.regs.errTmin = new ClassReg_number({
       id: "errTmin",
       header: { ua: "errTmin,°C", en: "errTmin,°C", ru: "errTmin,°C" },
-      value: props.errTmin ? props.errTmin : -0,
+      value: props.errTmin ? props.errTmin : -0, //від'ємні значення
       comment: {
         ua: `Макс. відх. вниз (0=вимкн)`,
         en: `Limit of low temperature (0=disable)`,
@@ -105,7 +110,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
     // час нагрівання, хв
     this.regs.Y = new ClassReg_timer({
       id: "H",
-      value: props.H ? props.H : 0,
+      value: props.Y ? props.Y : 0,
       header: {
         ua: "Час витримки",
         en: "Time of Holding",
