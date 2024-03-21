@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+var tasksManagerRouter = require("../../../controllers/tasksController/routes/index.js");
 
 // отримуємо список печей
 // const entities = require("../entities.js");
@@ -9,6 +10,26 @@ let log = require("../../../tools/log.js"); // логер
 let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
 let gTrace = 0; //=1 глобальная трассировка (трассируется все)
 gTrace ? log("i", logName) : null;
+
+router.get("/tasksManager", function (req, res, next) {
+  // сторінка зі списком печей
+  let trace = 1,
+    ln = logName + req.originalUrl; // + `get(/${req.entity.id}/)::`;
+  trace ? log("i", ln, `Started`) : null;
+  if (trace) {
+    log("i", ln, `req.entity=`);
+    console.dir(req.entity);
+  }
+  res.send("tasksManager");
+  // res.render("main.pug", {
+  //   body: req.entity.controllers.htmlFull(),
+  //   pageTitle: req.entity.fullName,
+  // });
+  //res.render("main.pug", { body: entities.about.htmlFull() });
+  return; //
+});
+
+//router.get("/tasksManager", tasksManagerRouter);
 
 // // ------------- костиль для отримання термічного процессу печі -----
 // const thermProcess = require("../../../config.js").entities[0].thermProcess;
@@ -40,8 +61,8 @@ router.get("/", function (req, res, next) {
     ln = logName + `get(/${req.entity.id}/)::`;
   trace ? log("i", ln, `Started`) : null;
   res.render("main.pug", {
-    body: req.entity.htmlFull(),
-    pageTitle: req.entity.fullName,
+    body: "<h3>Body</h3>", //req.entity.htmlFull(),
+    pageTitle: "Main page", //req.entity.fullName,
   });
   //res.render("main.pug", { body: entities.about.htmlFull() });
   return; //

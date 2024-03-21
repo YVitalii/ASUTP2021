@@ -7,17 +7,29 @@ var router = express.Router();
 const pathResolve = require("path").resolve;
 const pug = require("pug");
 const fileManagerRouter = require("../../fileManager/routes/");
-const mainPug = pathResolve("../../../../views/main.pug");
-console.log(`Resolved mainPug= ${mainPug}`);
+const mainPug = pathResolve("/views/main.pug");
+
 const log = require("../../../tools/log");
-let ln = __dirname + "::",
+let logName = __dirname + "::",
   trace = 0;
 const getFileName = require("../../../tools/reqTools.js").reqGetFileName;
+console.log(logName + `Resolved mainPug= ${mainPug}`);
+// if (trace) {
+//   log("i", ln, `getFileName=`);
+//   console.dir(getFileName);
+// }
 
-if (trace) {
-  log("i", ln, `getFileName=`);
-  console.dir(getFileName);
-}
+// трасувальник
+router.use(function (req, res, next) {
+  let trace = 1,
+    ln = `tasksControllerRouter("${req.originalUrl}")::`;
+  trace
+    ? log("i", `---------- tasksControllerRouter-----------Started!`)
+    : null;
+  req.tasksManager = req.entity.tasksManager;
+  //trace ? log("i", ln, `Started: ${req.tasksManager.ln}`) : null;
+  next();
+});
 
 router.post("/acceptFile", async function (req, res, next) {
   //res.send(pug.renderFile(mainPug, { body: req.tasksManager.getFullHtml() }));
@@ -55,7 +67,12 @@ router.use("/fileManager", (req, res, next) => {
 });
 
 router.use("/fileManager/deleteFile", (req, res, next) => {
+  let trace = 1,
+    ln = "/fileManager/deleteFile";
   let fileName = getFileName(req);
+  trace
+    ? log("w", ` ----------  ${ln} Started with fileName=`, fileName)
+    : null;
   if (fileName === req.tasksManager.value) {
     let msg = fileName;
     let err = {
@@ -71,24 +88,28 @@ router.use("/fileManager/deleteFile", (req, res, next) => {
   next();
 });
 
-router.use("/fileManager", (req, res, next) => {
-  req.fileManager = req.tasksManager.fileManager;
-  next();
-});
+// router.use("/fileManager", (req, res, next) => {
+//   req.fileManager = req.tasksManager.fileManager;
+//   next();
+// });
 
 // передаємо керування fileManager
 router.use("/fileManager", fileManagerRouter);
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
+  let trace = 1,
+    ln = req.tasksManager.ln + `router.get((${req.originalUrl})::`;
+  trace ? console.log("w", ln, ` GET home page. Started`) : null;
   res.send(
-    pug.renderFile(mainPug, {
+    pug.renderFile(req.info.mainPug, {
       pageTitle: `Сторінка для тестування роботи tasksManager <br> <small>
       /controllers/tasksController </small>`,
       body: req.tasksManager.getFullHtml(),
     })
   );
   //res.render("index", { title: req.tasksManager.ln });
+  // res.send(ln);
 });
 
 module.exports = router;

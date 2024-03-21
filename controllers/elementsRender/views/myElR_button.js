@@ -28,29 +28,41 @@ myElementsRender["button"] = class ClassButton extends (
 
     this.parent = props.parent;
 
+    this.tag = props.action && props.action == "link" ? "a" : "button";
+
     // створюємо елемент ДОМ
-    let but = document.createElement("button");
+    let but = document.createElement(this.tag);
     but.id =
       parent.id + this.id
         ? this.id
         : console.error(this.ln + "Id of button not defined!");
     // оформлюємо кнопку
     but.classList.add("btn");
+    but.setAttribute("type", "button");
+    if (trace) {
+      console.log(ln + `but=`);
+      console.dir(but);
+    }
     if (props.reg.classes) {
       this.setClassList(but, props.reg.classes);
     }
     if (props.reg.attributes) {
       this.setAtributes(but, props.reg.attributes);
     }
+
+    // спливаюча підказка
+    if (props.reg.comment && props.reg.comment[lang]) {
+      but.setAttribute("title", props.reg.comment[lang]);
+    }
+
     //  напис на кнопці
-    but.setAttribute("type", "button");
     but.innerHTML = props.reg.header[lang]
       ? props.reg.header[lang]
       : "<h6>???</h6>";
     // обробник кліку
     but.onclick = props.reg.onclick
       ? props.reg.onclick.bind(this)
-      : this.onclick;
+      : this.onclick.bind(this);
     // зберігаємо кнопку
     this.el = but;
     this.container.appendChild(but);

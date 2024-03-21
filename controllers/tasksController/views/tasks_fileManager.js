@@ -88,7 +88,7 @@ props.buttons.reg.regs.btnAccept = {
     }
     try {
       // запит на сервер
-      let { err, data } = await acceptFile(tasks.homeURL + "acceptFile", {
+      let { err, data } = await acceptFile("acceptFile", {
         fileName,
       });
       if (err) {
@@ -214,10 +214,11 @@ fileManager.currPrg = new props.types["text"]({
 
 async function acceptFile(path, addData = {}) {
   let trace = 1,
-    ln = `tasks_fileManager.js::.post(${path})::`;
+    ln = `tasks_fileManager.js::acceptFile::.post(${path})::`;
   trace
     ? console.log(ln + `Started: path=${path}; fileName=${addData.fileName}`)
     : null;
+  // let req =
   // запит POST
   let response = await fetch(path, {
     method: "POST",

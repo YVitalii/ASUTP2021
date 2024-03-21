@@ -6,25 +6,21 @@
 - var trace = 1;
 - var border = trace ? "border border-secondary" : "";
 
+//-  завантажуємо потрібну нам оснастку для вимальовування компонентів
+script.
+  let trace=0, beforeTrace=1;
+
+include ../../../controllers/elementsRender/views/myElementsRender.pug
+
 //-  Описує загальну структуру body сторінки
 
 div(class="row")
   div(class=`col ${border}`)
-    div(class="container"  id="entity_currentValues")
-      if trace
-        h5 id="entity_currentValues"
+    div(class="container") !{currentValuesContainer}
 div(class="row h-100")
   div(class=`col-3 ${border}` id="")
-    div(class="container h-100" id="entity_programContainer")
-      if trace
-        h5 id="entity_controlPanel"
+    div(class="container h-100" id="entity_processContainer") !{processContainer}
   div(class=`col ${border}`)
-    div(class="container h-100" id="entity_graph")
-      if trace
-        h5 id="entity_programContainer"
+    div(class="container h-100" id="entity_graphContainer") !{graphContainer}
 
-//-  завантажуємо потрібну нам оснастку для вимальовування компонентів
-script.
-  let trace=0, beforetRace=1;
 
-include ../../../controllers/elementsRender/views/myElementsRender.pug

@@ -1,0 +1,17 @@
+
+pre #{JSON.stringify(processMan)} 
+hr
+div.row
+  div.column#process_about 
+div.row
+  div.column#Process_buttonGroup     
+div.row
+  div.column#Process_program 
+
+script.
+  const processMan = {};
+  processMan.homeUrl = `#{processMan.homeUrl}`;
+  processMan.editTaskUrl = `#{processMan.tasksManager.homeURL}`;
+
+script
+  include ./js/processMan_Main.js

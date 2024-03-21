@@ -13,11 +13,11 @@ myElementsRender["regsList"] = class ClassRegsList {
    * @property {DOMnode} props.container - DOM контенер в якому буде розміщено
    * @property {String} props.prefix - префікс до id
    * @property {Object} props.regs - список регістрів
-   * @property {Object} props.types - список доступних класів, що рендерять елементи
    */
 
   constructor(props = {}) {
     this.ln = `ClassRegsList(${props.prefix})::`;
+
     let trace = 0,
       ln = this.ln + "сonstructor()::";
     //
@@ -29,7 +29,7 @@ myElementsRender["regsList"] = class ClassRegsList {
     // об'єкт, що містить в собі список доступних типів (класів) регістрів,
     // що використовуються для їх створення
 
-    this.types = myElementsRender;
+    this.types = myElementsRender; // список доступних класів, що рендерять елементи
 
     // список регістрів
     if (!props.regs) {

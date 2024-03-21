@@ -3,6 +3,7 @@ const pug = require("pug");
 
 const TasksManager = require("../../controllers/tasksController/ClassTasksManager.js");
 const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermal.js");
+const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
 const log = require("../../tools/log.js");
 
@@ -24,7 +25,7 @@ entity.shortName = {
 
 // id печі має співпадати з назвою теки в якій вона розташована
 // TODO потрібно автоматизувати: використовувати в якості id імя батьківської теки
-entity.homeDir = __dirname + "/";
+entity.homeDir = __dirname + "\\";
 
 entity.id = "SDO-15.15.15)5_2023";
 
@@ -35,7 +36,7 @@ let trace = 1,
 entity.maxT = 500 + 50;
 
 // URL адреса гілки
-entity.homeUrl = entity.id + "";
+entity.homeUrl = entity.id + "/";
 
 // завантажуємо пристрої
 
@@ -44,12 +45,22 @@ entity.devices = require("./devices/devices.js");
 // менеджер програм
 entity.tasksManager = new TasksManager({
   ln: entity.id + "::TasksManager::",
-  homeDir: entity.homeDir + "/tasksManager",
-  homeURL: entity.homeUrl + "/tasksManager",
+  homeDir: entity.homeDir,
+  homeURL: entity.homeUrl,
 });
-
 // реєструємо задачу термообробки в менеджері програм
 entity.tasksManager.addType(new ClassTaskThermal({ maxT: entity.maxT }));
+
+entity.processManager = new ClassProcessManager({
+  homeDir: entity.homeDir,
+  homeUrl: entity.homeUrl,
+  tasksManager: entity.tasksManager,
+  ln: entity.id + "::ProcessManager::",
+});
+
+// entity.processController = new ProgramController({
+//   tasksManager: entity.tasksManager,
+// });
 
 //  завантажуємо контролери
 // entity.controllers = require("./controllers/controllers.js");
@@ -81,10 +92,10 @@ entity.htmlCompact = (lang = "ua") => {
 entity.htmlFull = (lang = "ua") => {
   let trace = 1,
     ln = gln + "htmlComponent.full::";
-  //trace ? log("i", ln, `entity=`, entity) : null;
+  trace ? log("i", ln, `entity.fullName.ua=`, entity.fullName.ua) : null;
 
   let html = pug.renderFile(__dirname + "/views/full.pug", {
-    entity,
+    entity: this,
     controllersButton: {
       href: entity.homeUrl,
       title: { ua: `Контролери`, en: `Controllers`, ru: `Контроллеры` },
@@ -95,7 +106,7 @@ entity.htmlFull = (lang = "ua") => {
   return html;
 };
 
-entity.router = require(__dirname + "\\routes\\entityRouter.js");
+// entity.router = require(__dirname + "\\routes\\entityRouter.js");
 
 if (trace) {
   log("i", gln, `entity=`);

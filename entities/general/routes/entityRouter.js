@@ -1,25 +1,42 @@
 var express = require("express");
 var router = express.Router();
-
+const tasksManagerRouter = require("../../../controllers/tasksController/routes/index.js");
+const pug = require("pug");
 // ------------ логгер  --------------------
 let log = require("../../../tools/log.js"); // логер
-let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
+let logName = "entityRouter.js::";
 let gTrace = 0; //=1 глобальная трассировка (трассируется все)
 gTrace ? log("i", logName) : null;
 
 /**
- * Коренева тека. Тут сторінка зі списком печей
+ *трасувальник
  */
+router.use(function (req, res, next) {
+  let trace = 1,
+    ln = logName + `entityRouter.js(${req.originalUrl})::`;
+  trace ? log("w", `------${ln} ---- Started ------`) : null;
+  next();
+});
+
+router.use("/tasksManager", tasksManagerRouter);
 
 router.get("/", function (req, res, next) {
   // сторінка зі списком печей
   let trace = 1,
     ln = logName + `get(${req.originalUrl})::`;
   trace ? log("i", ln, `Started`) : null;
-
+  let processContainer = req.entity.processManager.getFullHtml();
+  let html = pug.renderFile(
+    req.info.homeDir + "/entities/general/views/mainPage_template1.pug",
+    {
+      currentValuesContainer: "Поточні значення",
+      graphContainer: "Графік",
+      processContainer: req.entity.processManager.getFullHtml(),
+    }
+  );
   res.render("main.pug", {
-    body: req.entity.htmlFull(),
-    pageTitle: entity.fullName,
+    body: html,
+    pageTitle: req.entity.fullName,
   });
   return; //
 });

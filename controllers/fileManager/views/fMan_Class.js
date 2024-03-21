@@ -61,20 +61,26 @@ const ClassFileManager = class FileManager {
 
   async post(path, addData = {}) {
     let trace = 1,
-      ln = this.ln + `.post(${path})::`;
+      ln = this.ln + `::post(${path})::`;
+
     // адреса для запиту
     let baseUrl = this.homeURL;
+    trace ? console.log(ln + `path=${path};; baseUrl=${baseUrl}`) : null;
     // імя файлу
     let fileName = addData.fileName
       ? addData.fileName
       : this.filesList.getValue();
     addData["fileName"] = fileName;
-    // запит POST
-    let response = await fetch(baseUrl + path, {
+    // запит POST baseUrl +
+    let response = await fetch("fileManager/" + path, {
       method: "POST",
       headers: { "Content-type": "application/json;charset=utf-8" },
       body: JSON.stringify(addData), //  ,
     });
+    if (trace) {
+      console.log(ln + `response=`);
+      console.dir(response);
+    }
     if (response.status === 200 || response.status === 400) {
       // отримуємо результат
       let result = await response.json();

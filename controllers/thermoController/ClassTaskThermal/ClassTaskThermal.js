@@ -35,7 +35,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
           ru: `Термообработка`,
         };
 
-    props.id = props.id ? props.id : "TaskThermal";
+    props.id = "taskThermal";
     props.ln = props.ln ? props.ln : props.id;
 
     super(props);

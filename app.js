@@ -105,6 +105,16 @@ app.use((req, res, next) => {
   req.user.lang = "en";
   next();
 });
+
+app.use((req, res, next) => {
+  let ln = "app.js::";
+  req.info = {};
+  req.info.homeDir = __dirname;
+  req.info.mainPug = req.info.homeDir + "\\views\\main.pug";
+  log("w", ln, `Request req.originalUrl = ${req.originalUrl}`);
+  // console.log(`-------- ${req.info.mainPug} ----------`);
+  next();
+});
 // початкова сторінка
 app.use("/", indexRouter);
 
@@ -134,75 +144,75 @@ let traceEntity = (req, res, next) => {
 // }, ClassProgram.router);
 
 // перевіряємо чи є такий контролер, якщо нема - повідомляємо про помилку
-app.use("/entity/:id/controllers/:contrId", (req, res, next) => {
-  let trace = 0,
-    ln = logName + `app.post(${req.originalUrl})::`;
-  if (trace) {
-    log("i", ln, `req.query=`);
-    console.dir(req.query);
-  }
+// app.use("/entity/:id/controllers/:contrId", (req, res, next) => {
+//   let trace = 0,
+//     ln = logName + `app.post(${req.originalUrl})::`;
+//   if (trace) {
+//     log("i", ln, `req.query=`);
+//     console.dir(req.query);
+//   }
 
-  let controller = req.entity.controllers[req.params.contrId];
-  if (!controller) {
-    res.status(404).json({
-      err: `Not found controller:${req.params.contrId}`,
-      controller: null,
-    });
-    return;
-  }
-  req.controller = controller;
-  next();
-});
+//   let controller = req.entity.controllers[req.params.contrId];
+//   if (!controller) {
+//     res.status(404).json({
+//       err: `Not found controller:${req.params.contrId}`,
+//       controller: null,
+//     });
+//     return;
+//   }
+//   req.controller = controller;
+//   next();
+// });
 
-app.post("/entity/:id/controllers/:contrId/getRegs", (req, res, next) => {
-  let trace = 0,
-    ln = logName + `app.post(${req.originalUrl})::`;
-  if (trace) {
-    log("i", ln, `req.query=`);
-    console.dir(req.query);
-  }
-  let data = req.controller.getRegs(req.query.regs);
-  if (trace) {
-    log("i", ln, `data=`);
-    console.dir(data);
-  }
-  res.json(data); //next();
-  return;
-});
+// app.post("/entity/:id/controllers/:contrId/getRegs", (req, res, next) => {
+//   let trace = 0,
+//     ln = logName + `app.post(${req.originalUrl})::`;
+//   if (trace) {
+//     log("i", ln, `req.query=`);
+//     console.dir(req.query);
+//   }
+//   let data = req.controller.getRegs(req.query.regs);
+//   if (trace) {
+//     log("i", ln, `data=`);
+//     console.dir(data);
+//   }
+//   res.json(data); //next();
+//   return;
+// });
 
-app.post("/entity/:id/controllers/:contrId/setRegs", (req, res, next) => {
-  let trace = 1,
-    ln = logName + `app.post(${req.originalUrl})::`;
-  if (trace) {
-    log("i", ln, `req.query=`);
-    console.dir(req.query);
-  }
-  res.json(req.controller.setRegs(req.query.regs)); //next();
-  return;
-});
+// app.post("/entity/:id/controllers/:contrId/setRegs", (req, res, next) => {
+//   let trace = 1,
+//     ln = logName + `app.post(${req.originalUrl})::`;
+//   if (trace) {
+//     log("i", ln, `req.query=`);
+//     console.dir(req.query);
+//   }
+//   res.json(req.controller.setRegs(req.query.regs)); //next();
+//   return;
+// });
 
-app.post("/entity/:id/controllers/:contrId", (req, res, next) => {
-  let trace = 0,
-    ln = logName + `app.use(${req.originalUrl})::`;
-  trace ? log("w", ln, "Started") : null;
-  req.entity.router(req, res, next);
-  return;
-});
+// app.post("/entity/:id/controllers/:contrId", (req, res, next) => {
+//   let trace = 0,
+//     ln = logName + `app.use(${req.originalUrl})::`;
+//   trace ? log("w", ln, "Started") : null;
+//   req.entity.router(req, res, next);
+//   return;
+// });
 
-app.use("/entity/:id/controllers", (req, res) => {
-  let trace = 0,
-    ln = logName + `app.use("${req.originalUrl}")::`;
-  if (trace) {
-    log("i", ln, `req.entity.controllers.about=`);
-    console.dir(req.entity.controllers.about);
-  }
-  res.render("main.pug", {
-    body: req.entity.controllers.about.htmlFull(),
-    pageTitle:
-      req.entity.fullName +
-      `<br> <small> ${req.entity.controllers.about.fullName.ua} </small>`,
-  });
-});
+// app.use("/entity/:id/controllers", (req, res) => {
+//   let trace = 0,
+//     ln = logName + `app.use("${req.originalUrl}")::`;
+//   if (trace) {
+//     log("i", ln, `req.entity.controllers.about=`);
+//     console.dir(req.entity.controllers.about);
+//   }
+//   res.render("main.pug", {
+//     body: req.entity.controllers.about.htmlFull(),
+//     pageTitle:
+//       req.entity.fullName +
+//       `<br> <small> ${req.entity.controllers.about.fullName.ua} </small>`,
+//   });
+// });
 
 // app.use("/entity/:id/program", (req, res) => {
 //   let trace = 0,
@@ -234,12 +244,12 @@ app.use("/entity/:id/controllers", (req, res) => {
 //   res.send(ln);
 // });
 
-app.use("/entity/:id/", (req, res) => {
-  res.render("main.pug", {
-    body: req.entity.htmlFull(),
-    pageTitle: req.entity.fullName,
-  });
-});
+// app.use("/entity/:id/", (req, res) => {
+//   res.render("main.pug", {
+//     body: req.entity.htmlFull(),
+//     pageTitle: req.entity.fullName,
+//   });
+// });
 
 //app.use("/setTime", setTimeRouter); //страница установки времени
 //app.use("/entyties");

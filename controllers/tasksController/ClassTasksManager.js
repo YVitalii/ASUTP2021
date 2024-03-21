@@ -55,9 +55,9 @@ class ClassTasksManager extends ClassReg_select {
       throw new Error(this.ln + "homeDir not defined! ");
     }
     // домашня директорія
-    this.homeDir = pathNormalize(props.homeDir);
+    this.homeDir = pathNormalize(props.homeDir + "tasksManager");
     // кореневий URL
-    this.homeURL = props.homeURL ? props.homeURL : "/";
+    this.homeURL = props.homeURL ? props.homeURL + "tasksManager/" : "/";
     // робота з файлом поточного стану
     this.lastState = new ClassFileManager({
       homeDir: this.homeDir,

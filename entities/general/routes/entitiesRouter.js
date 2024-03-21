@@ -8,16 +8,21 @@ const entities = require("../entities.js");
 // ------------ логгер  --------------------
 let log = require("../../../tools/log.js"); // логер
 let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
-let gTrace = 0; //=1 глобальная трассировка (трассируется все)
-gTrace ? log("i", logName) : null;
+let gTrace = 1; //=1 глобальная трассировка (трассируется все)
+//gTrace ? log("i", logName) : null;
 
 // // ------------- костиль для отримання термічного процессу печі -----
 // const thermProcess = require("../../../config.js").entities[0].thermProcess;
 
+router.use((req, res, next) => {
+  log("w", "--------------- entitiesRouter started ------------");
+  next();
+});
+
 // ----- визначення сутності по адресі та запамятовування її в req.entity
 router.use("/entity/:id", (req, res, next) => {
   let trace = 0,
-    ln = logName + "app.use(/entity/:id)::";
+    ln = logName + `router.use(${req.baseUrl})::`;
   trace ? log("i", ln, `Started`) : null;
   if (trace) {
     log("i", ln, `req.params=`);
@@ -37,26 +42,16 @@ router.use("/entity/:id", (req, res, next) => {
   // запамятовуємо id сутності в об'єкті запиту
   req.entity = ent;
   //trace ? log("i", ln, `req.entity.id=`, req.entity.id) : null;
-  if (trace) {
-    log("i", ln, `req.entity=`);
-    console.dir(req.entity);
-  }
+  log("i", ln, `req.entity.id=${req.entity.id}`);
+  //  console.dir(req.entity.id);
+  // }
   // передаємо керування далі
   next();
 });
 
 // ----- викликаємо роутер entity
 
-router.use("/entity/:id", (req, res, next) => {
-  let trace = 1,
-    ln = logName + `app.use(${req.baseUrl})::`;
-  trace ? log("i", ln, `Started`) : null;
-  if (trace) {
-    log("i", ln, `req.entity.id=`);
-    console.dir(req.entity.id);
-  }
-  next();
-});
+router.use("/entity/:id", entityRouter);
 
 /**
  * Коренева тека. Тут сторінка зі списком печей

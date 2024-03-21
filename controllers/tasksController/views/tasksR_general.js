@@ -181,6 +181,8 @@ tasks.createStep = (props = {}) => {
     if (props.values) {
       el.setValues(props.values);
     }
+  } else {
+    console.error("tasks.createStep undefined type of task:" + props.id);
   }
   return el;
 };

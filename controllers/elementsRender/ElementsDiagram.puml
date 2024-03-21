@@ -1,7 +1,7 @@
 @startuml DOM_elements
 
-!import ../tasksController/
-!include  "ClassesTaskDiagrams.puml"
+
+
 
 class ClassGeneralElement {
     ** constructor **
@@ -17,8 +17,13 @@ class ClassGeneralElement {
 	this.setClassList(el, classList) - додає до елементу класи
 	this.setAtributes(el, list) - додає до елементу атрибути 
 	---
-	модуль: controllers\elementsRender\views\myElR_ClassGeneralElement.js
+	модуль: controllers/elementsRender/views/myElR_ClassGeneralElement.js
 }
+
+note left of ClassGeneralElement
+     опис <i>ClassRegister</i> дивись в:
+    /controllers/tasksController/ClassesTaskDiagrams.puml
+end note
 
  ClassGeneralElement <|-- ClassCreateElement
  
