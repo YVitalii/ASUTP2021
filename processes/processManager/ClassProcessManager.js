@@ -22,7 +22,9 @@ class ClassProcessManager {
 
     this.moduleDir = __dirname;
   }
-
+  setProgram() {
+    this.program = [];
+  }
   getFullHtml(props = {}) {
     let trace = 1,
       ln = this.ln + "getFullHtml()::";

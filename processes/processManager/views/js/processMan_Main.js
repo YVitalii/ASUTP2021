@@ -5,7 +5,7 @@ processMan.myElementsRender = myElementsRender;
 processMan.container = document.getElementById("Process_buttonGroup");
 processMan.id = "taskBar";
 // список всіх елементів контейнеру
-processMan.elements = {};
+processMan.buttonsGroup = {};
 // кнопка "Редагувати завдання"
 {
   let row = document.createElement("div");

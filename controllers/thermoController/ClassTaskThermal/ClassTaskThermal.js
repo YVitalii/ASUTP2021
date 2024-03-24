@@ -58,7 +58,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
         ru: `Целевая температура`,
       },
       min: 0,
-      max: 150,
+      max: props.maxT ? props.maxT : 100,
     });
 
     // максимальне відхилення температури вниз

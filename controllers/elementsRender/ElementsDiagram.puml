@@ -1,5 +1,21 @@
 @startuml DOM_elements
 
+class "ClassRegister" as register { 
+    +id : String; // ідентифікатор регістру
+    +ln : String; // Заголовок для логування роботи коду
+    +header : Object; // {ua,en,ru}  Заголовок поля вводу
+    +type :  String; // Тип регістру для рендерингу в myElementsRender
+    +value : String|Number = props.value | 0; // Поточне значення
+    +comment : Object; // {ua,en,ru} Додатковий опис
+    +editable : Boolean = true // Дозвіл на редагування значення регістру
+	+attributes: Object // список атрибутів для елемента {name:value, }
+	+classes: Array || String // список класів 
+	
+	---- methods ----
+    +setValue(val): return val; // встановлює this.value
+    +getValue(): return this.value; // встановлює this.value
+}
+
 
 
 
@@ -20,10 +36,7 @@ class ClassGeneralElement {
 	модуль: controllers/elementsRender/views/myElR_ClassGeneralElement.js
 }
 
-note left of ClassGeneralElement
-     опис <i>ClassRegister</i> дивись в:
-    /controllers/tasksController/ClassesTaskDiagrams.puml
-end note
+
 
  ClassGeneralElement <|-- ClassCreateElement
  
@@ -60,6 +73,14 @@ class ClassButton {
 	
 }
 ClassGeneralElement <|-- ClassButton
+
+class ClassButtonGroup {
+---- constructor ----
++types : Object // список об'єктів рендера
+
+
+}
+ClassGeneralElement <|-- ClassButtonGroup
 
 class ClassElementNumber {
     +ln : String ="ClassElementNumber::"
@@ -100,11 +121,12 @@ ClassElementSelectGeneral <|-- ClassElementSelectRegsList
 
 class ClassRegsList {   
     ** constructor **
-    +types=myElementsRender : Object // список типів конструкторів класів  з яких створюються елементи 
+    +container : DOM element
     +regs  : Object // список регістрів-дітей для створення DOM nodes
-    +prefix : String; // префікс до id елементу 
+    +prefix="_undefined": String; // префікс до id елементу 
 	---
-	+ln : String  = "ClassRegsList(${prefix})::"
+	+types=myElementsRender : Object // список типів конструкторів класів  з яких створюються елементи 
+	+ln : String  = "ClassRegsList(${props.prefix})::"
     +children :  Object // список регістрів-дітей
     +remove() : // Видаляє всіх зі списку children
     +render(regs) : // Створює всіх дітей в списку regs
@@ -112,8 +134,8 @@ class ClassRegsList {
     +findRegister(id): Object | undefined // шукає серед усіх нащадків регістр з вказаним id
     +setRegister(id, value) : Встановлює для регістра id вказане value 
     ---
-    розташування : "/controllers/tasksController/views/"
-    модуль: tasks_ClassRegsList.js 
+    розташування : "controllers/elementsRender/views/"
+    модуль: myElR_regsList.js
     
 }
 
