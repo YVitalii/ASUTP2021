@@ -3,6 +3,14 @@ const dummy = require("../../tools/dummy.js").dummyPromise;
 
 /** Загальний клас кроку програми, соновна логіка та влаштування */
 class ClassStep {
+  /**
+   *
+   * @param {*} props
+   * @property {Object} props.header={ua,en,ru} - тут зберігається заголовок кроку
+   * @property {Object} props.comment={} - тут зберігається опис кроку
+   * @property {async function} props.beforeStart={} - функція, що викликається перед початком кроку
+   * @property {async function} props.afterAll={} - функція, що викликається після закінчення кроку
+   */
   constructor(props = {}) {
     let trace = 0;
 
@@ -192,6 +200,7 @@ class ClassStep {
     // якщо виникла помилка кидаємо помилку
     if (this.state._id == "error") {
       trace ? log("e", ln, `Error!!`) : null;
+      this.afterAll();
       throw new Error(this.err.ua);
     }
 

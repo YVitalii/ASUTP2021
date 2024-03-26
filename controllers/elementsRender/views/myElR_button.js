@@ -26,16 +26,20 @@ myElementsRender["button"] = class ClassButton extends (
       console.dir(props);
     }
 
+    // - посилання на батьківську структуру даних(для вик. в обробниках подій
+    // - ми прив'язуємо this до обробника події тому parent - не потрібний
+    // - ми беремо з prefix=parent.id тому потрібен
     this.parent = props.parent;
 
-    this.tag = props.action && props.action == "link" ? "a" : "button";
-
+    this.tag = props.action && props.action === "link" ? "a" : "button";
+    // console.warn(ln + `props.action=${props.action}; this.tag=${this.tag}; `);
     // створюємо елемент ДОМ
     let but = document.createElement(this.tag);
-    but.id =
-      parent.id + this.id
-        ? this.id
-        : console.error(this.ln + "Id of button not defined!");
+    console.warn(`this.parent.id=${this.parent.id}`);
+    but.id = (this.parent.id ? this.parent.id + "_" : "") + this.id;
+    // ? this.id
+    // : console.error(this.ln + "Id of button not defined!");
+
     // оформлюємо кнопку
     but.classList.add("btn");
     but.setAttribute("type", "button");
@@ -60,8 +64,8 @@ myElementsRender["button"] = class ClassButton extends (
       ? props.reg.header[lang]
       : "<h6>???</h6>";
     // обробник кліку
-    but.onclick = props.reg.onclick
-      ? props.reg.onclick.bind(this)
+    but.onclick = props.onclick
+      ? props.onclick.bind(this)
       : this.onclick.bind(this);
     // зберігаємо кнопку
     this.el = but;

@@ -7,7 +7,7 @@ const ClassRegister = require("../regsController/ClassRegister.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const pathNormalize = require("path").normalize;
 const { readFileSync, writeFile } = require("fs");
-
+const ClassTaskDescriptionStep = require("./ClassTaskDescriptionStep.js");
 /**
  * Клас виконує керування завданнями
  * для тестування при розробці створено локальний сервер
@@ -43,7 +43,7 @@ class ClassTasksManager extends ClassReg_select {
     super(props);
 
     this.ln = this.ln ? this.ln : "ClassTasksManager::";
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "constructor()::";
 
     if (trace) {
@@ -77,7 +77,7 @@ class ClassTasksManager extends ClassReg_select {
         ln = this.ln + "loadLastState::";
       let data = this.lastState.readFileSync(this.lastState.fileName);
       trace ? log(ln, `data=`, data) : null;
-      data = JSON.parse(data ? data : "{value:default}");
+      data = JSON.parse(data ? data : JSON.stringify({ value: "default" }));
       this.value = data.value ? data.value : "default";
     }
 
@@ -141,58 +141,7 @@ class ClassTasksManager extends ClassReg_select {
       type: "regsList",
     });
 
-    // Додаємо крок 0 = опис програми
-    let description = new ClassReg_regsList({
-      id: "description",
-      ln: "tasksDescription::",
-      header: {
-        ua: "Загальна інформація",
-        en: "General descriptiom of program",
-        ru: "Общее описание програмы",
-      },
-      comment: {
-        ua: ``,
-        en: ``,
-        ru: ``,
-      },
-      editable: false, //крок не можна видаляти/додавати
-      regs: {
-        // опис поля Ім'я програми
-        name: new ClassRegister({
-          id: "name",
-          type: "text",
-          ln: "tasks.description.name::",
-          value: "empty",
-          header: {
-            ua: `Назва програми`,
-            en: `Program name`,
-            ru: `Наименование программы`,
-          },
-          comment: {
-            ua: `3..20 символів`,
-            en: `3..20 characters`,
-            ru: `3..20 символов`,
-          },
-        }),
-        note: new ClassRegister({
-          // опис поля примітки для програми
-          id: "note",
-          type: "textarea",
-          ln: "tasks.description.note::",
-          value: "empty",
-          header: {
-            ua: "Примітки",
-            en: "Notes",
-            ru: "Примечания",
-          },
-          comment: {
-            ua: `Опис програми`,
-            en: `Program description`,
-            ru: `Описание программы`,
-          },
-        }),
-      },
-    });
+    let description = new ClassTaskDescriptionStep();
     // додаємо крок
     this.addType(description);
 
@@ -203,13 +152,17 @@ class ClassTasksManager extends ClassReg_select {
     this.setCurrentValue(this.value);
     // this.loadTask();
 
+    // тут має зберігатися скомпільована програма
+
+    this.program = [];
+
     if (trace) {
       log("i", ln, `this=`);
-      console.dir(this);
+      console.dir(this, { depth: 3 });
     }
   }
 
-  /** Встановлює поточний список задач */
+  /** Встановлює поточну список задач для виконання */
   async setCurrentValue(val) {
     let trace = 0,
       ln = this.ln + `setValue(${val})::`;
@@ -223,7 +176,7 @@ class ClassTasksManager extends ClassReg_select {
       throw new Error(msg);
     }
     await this.loadTask(val);
-
+    this.makeProgram();
     if (this.value != val) {
       super.setValue(val);
       await this.lastState.writeFile(
@@ -233,9 +186,42 @@ class ClassTasksManager extends ClassReg_select {
     }
   }
 
+  /**
+   * Функція перетворює список задач в список кроків для виконання
+   * наприклад задача ThermProcess може бути розбита на кроки: heating,holding і т.д.
+   *
+   */
+  makeProgram() {
+    let trace = 1,
+      ln = this.ln + "makeProgram()::";
+    let list = this.list;
+    if (trace) {
+      log("i", ln, `list=`);
+      console.dir(list);
+    }
+    this.program = [];
+    for (let i = 0; i < this.list.length; i++) {
+      const element = this.list[i];
+      let manager = this.reg.regs[element.id];
+      // if (trace) {
+      //   log("i", ln, `manager=`);
+      //   console.dir(manager);
+      // }
+      if (manager) {
+        let step = manager.getStep(element);
+        this.program.push(step);
+      }
+    }
+    if (trace) {
+      log("i", ln, `this.program=`);
+      console.dir(this.program);
+    }
+    // let description = new this.regs['description'];
+  }
+
   /** Завантажує список задач з файлу */
   async loadTask(fName = "default") {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `loadTask(${fName})::`;
     let data = "";
     try {

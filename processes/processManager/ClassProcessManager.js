@@ -7,7 +7,12 @@ class ClassProcessManager {
   constructor(props = {}) {
     this.homeUrl = props.homeUrl ? props.homeUrl + "processManager/" : "/";
     this.homeDir = props.homeDir ? props.homeDir + "processManager\\" : "/";
-
+    this.id = "processManager";
+    this.header = {
+      ua: `Менеджер процесу`,
+      en: `Process manager`,
+      ru: `Менеджер процессов`,
+    };
     this.ln = props.ln ? props.ln : `ClassProcessManager(${this.homeUrl})::`;
     let trace = 1,
       ln = this.ln + "constructor()::";

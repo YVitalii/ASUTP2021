@@ -5,7 +5,7 @@ const ClassReg_regsList = require("../../regsController/ClassReg_regsList.js");
 const ClassReg_select = require("../../regsController/ClassReg_select.js");
 const ClassControllerPID = require("../../controllerPID/ClassControllerPID.js");
 const ClassReg_timer = require("../../regsController/ClassReg_timer");
-// const ClassHeatingStep = require("../heating/ClassThermalHeatingStep.js");
+const ClassQuickHeatingStep = require("../quickHeatingStep/ClassQuickHeatingStep.js");
 
 class ClassTaskThermal extends ClassTaskGeneral {
   /**
@@ -39,11 +39,35 @@ class ClassTaskThermal extends ClassTaskGeneral {
     props.ln = props.ln ? props.ln : props.id;
 
     super(props);
+
     // максимальна температура
     if (!props.maxT || props.maxT < 0) {
       throw new Error(
-        this.ln + `Property "maxT" must be cpeciefied! maxT=${props.maxT}`
+        this.ln + `Property "maxT" must be cpecified! maxT=${props.maxT}`
       );
+    }
+
+    // перевіряємо список приладів, що приймають участь в керуванні
+    if (
+      !(
+        props.devices &&
+        Array.isArray(props.devices) &&
+        props.devices.length > 0
+      )
+    ) {
+      throw new Error(
+        this.ln +
+          `props.devices must be cpecified! typeof props.devices = ${typeof props.devices}`
+      );
+    }
+    for (let i = 0; i < props.devices.length; i++) {
+      const element = props.devices[i];
+      if (!element.getT || typeof element.getT != "function") {
+        throw new Error(
+          this.ln +
+            `props.devices.getT must be async function? but typeof props.devices[${i}].getT = ${typeof element.getT}`
+        );
+      }
     }
 
     // задана температура
@@ -107,9 +131,9 @@ class ClassTaskThermal extends ClassTaskGeneral {
       max: 24 * 60 - 1, // input time має максимум 23:59, за потреби довше - дублювати кроки
     }); //this.regs.wT
 
-    // час нагрівання, хв
+    // час утримання, хв
     this.regs.Y = new ClassReg_timer({
-      id: "H",
+      id: "Y",
       value: props.Y ? props.Y : 0,
       header: {
         ua: "Час витримки",
@@ -169,6 +193,13 @@ class ClassTaskThermal extends ClassTaskGeneral {
     this.heatingStep;
     this.holdingStep;
   } // constructor
+
+  getStep(regs = {}) {
+    let res = [];
+    res.push(new ClassQuickHeatingStep(regs));
+
+    return { header: { ua: `123`, en: `123`, ru: `123` } };
+  }
 } //class ClassThermoStep
 
 module.exports = ClassTaskThermal;

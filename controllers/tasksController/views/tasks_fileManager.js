@@ -26,8 +26,10 @@ props.buttons = {
 };
 
 props.buttons.reg.regs.btnSave = {
-  classes: ["btn-primary"],
-  header: { ua: "Зберегти", en: "Save", ru: "Сохранить" },
+  reg: {
+    classes: ["btn-primary"],
+    header: { ua: "Зберегти", en: "Save", ru: "Сохранить" },
+  },
   onclick: async function (e) {
     let trace = 1,
       ln = "btnAccept::onClick::";
@@ -60,12 +62,14 @@ props.buttons.reg.regs.btnSave = {
     } catch (error) {
       console.error(error);
     } // try catch
-  },
+  }, //onclick:
 };
 
 props.buttons.reg.regs.btnAccept = {
-  classes: ["btn-success"],
-  header: { ua: "Застосувати", en: "Accept", ru: "Применить" },
+  reg: {
+    classes: ["btn-success"],
+    header: { ua: "Застосувати", en: "Accept", ru: "Применить" },
+  },
   onclick: async function (e) {
     let trace = 1,
       ln = "btnAccept::onClick::";
@@ -108,8 +112,10 @@ props.buttons.reg.regs.btnAccept = {
 };
 
 props.buttons.reg.regs.btnDelete = {
-  classes: ["btn-warning"],
-  header: { ua: "Видалити", en: "Delete", ru: "Удалить" },
+  reg: {
+    classes: ["btn-warning"],
+    header: { ua: "Видалити", en: "Delete", ru: "Удалить" },
+  },
   onclick: async function (e) {
     let trace = 1,
       ln = "btnDelete::onClick::";

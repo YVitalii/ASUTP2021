@@ -41,11 +41,12 @@ myElementsRender["buttonGroup"] = class ClassButtonGroup extends (
         let trace = 1,
           ln = this.ln + `CreateButton(${key})::`;
         let btn = {};
-        btn.reg = this.reg.regs[key];
-        btn.reg.id = this.id + "_" + key;
+        btn = this.reg.regs[key];
+        // btn.id = this.id + "_" + key;
         //btn.ln = ln;
         btn.container = this.btnGroup;
-        btn.parent = this;
+        btn.parent = this.reg;
+        // btn.action = btn.reg.action;
         if (trace) {
           console.log(ln + `btn=`);
           console.dir(btn);

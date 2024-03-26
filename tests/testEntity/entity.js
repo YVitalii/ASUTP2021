@@ -1,12 +1,11 @@
 /** Збирає і налаштовує всі елементи сутності, та передає менеджеру сутностей */
 const pug = require("pug");
+
 const TasksManager = require("../../controllers/tasksController/ClassTasksManager.js");
 const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermal.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
 const log = require("../../tools/log.js");
-
-const emulate = true;
 
 // об'єкт сутності
 const entity = {};
@@ -28,7 +27,7 @@ entity.shortName = {
 // TODO потрібно автоматизувати: використовувати в якості id імя батьківської теки
 entity.homeDir = __dirname + "\\";
 
-entity.id = "SDO-15.15.15)5_2023";
+entity.id = "testEntity_2023";
 
 let trace = 1,
   gln = `${entity.id}::entity.js::`;
@@ -37,37 +36,20 @@ let trace = 1,
 entity.maxT = 500 + 50;
 
 // URL адреса гілки
-entity.homeUrl = entity.id + "/";
+entity.homeUrl = "/entity/" + entity.id + "/";
 
 // завантажуємо пристрої
 
 entity.devices = require("./devices/devices.js");
 
-// менеджер завдань
+// менеджер програм
 entity.tasksManager = new TasksManager({
   ln: entity.id + "::TasksManager::",
   homeDir: entity.homeDir,
   homeURL: entity.homeUrl,
 });
-// -- термічний процесс
-let thermalProcess = new ClassTaskThermal({
-  maxT: entity.maxT,
-  emulate,
-  quickHeating: {
-    beforeStart: async function (regs) {
-      console.log(`${entity.id}, quickHeating.beforeStart !`);
-    },
-    heatingPID: async function (regs) {
-      console.log(`${entity.id}, heatingPID.beforeStart !`);
-    },
-    holding: async function (regs) {
-      console.log(`${entity.id}, holding.beforeStart !`);
-    },
-  },
-});
-
 // реєструємо задачу термообробки в менеджері програм
-entity.tasksManager.addType(thermalProcess);
+entity.tasksManager.addType(new ClassTaskThermal({ maxT: entity.maxT }));
 
 entity.processManager = new ClassProcessManager({
   homeDir: entity.homeDir,

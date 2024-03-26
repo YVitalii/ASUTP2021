@@ -1,1 +1,0 @@
-[{"id":"description","name":"default","note":"Короткий опис програми"},{"id":"ClassTask_Heating","tT":0,"errTmin":-15,"errTmax":15,"regMode":"pos","o":-2,"wT":0,"H":0},{"id":"ClassTask_Heating","tT":"50","errTmin":-15,"errTmax":15,"regMode":"pid","o":0,"ti":0,"td":0,"wT":"-5","H":0}]

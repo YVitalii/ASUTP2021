@@ -6,6 +6,8 @@ myElementsRender["ClassGeneralElement"] = class ClassGeneralElement {
    * @property {string} props.prefix - префікс для id елементу
    * @property {Object} props.reg  - типовий регістр з описом елементу
    * @property {Object} props.container - контейнер в якому потрібно розмістити елемент
+   * @property {tring |Array of String} props.classes -  // список класів що застосовується до головного елемента
+   *
    * @property {String} props.type - тип елементу (ключ в  myElementsRender)
    * @property {async Function} props.afterChange - зовнішня функція, що запускається після зміни значення
    */

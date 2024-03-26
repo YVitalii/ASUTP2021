@@ -44,7 +44,7 @@ processMan.buttonsGroup = {};
     },
   };
   props.regs[button.id] = button;
-
+  processMan.elements = {};
   processMan.elements[props.id] = new processMan.myElementsRender[
     button.reg.type
   ](button);

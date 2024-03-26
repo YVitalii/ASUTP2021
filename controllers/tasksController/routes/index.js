@@ -7,13 +7,13 @@ var router = express.Router();
 const pathResolve = require("path").resolve;
 const pug = require("pug");
 const fileManagerRouter = require("../../fileManager/routes/");
-const mainPug = pathResolve("/views/main.pug");
+// const mainPug = pathResolve("/views/main.pug");
 
 const log = require("../../../tools/log");
 let logName = __dirname + "::",
   trace = 0;
 const getFileName = require("../../../tools/reqTools.js").reqGetFileName;
-console.log(logName + `Resolved mainPug= ${mainPug}`);
+// console.log(logName + `Resolved mainPug= ${mainPug}`);
 // if (trace) {
 //   log("i", ln, `getFileName=`);
 //   console.dir(getFileName);

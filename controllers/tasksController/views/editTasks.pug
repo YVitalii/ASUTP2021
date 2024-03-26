@@ -8,13 +8,6 @@
 //- перед виконанням свого коду запамятовує поточне значення trace в beforeTrace: 'beforeTrace=trace'
 //- після завершення відновлює попереднє значення 'trace=beforeTrace', таким чином модулі не будуть заважати іншим
 
-script.
-  let trace = 1, beforeTrace = 0; 
-
-
-//- завантажуємо рендер елементів
-include ../../elementsRender/views/myElementsRender.pug
-
 //- створюємо контейнери для вмісту
 div(class="container-fluide")
   div(class="row")

@@ -38,7 +38,7 @@ class ClassGeneralElement {
 
 
 
- ClassGeneralElement <|-- ClassCreateElement
+ClassGeneralElement <|-- ClassCreateElement
  
 class ClassCreateElement {
     ** constructor **
@@ -47,6 +47,7 @@ class ClassCreateElement {
 	+afterChange() : async Function // Запускається після зміни значення поля
 	
 	---
+	
 	+ln : String  = "ClassCreateElement()::"
     #elId : String; // element Id ідентифікатор для батьківського елементу = prefix+"__"+id
     #beforeValue : String|Number // попереднє значення
@@ -68,16 +69,38 @@ class ClassCreateElement {
 }
 
 class ClassButton {
-	** constructor **
-	+ parent: - посилання на батьківську структуру даних(для вик. в обробниках подій
+	myElementsRender["button"]
+	---- ** constructor props ** ----
+	+container: DOMnode //
+	+action: "link" | undefined //тег за яким створюється кнопка, "link"=<a> всі інші значення =<button>  
+	+reg.classes:"btn btn-success"  // 
+	+reg.attributes: { href: ...} //
+	+reg.id: String
+	+reg.header:Object // type {ua: ..,en,ru} напис на кнопці
+	+reg.comment: Object // type {ua: ..,en,ru} спливаюча підказка
+	+reg.type="button" // тип як задано в myElementsRender
+	+onclick: async Function // обробник натискання
+	---- internal ----
+	this.tag =( props.action == "link" ? "a":"button") : String // тег за яким створюється кнопка
+	this.el : DOM node // власне кнопка 
+	
 	
 }
 ClassGeneralElement <|-- ClassButton
 
 class ClassButtonGroup {
----- constructor ----
-+types : Object // список об'єктів рендера
-
+new myElementsRender["buttonGroup"]
+---- ** constructor props ** ----
++ln 
++container 
++reg: ClassRegister
++types : myElementsRender // список об'єктів рендера
++reg.regs: Object of ClassButton // опис кнопок
+---- internal ----
+this.btnGroup // власне группа
+this.btnGroup.classList = props.classes | "col btn-group-vertical"
+this.children : Object of ClassButton // всі кнопки
+ 
 
 }
 ClassGeneralElement <|-- ClassButtonGroup
