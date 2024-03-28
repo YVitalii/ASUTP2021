@@ -1,0 +1,76 @@
+@startuml ClassesStep
+
+class "ClassStepGeneral" as classStepGeneral {
+	---- constructor(props) ----
+	+header = props.header : Object {ua,en,ru} // назва кроку 
+	+comment = {ua,en,..} : Опис кроку
+	+beforeStart() : async Function // асинхронна функція для виконання перед початком кроку (підготовка)
+	+afterAll() : async Function // асинхронна функція для виконання в кінці процесу (завершення)
+	+ln = String // опис для логування
+	
+	---- this ----
+	+ currentDuration : Number -  тривалість кроку в сек
+	+state : Object; // стан кроку 
+	+state._id ="waiting" String // id стану ["waiting","going","finished","stoped","error"]
+	+state.note: String Опис стану
+	+state.startTime = undefined|ObjectDate // старт кроку
+	+state.duration = "0" : String // тривалість кроку e вигляді "ГГ:ХХ:СС"
+	+state.changed = undefined|ObjectDate // відмітка про час останньої зміни стану кроку
+	-regs = {}: Object; // тут зберігаються налаштування
+	-err=null/{ua,en,..};  // опис помилки 
+
+	+testState()  // повертає 1=true коли все нормально та 0=false при помилці 
+	-logger(level,msg) // логер + автоматично додає відмітку часу та this.ln до повідомлення
+	+start(): async Function // основна функція, що кожні 2 сек \n перевіряє стан процесу і завершується  resolve / reject
+	+stop(msg) // примусова зупинка процесу
+	-finish(msg) // успішне завершення процесу
+	-error(msg) // завершення по помилці
+	duration() // вираховує поточну тривалість кроку
+	
+}
+
+class "ClassThermoStepGeneral" {
+	---- constructor(props) ----
+	+tT: Number|String - Задана температура
+	+errTmin=-50:Number - (<0) =0 вимкнуто, нижня границя коридору температури 
+	+errTmax=+50:Number - *С, (>0) =0 вимкнуто, верхня границя коридору температури
+	o=2:Number - для regMode="pid" - постійна складова, для regMode="pos" неузгодження температури
+	ti=0:Number - для regMode="pid" - інтегральний коєф-т, для regMode="pos" немає значення
+	td=0:Number - для regMode="pid" - пропорційний коєф-т, для regMode="pos" немає значення
+	+getT():async Function - async функція запиту поточної температури з приладу
+	+checkPeriod=5 - сек, період між опитуваннями поточної температури
+	---- this ----
+	+tT = parseInt(props.tT);
+	+t=0 : поточна температура
+	+getT = props.getT.bind(this);
+	+testProcess(): async Function -  считує температуру + checkTemperatureRange()
+	+checkTemperatureRange(): function - перевіряє на вихід поточного значення з дозволеного діапазону
+	
+}
+
+classStepGeneral <|-- ClassThermoStepGeneral
+
+class "ClassQuickHeatingStep" { 
+	---- constructor(props) ----
+	+wT=0: Number|String - закид першої хвилі перерегулювання
+	+wave.period=30: Number|String - сек, період між опитуванням поточної температури.
+	+wave.dT=0.1: Float|String  - *С, рахується що настала \n вершина хвилі, коли середня похідна менше цього значення
+	+wave.points=10: Number|String, кількість точок для розрахунку середньої похідної
+	---- this ----
+	+tT = parseInt(props.tT) + wT; // знижує температуру завдання
+	+errTmin = 0 ; // знизу немає обмеження, так як час розігрівання не лімітований
+	+comment ={ua:"Швидке нагр. до ${tT}",en,ru} ; - опис кроку	
+	+checkWave():function - пошух перегину температурного тренду: true - знайдено, false - ні
+}
+
+ClassThermoStepGeneral <|-- ClassQuickHeatingStep 
+
+class "ClassHeatingStep" { 
+	---- constructor(props) ----
+	H=0: Number - хв; час нагрівання; 0= макс.швидко;
+	---- this ----
+}
+ClassThermoStepGeneral <|-- ClassHeatingStep 
+
+@enduml
+

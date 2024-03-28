@@ -6,6 +6,7 @@ class ClassStep {
   /**
    *
    * @param {*} props
+   * @property {String} props.id= - ідентифікатор кроку
    * @property {Object} props.header={ua,en,ru} - тут зберігається заголовок кроку
    * @property {Object} props.comment={} - тут зберігається опис кроку
    * @property {async function} props.beforeStart={} - функція, що викликається перед початком кроку
@@ -15,7 +16,7 @@ class ClassStep {
     let trace = 0;
 
     //тут зберігаються основні налаштування
-    this.regs = {};
+    //this.regs = {};
 
     // тут зберігається стан кроку
     this.state = {};
@@ -23,9 +24,16 @@ class ClassStep {
     // перелік можливих станів: "waiting","going","finished","stoped","error"
     this.state._id = "waiting";
     this.state.note = { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` };
-    this.startTime = undefined;
+    this.state.startTime = undefined;
+    this.state.duration = "0"; // тривалість виконання кроку в вигляді "ГГ:ХХ:СС"
     // зберігає опис помилки
     this.err = null;
+    // тривалість виконання кроку в секундах
+    this.currentDuration = 0;
+
+    // дата останньої зміни стану кроку
+    this.state.changed = undefined;
+    this.setChanged(); // відразу відмічаємо момент створення кроку
 
     /** Опис кроку, виводиться в полі програми */
     this.header = props.header
@@ -33,7 +41,7 @@ class ClassStep {
       : { ua: `Невизначено`, en: `Undefined`, ru: `Неопределено` };
     this.comment = props.comment ? props.comment : { ua: ``, en: ``, ru: `` };
 
-    this.ln = "ClassStep(" + this.header.ua + ")::";
+    this.ln = props.ln ? props.ln : "ClassStep(" + this.header.ua + ")::";
     let ln = this.ln + "Constructor()::";
 
     trace ? log("i", ln, `props=`, props) : null;
@@ -71,17 +79,16 @@ class ClassStep {
 
   async start() {
     this.logger("w", "start()::Received command  'Start'");
-
+    //  початкові налаштування
     try {
       await this.beforeStart();
       this.logger("i", "beforeStart()::Completed.");
     } catch (error) {
       this.error(error);
     }
-
+    // стан виконання
     this.state._id = "going";
     this.state.startTime = new Date();
-    //this.state.finishTime = undefined;
     let msg = this.state.startTime.toLocaleString();
     this.state.note = {
       ua: `Початок о ${msg}`,
@@ -89,7 +96,8 @@ class ClassStep {
       ru: `Старт в ${msg}`,
     };
     this.logger("w", this.state.note.ua);
-    //this.promise = new Promise();
+
+    this.setChanged();
 
     return new Promise(async (resolve, reject) => {
       let test = this.testState();
@@ -105,6 +113,11 @@ class ClassStep {
         this.logger("e", "Error executing afterAll()");
         throw new Error("Error executing afterAll() ");
       }
+      this.state.endTime = new Date();
+      this.setChanged();
+      if (this.state._id == "error") {
+        reject(this.err);
+      }
       resolve(1);
     });
   }
@@ -118,6 +131,7 @@ class ClassStep {
       return;
     }
     let duration = new Date(this.duration()).toISOString().slice(11, -2);
+
     msg =
       msg && msg.ua
         ? msg
@@ -129,14 +143,17 @@ class ClassStep {
     this.logger("w", "Received command stop()::" + msg.en);
     this.state._id = "stoped";
     this.state.note = msg;
+    this.setChanged();
   }
 
   /** Повертає поточну тривалість кроку
-   * @return мс
+   * @return с
    */
   duration() {
     let now = new Date();
     let dur = now.getTime() - this.state.startTime.getTime();
+    this.currentDuration = dur / 1000;
+    this.state.duration = new Date(dur).toISOString().slice(11, -5);
     return dur;
   }
 
@@ -148,7 +165,8 @@ class ClassStep {
       );
       return;
     }
-    let duration = new Date(this.duration()).toISOString().slice(11, -2);
+    this.duration();
+    let duration = this.state.duration;
     msg =
       msg && msg.ua
         ? msg
@@ -161,6 +179,7 @@ class ClassStep {
     this.logger("i", "Received command finish()::" + msg.en);
     this.state._id = "finished";
     this.state.note = msg;
+    this.setChanged();
     // this.currNote = msg;
   }
 
@@ -178,13 +197,14 @@ class ClassStep {
     this.state._id = "error";
     this.state.note = err;
     this.err = err;
+    this.setChanged();
   }
 
   testState() {
     let trace = 0,
       ln = this.ln + "testState()::";
     trace ? log("", ln, `this.state._id=`, this.state._id) : null;
-
+    this.duration();
     // якщо крок завершено повертаємо Успіх
     if (this.state._id == "finished") {
       trace ? log("", ln, `Finished!!`) : null;
@@ -200,14 +220,23 @@ class ClassStep {
     // якщо виникла помилка кидаємо помилку
     if (this.state._id == "error") {
       trace ? log("e", ln, `Error!!`) : null;
-      this.afterAll();
-      throw new Error(this.err.ua);
+      //this.afterAll();
+      return 1;
+      //throw new Error(this.err.ua);
     }
 
     return 0;
   }
-}
 
-ClassStep.regs = {};
+  getState() {
+    let res = { ...this.state };
+    res.header = this.header;
+    res.comment = this.comment;
+    return res;
+  }
+  setChanged() {
+    this.state.changed = new Date();
+  }
+}
 
 module.exports = ClassStep;

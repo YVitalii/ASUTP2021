@@ -194,7 +194,21 @@ class ClassTaskThermal extends ClassTaskGeneral {
     this.holdingStep;
   } // constructor
 
-  getStep(regs = {}) {
+  /**
+   * Створює та повертає крок термообробки
+   * @param {} regs
+   * @returns
+   */
+
+  getStep(regs) {
+    let trace = 1,
+      ln = this.ln + "getRegs()::";
+    if (typeof regs != "object") {
+      throw new Error(
+        ln + "regs must be an Object typeof regs= " + typeof regs
+      );
+    }
+
     let res = [];
     res.push(new ClassQuickHeatingStep(regs));
 

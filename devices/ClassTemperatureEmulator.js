@@ -8,11 +8,11 @@ class ClassTemperatureEmulator {
    * @property {Object} props.heating - параметри етапу розігрівання
    * @property {Number} props.heating.tT=200 - *С, задана температура tT
    * @property {Number} props.heating.time=30 - сек, тривалість набору температури tT
-   * @property {Object} props.firstWave - параметри першої хвилі перерегулювання
-   * @property {Number} props.firstWave.time=10 - сек, тривалість перщої хвилі
-   * @property {Object} props.holding - параметри етапу витримки
-   * @property {Number} props.holding.dT=5 - *С, межі зміни теператури навколо tT
-   * @property {Number} props.holding.time=20 - сек, період коливань
+   * // @property {Object} props.firstWave - параметри першої хвилі перерегулювання
+   * // @property {Number} props.firstWave.time=10 - сек, тривалість перщої хвилі
+   * // @property {Object} props.holding - параметри етапу витримки
+   * // @property {Number} props.holding.dT=5 - *С, межі зміни теператури навколо tT
+   * // @property {Number} props.holding.time=20 - сек, період коливань
    *
    */
   constructor(props = {}) {
@@ -48,8 +48,18 @@ class ClassTemperatureEmulator {
     }
   }
 
-  async setRegs(regs) {
-    log("w", this.ln, "setRegs(" + JSON.stringify(regs) + ")");
+  async setRegs(regs = {}) {
+    if (regs.tT) {
+      this.heating.tT = parseInt(regs.tT);
+    }
+    if (regs.H) {
+      this.heating.time = parseInt(regs.H * 60);
+    }
+    log(
+      "w",
+      this.ln,
+      "setRegs(" + JSON.stringify(regs) + ")=" + JSON.stringify(this.heating)
+    );
     return await dummy();
   }
 
@@ -106,10 +116,12 @@ class ClassTemperatureEmulator {
   async start(tT = undefined) {
     this.heating.tT = tT ? tT : this.heating.tT;
     this.startTime = new Date().getTime();
-    let trace = 0,
-      ln = this.ln + "Started(" + tT + ")::";
+    let trace = 1,
+      ln = this.ln + "Started(" + this.heating.tT + ")::";
+    trace ? log("i", ln) : null;
     this.createParabola();
     this.createSin();
+    trace = 0;
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
