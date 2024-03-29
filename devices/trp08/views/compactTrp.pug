@@ -1,0 +1,26 @@
+-var _id= "trp"+device.id+"_"
+-var _lang = lang ? lang : "ua"
+
+pre #{"device.state="+JSON.stringify(device.state)}
+
+
+div.col
+  div.container.border.border-2.rounded.border-secondary
+    div.row
+      div.col.rounded-top
+        div(class="h4 fst-italic" id= _id+"header" ) !{header[_lang]}
+    div.row
+      div.col-8
+        div.h4.fst-italic.text-secondary(id=_id+"currentT") !{T.value}
+        small.fst-italic.text-secondary !{T.header[_lang]}
+      div.col
+        div.h5.fst-italic.text-primary(id=_id+"tT") !{tT.value}
+        small.fst-italic.text-secondary !{tT.header[_lang]}
+script.
+  let devices={};
+  devices.regs={};
+  devices.regs.tT= JSON.parse('!{JSON.stringify(tT)}' );
+  devices.regs.T= JSON.parse('!{JSON.stringify(T)}' );
+  devices.regs.state = JSON.parse('!{JSON.stringify(tT)}' );
+script
+  include el_devManager_main.js

@@ -1,7 +1,11 @@
-//const { forEach } = require("core-js/core/array");
+/**
+ * 2024-03-29 Додав функцію getCompactHtml
+ */
 const device = require("./driver.js");
 const log = require("../../tools/log.js");
 const trySomeTimes = require("../../tools/trySomeTimes.js");
+const pug = require("pug");
+const path = require("path");
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор
@@ -14,11 +18,14 @@ class Manager {
    * @param {Integer} id - адреса придладу в iface
    * @param {Object} params - додаткові налаштування конкретного приладу
    * @param {Number} params.addT=0 - зміщення завдання для приладу (автоматично додається до завдання tT, наприклад для верхньої зони: +5, середньої: +0; нижньої: -5 )
+   * @param {Number} params.header={ua,en..} - назва приладу
    */
 
   constructor(iface, id, params = {}) {
     this.trace = 1; // дозвіл трасування
     this.ln = `managerTRP08(id=${id}):`; // заголовок трасування
+
+    // -------- інтерфейс -----------
     this.iface = iface;
     // ----- перевіряємо id ----------------
     if (!id) {
@@ -32,16 +39,14 @@ class Manager {
     } catch (error) {
       throw new Error("id неможливо перетворити в цифру:" + error.message);
     }
+    // назва приладу
+    this.header =
+      params.header && params.header.ua
+        ? params.header
+        : { ua: `ТРП-08-[${id}]`, en: `TRP-08-[${id}]`, ru: `ТРП-08-[${id}]` };
 
     // добавка температури
     this.addT = params.addT ? params.addT : 0;
-
-    /** лічильник помилок звязку, якщо кількість помилок звязку більше 10, розуміємо що зв`язку з приладом немає
-     * при повторних запросах дивимось на timestamp і якщо з моменту останнього запиту пройшло менше ніж 10 сек,
-     * відразу повертаємо помилку, якщо більше 10 сек - робимо один запит - якщо помилка - прилад не на звязку - Помилка
-     *
-     */
-    //this.errCounter = { value: 0, timeStamp: new Date() };
 
     // вираховуємо час останнього оновлення регістрів на 10 хв менше ніж тепер
     let startTime = new Date().getTime() - 10 * 60 * 1000;
@@ -112,9 +117,9 @@ class Manager {
       },
     }; //state
 
-    for (let key in this.regs) {
+    for (let key in this.state) {
       let d = device.getRegDescription(key);
-      let regs = this.regs;
+      let regs = this.state;
       regs[key].header = d.header ? d.header : { ua: ``, en: ``, ru: `` };
       d.type = d.type ? d.type : undefined;
       switch (d.type) {
@@ -333,9 +338,27 @@ class Manager {
     return response;
   }
 
-  isRegActual(regName) {}
+  getCompactHtml(params = {}) {
+    let html = "";
+    let regs = this.state;
+    html = pug.renderFile(path.resolve(__dirname + "/views/compactTrp.pug"), {
+      device: this,
+      tT: getRegForHtml(regs.tT),
+      T: getRegForHtml(regs.T),
+      state: getRegForHtml(regs.state),
+      header: this.header,
+      lang: params.lang,
+    });
+    return html;
+  }
 }
-
+function getRegForHtml(reg) {
+  return {
+    header: reg.header,
+    value: reg.value ? reg.value : "???",
+    type: reg.type,
+  };
+}
 module.exports = Manager;
 
 if (!module.parent) {

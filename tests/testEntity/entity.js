@@ -33,7 +33,7 @@ let trace = 1,
   gln = `${entity.id}::entity.js::`;
 
 // Максимальна температура в печі + 50
-entity.maxT = 500 + 50;
+entity.maxT = 150;
 
 // URL адреса гілки
 entity.homeUrl = "/entity/" + entity.id + "/";
@@ -49,7 +49,12 @@ entity.tasksManager = new TasksManager({
   homeURL: entity.homeUrl,
 });
 // реєструємо задачу термообробки в менеджері програм
-entity.tasksManager.addType(new ClassTaskThermal({ maxT: entity.maxT }));
+entity.tasksManager.addType(
+  new ClassTaskThermal({
+    maxT: entity.maxT,
+    devices: [entity.devices["TRP08"]],
+  })
+);
 
 entity.processManager = new ClassProcessManager({
   homeDir: entity.homeDir,

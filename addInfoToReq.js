@@ -20,7 +20,7 @@ module.exports = (req, res, next) => {
   req.info = {};
   req.info.homeDir = req.locals.homeDir;
   req.info.mainPug = req.locals.mainPug;
-  let trace = 1,
+  let trace = 0,
     ln = "addInfoToReq.js::";
   trace
     ? log(

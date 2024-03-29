@@ -236,9 +236,9 @@ regs.set("T", {
   units: degC,
   title: "Поточна температура",
   header: {
-    ua: `Поточна темпеаратура`,
+    ua: `Поточна температура`,
     en: `Current temperature`,
-    ru: ``,
+    ru: `Текущая температура`,
   },
   type: "integer",
   _get: function () {

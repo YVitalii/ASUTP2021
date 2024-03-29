@@ -14,7 +14,7 @@ class ClassProcessManager {
       ru: `Менеджер процессов`,
     };
     this.ln = props.ln ? props.ln : `ClassProcessManager(${this.homeUrl})::`;
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
     if (trace) {
       log("i", ln, `Started with props=`);

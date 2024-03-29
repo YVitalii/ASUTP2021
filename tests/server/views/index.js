@@ -49,4 +49,20 @@ buttons.props.reg.regs.bProcessManager = {
   onclick: function () {},
 };
 
+buttons.props.reg.regs.bDevicesManager = {
+  action: "link",
+  reg: {
+    classes: "btn btn-success",
+    attributes: { href: buttons.homeUrl + "devicesManager/" },
+    id: "bDevicesManager",
+    header: {
+      ua: `Менеджер приладів`,
+      en: `Devices manager`,
+      ru: `Менеджер приборов`,
+    },
+    type: "button",
+  },
+  onclick: function () {},
+};
+
 buttons.elements = new myElementsRender["buttonGroup"](buttons.props);

@@ -21,6 +21,7 @@ const users = require("../../db/users"); // користувачі
 const entity = require("../testEntity/entity.js");
 const tasksManagerRouter = require("../../controllers/tasksController/routes/index.js");
 const processManagerRouter = require("../../processes/processManager/routes/index.js");
+const devicesManagerRouter = require("../../devices/devicesManager/routes/devicesRouter.js");
 console.log(
   `---------------- server started at ${new Date().toLocaleTimeString()} --------`
 );
@@ -51,12 +52,12 @@ app.use((req, res, next) => {
 /** Щоб пришвидшити вхід,
  * Додає до запиту: user та entity */
 app.use("*", (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = 'Find user "admin":: ';
   trace ? log("i", ln, `Started`) : null;
   // ----- додаємо користувача --------
   users.findByUsername("admin", (err, data) => {
-    let trace = 1,
+    let trace = 0,
       ln = 'Find user "admin" callback::  ';
     trace ? log("i", ln, `err=`, err) : null;
 
@@ -83,6 +84,8 @@ app.use("*", addInfoToReq);
 app.use("/entity/:id/tasksManager/", tasksManagerRouter);
 
 app.use("/entity/:id/processManager/", processManagerRouter);
+
+app.use("/entity/:id/devicesManager/", devicesManagerRouter);
 
 app.use("/", indexRouter);
 //app.use("/fileManager", fileManagerRouter);

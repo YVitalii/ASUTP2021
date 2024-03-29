@@ -6,6 +6,7 @@ const ClassReg_select = require("../../regsController/ClassReg_select.js");
 const ClassControllerPID = require("../../controllerPID/ClassControllerPID.js");
 const ClassReg_timer = require("../../regsController/ClassReg_timer");
 const ClassQuickHeatingStep = require("../quickHeatingStep/ClassQuickHeatingStep.js");
+const log = require("../../../tools/log.js");
 
 class ClassTaskThermal extends ClassTaskGeneral {
   /**
@@ -39,7 +40,12 @@ class ClassTaskThermal extends ClassTaskGeneral {
     props.ln = props.ln ? props.ln : props.id;
 
     super(props);
-
+    let trace = 1,
+      ln = this.ln + "constructor()";
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
     // максимальна температура
     if (!props.maxT || props.maxT < 0) {
       throw new Error(
@@ -61,7 +67,12 @@ class ClassTaskThermal extends ClassTaskGeneral {
       );
     }
     for (let i = 0; i < props.devices.length; i++) {
+      let trace = 1;
       const element = props.devices[i];
+      if (trace) {
+        console.log("i", ln, `props.devices[${i}].getT=`);
+        console.dir(props.devices[i].getT);
+      }
       if (!element.getT || typeof element.getT != "function") {
         throw new Error(
           this.ln +
@@ -210,7 +221,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
     }
 
     let res = [];
-    res.push(new ClassQuickHeatingStep(regs));
+    //res.push(new ClassQuickHeatingStep(regs));
 
     return { header: { ua: `123`, en: `123`, ru: `123` } };
   }

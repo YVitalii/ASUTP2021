@@ -1,10 +1,14 @@
-const Class_Task_Thermo = require("../ClassTaskThermal.js");
-
+const ClassTaskThermal = require("../ClassTaskThermal.js");
+const TRP = require("../../../../devices/trp08/manager.js");
 const log = require("../../../../tools/log");
+let device = {};
+device.getT = () => {
+  return 1;
+};
 let trace = 1,
   ln = __dirname + "::";
 
-let taskThermo = new Class_Task_Thermo();
+let taskThermo = new ClassTaskThermal({ maxT: 150, devices: [device] });
 
 if (trace) {
   log("i", ln, `taskThermo.regs=`);
