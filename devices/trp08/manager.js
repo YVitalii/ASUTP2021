@@ -1,6 +1,7 @@
 //const { forEach } = require("core-js/core/array");
 const device = require("./driver.js");
 const log = require("../../tools/log.js");
+const trySomeTimes = require("../../tools/trySomeTimes.js");
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор
@@ -12,7 +13,7 @@ class Manager {
    * @param {Object} iface - об'єкт до якого підключено цей прилад
    * @param {Integer} id - адреса придладу в iface
    * @param {Object} params - додаткові налаштування конкретного приладу
-   * @param {Number} params.addT - зміщення завдання для приладу (автоматично додається до завдання tT, наприклад для верхньої зони: +5, середньої: +0; нижньої: -5 )
+   * @param {Number} params.addT=0 - зміщення завдання для приладу (автоматично додається до завдання tT, наприклад для верхньої зони: +5, середньої: +0; нижньої: -5 )
    */
 
   constructor(iface, id, params = {}) {
@@ -31,12 +32,11 @@ class Manager {
     } catch (error) {
       throw new Error("id неможливо перетворити в цифру:" + error.message);
     }
-    // // привязуємо драйвер для скорочення коду
-    // this.setReg = device.setRegPromise;
-    // this.getReg = device.getRegPromise; //
+
     // добавка температури
     this.addT = params.addT ? params.addT : 0;
-    /** лічильник помилок звязку, якщо кількість помилок звязку більше 10, розуміємо що звязку з приладом немає
+
+    /** лічильник помилок звязку, якщо кількість помилок звязку більше 10, розуміємо що зв`язку з приладом немає
      * при повторних запросах дивимось на timestamp і якщо з моменту останнього запиту пройшло менше ніж 10 сек,
      * відразу повертаємо помилку, якщо більше 10 сек - робимо один запит - якщо помилка - прилад не на звязку - Помилка
      *
@@ -45,20 +45,20 @@ class Manager {
 
     // вираховуємо час останнього оновлення регістрів на 10 хв менше ніж тепер
     let startTime = new Date().getTime() - 10 * 60 * 1000;
+
     /**
      * опис параметрів приладу ТРП-08-ТП
      * @typedef {object} regs
      * @property {Number} T - current temperature
      * @property {Number} state - current state of device see ./driver.js
-     *
-     *
      */
+
     // поточні налаштування приладу поки null
     this.state = {
       T: {
-        value: null,
-        timestamp: new Date(startTime),
-        obsolescense: 20 * 1000, //період за який дані застаріють
+        value: null, // значення регістру
+        timestamp: new Date(startTime), // відмітка часу останнього оновлення
+        obsolescense: 20 * 1000, //мс, період за який дані застаріють
       },
       state: {
         value: null,
@@ -110,21 +110,41 @@ class Manager {
         timestamp: new Date(startTime),
         obsolescense: 180 * 1000, //період за який дані застаріють
       },
-    }; //params
+    }; //state
+
+    for (let key in this.regs) {
+      let d = device.getRegDescription(key);
+      let regs = this.regs;
+      regs[key].header = d.header ? d.header : { ua: ``, en: ``, ru: `` };
+      d.type = d.type ? d.type : undefined;
+      switch (d.type) {
+        case "integer":
+          regs[key].type = "text";
+          break;
+        case "clock":
+          regs[key].type = "timer";
+          break;
+        default:
+          regs[key].type = "text";
+          break;
+      } //switch (d.type)
+    } //for(let key in regs){
 
     setTimeout(async () => {
-      // при ініціалізації об'єкту зчитуємо  всі налаштування з приладу
+      // 2025-03-29 зчитування всіх параметрів прибрав, так як дуже довго запускається
+      // сервер при тестуванні, читаємо налаштування за зовнішнім запитом
+      // #TODO хоча можна считувати по 1 регістру кожні 5 сек
       // let req = "state; T; timer; regMode; tT; H; Y; o; ti; td; u";
       // log("i", this.ln + ":: First reading parameters from device: " + req);
+      // await this.getParams(req);
+
+      // при ініціалізації об'єкту зупиняємо прилад так як він міг бути в стані Пуск
       await this.stop();
-      //await this.getParams(req);
+      log("i", this.ln, "Command 'Stop' done!");
     }, 1000);
 
-    log(
-      "w",
-      `${this.ln}:: ===>  Device was created. Command 'Stop' was called.`
-    );
-  }
+    log("w", `${this.ln}:: ===>  Device was created. `);
+  } //constructor
 
   /** Використовується зовнішнім кодом ???
    * Повертає зміщення температури для цього приладу
@@ -155,7 +175,7 @@ class Manager {
           if (prop == "tT") {
             value += this.addT;
           }
-          let res = await this.trySomeTimes(device.setRegPromise, {
+          let res = await trySomeTimes(device.setRegPromise, {
             iface: this.iface,
             id: this.id,
             regName: prop,
@@ -251,7 +271,7 @@ class Manager {
    * @returns {Promise} - {tT:50}
    */
   async getParams(params = "tT") {
-    let trace = 0;
+    let trace = 1;
     let ln = this.ln + `getParams(${params})::`;
     trace ? console.log(ln, `Started.`) : null;
     let response = {};
@@ -285,7 +305,8 @@ class Manager {
       }
 
       // робимо запит в прилад по інтерфейсу
-      let res = await this.trySomeTimes(device.getRegPromise, {
+      //let res = await this.trySomeTimes(device.getRegPromise, {
+      let res = await trySomeTimes(device.getRegPromise, {
         iface: this.iface,
         id: this.id,
         regName: item,

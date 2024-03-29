@@ -82,7 +82,7 @@ var portOpened = false; // флаг открытия порта
 
 /** пауза між послідовними запитами, так як інколи ТРП починає передавати частину посилки після тайм ауту і ламає передачу від сусідніх приладів */
 const timeoutBetweenCalls = config.timeoutBetweenCalls;
-
+var gLn;
 //console.log("timeoutBetweenCalls="+timeoutBetweenCalls);
 
 // ------------------------------------------
@@ -96,12 +96,20 @@ function init() {
   // if (config.emulateRS485) {
   //   return (portOpened = true);
   // }
+  gLn = `RS485_v300(${config.path})::`;
+  let trace = 1,
+    ln = gLn + "init()::";
+  if (trace) {
+    console.log("i", ln, `Started! options=`);
+    console.dir(config.openOptions);
+  }
+
   serial = new SerialPort(
     (comName = config.path),
     config.openOptions,
     (err) => {
       if (err) {
-        console.log("RS485_v200:", err);
+        console.log("RS485_v300:", err);
       }
     }
   ); //new SerialPort
@@ -397,37 +405,29 @@ if (!module.parent) {
 }
 
 test();*/
-  addTask(
-    { id: 3, FC: 3, addr: 0x1, data: 0x1, timeout: 1500 },
-    (err, data) => {
-      if (err) {
-        console.log(err);
-      }
-      if (data) {
-        console.log("Data addr 0x01:[" + parseBuf(data) + "]");
-      }
+  let id = 1;
+  addTask({ id, FC: 3, addr: 0x1, data: 0x1, timeout: 1500 }, (err, data) => {
+    if (err) {
+      console.log(err);
     }
-  ); //addTask
-  addTask(
-    { id: 3, FC: 3, addr: 0x2, data: 0x1, timeout: 1500 },
-    (err, data) => {
-      if (err) {
-        console.log(err);
-      }
-      if (data) {
-        console.log("Data addr 0x02:[" + parseBuf(data) + "]");
-      }
+    if (data) {
+      console.log("Data addr 0x01:[" + parseBuf(data) + "]");
     }
-  ); //addTask
-  addTask(
-    { id: 3, FC: 3, addr: 0x3, data: 0x1, timeout: 1500 },
-    (err, data) => {
-      if (err) {
-        console.log(err);
-      }
-      if (data) {
-        console.log("Data addr 0x03:[" + parseBuf(data) + "]");
-      }
+  }); //addTask
+  addTask({ id, FC: 3, addr: 0x2, data: 0x1, timeout: 1500 }, (err, data) => {
+    if (err) {
+      console.log(err);
     }
-  ); //addTask
+    if (data) {
+      console.log("Data addr 0x02:[" + parseBuf(data) + "]");
+    }
+  }); //addTask
+  addTask({ id, FC: 3, addr: 0x3, data: 0x1, timeout: 1500 }, (err, data) => {
+    if (err) {
+      console.log(err);
+    }
+    if (data) {
+      console.log("Data addr 0x03:[" + parseBuf(data) + "]");
+    }
+  }); //addTask
 }

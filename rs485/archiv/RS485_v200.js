@@ -55,7 +55,7 @@ let { toTetrad, getCRC } = require("../tools/CRC.js");
 
 // функція для форматування виводу буфера в консоль
 const parseBuf = require("../tools/parseBuf.js");
-
+let gLn = "RS485_v300::";
 /** поточне активне повідомлення
  * id: rs485 adress
  * FC: function (3,6,10)
@@ -92,6 +92,14 @@ function isOpened() {
 } // выдает состояние порта
 
 function init() {
+  gLn = `RS485_v300(${config.path})::`;
+  let trace = 1,
+    ln = gLn + "init()::";
+  if (trace) {
+    console.log("i", ln, `Started! options=`);
+    console.dir(config.openOptions);
+  }
+
   // создаем объект последовательного порта
   // if (config.emulateRS485) {
   //   return (portOpened = true);
@@ -379,12 +387,13 @@ if (!module.parent) {
   //   }}
   // test();
   //for
-  /*tasked(256)();
+  tasked(256)();
   tasked(288)();
   tasked(320)();
   tasked(352)();
   tasked(384)();
   tasked(416)();
+  /**
 
   addTask({id:2,FC:3,addr:1,data:0x1,timeout:1500},(err,data) =>{
       if (err){ console.log(err.message); }

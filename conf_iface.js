@@ -9,6 +9,7 @@ if (platform != "win32") {
 
 const Iface = require("./rs485/class_RS485_iface.js");
 
+// module.exports.path = comName;
 module.exports.w2 = new Iface(comName, {
   baudRate: 2400,
   timeoutBetweenCalls: 100,

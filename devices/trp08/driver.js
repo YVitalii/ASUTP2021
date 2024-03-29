@@ -40,7 +40,8 @@
   логика обработки ошибки должна быть в управл.программе
   ----- 2023-04-19 --------------------------------
   потрібно додати функцію, яка буде виводити дані  про регістри, опис, адресу, формат даних в консоль при запуску driver.js
-
+  ----- 2024-03-29 --------------------------------------------------------
+  розширив опис регістрів, додавши в деякі поля: header:{ua,en}
 */
 
 // ----- стандартні позначення, щоб міняти в одному місці  -------
@@ -132,8 +133,19 @@ regs.set(
   {
     addr: 0x0000,
     title: "Стан приладу: ",
+    header: {
+      ua: `Стан приладу`,
+      en: `State of device`,
+      ru: `Состояние прибора`,
+    },
     units: "",
-    type: "integer",
+    states: {
+      7: { ua: `Зупинено`, en: `Stoped`, ru: `Остановлен` },
+      23: { ua: `Виконання`, en: `Going`, ru: `Выполнение` },
+      71: { ua: `Аварія сенсора`, en: `Sensor fail`, ru: `Авария датчика` },
+      87: { ua: `Аварія сенсора`, en: `Sensor fail`, ru: `Авария датчика` },
+    },
+    type: "states",
     _get: function () {
       return {
         data: {
@@ -157,6 +169,7 @@ regs.set(
       let note = this.title;
       let data = buf[1];
       let err = null;
+      //this.value = this.states[data];
       switch (data) {
         case 7:
           note += "Стоп";
@@ -222,6 +235,11 @@ regs.set("T", {
   addr: 0x0001,
   units: degC,
   title: "Поточна температура",
+  header: {
+    ua: `Поточна темпеаратура`,
+    en: `Current temperature`,
+    ru: ``,
+  },
   type: "integer",
   _get: function () {
     return {
@@ -388,6 +406,11 @@ regs.set("regMode", {
 regs.set("tT", {
   addr: 0x0100,
   title: "Цільова температура",
+  header: {
+    ua: `Цільова температура`,
+    en: `Goal temperature`,
+    ru: ``,
+  },
   units: degC,
   type: "integer",
   _get: function () {
@@ -952,12 +975,14 @@ function setRegPromise(props) {
  * @returns {Object}
  */
 
-function getRegDesription(regName = null) {
+function getRegDescription(regName = null) {
   if (!regName) return null;
   if (!has(regName)) return null;
   let res = regs.get(regName);
   return {
     name: regName,
+    header: res.header ? res.header : undefined,
+    states: res.states ? res.states : undefined,
     description: res.title,
     units: res.units,
     type: res.type,
@@ -969,6 +994,7 @@ module.exports.setRegPromise = setRegPromise;
 module.exports.getReg = getReg;
 module.exports.getRegPromise = getRegPromise;
 module.exports.has = has;
+module.exports.getRegDescription = getRegDescription;
 
 if (!module.parent) {
   //const iface = require("../../rs485/RS485_v200.js");
@@ -1077,7 +1103,7 @@ if (!module.parent) {
 
   console.log("----------------------- \n regs.keys = ");
   for (let key of regs.keys()) {
-    let reg = getRegDesription(key);
+    let reg = getRegDescription(key);
     log("i", "reg=", reg); //+ " -> "
   }
   // console.log("----------------------- \n regs = ");
