@@ -1,0 +1,54 @@
+// -var _id= prefix+device.id+"_"
+// -var _lang = lang ? lang : "ua"
+// -var _period = period ? parseInt(period) : 1000;
+
+-var _chartContainer="chartContainer"
+
+script
+  include ./d3/d3.min.js
+
+div.row.h-100
+  div.col.h-100(id=_chartContainer)
+
+script 
+  include drawChart.js
+
+
+
+script.
+  //- основні налаштування
+  var chart = new Chart("#!{_chartContainer}", {
+    logsUrl: "/entity/testEntity_2023/chartManager/logs", //- тека з файлами логів
+    logFileName: "2024-04-02.log", 
+    y: { min: 0, max: 150 },
+    registers: {
+      "T1": {
+        id: "T1",
+        title: "Зона1",
+        units: "&deg;C",
+        description: "Температура в зоне1",
+        legend: `"Зона№1.Верх.Задание"`,
+      },
+      "T2": {
+        title: "T2", // имя для вывода в описании поля
+        units: "\u00b0C",
+        type: "integer",
+        description: "Текущая температура в зоне 2",
+        legend: "Низ.Температура", //  надпись для графика
+      },
+      "T3": {
+        title: "T3", // имя для вывода в описании поля
+        units: "\u00b0C",
+        type: "integer",
+        description: "Текущая температура в зоне 3",
+        legend: "Низ.Температура", //  надпись для графика
+      },
+      "T4": {
+        title: "T4", // имя для вывода в описании поля
+        units: "\u00b0C",
+        type: "integer",
+        description: "Текущая температура в зоне 4",
+        legend: "Низ.Температура", //  надпись для графика
+      },
+    },
+  });//new Chart(

@@ -1,9 +1,13 @@
 /** Збирає і налаштовує всі елементи сутності, та передає менеджеру сутностей */
 const pug = require("pug");
+const ifaceW2 = require("../../conf_iface.js").w2;
 
 const TasksManager = require("../../controllers/tasksController/ClassTasksManager.js");
 const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermal.js");
+const ClassDevicesManager = require("../../devices/devicesManager/ClassDevicesManager.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
+
+const TRP08 = require("../../devices/trp08/manager.js");
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
 const log = require("../../tools/log.js");
 
@@ -29,7 +33,7 @@ entity.homeDir = __dirname + "\\";
 
 entity.id = "testEntity_2023";
 
-let trace = 1,
+let trace = 0,
   gln = `${entity.id}::entity.js::`;
 
 // Максимальна температура в печі + 50
@@ -40,21 +44,38 @@ entity.homeUrl = "/entity/" + entity.id + "/";
 
 // завантажуємо пристрої
 
-entity.devices = require("./devices/devices.js");
+entity.devicesManager = new ClassDevicesManager({
+  baseUrl: entity.homeUrl,
+});
 
-// менеджер програм
+let dev1 = new TRP08(ifaceW2, 1, { id: "trp08n1" });
+entity.devicesManager.addDevice(dev1.id, dev1);
+
+// let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2" });
+// entity.devicesManager.addDevice(dev2.id, dev2);
+
+// let dev3 = new TRP08(ifaceW2, 3, { id: "trp08n3" });
+// entity.devicesManager.addDevice(dev3.id, dev3);
+
+//entity.devices.addDevice("trp08-2", new TRP08(ifaceW2, 2));
+// log("i", `entity.devices=`);
+// console.dir(entity.devicesManager);
+
+// крок термообробка
+let taskThermal = new ClassTaskThermal({
+  maxT: entity.maxT,
+  devices: [entity.devicesManager.getDevice(dev1.id)],
+});
+
+// менеджер завдань
 entity.tasksManager = new TasksManager({
   ln: entity.id + "::TasksManager::",
   homeDir: entity.homeDir,
   homeURL: entity.homeUrl,
 });
-// реєструємо задачу термообробки в менеджері програм
-entity.tasksManager.addType(
-  new ClassTaskThermal({
-    maxT: entity.maxT,
-    devices: [entity.devices["TRP08"]],
-  })
-);
+
+// реєструємо задачу термообробки в менеджері завдань
+entity.tasksManager.addType(taskThermal);
 
 entity.processManager = new ClassProcessManager({
   homeDir: entity.homeDir,

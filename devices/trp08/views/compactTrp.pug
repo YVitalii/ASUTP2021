@@ -1,26 +1,146 @@
--var _id= "trp"+device.id+"_"
+-var _id= prefix+device.id+"_"
 -var _lang = lang ? lang : "ua"
+-var _period = period ? parseInt(period) : 1000; 
 
-pre #{"device.state="+JSON.stringify(device.state)}
+//- pre #{"device.state="+JSON.stringify(device.state)}
 
 
 div.col
-  div.container.border.border-2.rounded.border-secondary
+  div.container.border.border-4.rounded.border-secondary(id= _id+"container" )
     div.row
-      div.col.rounded-top
-        div(class="h4 fst-italic" id= _id+"header" ) !{header[_lang]}
-    div.row
-      div.col-8
-        div.h4.fst-italic.text-secondary(id=_id+"currentT") !{T.value}
-        small.fst-italic.text-secondary !{T.header[_lang]}
       div.col
-        div.h5.fst-italic.text-primary(id=_id+"tT") !{tT.value}
-        small.fst-italic.text-secondary !{tT.header[_lang]}
+        div(class="h4 fst-italic text-center" id= _id+"header" ) !{header[_lang]}
+    div.row
+      div.col
+        div.h4.fst-italic.text-center.text-primary(id=_id+T.id) !{T.value}
+        div.fs-6.fst-italic.text-center.text-secondary !{T.header[_lang]}
+      div.col
+        div.h5.fst-italic.text-center(id=_id+tT.id) !{tT.value}
+        div.fs-6.fst-italic.text-center.text-secondary !{tT.header[_lang]}
 script.
-  let devices={};
-  devices.regs={};
-  devices.regs.tT= JSON.parse('!{JSON.stringify(tT)}' );
-  devices.regs.T= JSON.parse('!{JSON.stringify(T)}' );
-  devices.regs.state = JSON.parse('!{JSON.stringify(tT)}' );
+  // основні скрипти  керування
+  devices.items["!{device.id}"] = {};
+  { // блок коду, щоб створити  локальну тимчасову змінну el
+  let el =devices.items["!{device.id}"];
+  el.prefix = "!{_id}"
+  el.container = document.getElementById('!{_id+"container"}')
+  el.regs = {};
+  //el.period = parseInt("!{_period}")
+  el.regs.tT = JSON.parse('!{JSON.stringify(tT)}');
+
+  el.regs.T = JSON.parse('!{JSON.stringify(T)}');
+  //- el.regs.T.elId
+  el.regs.state = JSON.parse('!{JSON.stringify(state)}');
+
+  el.homeUrl = JSON.parse('!{JSON.stringify(baseUrl+device.id)}');
+  el.reqString = "";
+  for (key in el.regs) {
+    if (el.regs.hasOwnProperty(key))
+
+      {el.reqString += ";"+key;
+        el.regs[key].container =  document.getElementById(el.prefix + key); 
+      }
+  }
+  //el.reqString = el.reqString.slice (1,0);
+
+  el.getRegs = async function () {
+    let trace=1, ln=`${this.prefix}::getRegs::`+(new Date()).toLocaleTimeString()+":: ";
+    trace ? console.log(ln+"Started!") : null;
+    // запит поточних значень
+    let response = await fetch( this.homeUrl+"/getRegs",
+      { method:"POST",
+        headers: { "Content-type": "application/json;charset=utf-8" },
+        body:JSON.stringify({regsList:this.reqString}),
+      }); //fetch
+    let res = await response.json();
+    // трасувальник 
+    if (trace) { 
+      let msg="";
+      for (let key in res){
+        if (res.hasOwnProperty(key)){
+          msg+=`${res[key].id}=${res[key].value}; `
+        }
+      }
+      console.log(ln + msg);
+      console.dir(res);
+    }
+
+    // обробка отриманих значень
+
+    for (let key in this.regs){
+      //- let el = this.regs[key];
+      //- let value = res[key];
+
+
+      // обробка зміни стану приладу Пуск / Стоп / Помилка
+      if (key == "state") {
+        let value = parseInt(res[key].value);
+        // якщо стан не змінився - наступна ітерація
+        if (this.regs.state.value == value ) {continue;}
+        if (isNaN(value)) {
+          value=13;// немає зв'язку
+        }
+        // скидаємо колір загального контейнеру приладу
+        let contClassList=this.container.classList;
+        contClassList.remove("border-secondary");
+        contClassList.remove("border-success");
+        contClassList.remove("border-warning");
+        contClassList.remove("border-danger");
+        // скидаємо колір шрифту заданої температури
+        let classListT = this.regs["tT"].container.classList;
+        classListT.remove("text-secondary");
+        classListT.remove("text-success");
+        classListT.remove("text-warning");
+        classListT.remove("text-danger");
+        // визначаємо новий колір
+        let newClass="secondary";
+        switch (value) {
+          case 1:
+          case 7:
+            // режим стоп
+            newClass="secondary";
+            break;
+          case 13:
+            //аварія
+            newClass="warning";
+            break;
+          case 17:
+          case 23:
+            //режим Пуск
+            newClass="success";
+            break;
+          case 71:
+          case 87:
+            //аварія
+            newClass="danger";
+            break;
+
+          default:
+            console.log(`Not defined state= ${res.state}`)
+        }
+        contClassList.add("border-"+newClass);
+        let title = this.regs["state"].states[value][lang];
+        this.container.setAttribute("title", title);
+        classListT.add("text-"+newClass);
+
+        continue;
+
+      } //if (key == "state")
+
+      res[key].value = parseInt(res[key].value);
+      this.regs[key].container.innerText = res[key].value  && ! isNaN(res[key].value)? res[key].value : "???";
+    } //for (key in el.regs) ;
+
+    // плануємо наступний запит
+    setTimeout (() => {this.getRegs()}, 3000);
+
+  } //el.getRegs = async function ()
+  // ініціюємо перший запит
+  el.getRegs();
+    //- setTimeout (() => {el.getRegs()}, 3000);
+  } // блок коду, щоб створити  локальну тимчасову змінну el
+
+
+
 script
-  include el_devManager_main.js
+  include trp08_general.js

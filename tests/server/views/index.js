@@ -65,4 +65,20 @@ buttons.props.reg.regs.bDevicesManager = {
   onclick: function () {},
 };
 
+buttons.props.reg.regs.bChartManager = {
+  action: "link",
+  reg: {
+    classes: "btn btn-success",
+    attributes: { href: buttons.homeUrl + "chartManager/" },
+    id: "bGraphManager",
+    header: {
+      ua: `Менеджер графіків`,
+      en: `Chart manager`,
+      ru: `Менеджер графиковв`,
+    },
+    type: "button",
+  },
+  onclick: function () {},
+};
+
 buttons.elements = new myElementsRender["buttonGroup"](buttons.props);

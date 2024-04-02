@@ -1,3 +1,13 @@
+script.
+  let devices = {};
+  devices.items={};
+
 div.container
-  div.row
-    div.col#devicesContainer !{content}
+  div.row !{content}
+
+    //- div.col#devicesContainer !{content}
+
+script.
+  devices.container = document.getElementById("devicesContainer");
+//- script 
+//-   include  devicesGeneral.js

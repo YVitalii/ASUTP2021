@@ -86,7 +86,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
     try {
       // запит температури
       this.t = await this.getT();
-      trace = 1;
+      trace = 0;
       trace
         ? console.log(
             "",

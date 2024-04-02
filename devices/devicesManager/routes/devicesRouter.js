@@ -4,8 +4,8 @@ const pug = require("pug");
 const resolvePath = require("path").resolve;
 const log = require("../../../tools/log.js");
 
-router.all("/:id/", (req, res, next) => {
-  let trace = 1,
+router.all("/:id/*", (req, res, next) => {
+  let trace = 0,
     ln = `router.all("/:id/")::${req.originalUrl}::`;
   req.params.baseUrl = req.baseUrl;
   if (trace) {
@@ -14,25 +14,51 @@ router.all("/:id/", (req, res, next) => {
   }
   next();
 });
-router.all("/:id/getRegs", (req, res, next) => {
+
+router.post("/:id/getRegs", async (req, res, next) => {
   let trace = 1,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
   req.params.baseUrl = req.baseUrl;
+  let startTime = new Date();
   if (trace) {
-    log("i", ln, `req.params=`);
-    console.dir(req.params);
+    log("i", ln, `req.body.regsList=`);
+    console.dir(req.body.regsList);
   }
-  res.send(req.params.id + "::getRegs()::");
+  // if (trace) {
+  //   log("i", ln, `req.query=`);
+  //   console.dir(req.query);
+  // }
+  let dev = req.entity.devicesManager.getDevice(req.params.id);
+
+  let data = await dev.getParams(req.body.regsList);
+
+  if (trace) {
+    let logText = "";
+    for (let key in data) {
+      if (data.hasOwnProperty(key)) {
+        logText += `${data[key].id} = ${data[key].value};`;
+      }
+    }
+    let duration = new Date(new Date().getTime() - startTime.getTime())
+      .toISOString()
+      .slice(17, -2);
+    logText = logText + ` duration = ${duration} sek`;
+    log("i", ln, `response:: data=${logText}`);
+    //console.dir(data);
+  }
+
+  res.json(data);
+  // send(req.params.id + "::getRegs()::");
 });
 /* main page  */
 router.get("/", function (req, res, next) {
   //   let user = req.user.username,
   //     entityName = req.entity.fullName[req.user.lang];
-  let trace = 1,
+  let trace = 0,
     ln = `${req.baseUrl}::`;
   if (trace) {
-    log("i", ln, `req.entity.devices=`);
-    console.dir(req.entity.devices);
+    log("i", ln, `req.entity.devicesManager=`);
+    console.dir(req.entity.devicesManager);
   }
 
   //   let html = req.entity.processManager.getFullHtml({ lang: req.user.lang });
@@ -41,9 +67,13 @@ router.get("/", function (req, res, next) {
     en: `${req.entity.fullName["en"]} <br> <small>Testing for the devices</small>`,
     ru: `${req.entity.fullName["ru"]} <br> <small>Тестирование приборов</small>`,
   };
+
   let content = "";
-  for (let key in req.entity.devices) {
-    content += req.entity.devices[key].getCompactHtml();
+  for (let key in req.entity.devicesManager.getAll()) {
+    content += req.entity.devicesManager.getDevice(key).getCompactHtml({
+      baseUrl: req.entity.devicesManager.homeUrl,
+      prefix: "devicesManager_",
+    });
   }
 
   let html = pug.renderFile(
@@ -51,7 +81,7 @@ router.get("/", function (req, res, next) {
       req.locals.homeDir +
         "/devices/devicesManager/views/fullDevicesManager.pug"
     ),
-    { content }
+    { homeUrl: req.entity.devicesManager.homeUrl, content }
   );
 
   res.send(pug.renderFile(req.locals.mainPug, { pageTitle, body: html }));

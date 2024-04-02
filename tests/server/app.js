@@ -22,6 +22,7 @@ const entity = require("../testEntity/entity.js");
 const tasksManagerRouter = require("../../controllers/tasksController/routes/index.js");
 const processManagerRouter = require("../../processes/processManager/routes/index.js");
 const devicesManagerRouter = require("../../devices/devicesManager/routes/devicesRouter.js");
+const chartManagerRouter = require("../../controllers/chartManager/routes/chartRouter.js");
 console.log(
   `---------------- server started at ${new Date().toLocaleTimeString()} --------`
 );
@@ -31,7 +32,6 @@ var app = express();
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
-
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -86,6 +86,8 @@ app.use("/entity/:id/tasksManager/", tasksManagerRouter);
 app.use("/entity/:id/processManager/", processManagerRouter);
 
 app.use("/entity/:id/devicesManager/", devicesManagerRouter);
+
+app.use("/entity/:id/chartManager/", chartManagerRouter);
 
 app.use("/", indexRouter);
 //app.use("/fileManager", fileManagerRouter);

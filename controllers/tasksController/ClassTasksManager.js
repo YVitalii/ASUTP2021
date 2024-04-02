@@ -43,7 +43,7 @@ class ClassTasksManager extends ClassReg_select {
     super(props);
 
     this.ln = this.ln ? this.ln : "ClassTasksManager::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
 
     if (trace) {
@@ -73,7 +73,7 @@ class ClassTasksManager extends ClassReg_select {
       this.value = "default";
     } else {
       // якщо файл існує - завантажуємо
-      let trace = 1,
+      let trace = 0,
         ln = this.ln + "loadLastState::";
       let data = this.lastState.readFileSync(this.lastState.fileName);
       trace ? log(ln, `data=`, data) : null;
@@ -192,7 +192,7 @@ class ClassTasksManager extends ClassReg_select {
    *
    */
   makeProgram() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "makeProgram()::";
     let list = this.list;
     if (trace) {

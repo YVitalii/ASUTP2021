@@ -139,12 +139,7 @@ regs.set(
       ru: `Состояние прибора`,
     },
     units: "",
-    states: {
-      7: { ua: `Зупинено`, en: `Stoped`, ru: `Остановлен` },
-      23: { ua: `Виконання`, en: `Going`, ru: `Выполнение` },
-      71: { ua: `Аварія сенсора`, en: `Sensor fail`, ru: `Авария датчика` },
-      87: { ua: `Аварія сенсора`, en: `Sensor fail`, ru: `Авария датчика` },
-    },
+
     type: "states",
     _get: function () {
       return {

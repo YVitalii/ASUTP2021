@@ -12,6 +12,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
   /**
    * Конструктор класу, оптимізованого під процес термообробки
    * @param {Object} props - стартові налаштування
+   * @property {Array}  props.devices - список приладів, що беруть участь у виконанні кроку
    * @property {Number}  props.maxT - максимальна температура об'єкту керування
    * @property {Number} props.errTmin=0 - температурний коридор, нижня границя, 0=вимкнено
    * @property {Number} props.errTmax=0 - температурний коридор, верхня границя, 0=вимкнено
@@ -37,10 +38,10 @@ class ClassTaskThermal extends ClassTaskGeneral {
         };
 
     props.id = "taskThermal";
-    props.ln = props.ln ? props.ln : props.id;
+    props.ln = props.ln ? props.ln : props.id + "::";
 
     super(props);
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()";
     if (trace) {
       log("i", ln, `props=`);
@@ -67,12 +68,20 @@ class ClassTaskThermal extends ClassTaskGeneral {
       );
     }
     for (let i = 0; i < props.devices.length; i++) {
-      let trace = 1;
-      const element = props.devices[i];
+      let trace = 0,
+        ln = this.ln + "testDevices()::";
+      let element = props.devices[i];
       if (trace) {
-        console.log("i", ln, `props.devices[${i}].getT=`);
-        console.dir(props.devices[i].getT);
+        log("i", ln, `device=`);
+        console.dir(element);
       }
+      if (!element) {
+        log("e", ln, ` device not defined!`);
+      }
+      // if (trace) {
+      //   console.log("i", ln, `props.devices[${i}].getT=`);
+      //   console.dir(props.devices[i].getT);
+      // }
       if (!element.getT || typeof element.getT != "function") {
         throw new Error(
           this.ln +
@@ -212,7 +221,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
    */
 
   getStep(regs) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getRegs()::";
     if (typeof regs != "object") {
       throw new Error(
