@@ -65,16 +65,16 @@ buttons.props.reg.regs.bDevicesManager = {
   onclick: function () {},
 };
 
-buttons.props.reg.regs.bChartManager = {
+buttons.props.reg.regs.bLoggerManager = {
   action: "link",
   reg: {
     classes: "btn btn-success",
-    attributes: { href: buttons.homeUrl + "chartManager/" },
+    attributes: { href: buttons.homeUrl + "loggerManager/" },
     id: "bGraphManager",
     header: {
-      ua: `Менеджер графіків`,
-      en: `Chart manager`,
-      ru: `Менеджер графиковв`,
+      ua: `Менеджер самописця`,
+      en: `Logger manager`,
+      ru: `Менеджер самописца`,
     },
     type: "button",
   },

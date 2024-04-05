@@ -8,12 +8,12 @@ const log = require("../../../tools/log.js");
 router.get("/", function (req, res, next) {
   let user = req.user.username,
     entityName = req.entity.fullName[req.user.lang];
-  let trace = 1,
-    ln = 'tests/server/routes/index.js::get("/")::';
-  if (trace) {
-    log("i", ln, `req.entity=`);
-    console.dir(req.entity);
-  }
+  // let trace = 1,
+  //   ln = 'tests/server/routes/index.js::get("/")::';
+  // if (trace) {
+  //   log("i", ln, `req.entity=`);
+  //   console.dir(req.entity);
+  // }
   let html = pug.renderFile(req.locals.mainPug, {
     pageTitle: {
       ua: `Існуючі елементи`,

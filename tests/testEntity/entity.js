@@ -1,15 +1,26 @@
 /** Збирає і налаштовує всі елементи сутності, та передає менеджеру сутностей */
 const pug = require("pug");
-const ifaceW2 = require("../../conf_iface.js").w2;
+
+const log = require("../../tools/log.js");
 
 const TasksManager = require("../../controllers/tasksController/ClassTasksManager.js");
 const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermal.js");
 const ClassDevicesManager = require("../../devices/devicesManager/ClassDevicesManager.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
+const ClassLoggerManager = require("../../controllers/loggerManager/ClassLoggerManager.js");
 
-const TRP08 = require("../../devices/trp08/manager.js");
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
-const log = require("../../tools/log.js");
+
+const emulate = 1; //true;
+
+let TRP08, ifaceW2;
+
+if (emulate) {
+  TRP08 = require("../../devices/ClassTemperatureEmulator.js");
+} else {
+  ifaceW2 = require("../../conf_iface.js").w2;
+  TRP08 = require("../../devices/trp08/manager.js");
+}
 
 // об'єкт сутності
 const entity = {};
@@ -31,7 +42,7 @@ entity.shortName = {
 // TODO потрібно автоматизувати: використовувати в якості id імя батьківської теки
 entity.homeDir = __dirname + "\\";
 
-entity.id = "testEntity_2023";
+entity.id = "furnace2024";
 
 let trace = 0,
   gln = `${entity.id}::entity.js::`;
@@ -48,8 +59,25 @@ entity.devicesManager = new ClassDevicesManager({
   baseUrl: entity.homeUrl,
 });
 
-let dev1 = new TRP08(ifaceW2, 1, { id: "trp08n1" });
-entity.devicesManager.addDevice(dev1.id, dev1);
+let dev1, dev2;
+if (emulate) {
+  // емулятор терморегулятора
+  dev1 = new TRP08({
+    id: "trp08n1",
+    heating: { time: 30, tT: entity.maxT - 25 },
+  });
+  dev2 = new TRP08({
+    id: "trp08n2",
+    heating: { time: 25, tT: entity.maxT - 25 },
+  });
+  dev1.start();
+  dev2.start();
+  entity.devicesManager.addDevice(dev1.id, dev1);
+  entity.devicesManager.addDevice(dev2.id, dev2);
+} else {
+  dev1 = new TRP08(ifaceW2, 1, { id: "trp08n1" });
+  entity.devicesManager.addDevice(dev1.id, dev1);
+}
 
 // let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2" });
 // entity.devicesManager.addDevice(dev2.id, dev2);
@@ -61,7 +89,7 @@ entity.devicesManager.addDevice(dev1.id, dev1);
 // log("i", `entity.devices=`);
 // console.dir(entity.devicesManager);
 
-// крок термообробка
+// задача термообробка
 let taskThermal = new ClassTaskThermal({
   maxT: entity.maxT,
   devices: [entity.devicesManager.getDevice(dev1.id)],
@@ -97,6 +125,52 @@ entity.processManager = new ClassProcessManager({
 // // тут зберігається програма
 // entity.processes = {};
 // // entity.processes.thermProcess = new ThermProcess();
+
+entity.loggerManager = new ClassLoggerManager({
+  ln: entity.id + "::loggerManager()::",
+  baseUrl: entity.homeUrl,
+  baseDir: entity.homeDir,
+  period: emulate ? 1 * 1000 : 10 * 1000, // для пришвидшення тестування 1 c
+  regs: [
+    {
+      id: "T1",
+      units: { ua: `C`, en: `C`, ru: `C` },
+      header: {
+        ua: `T1`,
+        en: `T1`,
+        ru: `T1`,
+      },
+      comment: {
+        ua: `Поточна температура в зоні №1`,
+        en: `Current temperature in zone 1`,
+        ru: `Текущая температура в зоне №1`,
+      },
+      getValue: async () => {
+        return await entity.devicesManager.getDevice("trp08n1").getT();
+      },
+    },
+    {
+      id: "T2",
+      units: { ua: `C`, en: `C`, ru: `C` },
+      header: {
+        ua: `Т2`,
+        en: `T2`,
+        ru: `Т2`,
+      },
+      comment: {
+        ua: `Поточна температура в зоні №2`,
+        en: `Current temperature in zone 2`,
+        ru: `Текущая температура в зоне №2`,
+      },
+      getValue: async () => {
+        return await entity.devicesManager.getDevice("trp08n2").getT();
+      },
+    },
+  ],
+}); //entity.loggerManager = new LoggerManager
+
+log("i", `entity.loggerManager=`);
+console.dir(entity.loggerManager);
 
 // функція, що генерує HTML - код для відображення
 // мінімізованого відображення печі в списку печей

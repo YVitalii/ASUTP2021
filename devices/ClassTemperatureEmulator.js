@@ -5,14 +5,15 @@ class ClassTemperatureEmulator {
   /**
    * Функція емулює зміну температури в печі. Призначена для тестування.
    * @param {*} props
+   *  @property {Object} props.id - ідентифікатор терморегулятора (для сумісності з реальними)
    * @property {Object} props.heating - параметри етапу розігрівання
    * @property {Number} props.heating.tT=200 - *С, задана температура tT
    * @property {Number} props.heating.time=30 - сек, тривалість набору температури tT
-   * // @property {Object} props.firstWave - параметри першої хвилі перерегулювання
-   * // @property {Number} props.firstWave.time=10 - сек, тривалість перщої хвилі
-   * // @property {Object} props.holding - параметри етапу витримки
-   * // @property {Number} props.holding.dT=5 - *С, межі зміни теператури навколо tT
-   * // @property {Number} props.holding.time=20 - сек, період коливань
+   * @property {Object} props.firstWave - параметри першої хвилі перерегулювання
+   * @property {Number} props.firstWave.time=10 - сек, тривалість перщої хвилі
+   * @property {Object} props.holding - параметри етапу витримки
+   * @property {Number} props.holding.dT=5 - *С, межі зміни теператури навколо tT
+   * @property {Number} props.holding.time=20 - сек, період коливань
    *
    */
   constructor(props = {}) {
@@ -23,19 +24,26 @@ class ClassTemperatureEmulator {
       log("i", ln, `props=`);
       console.dir(props);
     }
-    this.heating = props.heating
-      ? props.heating
-      : {
-          time: 30, // час нагрівання
-          tT: 200, // заздана температура
-        };
-    this.firstWave = {
-      time: 10, // сек, тривалість першої хвилі
-    };
-    this.holding = {
-      dT: 5, // ±*С, амплітуда коливань
-      time: 100, // с, період
-    };
+    this.id = props.id
+      ? props.id
+      : "id" + new Date().getTime().toString().slice(-6);
+    // параметри нагрівання
+    props.heating = props.heating ? props.heating : {};
+    this.heating = {};
+    this.heating.tT = props.heating.tT ? props.heating.tT : 200; // задана температура
+    this.heating.time = props.heating.time ? props.heating.time : 30; // час нагрівання
+
+    // параметри першої хвилі
+    props.firstWave = props.firstWave ? props.firstWave : {};
+    this.firstWave = {};
+    this.firstWave.time = props.firstWave.time ? props.firstWave.time : 10; // сек, тривалість першої хвилі
+
+    // параметри витримки
+    props.holding = props.holding ? props.holding : {};
+    this.holding = {};
+    this.holding.dT = props.holding.dT ? props.holding.dT : 5; // ±*С, амплітуда коливань
+    this.holding.time = props.holding.time ? props.holding.time : 20; // с, період коливань
+
     this.startTime = undefined;
     this.parabola = {};
     this.sin = undefined;

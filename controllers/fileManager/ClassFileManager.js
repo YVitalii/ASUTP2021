@@ -40,7 +40,11 @@ class ClassFileManager {
     }
 
     // URL адреса на яку надсилаються запити, якщо не вказана - то коренева
-    this.homeURL = props.homeURL ? props.homeURL : "/";
+    this.homeURL = props.homeURL
+      ? props.homeURL
+      : props.homeUrl
+      ? props.homeUrl
+      : "/";
 
     // перевіряємо наявність вказаної директорії
     if (!fs.existsSync(this.homeDir)) {

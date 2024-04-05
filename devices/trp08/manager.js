@@ -228,7 +228,7 @@ class Manager {
         //   log("e", ln, `error=`);
         //   console.dir(error);
         // }
-        log("e", ln, error.messages.ua);
+        log("e", ln, JSON.stringify(error));
         setTimeout(() => {
           this.setRegister(regName, value);
         }, 2000);

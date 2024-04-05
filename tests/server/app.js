@@ -22,7 +22,8 @@ const entity = require("../testEntity/entity.js");
 const tasksManagerRouter = require("../../controllers/tasksController/routes/index.js");
 const processManagerRouter = require("../../processes/processManager/routes/index.js");
 const devicesManagerRouter = require("../../devices/devicesManager/routes/devicesRouter.js");
-const chartManagerRouter = require("../../controllers/chartManager/routes/chartRouter.js");
+const loggerManagerRouter = require("../../controllers/loggerManager/routes/loggerRouter.js");
+
 console.log(
   `---------------- server started at ${new Date().toLocaleTimeString()} --------`
 );
@@ -87,7 +88,7 @@ app.use("/entity/:id/processManager/", processManagerRouter);
 
 app.use("/entity/:id/devicesManager/", devicesManagerRouter);
 
-app.use("/entity/:id/chartManager/", chartManagerRouter);
+app.use("/entity/:id/loggerManager/", loggerManagerRouter);
 
 app.use("/", indexRouter);
 //app.use("/fileManager", fileManagerRouter);

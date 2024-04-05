@@ -1,0 +1,25 @@
+-var chartContainerId = "chartContainerId";
+
+div.container.h-100
+  div.row.h-100
+    div.col(id=chartContainerId) 
+pre #{"logger="+JSON.stringify(logger)}
+script 
+  include ./chart/d3/d3.min.js
+  include ./chart/drawChart.js    
+
+script.
+  var chartMan={};
+  chartMan.props =  {
+  logsUrl: "!{logger.homeUrl+"/logs"}",
+  logFileName: "!{logger.fileName}",
+  loadCurrentValues: false,
+  y:{min:0,max:!{entity.maxT}},
+  regs: JSON.parse('!{JSON.stringify(logger.regs)}'),
+  }
+  chartMan.containerId= "#"+"!{chartContainerId}";
+script   
+  include ./chart/chartManager.js
+//-   var chart = new Chart("#!{_chartContainer}",chartProps)//new Chart(
+
+//- logger.regs.T1
