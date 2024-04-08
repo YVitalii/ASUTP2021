@@ -23,6 +23,7 @@ const tasksManagerRouter = require("../../controllers/tasksController/routes/ind
 const processManagerRouter = require("../../processes/processManager/routes/index.js");
 const devicesManagerRouter = require("../../devices/devicesManager/routes/devicesRouter.js");
 const loggerManagerRouter = require("../../controllers/loggerManager/routes/loggerRouter.js");
+const entityRouter = require("../../entities/general/routes/entityRouter.js");
 
 console.log(
   `---------------- server started at ${new Date().toLocaleTimeString()} --------`
@@ -66,7 +67,10 @@ app.use("*", (req, res, next) => {
       throw new Error(err.en);
     }
     req.user = data;
-    trace ? log("i", ln, `data=`, data) : null;
+    // милиця для мови, в майбутньому потрібно брати з налаштувань користувача
+    req.user.lang = req.user.lang ? req.user.lang : "ua";
+
+    trace ? log("i", ln, `user=`, data) : null;
     next();
   });
   req.entity = entity;
@@ -89,6 +93,8 @@ app.use("/entity/:id/processManager/", processManagerRouter);
 app.use("/entity/:id/devicesManager/", devicesManagerRouter);
 
 app.use("/entity/:id/loggerManager/", loggerManagerRouter);
+
+app.use("/entity/:id/", entityRouter);
 
 app.use("/", indexRouter);
 //app.use("/fileManager", fileManagerRouter);

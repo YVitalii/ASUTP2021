@@ -4,39 +4,47 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
   /**
    * Крок "Швидке нагрівання" виконується в режимі ПОЗ до температури tT-wT
    * потім йде очікування першої хвилі, як тільки зростання температури за проміжок часу
-   * (props.wave.period * props.wave.points) менше ніж
-   * (props.wave.dT *props.wave.points), рахується що настав перегин
+   * (props.regs.wave.period * props.regs.wave.points) менше ніж
+   * (props.regs.wave.dT *props.regs.wave.points), рахується що настав перегин
    * При 10 точках х 30 сек = 3 хв, тобто якщо за 3 хв.
    * температура зросла менше ніж 10*0,1=1*С - рахуємо що стабілізація виконана
    *
    * @param {Object} props
-   * @property {async Function} props.wT=0 - *С; 0= вимкнено; закид першої хвилі перерегулювання
-   * @property {Object}         props.wave - параметри пошуку точки перегину першої хвилі температури
-   * @property {Number|String}  props.wave.period=30 - сек, період між опитуванням поточної температури.
-   * @property {Number|String}  props.wave.dT=0.1 - *С, рахується що настала вершина хвилі, коли середня похідна менше цього значення
-   * @property {Number|String}  props.wave.points=10, кількість точок для розрахунку середньої похідної
+   * @property {async Function} props.regs.wT=0 - *С; 0= вимкнено; закид першої хвилі перерегулювання
+   * @property {Object}         props.regs.wave - параметри пошуку точки перегину першої хвилі температури
+   * @property {Number|String}  props.regs.wave.period=30 - сек, період між опитуванням поточної температури.
+   * @property {Number|String}  props.regs.wave.dT=0.1 - *С, рахується що настала вершина хвилі, коли середня похідна менше цього значення
+   * @property {Number|String}  props.regs.wave.points=10, кількість точок для розрахунку середньої похідної
    *
    */
   constructor(props) {
-    props.headers = props.headers
-      ? props.headers
-      : {
-          ua: `ClassQuickHeatingStep`,
-          en: `ClassQuickHeatingStep`,
-          ru: `ClassQuickHeatingStep`,
-        };
-    props.ln = props.ln ? props.ln : props.headers.ua + "::";
+    // props.headers = props.headers
+    //   ? props.headers
+    //   : {
+    //       ua: `Швидке нагрівання до `,
+    //       en: `ClassQuickHeatingStep`,
+    //       ru: `ClassQuickHeatingStep`,
+    //     };
+    // props.ln = props.ln ? props.ln : props.headers.ua + "::";
+
+    props.H = 0;
+    props.Y = 0;
+
     super(props);
+
     let trace = 1,
       ln = this.ln + "constructor()";
 
-    if (!props.wT || props.wT == 0 || props.wT > 0) {
+    if (!props.regs.wT || props.regs.wT == 0 || props.regs.wT > 0) {
       throw new Error(
         `Для кроку швидкого нагрівання [${this.header.ua}] має бути вказано (wT < 0)!`
       );
     }
-
-    this.wT = parseInt(props.wT);
+    this.beforeStart = async () => {
+      props.beforeStart(this);
+    };
+    //
+    this.wT = parseInt(props.regs.wT);
 
     // понижуємо температуру поточного завдання
     this.tT = this.tT + this.wT;
@@ -46,18 +54,22 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
 
     // Название шага
     let tT = `${this.tT} &deg;C`;
-    this.comment = {
+    this.state.note = {
       ua: `Шв. нагр. до ${tT}`,
       en: `Quick heating to ${tT}`,
       ru: `Быстрое нагр. до ${tT}`,
     };
-
+    this.header = {
+      ua: `->${this.tT}`,
+      en: `->${this.tT}`,
+      ru: `->${this.tT}`,
+    };
     // ----- параметри пошуку першої хвилі ----------
-    props.wave = props.wave ? props.wave : {};
+    props.regs.wave = props.regs.wave ? props.regs.wave : {};
     this.wave = {};
-    this.wave.period = props.wave.period ? props.wave.period : 30;
-    this.wave.dT = props.wave.dT ? props.wave.dT : 0.1;
-    this.wave.points = props.wave.points ? props.wave.points : 10;
+    this.wave.period = props.regs.wave.period ? props.regs.wave.period : 30;
+    this.wave.dT = props.regs.wave.dT ? props.regs.wave.dT : 0.1;
+    this.wave.points = props.regs.wave.points ? props.regs.wave.points : 10;
     this.wave.arr = []; // массив для зберігання останніх this.wave.points значень
     // курсор в масиві для вставляння нового значення
     this.wave.pointer = 0;

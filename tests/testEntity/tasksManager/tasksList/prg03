@@ -1,1 +1,33 @@
-[{"id":"description","name":"prg03","note":"Приклад програми №3"},{"id":"taskThermal","tT":"11","errTmin":-15,"errTmax":15,"H":131,"Y":176,"regMode":"pos","o":-2},{"id":"taskThermal","tT":"500","errTmin":-15,"errTmax":15,"H":63,"Y":184,"regMode":"pid","wT":"-5","o":0,"ti":0,"td":0},{"id":"taskThermal","tT":"500","errTmin":-15,"errTmax":15,"H":63,"Y":184,"regMode":"pid","wT":"-5","o":0,"ti":0,"td":0}]
+[
+	{
+		"id": "description",
+		"name": "prg03",
+		"note": "Приклад програми №3"
+	},
+	{
+		"id": "taskThermal",
+		"tT": "50",
+		"errTmin": -5,
+		"errTmax": 5,
+		"H": 0,
+		"Y": 2,
+		"regMode": "pos",
+		"wT": "-7",
+		"o": 2,
+		"ti": 0,
+		"td": 0
+	},
+	{
+		"id": "taskThermal",
+		"tT": "60",
+		"errTmin": -5,
+		"errTmax": 5,
+		"H": 0,
+		"Y": 20,
+		"regMode": "pid",
+		"wT": "-5",
+		"o": 20,
+		"ti": 10,
+		"td": 0
+	}
+]

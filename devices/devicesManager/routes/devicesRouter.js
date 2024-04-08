@@ -16,7 +16,7 @@ router.all("/:id/*", (req, res, next) => {
 });
 
 router.post("/:id/getRegs", async (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
   req.params.baseUrl = req.baseUrl;
   let startTime = new Date();
@@ -68,21 +68,21 @@ router.get("/", function (req, res, next) {
     ru: `${req.entity.fullName["ru"]} <br> <small>Тестирование приборов</small>`,
   };
 
-  let content = "";
-  for (let key in req.entity.devicesManager.getAll()) {
-    content += req.entity.devicesManager.getDevice(key).getCompactHtml({
-      baseUrl: req.entity.devicesManager.homeUrl,
-      prefix: "devicesManager_",
-    });
-  }
+  let html = req.entity.devicesManager.getCompactHtml(req);
+  // for (let key in req.entity.devicesManager.getAll()) {
+  //   content += req.entity.devicesManager.getDevice(key).getCompactHtml({
+  //     baseUrl: req.entity.devicesManager.homeUrl,
+  //     prefix: "devicesManager_",
+  //   });
+  // }
 
-  let html = pug.renderFile(
-    resolvePath(
-      req.locals.homeDir +
-        "/devices/devicesManager/views/fullDevicesManager.pug"
-    ),
-    { homeUrl: req.entity.devicesManager.homeUrl, content }
-  );
+  // let html = pug.renderFile(
+  //   resolvePath(
+  //     req.locals.homeDir +
+  //       "/devices/devicesManager/views/fullDevicesManager.pug"
+  //   ),
+  //   { homeUrl: req.entity.devicesManager.homeUrl, content }
+  // );
 
   res.send(pug.renderFile(req.locals.mainPug, { pageTitle, body: html }));
   //res.send(`${req.baseUrl}/`);

@@ -6,7 +6,7 @@ const ClassRegister = require("../regsController/ClassRegister.js");
 // const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const pathNormalize = require("path").normalize;
-const { readFileSync, writeFile } = require("fs");
+//const { readFileSync, writeFile } = require("fs");
 const ClassTaskDescriptionStep = require("./ClassTaskDescriptionStep.js");
 /**
  * Клас виконує керування завданнями
@@ -162,7 +162,7 @@ class ClassTasksManager extends ClassReg_select {
     }
   }
 
-  /** Встановлює поточну список задач для виконання */
+  /** Встановлює поточний список задач для виконання */
   async setCurrentValue(val) {
     let trace = 0,
       ln = this.ln + `setValue(${val})::`;
@@ -192,29 +192,33 @@ class ClassTasksManager extends ClassReg_select {
    *
    */
   makeProgram() {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "makeProgram()::";
     let list = this.list;
     if (trace) {
       log("i", ln, `list=`);
       console.dir(list);
     }
+    // очищуємо місце для програми
     this.program = [];
+    // перебираємо всі кроки в завданні
     for (let i = 0; i < this.list.length; i++) {
       const element = this.list[i];
+      // для кожного кроку отримуємо його менеджера
       let manager = this.reg.regs[element.id];
       // if (trace) {
       //   log("i", ln, `manager=`);
       //   console.dir(manager);
       // }
+      // якщо менеджер знайдено, формуємо крок
       if (manager) {
         let step = manager.getStep(element);
         this.program.push(step);
       }
     }
     if (trace) {
-      log("i", ln, `this.program=`);
-      console.dir(this.program);
+      log("i", ln, `this.program[1]=`);
+      console.dir(this.program[1], { depth: 3 });
     }
     // let description = new this.regs['description'];
   }
@@ -251,6 +255,10 @@ class ClassTasksManager extends ClassReg_select {
       throw new Error(ln + `Крок [${task.id}] вже зареєстрований!`);
     }
     this.reg.regs[task.id] = task;
+  }
+
+  getType(id) {
+    return this.reg.regs[id];
   }
 
   getFullHtml() {

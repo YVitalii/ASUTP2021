@@ -144,6 +144,20 @@ class ClassFileManager {
     //return res;
   }
 
+  async getFileStats(fName) {
+    // якщо імя файлу не вказано, беремо поточний файл
+    fName = fName ? fName : this.fName;
+    // логер
+    let trace = 1,
+      ln = this.ln + `getFileStats(${fName})::`;
+    // перевіряємо існування вказаного файлу
+    if (!this.exist(fName)) {
+      throw new Error(ln + `File not exist!`);
+    }
+    // робимо запит
+    return fsPromises.stat(pathJoin(this.homeDir, fName));
+  }
+
   async appendFile(fName, data) {
     let trace = 1,
       ln = this.ln + `addToFile(${fName})::`;
@@ -153,7 +167,7 @@ class ClassFileManager {
     if (data == undefined || data == "") {
       return Promise.reject("Data not defined!");
     }
-    fsPromises.appendFile(pathJoin(this.homeDir, fName), data);
+    await fsPromises.appendFile(pathJoin(this.homeDir, fName), data);
   }
 
   /** повертає true якщо файл з ім'ям fName існує */

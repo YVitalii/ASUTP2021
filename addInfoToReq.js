@@ -8,8 +8,6 @@ const log = require("./tools/log.js");
 
 module.exports = (req, res, next) => {
   // обєкт з локальною інформацією
-  // милиця для мови, в майбутньому потрібно брати з налаштувань користувача
-  req.user.lang = req.user.lang ? req.user.lang : "ua";
 
   // шлях до базової теки проекту (де app.js)
   req.locals = {};

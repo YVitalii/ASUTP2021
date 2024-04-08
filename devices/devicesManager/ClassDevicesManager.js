@@ -1,4 +1,6 @@
 const log = require("../../tools/log");
+const pug = require("pug");
+const resolvePath = require("path").resolve;
 
 /** Клас для керування приладами */
 
@@ -58,5 +60,22 @@ module.exports = class ClassDevicesManager {
   getAll(id) {
     return this.devices;
   }
-  get;
+  getCompactHtml(req) {
+    let content = "";
+    for (let key in this.getAll()) {
+      content += this.getDevice(key).getCompactHtml({
+        baseUrl: this.homeUrl,
+        prefix: "devicesManager_",
+      });
+    }
+
+    let html = pug.renderFile(
+      resolvePath(
+        req.locals.homeDir +
+          "/devices/devicesManager/views/fullDevicesManager.pug"
+      ),
+      { homeUrl: this.homeUrl, content }
+    );
+    return html;
+  } // getCompactHtml(
 };

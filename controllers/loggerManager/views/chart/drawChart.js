@@ -23,7 +23,9 @@ class Chart {
    *                              этот URL должен быть в доступном для скачивания месте,как правило это каталог "/public"
    *                              Например:"/logs" **Внимание!!! Слеш в конце не ставить он добавляется автоматически !!!**
    * @param {string} config.logFileName: повне ім'я файлу таблиці даних, URL для запиту буде: config.logsUrl+config.logFileName
-   *
+   * @param {string} config.regsUrl - посилання для отримання поточних значень регістрів, за цією адресою виконується post-запит
+   * @param {string} config.tasksUrl - посилання для отримання поточного завдання
+   * @param {string} config.pointsUrl - посилання для отримання поточних визначних точок процесу
    * @param {object} config.y         диапазон отображаемых значений по оси y (). Например: `y:{min:0,max:1000}`
    * @param {Number} config.y.min - минимальное значение по оси y ; например `0`
    * @param {Number} config.y.max - максимальное значение по оси y; например: максимально возможная температура в печи(Тномин+50С)
@@ -81,6 +83,7 @@ class Chart {
       yScale: {}, //шкала по оси Y например: caption,value
     };
     this.registers = config.registers;
+    this.period = config.period ? config.period : 10 * 1000;
     this.y = { min: -10, max: 50 }; // кордони по осі Y, для початку мінімальні - потім коригуються згідно отриманим даним в refreshTimeDomen
     // y.max,y.min - границы по оси 'y'
     // task - задача в виде {time:  ,y:  , dYmin:  , dYmax:   }
@@ -162,9 +165,11 @@ class Chart {
     document.body.removeChild(downloadLink);
   }
 
-  //---------------------  addData(d) ------------------------------------------------------------
-  //------ получает данные , достраивает линии графиков и запоминает данные в таблице ------------
-
+  /**
+   * Додає масив  точок на графік, та запамятовує їх в chart.data
+   * @param {Object} d  - ={time:"08.04.2024, 13:26:59","T1:"15", "tT1":"101", ...}
+   * @returns
+   */
   addData(d) {
     // ------ добавляет данные к графику ---------
     // если данных нет (например еще не подгрузились), выход
@@ -1090,6 +1095,40 @@ class Chart {
 
     //setTimeout(this.redraw.bind(this),15000);
   }
+  /**
+   * Запуск автоматичного опитування та побудови поточних значень
+   */
+  async start() {
+    let trace = 1,
+      ln = this.ln + "start()::";
+    let url = this.config.regsUrl;
+    let response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json;charset=utf-8",
+      },
+      body: JSON.stringify(this.data.columns),
+    });
+
+    if (response.ok) {
+      let result = await response.text();
+      //trace ? console.log(ln + `result=${result}`) : null;
+      let array = result.split("\t");
+      let d = {};
+      for (let i = 0; i < array.length; i++) {
+        const element = array[i].trim();
+        d[this.data.columns[i]] = i == 0 ? element : parseFloat(element);
+      } // for
+      if (trace) {
+        console.log(ln + `result= ${result}; d=`);
+        console.dir(d);
+      }
+      this.addData(d);
+    }
+    setTimeout(() => {
+      this.start();
+    }, this.period);
+  } //async start() {
 } //class
 
 // ---------  вспомогательные функции ------------

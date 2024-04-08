@@ -5,7 +5,7 @@ const resolvePath = require("path").resolve;
 const log = require("../../../tools/log.js");
 
 router.all("*", function (req, res, next) {
-  let trace = 1,
+  let trace = 0,
     ln = `${req.originalUrl}::`;
   req.loggerManager = req.entity.loggerManager;
   trace ? log("i", ln, `Started`) : null;
@@ -15,16 +15,28 @@ router.all("*", function (req, res, next) {
   // }
   next();
 });
+router.post("/getRegs", async function (req, res, next) {
+  let trace = 0,
+    ln = `${req.baseUrl}::`;
+  if (trace) {
+    log("i", ln, `req.body=`);
+    console.dir(req.body);
+  }
+  let response = req.entity.loggerManager.getRegsValue();
+  trace ? console.log(ln + `response=${response}`) : null;
+  res.send(response);
+});
 
 router.get("/logs/:id", async function (req, res, next) {
-  let trace = 1,
+  let trace = 0,
     ln = `${req.baseUrl}::`;
   if (trace) {
     log("i", ln, `req.params=`);
     console.dir(req.params);
   }
-  let text = await req.entity.loggerManager.getLoggerArchiv(req.params.id);
-  res.send(text);
+  let response = await req.entity.loggerManager.getLoggerArchiv(req.params.id);
+  //trace ? console.log(ln + `response=${response}`) : null;
+  res.send(response);
 });
 
 /* main page  */
@@ -53,16 +65,7 @@ router.get("/", function (req, res, next) {
   //     });
   //   }
 
-  let html = pug.renderFile(
-    resolvePath(
-      req.locals.homeDir + "/controllers/loggerManager/views/loggerCompact.pug"
-    ),
-    {
-      entity: req.entity,
-      logger: req.entity.loggerManager,
-    } //homeUrl: req.entity.devicesManager.homeUrl, content
-  );
-
+  let html = req.entity.loggerManager.getFullHtml(req);
   res.send(pug.renderFile(req.locals.mainPug, { pageTitle, body: html }));
   //res.send(`I'm logger manager. ${req.entity.id}/`);
 });

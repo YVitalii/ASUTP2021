@@ -6,6 +6,9 @@ const ClassReg_select = require("../../regsController/ClassReg_select.js");
 const ClassControllerPID = require("../../controllerPID/ClassControllerPID.js");
 const ClassReg_timer = require("../../regsController/ClassReg_timer");
 const ClassQuickHeatingStep = require("../quickHeatingStep/ClassQuickHeatingStep.js");
+const ClassHeatingStep = require("../heatingStep/ClassHeatingStep.js");
+// const ClassHoldingStep = require("../holdingStep/ClassHoldingStep.js");
+
 const log = require("../../../tools/log.js");
 
 class ClassTaskThermal extends ClassTaskGeneral {
@@ -17,7 +20,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
    * @property {Number} props.errTmin=0 - температурний коридор, нижня границя, 0=вимкнено
    * @property {Number} props.errTmax=0 - температурний коридор, верхня границя, 0=вимкнено
    * @property {Number} props.H=0 -хвилини, час нагрівання, 0 = макс. швидко
-   * @property {Number} props.Y=0 -хвилини, час витримки, 0 = зовнішній стоп
+   * @property {Number} props.tT=0 -хвилини, час витримки, 0 = зовнішній стоп
    *
    */
 
@@ -53,7 +56,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
         this.ln + `Property "maxT" must be cpecified! maxT=${props.maxT}`
       );
     }
-
+    this.devices = [];
     // перевіряємо список приладів, що приймають участь в керуванні
     if (
       !(
@@ -87,8 +90,9 @@ class ClassTaskThermal extends ClassTaskGeneral {
           this.ln +
             `props.devices.getT must be async function? but typeof props.devices[${i}].getT = ${typeof element.getT}`
         );
-      }
-    }
+      } //if (!element.getT || typeof element.getT != "function"
+      this.devices.push(element);
+    } //for (let i = 0; i < props.devices.length; i++)
 
     // задана температура
     this.regs.tT = new ClassReg_number({
@@ -221,18 +225,43 @@ class ClassTaskThermal extends ClassTaskGeneral {
    */
 
   getStep(regs) {
-    let trace = 0,
-      ln = this.ln + "getRegs()::";
+    let trace = 1,
+      ln = this.ln + "getStep()::";
+
     if (typeof regs != "object") {
       throw new Error(
         ln + "regs must be an Object typeof regs= " + typeof regs
       );
     }
+    if (trace) {
+      log("i", ln, `regs=`);
+      console.dir(regs);
+    }
 
     let res = [];
+    if (regs.wT != undefined || regs.wT != 0) {
+      let step = [];
+      for (let i = 0; i < this.devices.length; i++) {
+        const el = this.devices[i];
+        step.push(
+          new ClassQuickHeatingStep({
+            regs,
+            getT: async () => {
+              return el.getT();
+            },
+            beforeStart: async (regs) => {
+              //await el.setParams(regs);
+              return el.start(regs);
+            },
+          })
+        );
+      } // for
+      res.push(step);
+    }
+
     //res.push(new ClassQuickHeatingStep(regs));
 
-    return { header: { ua: `123`, en: `123`, ru: `123` } };
+    return res; //{ header: { ua: `123`, en: `123`, ru: `123` } };
   }
 } //class ClassThermoStep
 

@@ -7,61 +7,65 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
   /**
    *
    * @param {Object} props
-   * @property {Number} props.tT - *С, цільова температура
-   * @property {Number} props.errTmin=-50 - *С, (<0) =0 вимкнуто, нижня границя коридору температури
-   * @property {Number} props.errTmax=50 - *С, (>0) =0 вимкнуто, верхня границя коридору температури
-   * @property {String} props.regMode="pid"- "pos" / "pid" закон регулювання температури
-   * @property {Number} props.o=0 -  для regMode="pid" - постійна складова, для regMode="pos" неузгодження температури
-   * @property {Number} props.ti=0 - для regMode="pid" - інтегральний коєф-т, для regMode="pos" немає значення
-   * @property {Number} props.td=0 - для regMode="pid" - пропорційний коєф-т, для regMode="pos" немає значення
+   * @property {Number} props.regs.tT - *С, цільова температура
+   * @property {Number} props.regs.errTmin=-50 - *С, (<0) =0 вимкнуто, нижня границя коридору температури
+   * @property {Number} props.regs.errTmax=50 - *С, (>0) =0 вимкнуто, верхня границя коридору температури
+   * @property {String} props.regs.regMode="pid"- "pos" / "pid" закон регулювання температури
+   * @property {Number} props.regs.o=0 -  для regMode="pid" - постійна складова, для regMode="pos" неузгодження температури
+   * @property {Number} props.regs.ti=0 - для regMode="pid" - інтегральний коєф-т, для regMode="pos" немає значення
+   * @property {Number} props.regs.td=0 - для regMode="pid" - пропорційний коєф-т, для regMode="pos" немає значення
    * @property {async Function} props.getT - async функція запиту поточної температури
    * @property {async Function} props.checkPeriod=5 - сек, період між опитуваннями поточної температури
    *
    */
 
   constructor(props = {}) {
-    props.headers =
-      props.headers && props.headers.ua
-        ? props.headers
+    props.header =
+      props.header && props.header.ua
+        ? props.header
         : {
             ua: `ClassThermoStepGeneral`,
             en: `ClassThermoStepGeneral`,
             ru: `ClassThermoStepGeneral`,
           };
-    props.ln = props.ln ? props.ln : props.headers.ua + "::";
+    props.ln = props.ln ? props.ln : props.header.ua + "::";
 
     super(props);
     // цільова температура
-    if (!props.tT) {
+    if (!props.regs.tT) {
       throw new Error(this.ln + "  must be (tT != 0) and  (tT != undefined)!");
     }
-    this.tT = parseInt(props.tT);
+    this.tT = parseInt(props.regs.tT);
     // поточна температура
     this.t = 0;
     // --------- temperature limits --------
-    this.errTmin = props.errTmin || props.errTmin == 0 ? props.errTmin : -50;
-    this.errTmax = props.errTmax || props.errTmax == 0 ? props.errTmax : 50;
+    this.errTmin =
+      props.regs.errTmin || props.regs.errTmin == 0 ? props.regs.errTmin : -50;
+    this.errTmax =
+      props.regs.errTmax || props.regs.errTmax == 0 ? props.regs.errTmax : 50;
     // --------- regulation  --------
     this.regMode =
-      props.regMode && (props.regMode == "pos" || props.regMode == "pid")
-        ? props.regMode
+      props.regs.regMode &&
+      (props.regs.regMode == "pos" || props.regs.regMode == "pid")
+        ? props.regs.regMode
         : function () {
             this.logger(
               "e",
               this.ln +
-                `constructor()::Error: regMode=${props.regMode} was setted "pid"`
+                `constructor()::Error: regMode=${props.regs.regMode} was setted "pid"`
             );
             return "pid";
           }.bind(this)();
-    this.o = props.o || props.o == 0 ? props.o : 2;
-    this.ti = props.ti || props.ti == 0 ? props.ti : 0;
-    this.td = props.td || props.td == 0 ? props.td : 0;
+    this.o = props.regs.o || props.regs.o == 0 ? props.regs.o : 2;
+    this.ti = props.regs.ti || props.regs.ti == 0 ? props.regs.ti : 0;
+    this.td = props.regs.td || props.regs.td == 0 ? props.regs.td : 0;
 
     // Функція отримання поточної температури
     this.getT = props.getT.bind(this);
     // Період між опитуваннями
     this.checkPeriod = parseInt(props.checkPeriod ? props.checkPeriod : 5);
   }
+
   /** функція виконує такі дії
    * 1. Оновлює поточну температуру
    * 2. Перевіряє температуру на відповідність границям: tT+dTmin..tT+dTmax

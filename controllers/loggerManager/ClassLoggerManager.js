@@ -1,6 +1,8 @@
 const log = require("../../tools/log.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const ClassLoggerRegisters = require("./ClassLoggerRegister.js");
+const pug = require("pug");
+const resolvePath = require("path").resolve;
 
 module.exports = class ClassLoggerManager {
   /**
@@ -31,8 +33,9 @@ module.exports = class ClassLoggerManager {
       homeDir: this.homeDir,
       homeUrl: this.homeUrl,
     });
+    this.tmpLogFileName = "tmp";
     // поточне імя файлу
-    this.fileName = props.fileName ? props.fileName : "current";
+    this.fileName = props.fileName ? props.fileName : this.tmpLogFileName;
     // розширення для файлів
     this._fileExtensions = {
       logger: ".log", // файл з записом параметрів процесу
@@ -68,6 +71,7 @@ module.exports = class ClassLoggerManager {
       },
     }; //this._states={
     this.state = this._states.stoped;
+    this.start(this.tmpLogFileName); // запускаємо запис поточного стану в тимчасовий файл
   } // constructor
 
   /**
@@ -90,7 +94,15 @@ module.exports = class ClassLoggerManager {
   async start(fileName = "") {
     let trace = 1;
     let ln = this.ln + `start(${fileName})::`;
-
+    if (fileName === this.tmpLogFileName) {
+      let fN = this.tmpLogFileName + this._fileExtensions.logger;
+      // видаляємо поточний тимчасовий файл
+      try {
+        await this.fileManager.deleteFile(fN);
+      } catch (error) {
+        log("e", ln + `File  not exist`);
+      }
+    }
     // ------------ імя файлу не вказано, генеруємо нове -------------
     if (fileName === "") {
       // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024T10:11:15"
@@ -126,15 +138,12 @@ module.exports = class ClassLoggerManager {
         firstLine
       );
     } //if (!this.fileManager.exist(this.fileName+this._fileExtensions["logger"]))
-
-    // запускаємо періодичне опитування
-    setTimeout(() => {
-      this.writeLine();
-    }, this.period);
     // змінюємо стан
     this.state = this._states.started;
     let msg = ` "${this.fileName + this._fileExtensions.logger}" `;
-    // додаємо точку
+    // запускаємо періодичне опитування
+    this.writeLine();
+    // додаємо визначну точку
     this.addPoint({
       ua: `Запис ${msg} розпочато`,
       en: `Write file ${msg} started.`,
@@ -147,7 +156,7 @@ module.exports = class ClassLoggerManager {
    * @returns Promise
    */
   async writeLine() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "writeLine()::";
     // якщо режим не "started" - виходимо
     if (this.state.id != "started") {
@@ -158,14 +167,26 @@ module.exports = class ClassLoggerManager {
       }
       return 1;
     }
+    // якщо це тимчасовий файл та обрізаємо до останньої години
+    if (this.fileName === this.tmpLogFileName) {
+      // отримуємо його довжину
+      let { size } = await this.fileManager.getFileStats(
+        this.fileName + this._fileExtensions.logger
+      );
+      trace ? log("i", ln, `"${this.fileName}"; size=`, size) : null;
+      if (size > 100 * 1000) {
+        // TODO тут має бути обрізка на випадок якщо сервер не перезапускається
+        // довгий період
+      }
+    }
     // опитуємо датчики + формуємо рядок для запису
     let line = getCurrTimeString();
     for (let i = 0; i < this.regsId.length; i++) {
       let regName = this.regsId[i];
       let reg = this.regs[regName];
       let val = await reg.getValue();
-      //trace ? log("i", ln, `${reg.id}.getValue()=`, val) : null;
-      val = val === undefined || val === null || isNaN(val) ? -50 : val;
+      trace ? log("i", ln, `${reg.id}.getValue()=`, val) : null;
+      val = val === undefined || val === null || isNaN(val) ? -5 : val;
       reg.value = val;
       line += `\t${val}`;
     }
@@ -176,7 +197,7 @@ module.exports = class ClassLoggerManager {
       this.fileName + this._fileExtensions.logger,
       line
     );
-    trace ? log("i", ln, `Was appended line=`, line) : null;
+    trace ? log("", ln, `Was appended line=`, line) : null;
     // плануємо наступний запуск
     setTimeout(() => {
       this.writeLine();
@@ -223,6 +244,35 @@ module.exports = class ClassLoggerManager {
   async getPointsArchiv(fileName = "") {
     return this.getFile(fileName, this._fileExtensions.points);
   }
+
+  getCompactHtml(req) {
+    let html = pug.renderFile(
+      resolvePath(
+        req.locals.homeDir +
+          "/controllers/loggerManager/views/loggerCompact.pug"
+      ),
+      {
+        entity: req.entity,
+        logger: req.entity.loggerManager,
+      } //homeUrl: req.entity.devicesManager.homeUrl, content
+    );
+    return html;
+  } //getCompactHtml (req){
+
+  getFullHtml(req) {
+    let chart = this.getCompactHtml(req);
+    let html = pug.renderFile(
+      resolvePath(
+        req.locals.homeDir + "/controllers/loggerManager/views/loggerFull.pug"
+      ),
+      {
+        entity: req.entity,
+        logger: req.entity.loggerManager,
+        chart: chart,
+      } //homeUrl: req.entity.devicesManager.homeUrl, content
+    );
+    return html;
+  } //getFullHtml (req)
 }; // class ClassLoggerManager
 
 /** Повертає текстове подання поточного часу

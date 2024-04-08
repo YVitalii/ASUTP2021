@@ -8,10 +8,13 @@ const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskTh
 const ClassDevicesManager = require("../../devices/devicesManager/ClassDevicesManager.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
 const ClassLoggerManager = require("../../controllers/loggerManager/ClassLoggerManager.js");
+const pathResolve = require("path").resolve;
+const pathJoin = require("path").join;
+const pathNormalize = require("path").normalize;
 
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
 
-const emulate = 1; //true;
+const emulate = 0; //true;
 
 let TRP08, ifaceW2;
 
@@ -150,12 +153,12 @@ entity.loggerManager = new ClassLoggerManager({
       },
     },
     {
-      id: "T2",
+      id: "tT",
       units: { ua: `C`, en: `C`, ru: `C` },
       header: {
-        ua: `Т2`,
-        en: `T2`,
-        ru: `Т2`,
+        ua: `Завдання`,
+        en: `task T`,
+        ru: `Задание`,
       },
       comment: {
         ua: `Поточна температура в зоні №2`,
@@ -163,14 +166,19 @@ entity.loggerManager = new ClassLoggerManager({
         ru: `Текущая температура в зоне №2`,
       },
       getValue: async () => {
-        return await entity.devicesManager.getDevice("trp08n2").getT();
+        let res = await entity.devicesManager
+          .getDevice("trp08n1")
+          .getParams("tT");
+        //console.log(`res=`);
+        //console.dir(res);
+        return res.tT.value;
       },
     },
   ],
 }); //entity.loggerManager = new LoggerManager
 
-log("i", `entity.loggerManager=`);
-console.dir(entity.loggerManager);
+// log("i", `entity.loggerManager=`);
+// console.dir(entity.loggerManager);
 
 // функція, що генерує HTML - код для відображення
 // мінімізованого відображення печі в списку печей
@@ -189,20 +197,17 @@ entity.htmlCompact = (lang = "ua") => {
 
 // функція, що генерує HTML - код для відображення
 // головної сторінки печі
-entity.htmlFull = (lang = "ua") => {
+entity.getFullHtml = (req) => {
   let trace = 1,
     ln = gln + "htmlComponent.full::";
   trace ? log("i", ln, `entity.fullName.ua=`, entity.fullName.ua) : null;
-
-  let html = pug.renderFile(__dirname + "/views/full.pug", {
-    entity: this,
-    controllersButton: {
-      href: entity.homeUrl,
-      title: { ua: `Контролери`, en: `Controllers`, ru: `Контроллеры` },
-      lang,
-    },
-    lang,
-  });
+  let html = pug.renderFile(
+    req.locals.homeDir + "/entities/general/views/mainTemplate1.pug",
+    {
+      entity: this,
+      lang: req.user.lang,
+    }
+  );
   return html;
 };
 

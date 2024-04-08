@@ -13,28 +13,27 @@ gTrace ? log("i", logName) : null;
  */
 router.use(function (req, res, next) {
   let trace = 1,
-    ln = logName + `entityRouter.js(${req.originalUrl})::`;
+    ln = logName + `(${req.originalUrl})::`;
   trace ? log("w", `------${ln} ---- Started ------`) : null;
   next();
 });
-
-router.use("/tasksManager", tasksManagerRouter);
 
 router.get("/", function (req, res, next) {
   // сторінка зі списком печей
   let trace = 1,
     ln = logName + `get(${req.originalUrl})::`;
   trace ? log("i", ln, `Started`) : null;
-  let processContainer = req.entity.processManager.getFullHtml();
+  // let processContainer = req.entity.processManager.getFullHtml();
+  // let devicesContainer = req.entity.devicesManager.getFullHtml();
   let html = pug.renderFile(
     req.info.homeDir + "/entities/general/views/mainPage_template1.pug",
     {
-      currentValuesContainer: "Поточні значення",
-      graphContainer: "Графік",
-      processContainer: req.entity.processManager.getFullHtml(),
+      currentValuesContainer: req.entity.devicesManager.getCompactHtml(req),
+      graphContainer: req.entity.loggerManager.getCompactHtml(req),
+      processContainer: req.entity.processManager.getCompactHtml(req), // req.entity.processManager.getFullHtml(),
     }
   );
-  res.render("main.pug", {
+  res.render(req.info.mainPug, {
     body: html,
     pageTitle: req.entity.fullName,
   });

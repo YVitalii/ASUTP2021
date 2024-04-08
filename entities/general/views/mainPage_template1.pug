@@ -20,7 +20,9 @@ div(class="row")
 div(class="row h-100")
   div(class=`col-3 ${border}` id="")
     div(class="container h-100" id="entity_processContainer") !{processContainer}
-  div(class=`col ${border}`)
+  div(class=`col-9 ${border} h-100`)
     div(class="container h-100" id="entity_graphContainer") !{graphContainer}
 
+script.
+  setTimeout(()=>{chartMan.chart.start()},5000);
 

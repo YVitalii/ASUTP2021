@@ -271,12 +271,42 @@ class Manager {
     //   console.dir(this.state);
     // }
   }
+  /**
+   * Функція підлаштовує узагальнені параметри завдання
+   * конкретно під ТРП-08
+   * @param {Object} regs - об'єкт з налаштуваннями типу {tT:{value:10,..},H:{value:10,...}}
+   *
+   */
+  parseRegs(regs = {}) {
+    let trace = 1,
+      ln = this.ln + "parseRegs()::";
+    let props = {};
+    if (regs.regMode || regs.regMode === "pid") {
+      props.regMode = 1; //pid
+      props.ti = regs.ti ? regs.ti : 0;
+      props.td = regs.td ? regs.td : 0;
+    } else {
+      props.regMode = 2; //pos
+    }
+    props.o = regs.o ? regs.o : 0;
+    props.tT = regs.tT ? regs.tT : 0;
+    props.H = regs.H ? regs.H : 0;
+    props.Y = regs.Y ? regs.Y : 0;
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
+    return props;
+  } //async deforeStart(regs={})
 
-  async start() {
+  async start(regs = {}) {
     let trace = 0;
     let ln = this.ln + `start()::`;
     trace ? log("w", ln, "Start") : null;
+
     try {
+      await this.stop();
+      await this.setParams(this.parseRegs(regs));
       await this.setParams({ state: 17 });
       //await this.getParams("state");
       this.state.T.obsolescense = 5 * 1000; // скорочуємо період оновлення даних до 10 с

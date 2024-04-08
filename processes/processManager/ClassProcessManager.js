@@ -30,18 +30,21 @@ class ClassProcessManager {
   setProgram() {
     this.program = [];
   }
-  getFullHtml(props = {}) {
+  getFullHtml(req) {
     let trace = 1,
       ln = this.ln + "getFullHtml()::";
-    if (trace) {
-      log("i", ln, `Started with props=`);
-      console.dir(props);
-    }
-    let lang = props.lang ? props.lang : "ua";
+    // if (trace) {
+    //   log("i", ln, `Started with props=`);
+    //   console.dir(props);
+    // }
+    let lang = req.user.lang ? req.user.lang : "ua";
     let template = path.resolve(__dirname + "/views/procMan_full.pug");
     trace ? log("i", ln, `template=`, template) : null;
     let html = pug.renderFile(template, { processMan: this });
     return html;
+  }
+  getCompactHtml(req) {
+    return this.getFullHtml(req);
   }
 }
 

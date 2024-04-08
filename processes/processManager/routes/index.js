@@ -14,7 +14,7 @@ router.get("/", function (req, res, next) {
     log("i", ln, `req.entity.id=`);
     console.dir(req.entity.id);
   }
-  let html = req.entity.processManager.getFullHtml({ lang: req.user.lang });
+  let html = req.entity.processManager.getFullHtml(req);
   let pageTitle = {
     ua: `${req.entity.fullName["ua"]} <br> <small>Тестувальник processManager</small>`,
     en: `${req.entity.fullName["en"]} <br> <small>Testing for the processManager</small>`,
