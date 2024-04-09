@@ -112,6 +112,8 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
   } //async testProcess()
 
   checkTemperatureRange() {
+    // TODO Додати перевірку на перевищення максимальної температури в печі
+
     // ---------- нижня границя ---------------
     if (this.errTmin != 0) {
       // нижня границя не вимкнена

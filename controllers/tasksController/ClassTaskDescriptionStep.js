@@ -57,6 +57,12 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
     super(props);
   } //constructor
   getStep(regs = {}) {
+    let trace = 1,
+      ln = this.ln + "getStep()::";
+    if (trace) {
+      this.log("i", ln, `this=`);
+      console.dir(this);
+    }
     let res = {
       header: this.regs.name.header,
       value: regs.name ? regs.name : "undefined",

@@ -9,21 +9,29 @@ class ClassDummyStep extends ClassStep {
   /**
    *
    * @param {*} props
-   * @property {} props.delay=5 - s, період очікування
-   * @property {} props.randomize=true - рандомізувати період очікування в межах:  0..props.delay
+   * @property {Number} props.id - id
+   * @property {Number} props.delay=5 - s, період очікування
+   * @property {Boolean} props.randomize=true - рандомізувати період очікування в межах:  0..props.delay
    *
    */
   constructor(props) {
-    let id = new Date().getTime().toString().slice(-5);
-    props.header = props.header
-      ? props.header
-      : {
-          ua: `Імітація кроку ${id}`,
-          en: `Dummy step ${id}`,
-          ru: `Симулятор шага ${id}`,
-        };
+    // let id =
+    //   "id_" +
+    //   (new Date().getTime() + Math.round(Math.random() * 100))
+    //     .toString()
+    //     .slice(-5);
+    // props.id = props.id ? props.id : id;
 
     super(props);
+
+    // this.header = this.header
+    // ? props.header
+    // : {
+    //     ua: `Імітація кроку ${this.id}`,
+    //     en: `Dummy step ${this.id}`,
+    //     ru: `Симулятор шага ${this.id}`,
+    //   };
+
     props.randomize = props.randomize === undefined ? true : props.randomize;
     this.delay = Math.round(
       (props.delay ? props.delay : 5) *

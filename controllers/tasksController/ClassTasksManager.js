@@ -176,7 +176,7 @@ class ClassTasksManager extends ClassReg_select {
       throw new Error(msg);
     }
     await this.loadTask(val);
-    this.makeProgram();
+    //this.makeProgram();
     if (this.value != val) {
       super.setValue(val);
       await this.lastState.writeFile(
@@ -186,45 +186,51 @@ class ClassTasksManager extends ClassReg_select {
     }
   }
 
-  /**
-   * Функція перетворює список задач в список кроків для виконання
-   * наприклад задача ThermProcess може бути розбита на кроки: heating,holding і т.д.
+  // /**
+  //  * Функція перетворює список задач в список кроків для виконання
+  //  * наприклад задача ThermProcess може бути розбита на кроки: heating,holding і т.д.
+  //  *
+  //  */
+  // makeProgram() {
+  //   let trace = 1,
+  //     ln = this.ln + "makeProgram()::";
+  //   let list = this.list;
+  //   if (trace) {
+  //     log("i", ln, `list=`);
+  //     console.dir(list);
+  //   }
+  //   // очищуємо місце для програми
+  //   this.program = [];
+  //   // перебираємо всі кроки в завданні
+  //   for (let i = 0; i < this.list.length; i++) {
+  //     const element = this.list[i];
+  //     // для кожного кроку отримуємо його менеджера
+  //     let manager = this.reg.regs[element.id];
+  //     // if (trace) {
+  //     //   log("i", ln, `manager=`);
+  //     //   console.dir(manager);
+  //     // }
+  //     // якщо менеджер знайдено, формуємо крок
+  //     if (manager) {
+  //       let step = manager.getStep(element);
+  //       this.program.push(step);
+  //     }
+  //   }
+  //   if (trace) {
+  //     log("i", ln, `this.program[1]=`);
+  //     console.dir(this.program[1], { depth: 3 });
+  //   }
+
+  //   // let description = new this.regs['description'];
+  // }
+
+  /** Завантажує список задач з файлу
    *
    */
-  makeProgram() {
-    let trace = 1,
-      ln = this.ln + "makeProgram()::";
-    let list = this.list;
-    if (trace) {
-      log("i", ln, `list=`);
-      console.dir(list);
-    }
-    // очищуємо місце для програми
-    this.program = [];
-    // перебираємо всі кроки в завданні
-    for (let i = 0; i < this.list.length; i++) {
-      const element = this.list[i];
-      // для кожного кроку отримуємо його менеджера
-      let manager = this.reg.regs[element.id];
-      // if (trace) {
-      //   log("i", ln, `manager=`);
-      //   console.dir(manager);
-      // }
-      // якщо менеджер знайдено, формуємо крок
-      if (manager) {
-        let step = manager.getStep(element);
-        this.program.push(step);
-      }
-    }
-    if (trace) {
-      log("i", ln, `this.program[1]=`);
-      console.dir(this.program[1], { depth: 3 });
-    }
-    // let description = new this.regs['description'];
-  }
-
-  /** Завантажує список задач з файлу */
   async loadTask(fName = "default") {
+    // TODO Потрібно зробити автоматичне створення нового шаблонного файлу default.prg,
+    // якщо його ще не існує в такому випадку не буде збоїв
+    //  наприклад: 0. Крок з описом. 1. Перший тип в списку типів всі значення по замовчуванню
     let trace = 0,
       ln = this.ln + `loadTask(${fName})::`;
     let data = "";
@@ -241,6 +247,10 @@ class ClassTasksManager extends ClassReg_select {
     }
   }
 
+  /**
+   * реєструє новий тип кроку.
+   * @param {Class} task - нащадок класу ClassTaskGeneral
+   */
   addType(task = {}) {
     let trace = 0,
       ln = this.ln + `addType()::`;
@@ -256,11 +266,18 @@ class ClassTasksManager extends ClassReg_select {
     }
     this.reg.regs[task.id] = task;
   }
-
+  /**
+   * Виконує пошук в списку доступних кроків та повертає конструктор
+   * @param {String} id - id кроку
+   * @returns
+   */
   getType(id) {
     return this.reg.regs[id];
   }
-
+  /**
+   * генерує код для вставляння в веб сторінку
+   * @returns html
+   */
   getFullHtml() {
     let html = "";
     html = pug.renderFile(__dirname + "/views/editTasks.pug", {

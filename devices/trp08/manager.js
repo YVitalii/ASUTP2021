@@ -280,8 +280,12 @@ class Manager {
   parseRegs(regs = {}) {
     let trace = 1,
       ln = this.ln + "parseRegs()::";
+    if (trace) {
+      log("i", ln, `Started with regs=`);
+      console.dir(regs);
+    }
     let props = {};
-    if (regs.regMode || regs.regMode === "pid") {
+    if (regs.regMode && regs.regMode === "pid") {
       props.regMode = 1; //pid
       props.ti = regs.ti ? regs.ti : 0;
       props.td = regs.td ? regs.td : 0;

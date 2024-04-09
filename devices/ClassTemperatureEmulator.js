@@ -153,6 +153,44 @@ class ClassTemperatureEmulator {
     let t = this.parabola.y();
     return parseInt(t);
   }
+
+  async getParams(params = "tT") {
+    let trace = 0;
+    let ln = this.ln + `getParams(${params})::`;
+    trace ? console.log(ln, `Started.`) : null;
+    let response = {};
+    let start = new Date();
+    let resString = ln;
+    let listRegs = params.split(";");
+    let regs = params.split(";");
+    for (let i = 0; i < listRegs.length; i++) {
+      let trace = 0;
+      let item = listRegs[i].trim();
+      if (item === "") {
+        continue;
+      }
+      trace ? console.log(ln, "get for: " + item) : null;
+      // якщо такого регістра немає в переліку станів беремо наступний
+      switch (item) {
+        case "H":
+          response.H = this.heating.time;
+          break;
+        case "Y":
+          response.Y = this.holding.time;
+          break;
+        case "tT":
+          response.tT = this.heating.tT;
+          break;
+        case "T":
+          response.T = await this.getT();
+          break;
+        default:
+          break;
+      } //switch
+    } // for
+    await dummy();
+    return response;
+  } //getParams(params="tT")
 }
 
 module.exports = ClassTemperatureEmulator;

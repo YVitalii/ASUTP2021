@@ -1,5 +1,5 @@
 const ClassThermoStepGeneral = require("../ClassThermoStepGeneral.js");
-
+const log = require("../../../tools/log");
 class ClassQuickHeatingStep extends ClassThermoStepGeneral {
   /**
    * Крок "Швидке нагрівання" виконується в режимі ПОЗ до температури tT-wT
@@ -18,28 +18,30 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
    *
    */
   constructor(props) {
-    // props.headers = props.headers
-    //   ? props.headers
-    //   : {
-    //       ua: `Швидке нагрівання до `,
-    //       en: `ClassQuickHeatingStep`,
-    //       ru: `ClassQuickHeatingStep`,
-    //     };
-    // props.ln = props.ln ? props.ln : props.headers.ua + "::";
-
-    props.H = 0;
-    props.Y = 0;
+    props.header = props.header
+      ? props.header
+      : {
+          ua: `Швидке нагрівання `,
+          en: `Quick heating`,
+          ru: `Быстрый нагрев`,
+        };
+    props.ln = props.ln ? props.ln : props.header.ua + "::";
 
     super(props);
 
     let trace = 1,
-      ln = this.ln + "constructor()";
+      ln = this.ln + "constructor()::";
 
     if (!props.regs.wT || props.regs.wT == 0 || props.regs.wT > 0) {
       throw new Error(
-        `Для кроку швидкого нагрівання [${this.header.ua}] має бути вказано (wT < 0)!`
+        this.ln +
+          `Для кроку швидкого нагрівання [${this.header.ua}] має бути вказано (wT < 0)!`
       );
     }
+
+    this.H = 0; // грітися максимально швидко
+    this.Y = 0; //для очікування виходу на режим суміжних приладів
+
     this.beforeStart = async () => {
       props.beforeStart(this);
     };
@@ -51,19 +53,22 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
 
     //В цьому кроці не контролюємо нижню границю
     this.errTmin = 0;
+    // Максимальний заккид як для номінальної цільової Т - wT + errTmax
+    this.errTmax = -this.wT + props.errTmax;
 
-    // Название шага
+    // Назва кроку
     let tT = `${this.tT} &deg;C`;
-    this.state.note = {
+    this.comment = {
       ua: `Шв. нагр. до ${tT}`,
       en: `Quick heating to ${tT}`,
       ru: `Быстрое нагр. до ${tT}`,
     };
     this.header = {
-      ua: `->${this.tT}`,
-      en: `->${this.tT}`,
-      ru: `->${this.tT}`,
+      ua: `=>${this.tT}`,
+      en: `=>${this.tT}`,
+      ru: `=>${this.tT}`,
     };
+    this.id = "quickHeating";
     // ----- параметри пошуку першої хвилі ----------
     props.regs.wave = props.regs.wave ? props.regs.wave : {};
     this.wave = {};
@@ -81,13 +86,19 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     }
     // --- немає сенсу перевіряти частіше ніж частота пошуку першої хвилі ----
     this.checkPeriod = this.wave.period;
+    if (trace) {
+      log("i", ln, `this=`);
+      console.dir(this);
+    }
   } //constructor
 
   async start() {
     this.testProcess();
     return await super.start();
   }
-
+  // TODO Коли немає звязку з приладом крок рахує що наступила вершина хвилі, що невірно
+  //  потрібно додати очікування досягнення температури  tT-5, потім вмикати пошух перегину
+  // TODO Потрібно враховувати addT для кожного приладу, інакше буде помилка "перевищення температури"
   /**
    * Перевірка стану процесу
    */

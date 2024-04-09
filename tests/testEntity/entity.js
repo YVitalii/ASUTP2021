@@ -74,9 +74,9 @@ if (emulate) {
     heating: { time: 25, tT: entity.maxT - 25 },
   });
   dev1.start();
-  dev2.start();
   entity.devicesManager.addDevice(dev1.id, dev1);
-  entity.devicesManager.addDevice(dev2.id, dev2);
+  // dev2.start();
+  //entity.devicesManager.addDevice(dev2.id, dev2);
 } else {
   dev1 = new TRP08(ifaceW2, 1, { id: "trp08n1" });
   entity.devicesManager.addDevice(dev1.id, dev1);

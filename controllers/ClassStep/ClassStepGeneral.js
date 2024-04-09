@@ -17,7 +17,9 @@ class ClassStep {
 
     //тут зберігаються основні налаштування
     //this.regs = {};
-
+    this.id = props.id
+      ? props.id
+      : "id_" + new Date().getTime().toString().slice(-6);
     // тут зберігається стан кроку
     this.state = {};
     // поточний стан кроку,
@@ -38,7 +40,7 @@ class ClassStep {
     /** Опис кроку, виводиться в полі програми */
     this.header = props.header
       ? props.header
-      : { ua: `Невизначено`, en: `Undefined`, ru: `Неопределено` };
+      : { ua: `Крок ${this.id}`, en: `Step ${this.id}`, ru: `Шаг ${this.id}` };
     this.comment = props.comment ? props.comment : { ua: ``, en: ``, ru: `` };
 
     this.ln = props.ln ? props.ln : "ClassStep(" + this.header.ua + ")::";
@@ -49,7 +51,7 @@ class ClassStep {
     // асинхронна функція для виконання перед початком кроку (підготовка)
     this.beforeStart = props.beforeStart
       ? props.beforeStart
-      : async () => {
+      : async (regs = {}) => {
           return 1;
         };
     if (typeof this.beforeStart != "function") {
@@ -62,7 +64,7 @@ class ClassStep {
     // асинхронна функція для виконання в кінці процесу (завершення)
     this.afterAll = props.afterAll
       ? props.afterAll
-      : async () => {
+      : async (regs = {}) => {
           return 1;
         };
     if (typeof this.afterAll != "function") {
@@ -115,9 +117,9 @@ class ClassStep {
       }
       this.state.endTime = new Date();
       this.setChanged();
-      if (this.state._id == "error") {
-        reject(this.err);
-      }
+      // if (this.state._id == "error") {
+      //   reject(this.err);
+      // }
       resolve(1);
     });
   }
