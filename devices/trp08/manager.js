@@ -246,11 +246,11 @@ class Manager {
     trace ? console.log("" + ln + "Started") : null;
     let err = "";
     let start = new Date();
-    let resString = ln;
+    let resString = "";
     // перебираємо всі параметри в запиті
     for (let prop in params) {
       if (params.hasOwnProperty(prop)) {
-        trace ? log(ln, `params[${prop}]=`, params[prop]) : null;
+        trace ? log(ln, `Parsed regs[${prop}]=`, params[prop]) : null;
         // перевірка наявності регістра виконується в драйвері, тому на цьому етапі не потрібна
         let res = await this.setRegister(prop, params[prop]);
         if (trace) {
@@ -265,7 +265,7 @@ class Manager {
     resString += ` duration ${
       (new Date().getTime() - start.getTime()) / 1000
     } sec`;
-    log("i", ln + resString);
+    log("i", ln, "Was setted regs:" + resString);
     // if (trace) {
     //   console.log(ln, "this.state=");
     //   console.dir(this.state);
@@ -280,10 +280,10 @@ class Manager {
   parseRegs(regs = {}) {
     let trace = 1,
       ln = this.ln + "parseRegs()::";
-    if (trace) {
-      log("i", ln, `Started with regs=`);
-      console.dir(regs);
-    }
+    // if (trace) {
+    //   log("i", ln, `Started with regs=`);
+    //   console.dir(regs);
+    // }
     let props = {};
     if (regs.regMode && regs.regMode === "pid") {
       props.regMode = 1; //pid
@@ -297,7 +297,7 @@ class Manager {
     props.H = regs.H ? regs.H : 0;
     props.Y = regs.Y ? regs.Y : 0;
     if (trace) {
-      log("i", ln, `props=`);
+      log("i", ln, `Parsed regs=`);
       console.dir(props);
     }
     return props;
@@ -309,8 +309,11 @@ class Manager {
     trace ? log("w", ln, "Start") : null;
 
     try {
+      // зупинка приладу
       await this.stop();
+      // запис налаштувань
       await this.setParams(this.parseRegs(regs));
+      // запуск на виконання
       await this.setParams({ state: 17 });
       //await this.getParams("state");
       this.state.T.obsolescense = 5 * 1000; // скорочуємо період оновлення даних до 10 с

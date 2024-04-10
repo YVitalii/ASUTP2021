@@ -22,7 +22,7 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     props.ln = props.ln ? props.ln : "ClassHeatingStep::";
 
     super(props);
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
     if (trace) {
       log("i", ln, `props=`);
@@ -36,19 +36,23 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     // ---- час нагрівання ---------
     this.H = props.H ? props.H : 0;
 
+    // цільова температура = tT + 0.8 * errTmin;
+    this.goal_tT = this.tT + parseInt(this.errTmin * 0.8);
     // ---- якщо час розігріву не вказано - вимикаємо нижню межу температури
     this.errTmin = this.H == 0 ? 0 : this.errTmin;
-
-    // ---- цільова температура -----
+    // -- верхню межу температури піднімаємо
+    this.errTmax = this.tT + this.errTmax - this.goal_tT;
+    // ---- поточна цільова температура -----
     // так як при Н!=0 поточна цільова температура з часом постійно змінюється
     // то запамятовуємо її в окремій змінній, для того щоб контролювати момент завершення кроку
-    // на 2024-04-09 не працює
-    //  TODO Зробити контроль поточної цільової температури при Н!=0
-    this.goal_tT = this.tT;
+    // на 2024-04-09 не працює лінійна інтерполяція завдання
+    //  TODO Зробити контроль поточної цільової температури при Н != 0
+
     this.curr_tT = {
       k: 0,
-      a: this.tT,
+      a: this.goal_tT,
     };
+
     // id
     this.id = "heating";
     // Назва кроку
@@ -72,7 +76,7 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
 
   async start() {
     // визначаємо коєфіцієнти для функції зміни цільової температури
-    // await this.testProcess();
+    this.testProcess();
     // let x1 = new Date().getTime(),
     //   y1 = this.t,
     //   x2 = x1 + this.H * 60 * 1000,
@@ -90,6 +94,7 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     this.tT = parseInt(now * this.curr_tT.k + this.curr_tT.a);
     trace ? this.logger("i", ln + `Started with current tT=${this.tT}`) : null;
     if (!(await super.testProcess())) {
+      trace ? log("i", ln, `testProcess stoped`) : null;
       return;
     }
 

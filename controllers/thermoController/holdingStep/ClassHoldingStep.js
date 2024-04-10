@@ -1,99 +1,117 @@
-const log = require("../../../../tools/log.js");
-let ClassThermoStep = require("../classStep/ClassThermoStep.js");
+const ClassThermoStepGeneral = require("../ClassThermoStepGeneral.js");
+const log = require("../../../tools/log");
+const parseLinearFunction =
+  require("../../../tools/general.js").parseLinearFunction;
 
-/**
- * Клас виконує крок "Витримка"
- */
-
-class ClassHoldingStep extends ClassThermoStep {
+class ClassHoldingStep extends ClassThermoStepGeneral {
   /**
-   * Конструктор
-   * @param {*} props
-   * @property {Number} props.title=undefined  - опис кроку
-   * @property {Number} props.taskT - *С, задана температура
-   * @property {Object} props.errT={min:-25,max:25} - *C, помилка температури; 0 = не контролювати
-   * @property {Number} props.Y=0- хв, час нагрівання; 0 = максимально швидко
-   * @property {Number} props.periodCheckT=5- сек, період між опитуваннями поточної температури
-   * @property {async Function} props.getT - функція запиту поточної температури
+   *
+   * @param {*} params
+   * @property {Number|String} props.Y=0 - хв; час нагрівання; 0= макс.швидко;
    *
    */
+  constructor(props = {}) {
+    // props.headers =
+    //   props.headers && props.headers.ua
+    //     ? props.headers
+    //     : {
+    //         ua: `Нагрівання`,
+    //         en: `Heating`,
+    //         ru: `Нагрев`,
+    // };
+    props.ln = props.ln ? props.ln : "ClassHoldingStep::";
 
-  constructor(props) {
     super(props);
-    // хв, тривалість витримки, якщо 0 = до отримання команди "Стоп"
-    this.ln = this.ln + "HoldingStep()::";
-    this.Y = props.Y ? props.Y : 0;
-    // максимальне відхилення температури від розрахункової
-    this.errT = props.errT ? props.errT : { min: -25, max: +25 };
-  }
-
-  async start() {
     let trace = 0,
-      ln = this.ln + "Start()::";
+      ln = this.ln + "constructor()::";
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
 
-    this.startTime = new Date().getTime();
-    this.testProcess();
+    this.beforeStart = async () => {
+      props.beforeStart(this);
+    };
+
+    // ---- час нагрівання (для програмування приладу), так як це нова програма ---------
+    this.H = 0;
+
+    // --- час витримки
+
+    this.Y = props.regs.Y ? parseInt(props.regs.Y) : 0;
+    if (isNaN(this.Y)) {
+      this.Y = 0;
+      log(
+        "e",
+        `Holding time must be defined! But regs.Y= ${JSON.stringify(
+          props.regs.Y
+        )}. . Was setted Y=0`
+      );
+    }
+
+    // id
+    this.id = "holding";
+    // Назва кроку
+    let tT = `${this.goal_tT} &deg;C`;
+    this.comment = {
+      ua: `Витримка ${tT}`,
+      en: `Holding  ${tT}`,
+      ru: `Удержание ${tT}`,
+    };
+    this.header = {
+      ua: `= ${this.tT}`,
+      en: `= ${this.tT}`,
+      ru: `= ${this.tT}`,
+    };
+
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
     }
+  } // constructor
+
+  async start() {
+    this.testProcess();
     return await super.start();
-  }
+  } //start()
 
   async testProcess() {
     let trace = 1,
-      ln = this.ln + "testProcess(" + new Date().toLocaleTimeString() + ")::";
+      ln = this.ln + "testProcess()::";
+    let now = new Date().getTime();
+    trace ? log("i", ln, `Started at `, new Date().toLocaleTimeString()) : null;
     if (!(await super.testProcess())) {
-      return 1;
+      trace ? log("i", ln, `testProcess stoped`) : null;
+      return;
     }
 
-    if (this.errT.min && this.currT < this.taskT + this.errT.min) {
-      let msg = `T=${this.currT}*C; Tmin = ${this.taskT + this.errT.min}*C::`;
-      this.error({
-        ua: `${msg}Низька температура! `,
-        en: `${msg}Low temperature!`,
-        ru: `${msg}Низкая температура!`,
-      });
-      return 1;
+    if (this.currentDuration > this.Y * 60) {
+      let info = `t=${this.t}*C; ${this.state.duration}`;
+      let msg = {
+        ua: `Витримка завершена: ${info}`,
+        en: `Holding finished: ${info}`,
+        ru: `Удержание завершено: ${info}`,
+      };
+      this.logger("w", ln + msg.en);
+      this.finish(msg);
     }
 
-    if (this.errT.max && this.currT > this.taskT + this.errT.max) {
-      let msg = `T=${this.currT}*C; Tmax = ${this.taskT + this.errT.max}*C::`;
-      this.error({
-        ua: `${msg}Висока температура!`,
-        en: `${msg}Hight temperature!`,
-        ru: `${msg}Высокая температура!`,
-      });
-      return 1;
-    }
-
-    if (this.Y != 0) {
-      let trace = 0;
-      trace
-        ? log(
-            "0",
-            ln,
-            `current T=${this.currT};Y = ${this.Y * 60}s; currTime=${
-              this.processTime
-            }s`
-          )
-        : null;
-      if (this.processTime > this.Y * 60) {
-        // якщо час сплив
-        let msg = `currentT=${this.currT}*C; Duration = ${(
-          this.processTime / 60
-        ).toFixed(2)}m::`;
-        this.finish({
-          ua: `${msg}Витримка завершена !!!`,
-          en: `${msg}Holding  finished !!!`,
-          ru: `${msg}Удержание завершено !!!`,
-        });
-        return 1;
-      }
-    }
-    // запускаємо наступну перевірку
-    setTimeout(() => this.testProcess(), this.periodCheckT);
-  }
+    setTimeout(() => this.testProcess(), this.checkPeriod * 1000);
+  } //testProcess()
 }
 
 module.exports = ClassHoldingStep;
+
+if (!module.parent) {
+  let item = new ClassHoldingStep({
+    tT: 500,
+    getT: function () {
+      console.dir(this);
+    },
+  });
+
+  console.dir(item);
+
+  console.log("======== this = ========");
+  item.getT();
+}

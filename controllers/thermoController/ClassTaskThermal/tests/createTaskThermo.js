@@ -15,19 +15,24 @@ async function test() {
   let regs = entity.tasksManager.list[1];
   let step = taskThermal.getStep(regs);
 
-  if (trace) {
-    log("i", ln, `taskThermal.id=`);
-    console.dir(taskThermal.id);
-  }
-  if (trace) {
-    log("i", ln, `regs=`);
-    console.dir(regs);
-  }
+  // if (trace) {
+  //   log("i", ln, `taskThermal.id=`);
+  //   console.dir(taskThermal.id);
+  // }
+  // if (trace) {
+  //   log("i", ln, `regs=`);
+  //   console.dir(regs);
+  // }
   if (trace) {
     log("i", ln, `step=`);
     console.dir(step);
   }
-  await step.start(1);
+  let start = 0;
+  // if (trace) {
+  //   log("i", ln, `step[${start}]=`);
+  //   console.dir(step[start]);
+  // }
+  await step.start(start);
 }
 
 setTimeout(() => {

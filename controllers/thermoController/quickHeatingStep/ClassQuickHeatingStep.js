@@ -29,7 +29,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
 
     super(props);
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
 
     if (!props.regs.wT || props.regs.wT == 0 || props.regs.wT > 0) {
@@ -54,7 +54,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     //В цьому кроці не контролюємо нижню границю
     this.errTmin = 0;
     // Максимальний заккид як для номінальної цільової Т - wT + errTmax
-    this.errTmax = -this.wT + props.errTmax;
+    this.errTmax = -this.wT + props.regs.errTmax;
 
     // Назва кроку
     let tT = `${this.tT} &deg;C`;

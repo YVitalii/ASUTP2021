@@ -7,7 +7,7 @@ const ClassControllerPID = require("../../controllerPID/ClassControllerPID.js");
 const ClassReg_timer = require("../../regsController/ClassReg_timer");
 const ClassQuickHeatingStep = require("../quickHeatingStep/ClassQuickHeatingStep.js");
 const ClassHeatingStep = require("../heatingStep/ClassHeatingStep.js");
-// const ClassHoldingStep = require("../holdingStep/ClassHoldingStep.js");
+const ClassHoldingStep = require("../holdingStep/ClassHoldingStep.js");
 const ClassStepsSerial = require("../../ClassStep/ClassStepsSerial.js");
 const ClassStepsParallel = require("../../ClassStep/ClassStepsParallel.js");
 
@@ -277,65 +277,53 @@ class ClassTaskThermal extends ClassTaskGeneral {
         })
       ); //push
 
-      // // ---------- holding step ----------
+      // ---------- holding step ----------
 
-      // holdingSteps.push(
-      //   new ClassHoldingStep({
-      //     id: regs.id,
-      //     regs,
-      //     getT: async () => {
-      //       return device.getT();
-      //     },
-      //     beforeStart: async (regs) => {
-      //       //await device.setParams(regs);
-      //       return device.start(regs);
-      //     },
-      //   })); //push
+      holdingSteps.push(
+        new ClassHoldingStep({
+          id: regs.id,
+          regs,
+          getT: async () => {
+            return device.getT();
+          },
+          beforeStart: async (regs) => {
+            //await device.setParams(regs);
+            return device.start(regs);
+          },
+        })
+      ); //push
     } // for
     if (quickHeatingSteps.length > 0) {
       if (quickHeatingSteps.length === 1) {
         quickHeatingSteps = quickHeatingSteps[0];
       } else {
         quickHeatingSteps = new ClassStepsParallel({
-          header: {
-            ua: `Швидке нагрівання`,
-            en: `Quick heating`,
-            ru: `Быстрое нагревание`,
-          },
           tasks: quickHeatingSteps,
         });
       }
       res.push(quickHeatingSteps);
     }
+
     if (heatingSteps.length > 0) {
       if (heatingSteps.length === 1) {
         heatingSteps = heatingSteps[0];
       } else {
         heatingSteps = new ClassStepsParallel({
-          header: {
-            ua: `Нагрівання`,
-            en: `Heating`,
-            ru: `Нагревание`,
-          },
           tasks: heatingSteps,
         });
       }
       res.push(heatingSteps);
     }
+
     if (holdingSteps.length > 0) {
       if (holdingSteps.length === 1) {
-        holdingSteps = heatingSteps[0];
+        holdingSteps = holdingSteps[0];
       } else {
         holdingSteps = new ClassStepsParallel({
-          header: {
-            ua: `Витримка`,
-            en: `Holding`,
-            ru: `Удержание`,
-          },
-          tasks: heatingSteps,
+          tasks: holdingSteps,
         });
       }
-      res.push(heatingSteps);
+      res.push(holdingSteps);
     }
     res = new ClassStepsSerial({ tasks: res });
     return res; //{ header: { ua: `123`, en: `123`, ru: `123` } };

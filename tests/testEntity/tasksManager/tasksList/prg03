@@ -6,15 +6,15 @@
 	},
 	{
 		"id": "taskThermal",
-		"tT": "50",
+		"tT": "65",
 		"errTmin": -5,
 		"errTmax": 5,
 		"H": 0,
-		"Y": 2,
-		"regMode": "pos",
+		"Y": 10,
+		"regMode": "pid",
 		"wT": "-7",
-		"o": 2,
-		"ti": 0,
+		"o": 20,
+		"ti": 10,
 		"td": 0
 	},
 	{
