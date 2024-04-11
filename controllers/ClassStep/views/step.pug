@@ -1,0 +1,11 @@
+-var _lang = lang ? lang : "ua"
+-var _number = number ? number: (new Date()).getTime().toString().slice(-6);
+-var _id = id ? id : "id"+_number;
+
+div.col.border.border3(id=_id+"_container")
+  div.row
+    div.col-4(id=_id+"_number") !{_number}
+    div.col(id=_id+"_header") !{header[_lang]}
+  div.row
+    div.col(id=_id+"_note") !{_note}   
+

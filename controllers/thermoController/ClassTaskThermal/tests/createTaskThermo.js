@@ -23,15 +23,15 @@ async function test() {
   //   log("i", ln, `regs=`);
   //   console.dir(regs);
   // }
-  if (trace) {
-    log("i", ln, `step=`);
-    console.dir(step);
-  }
-  let start = 0;
   // if (trace) {
-  //   log("i", ln, `step[${start}]=`);
-  //   console.dir(step[start]);
+  //   log("i", ln, `step=`);
+  //   console.dir(step);
   // }
+  let start = 0;
+  if (trace) {
+    log("i", ln, `step.tasks[${start}]=`);
+    console.dir(step.tasks[start]);
+  }
   await step.start(start);
 }
 

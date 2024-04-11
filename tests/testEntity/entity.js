@@ -96,6 +96,11 @@ if (emulate) {
 let taskThermal = new ClassTaskThermal({
   maxT: entity.maxT,
   devices: [entity.devicesManager.getDevice(dev1.id)],
+  firstWave: {
+    period: 10, //період між запитами
+    //points:10, //кількість точок вимірювання
+    // dT:0.1, // середня похідна за 10 точок
+  },
 });
 
 // менеджер завдань

@@ -52,6 +52,7 @@ class ClassStep {
     this.beforeStart = props.beforeStart
       ? props.beforeStart
       : async (regs = {}) => {
+          log("w", ln, "beforeStart()::Not defined. Return 1.");
           return 1;
         };
     if (typeof this.beforeStart != "function") {

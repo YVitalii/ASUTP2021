@@ -18,12 +18,16 @@ class ClassTaskThermal extends ClassTaskGeneral {
    * Конструктор класу, оптимізованого під процес термообробки
    * @param {Object} props - стартові налаштування
    * @property {Array}  props.devices - список приладів, що беруть участь у виконанні кроку
-   * @property {Number}  props.maxT - максимальна температура об'єкту керування
+   * @property {Number} props.maxT - максимальна температура об'єкту керування
    * @property {Number} props.errTmin=0 - температурний коридор, нижня границя, 0=вимкнено
    * @property {Number} props.errTmax=0 - температурний коридор, верхня границя, 0=вимкнено
    * @property {Number} props.H=0 -хвилини, час нагрівання, 0 = макс. швидко
-   * @property {Number} props.tT=0 -хвилини, час витримки, 0 = зовнішній стоп
-   *
+   * @property {Number} props.errH=0 - хвилини, помилка часу розігрівання,  0 = не контролювати
+   * @property {Number} props.tT=0 - цільова температура
+   * @property {Number} props.firstWave - параметри пошуку першої хвилі перерегулювання
+   * @property {Number} props.firstWave.period=30 - сек, період між запитами поточної температури
+   * @property {Number} props.firstWave.points=10 - кільк. точок для визначення середньої похідної
+   * @property {Number} props.firstWave.dT=0.1 - якщл середня похідна менше ніж dT, рахується що стабілізація наступила
    */
 
   constructor(props = {}) {
@@ -95,7 +99,8 @@ class ClassTaskThermal extends ClassTaskGeneral {
       } //if (!element.getT || typeof element.getT != "function"
       this.devices.push(element);
     } //for (let i = 0; i < props.devices.length; i++)
-
+    this.firstWave = props.firstWave ? props.firstWave : {};
+    // в this.regs знаходяться параметри програми, які задає користувач
     // задана температура
     this.regs.tT = new ClassReg_number({
       id: "tT",
@@ -155,7 +160,25 @@ class ClassTaskThermal extends ClassTaskGeneral {
       },
       min: 0,
       max: 24 * 60 - 1, // input time має максимум 23:59, за потреби довше - дублювати кроки
-    }); //this.regs.wT
+    }); //this.regs.H
+
+    // час нагрівання, хв
+    this.regs.errH = new ClassReg_timer({
+      id: "errH",
+      value: props.errH ? props.errH : 0,
+      header: {
+        ua: "Помилка часу нагрівання",
+        en: "Error of heating time",
+        ru: "Ошибка времени разогрева",
+      },
+      comment: {
+        ua: `0 = вимкн.`,
+        en: `0 = off`,
+        ru: `0 = выкл.`,
+      },
+      min: 0,
+      max: 90, // 90 хв думаю буде достатньои
+    }); //this.regs.H
 
     // час утримання, хв
     this.regs.Y = new ClassReg_timer({
@@ -213,11 +236,6 @@ class ClassTaskThermal extends ClassTaskGeneral {
         ru: `Закон регулирования`,
       },
     });
-
-    // завантажуємо кроки процессу
-    this.quickHeatingStep;
-    this.heatingStep;
-    this.holdingStep;
   } // constructor
 
   /**
@@ -242,57 +260,24 @@ class ClassTaskThermal extends ClassTaskGeneral {
     let quickHeatingSteps = [];
     let heatingSteps = [];
     let holdingSteps = [];
-
+    // --- для всіх приладів створюємо кроки
     for (let i = 0; i < this.devices.length; i++) {
       const device = this.devices[i];
       // --------- quick heating steps ----------
-      if (regs.wT != undefined || regs.wT != 0 || regs.H == 0) {
+      if (regs.wT != undefined && regs.wT != 0 && regs.H == 0) {
         quickHeatingSteps.push(
-          new ClassQuickHeatingStep({
-            id: regs.id,
-            regs,
-            getT: async () => {
-              return device.getT();
-            },
-            beforeStart: async (regs) => {
-              //await device.setParams(regs);
-              return device.start(regs);
-            },
-          })
+          new ClassQuickHeatingStep({ regs, device, wave: this.firstWave })
         ); //push
       } //if (regs.wT != undefined || regs.wT != 0 || regs.H == 0)
 
       // ---------- heating step ----------
-      heatingSteps.push(
-        new ClassHeatingStep({
-          id: regs.id,
-          regs,
-          getT: async () => {
-            return device.getT();
-          },
-          beforeStart: async (regs) => {
-            //await device.setParams(regs);
-            return device.start(regs);
-          },
-        })
-      ); //push
+      heatingSteps.push(new ClassHeatingStep({ regs, device })); //push
 
       // ---------- holding step ----------
-
-      holdingSteps.push(
-        new ClassHoldingStep({
-          id: regs.id,
-          regs,
-          getT: async () => {
-            return device.getT();
-          },
-          beforeStart: async (regs) => {
-            //await device.setParams(regs);
-            return device.start(regs);
-          },
-        })
-      ); //push
+      holdingSteps.push(new ClassHoldingStep({ regs, device })); //push
     } // for
+
+    // якщо приладів в процесі декілька - запускаємо кожний тип кроку паралельно
     if (quickHeatingSteps.length > 0) {
       if (quickHeatingSteps.length === 1) {
         quickHeatingSteps = quickHeatingSteps[0];

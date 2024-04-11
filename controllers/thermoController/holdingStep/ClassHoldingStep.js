@@ -21,17 +21,21 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     // };
     props.ln = props.ln ? props.ln : "ClassHoldingStep::";
 
-    super(props);
+    props.id = "holing";
+    props.ln = props.ln ? props.ln : props.id + "::";
     let trace = 0,
-      ln = this.ln + "constructor()::";
+      ln = props.id + "::constructor()::";
     if (trace) {
       log("i", ln, `props=`);
       console.dir(props);
     }
+    super(props);
 
-    this.beforeStart = async () => {
-      props.beforeStart(this);
-    };
+    ln = this.ln + "constructor()::";
+    if (trace) {
+      log("i", ln, `after super() this=`);
+      console.dir(this);
+    }
 
     // ---- час нагрівання (для програмування приладу), так як це нова програма ---------
     this.H = 0;
@@ -49,8 +53,6 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
       );
     }
 
-    // id
-    this.id = "holding";
     // Назва кроку
     let tT = `${this.goal_tT} &deg;C`;
     this.comment = {
@@ -63,6 +65,8 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
       en: `= ${this.tT}`,
       ru: `= ${this.tT}`,
     };
+    // --------------------------------
+    this.ln = `${this.id}(tT=${this.tT}); Y=${this.Y}::`;
 
     if (trace) {
       log("i", ln, `this=`);
@@ -72,30 +76,37 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
 
   async start() {
     this.testProcess();
+    this.logger(
+      "i",
+      `Start(): tT=${this.tT}; errTmin=${this.errTmin}; errTmax=${this.errTmax}; H=${this.H}; Y=${this.Y}`
+    );
     return await super.start();
   } //start()
 
   async testProcess() {
     let trace = 1,
-      ln = this.ln + "testProcess()::";
+      ln = "testProcess()::";
     let now = new Date().getTime();
-    trace ? log("i", ln, `Started at `, new Date().toLocaleTimeString()) : null;
+
     if (!(await super.testProcess())) {
       trace ? log("i", ln, `testProcess stoped`) : null;
       return;
     }
-
-    if (this.currentDuration > this.Y * 60) {
+    if (this.t != null) {
       let info = `t=${this.t}*C; ${this.state.duration}`;
-      let msg = {
-        ua: `Витримка завершена: ${info}`,
-        en: `Holding finished: ${info}`,
-        ru: `Удержание завершено: ${info}`,
-      };
-      this.logger("w", ln + msg.en);
-      this.finish(msg);
+      if (this.currentDuration > this.Y * 60) {
+        let msg = {
+          ua: `Витримка завершена: ${info}`,
+          en: `Holding finished: ${info}`,
+          ru: `Удержание завершено: ${info}`,
+        };
+        this.logger("w", ln + msg.en);
+        this.finish(msg);
+      }
+      this.logger("", ln + ` ${info}`);
+    } else {
+      this.logger("", ln + `this.t == null. Next iteration`);
     }
-
     setTimeout(() => this.testProcess(), this.checkPeriod * 1000);
   } //testProcess()
 }

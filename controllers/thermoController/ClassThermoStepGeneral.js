@@ -1,5 +1,5 @@
 const ClassStepGeneral = require("../ClassStep/ClassStepGeneral");
-
+const log = require("../../tools/log");
 /**
  * Реалізує загальні для всіх кроків термообробки функції
  */
@@ -16,33 +16,51 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
    * @property {Number} props.regs.td=0 - для regMode="pid" - пропорційний коєф-т, для regMode="pos" немає значення
    * @property {async Function} props.getT - async функція запиту поточної температури
    * @property {async Function} props.checkPeriod=5 - сек, період між опитуваннями поточної температури
-   *
+   * @property {Object} props.device - обєкт приладу, що має async функції start(regs), addT() та getT
    */
 
   constructor(props = {}) {
-    props.header =
-      props.header && props.header.ua
-        ? props.header
-        : {
-            ua: `ClassThermoStepGeneral`,
-            en: `ClassThermoStepGeneral`,
-            ru: `ClassThermoStepGeneral`,
-          };
     props.ln = props.ln ? props.ln : props.header.ua + "::";
-
+    let trace = 0,
+      ln = props.ln + "constructor()";
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
     super(props);
-    // цільова температура
+
+    this.header = {
+      ua: `ClassThermoStepGeneral`,
+      en: `ClassThermoStepGeneral`,
+      ru: `ClassThermoStepGeneral`,
+    };
+
+    // сутність прилад для поточного кроку
+    this.device = props.device;
+    if (typeof this.device.getT != "function") {
+      throw new Error(this.ln + " typeof this.device.getT != 'function'!");
+    }
+    if (typeof this.device.start != "function") {
+      throw new Error(this.ln + " typeof this.device.start != 'function'!");
+    }
+    // цільова температура + добавка для конкретного приладу
     if (!props.regs.tT) {
       throw new Error(this.ln + "  must be (tT != 0) and  (tT != undefined)!");
     }
-    this.tT = parseInt(props.regs.tT);
+    this.tT = parseInt(props.regs.tT) + this.device.getAddT();
+
+    // для ідентифікації поточного приладу додаємо в повідомлення його id
+    this.ln = this.device.id + "::";
+
     // поточна температура
-    this.t = 0;
+    this.t = null;
+
     // --------- temperature limits --------
     this.errTmin =
       props.regs.errTmin || props.regs.errTmin == 0 ? props.regs.errTmin : -50;
     this.errTmax =
       props.regs.errTmax || props.regs.errTmax == 0 ? props.regs.errTmax : 50;
+
     // --------- regulation  --------
     this.regMode =
       props.regs.regMode &&
@@ -61,7 +79,22 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
     this.td = props.regs.td || props.regs.td == 0 ? props.regs.td : 0;
 
     // Функція отримання поточної температури
-    this.getT = props.getT.bind(this);
+    this.getT = async () => {
+      let t = await this.device.getT();
+      if (t == undefined || isNaN(parseInt(t))) {
+        t = null;
+      }
+      this.t = t;
+      return t;
+    }; //props.getT.bind(this);
+
+    // Функція для запуску приладу
+    this.beforeStart = async () => {
+      log("", "beforeStart()::Started");
+      await this.device.start(this);
+      log("", "beforeStart()::Completed");
+    };
+
     // Період між опитуваннями
     this.checkPeriod = parseInt(props.checkPeriod ? props.checkPeriod : 5);
   }
@@ -90,7 +123,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
     try {
       // запит температури
       this.t = await this.getT();
-      trace = 1;
+      trace = 0;
       trace
         ? console.log(
             "",
@@ -103,17 +136,22 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
         "e",
         ln + `Error when try execute function this.getT():` + error.message
       );
+      this.t = null;
       console.dir(error);
       // на випадок помилки зв'язку не викидаємо помилку, а очікуємо відновлення
       return true;
     }
-
+    this.t = isNaN(this.t) ? null : this.t;
     return this.checkTemperatureRange();
   } //async testProcess()
 
   checkTemperatureRange() {
     // TODO Додати перевірку на перевищення максимальної температури в печі
 
+    // якщо поточна температура невідома - вихід
+    if (this.t == null) {
+      return true;
+    }
     // ---------- нижня границя ---------------
     if (this.errTmin != 0) {
       // нижня границя не вимкнена
@@ -133,7 +171,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
       }
       if (this.t < this.tT + this.errTmin) {
         // температура вдвічі нижче мінімуму - помилка
-        let data = `t=${this.t} < (${this.tT} + ${this.errTmin}) = ${
+        let data = `t=${this.t} < (${this.tT} ${this.errTmin}) = ${
           this.tT + this.errTmin
         }`;
         let msg = {
