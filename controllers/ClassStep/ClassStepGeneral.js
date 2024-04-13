@@ -233,6 +233,7 @@ class ClassStep {
 
   getState() {
     let res = { ...this.state };
+    res.id = this.id;
     res.header = this.header;
     res.comment = this.comment;
     return res;

@@ -20,7 +20,29 @@ buttons.props = {
   },
 };
 
-buttons.props.reg.regs.bTasksManager = {
+// ------ buttons description ----------
+let btn;
+
+// ------------- new button ------
+btn = {
+  action: "link",
+  reg: {
+    classes: "btn btn-primary",
+    attributes: { href: buttons.homeUrl + "/" },
+    id: "bEntityManager",
+    header: {
+      ua: `Менеджер сутності`,
+      en: `Entity manager`,
+      ru: `Менеджер сущности`,
+    },
+    type: "button",
+    comment: { ua: `Натисніть`, en: `Push`, ru: `Нажмите` },
+  },
+};
+buttons.props.reg.regs[btn.reg.id] = btn;
+
+// ------------- new button ------
+btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
@@ -29,11 +51,13 @@ buttons.props.reg.regs.bTasksManager = {
     header: { ua: `Менеджер задач`, en: `Tasks manager`, ru: `Менеджер задач` },
     type: "button",
     comment: { ua: `Натисніть`, en: `Push`, ru: `Нажмите` },
+    //onclick: function () {},
   },
-
-  //onclick: function () {},
 };
-buttons.props.reg.regs.bProcessManager = {
+buttons.props.reg.regs[btn.reg.id] = btn;
+
+// ------------- new button ------
+btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
@@ -48,8 +72,10 @@ buttons.props.reg.regs.bProcessManager = {
   },
   onclick: function () {},
 };
+buttons.props.reg.regs[btn.reg.id] = btn;
 
-buttons.props.reg.regs.bDevicesManager = {
+// ------------- new button ------
+btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
@@ -64,8 +90,10 @@ buttons.props.reg.regs.bDevicesManager = {
   },
   onclick: function () {},
 };
+buttons.props.reg.regs[btn.reg.id] = btn;
 
-buttons.props.reg.regs.bLoggerManager = {
+// ------------- new button ------
+btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
@@ -80,5 +108,6 @@ buttons.props.reg.regs.bLoggerManager = {
   },
   onclick: function () {},
 };
+buttons.props.reg.regs[btn.reg.id] = btn;
 
 buttons.elements = new myElementsRender["buttonGroup"](buttons.props);

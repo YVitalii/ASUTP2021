@@ -59,6 +59,9 @@ if (trace) {
       `fileManager.exist(${"undefinedFile"})=`,
       fileManager.exist("undefinedFile")
     );
+    fName = "test.log";
+    await fileManager.truncateFileBeforeDate(fName);
+    log("i", ln, `fileManager.runcateFileBeforeDate(${fName})`);
   } catch (error) {
     log("e", error);
   }

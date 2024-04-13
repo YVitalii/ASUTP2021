@@ -16,7 +16,7 @@ router.all("*", function (req, res, next) {
   next();
 });
 router.post("/getRegs", async function (req, res, next) {
-  let trace = 0,
+  let trace = 1,
     ln = `${req.baseUrl}::`;
   if (trace) {
     log("i", ln, `req.body=`);

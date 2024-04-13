@@ -73,6 +73,44 @@ class ClassFileManager {
     this.filesList = fs.readdirSync(this.homeDir);
     return this.filesList;
   }
+  /**
+   * Обрізає лог-файл починаючи зі startDate
+   * @param {String} fileName
+   * @param {Number} startDate=(now - 24*60*60*1000) - milisec
+   * @returns true/false
+   */
+  async truncateFileBeforeDate(fileName, startDate) {
+    let trace = 0,
+      ln = this.ln + `truncateFileBeforeDate(${fileName})::`;
+    startDate = startDate ? startDate : Date.now() - 24 * 60 * 60 * 1000;
+    trace
+      ? log("i", ln, `startDate=`, new Date(startDate).toLocaleString())
+      : null;
+    let data = await this.readFile(fileName);
+    trace ? log("i", ln, `data=`, data) : null;
+    let arr = data.split("\n");
+    data = arr[0] + "\n";
+    if (trace) {
+      log("i", ln, `data=${data} arr=`);
+      console.dir(arr);
+    }
+
+    arr.slice(1, arr.length).map((item) => {
+      trace ? log("i", ln, `item=`, item) : null;
+      try {
+        let date = item.split("\t")[0];
+        date = new Date(date).getTime();
+        if (date == "Invalid Date") {
+          return;
+        }
+        if (date > startDate) {
+          data += item + "\n";
+        }
+      } catch (error) {}
+    });
+    await this.writeFile(fileName, data);
+    return true;
+  }
 
   //** синхронна, повертає збережений в памяті список */
   getFilesList() {

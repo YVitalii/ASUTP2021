@@ -1,17 +1,25 @@
 
-pre #{JSON.stringify(processMan)} 
+pre #{JSON.stringify(processMan.htmlProgram)} 
+-var buttonsContainer = "process_buttonsContainer"
+-var programContainer = "process_programContainer"
+
+div.row
+  div.column 
 hr
 div.row
-  div.column#process_about 
+  div.column(id=buttonsContainer)     
 div.row
-  div.column#Process_buttonGroup     
-div.row
-  div.column#Process_program 
+  div.column(id=programContainer)     
 
 script.
-  const processMan = {};
+  var  processMan = {};
   processMan.homeUrl = `#{processMan.homeUrl}`;
   processMan.editTaskUrl = `#{processMan.tasksManager.homeURL}`;
+  processMan.buttons = {};
+  processMan.buttons.container =  document.getElementById(!{`"${buttonsContainer}"`}); 
+  processMan.program = {};
+  processMan.program.container = document.getElementById(!{`"${programContainer}"`});
 
 script
+  include ./js/myElR_step.js
   include ./js/processMan_Main.js

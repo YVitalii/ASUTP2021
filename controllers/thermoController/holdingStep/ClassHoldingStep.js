@@ -54,7 +54,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     }
 
     // Назва кроку
-    let tT = `${this.goal_tT} &deg;C`;
+    let tT = `${this.tT}°C`;
     this.comment = {
       ua: `Витримка ${tT}`,
       en: `Holding  ${tT}`,
@@ -84,7 +84,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
   } //start()
 
   async testProcess() {
-    let trace = 1,
+    let trace = 0,
       ln = "testProcess()::";
     let now = new Date().getTime();
 

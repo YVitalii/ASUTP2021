@@ -56,20 +56,25 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
     };
     super(props);
   } //constructor
-  getStep(regs = {}) {
+  getState(regs = {}) {
     let trace = 1,
-      ln = this.ln + "getStep()::";
+      ln = this.ln + "getState()::";
     if (trace) {
       this.log("i", ln, `this=`);
       console.dir(this);
     }
     let res = {
-      header: this.regs.name.header,
-      value: regs.name ? regs.name : "undefined",
-      comment: regs.note ? regs.note : "undefined",
+      header: this.header,
+      comment: this.comment,
+      regs: this.regs,
       editable: false,
     };
     return res;
+  }
+  getStep() {
+    // let res = this.getState();
+    // res.type = "description";
+    return this;
   }
 }
 

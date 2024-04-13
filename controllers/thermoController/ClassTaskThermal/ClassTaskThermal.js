@@ -310,7 +310,18 @@ class ClassTaskThermal extends ClassTaskGeneral {
       }
       res.push(holdingSteps);
     }
-    res = new ClassStepsSerial({ tasks: res });
+    let header = `tT=${regs.tT}; H=${regs.H}; Y=${regs.Y}`;
+    let comment = `errTmin=${regs.errTmin}; errTmax=${regs.errTmax}; errH=${regs.errH}; regMode=${regs.regMode}; o=${regs.o}; ti=${regs.ti}; td=${regs.td};`;
+    res = new ClassStepsSerial({
+      id: regs.id,
+      header: {
+        ua: `Термообробка: ${header}`,
+        en: `Heat treatment: ${header}`,
+        ru: `Термообработка: ${header}`,
+      },
+      comment: { ua: `${comment}`, en: `${comment}`, ru: `${comment}` },
+      tasks: res,
+    });
     return res; //{ header: { ua: `123`, en: `123`, ru: `123` } };
   }
 } //class ClassThermoStep

@@ -12,7 +12,7 @@ module.exports = class ClassLoggerManager {
    * @prop {String} props.baseUrl="" - базова адреса this.homeUrl=props.baseUrl + "/"+this.id
    * @prop {String} props.baseDir=__dirname - базова адреса на локальному диску this.homeDir=props.baseDir + "/"+this.id
    * @prop {Number} props.period=10*1000 - мс, період опитування та запису стану регістрів
-   * @prop {String} props.fileName="current" - імя поточного файлу логування
+   * @prop {String} props.fileName="tmp" - імя поточного файлу логування
    * @prop {Object} props.regs=[{}] - масив регістрів для логування, кожний регістр екземпляр of ClassLoggerRegister
    * @prop {} props.= -
    *
@@ -71,6 +71,7 @@ module.exports = class ClassLoggerManager {
       },
     }; //this._states={
     this.state = this._states.stoped;
+
     this.start(this.tmpLogFileName); // запускаємо запис поточного стану в тимчасовий файл
   } // constructor
 
@@ -94,25 +95,40 @@ module.exports = class ClassLoggerManager {
   async start(fileName = "") {
     let trace = 1;
     let ln = this.ln + `start(${fileName})::`;
+    // --- якщо це файл тимчасового логу---------------
     if (fileName === this.tmpLogFileName) {
-      let fN = this.tmpLogFileName + this._fileExtensions.logger;
-      // видаляємо поточний тимчасовий файл
+      // перевіряємо розмір файлу
       try {
-        await this.fileManager.deleteFile(fN);
+        // отримуємо його довжину
+        let { size } = await this.fileManager.getFileStats(
+          fileName + this._fileExtensions.logger
+        );
+        trace ? log("i", ln, `"${this.fileName}"; size=`, size) : null;
+        if (size > 10 * 1000) {
+          // обрізка на випадок якщо сервер не перезапускається
+          // довгий період
+          this.fileManager.truncateFileBeforeDate(
+            fileName + this._fileExtensions.logger
+          );
+          this.fileManager.truncateFileBeforeDate(
+            fileName + this._fileExtensions.pnt,
+            Date.now() - 7 * 24 * 60 * 60 * 1000 // визначні точки за останній тиждень
+          );
+        } //if (size > 50 * 1000)
       } catch (error) {
         log("e", ln + `File  not exist`);
       }
     }
     // ------------ імя файлу не вказано, генеруємо нове -------------
     if (fileName === "") {
-      // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024T10:11:15"
+      // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024t10-11"
       do {
         let newFileN = new Date().toLocaleString();
         log(`newFileN=`, newFileN);
         newFileN = newFileN.replace(/\./g, "-");
         newFileN = newFileN.replace(/\:/g, "-");
         newFileN = newFileN.replace(", ", "t");
-        fileName = newFileN;
+        fileName = newFileN.slice(0, -3);
         trace
           ? log("i", ln, `New file name generated: fileName=`, fileName)
           : null;
@@ -167,18 +183,7 @@ module.exports = class ClassLoggerManager {
       }
       return 1;
     }
-    // якщо це тимчасовий файл та обрізаємо до останньої години
-    if (this.fileName === this.tmpLogFileName) {
-      // отримуємо його довжину
-      let { size } = await this.fileManager.getFileStats(
-        this.fileName + this._fileExtensions.logger
-      );
-      trace ? log("i", ln, `"${this.fileName}"; size=`, size) : null;
-      if (size > 100 * 1000) {
-        // TODO тут має бути обрізка на випадок якщо сервер не перезапускається
-        // довгий період
-      }
-    }
+
     // опитуємо датчики + формуємо рядок для запису
     let line = getCurrTimeString();
     for (let i = 0; i < this.regsId.length; i++) {
@@ -279,5 +284,5 @@ module.exports = class ClassLoggerManager {
  *  винесено окремою функцією, щоб за потреби змінити формат часу в усіх файлах в одночасно
  */
 function getCurrTimeString() {
-  return new Date().toLocaleString();
+  return new Date().toISOString();
 }

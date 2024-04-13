@@ -2,6 +2,7 @@
 const pug = require("pug");
 const path = require("path");
 const log = require("../../tools/log");
+const clone = require("clone");
 
 class ClassProcessManager {
   constructor(props = {}) {
@@ -34,7 +35,12 @@ class ClassProcessManager {
     this.state.activeSteps = {};
     // программа
     this.program = [];
+    // програма з даними для браузера
+    this.htmlProgram;
+    // парсимо поточну програму 3 сек - щоб встиг завантажитися tasksManager
+    setTimeout(() => this.setProgram(), 3000);
   }
+
   /**
    *
    */
@@ -58,7 +64,7 @@ class ClassProcessManager {
     if (Array.isArray(list)) {
       let newArr = [];
       for (let j = 0; j < list.length; j++) {
-        let newPrefix = prefix + `:${j}`;
+        let newPrefix = prefix + `_${j}`;
         const item = list[j];
         this.setStep(newPrefix, newArr, item);
       }
@@ -98,12 +104,67 @@ class ClassProcessManager {
     //  TODO Перенести в процесМенеджер список доступних кроків з tasksManager
     // в tasksManager брати список звідси
     let trace = 1,
-      ln = this.ln + "";
-    this.listSteps = this.tasksManager.list;
+      ln = this.ln + " setProgram()::";
+    //копіюємо поточний список завдань
+    this.listSteps = clone(this.tasksManager.list);
+    if (trace) {
+      log("i", ln, `this.listSteps=`);
+      console.dir(this.listSteps);
+    }
+    // очищуємо програму
     this.program = [];
+    // створюємо кроки
+    // for (let i = 0; i < this.listSteps.length; i++) {
+    //   const step = this.listSteps[i];
+
+    // }
     this.setStep("st", this.program, this.listSteps);
+
     this.program = this.program[0];
+    trace = 0;
+    if (trace) {
+      log("", ln, `this.program=`);
+      console.dir(this.program, { depth: 3 });
+    }
+    this.htmlProgram = this.getHtmlProgram();
   } // setProgram() {
+
+  getStep(prefix, item, result = []) {
+    let trace = 1,
+      ln = this.ln + "getStep()::";
+    if (Array.isArray(item)) {
+      let newArr = [];
+      for (let index = 0; index < item.length; index++) {
+        const element = this.getStep(prefix + "_" + index, item[index], newArr);
+        if (element) {
+          newArr.push(newArr);
+        }
+      } // for
+      result.push(newArr);
+    } else {
+      if (!item.id) {
+        return;
+      }
+      if (trace) {
+        log("i", ln, `prefix=${prefix}; item=`);
+        console.dir(item);
+      }
+      trace ? log("", ln, `item.id=`, item.id) : null;
+      result.push(item.getState());
+    }
+  }
+
+  getHtmlProgram() {
+    let trace = 1,
+      ln = this.ln + "getProgram()::";
+    let htmlProgram = [];
+    this.getStep("st", this.program, htmlProgram);
+    if (trace) {
+      log("i", ln, `htmlProgram=`);
+      console.dir(htmlProgram[0], { depth: 4 });
+    }
+    return htmlProgram[0];
+  }
 
   getFullHtml(req) {
     let trace = 1,
