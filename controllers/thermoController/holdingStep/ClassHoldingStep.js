@@ -61,9 +61,9 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
       ru: `Удержание ${tT}`,
     };
     this.header = {
-      ua: `= ${this.tT}`,
-      en: `= ${this.tT}`,
-      ru: `= ${this.tT}`,
+      ua: `= ${this.tT}°C`,
+      en: `= ${this.tT}°C`,
+      ru: `= ${this.tT}°C`,
     };
     // --------------------------------
     this.ln = `${this.id}(tT=${this.tT}); Y=${this.Y}::`;

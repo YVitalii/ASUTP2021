@@ -10,7 +10,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
    * температура зросла менше ніж 10*0,1=1*С - рахуємо що стабілізація виконана
    *
    * @param {Object} props
-   * @property {async Function} props.regs.wT=0 - *С; 0= вимкнено; закид першої хвилі перерегулювання
+   * @property {Number|String} props.regs.wT=0 - *С; 0= вимкнено; закид першої хвилі перерегулювання
    * @property {Object}         props.wave - параметри пошуку точки перегину першої хвилі температури
    * @property {Number|String}  props.wave.period=30 - сек, період між опитуванням поточної температури.
    * @property {Number|String}  props.wave.dT=0.1 - *С, рахується що настала вершина хвилі, коли середня похідна менше цього значення
@@ -49,6 +49,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
           `Для кроку швидкого нагрівання [${this.header.ua}] має бути вказано (wT < 0)!`
       );
     }
+    this.wT = parseInt(props.regs.wT);
 
     this.H = 0; // грітися максимально швидко
     this.Y = 0; //для очікування виходу на режим суміжних приладів
@@ -60,7 +61,6 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     //   log("w", ln, "beforeStart()::Completed");
     // };
     //
-    this.wT = parseInt(props.regs.wT);
 
     // понижуємо температуру поточного завдання
     this.tT = this.tT + this.wT;
@@ -71,16 +71,16 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     this.errTmax = -this.wT + props.regs.errTmax;
 
     // Назва кроку
-    let tT = `${this.tT} &deg;C`;
+    let tT = `${this.tT} °C`;
     this.comment = {
       ua: `Шв. нагр. до ${tT}`,
       en: `Quick heating to ${tT}`,
       ru: `Быстрое нагр. до ${tT}`,
     };
     this.header = {
-      ua: `=>${this.tT}`,
-      en: `=>${this.tT}`,
-      ru: `=>${this.tT}`,
+      ua: `=>${this.tT}°C`,
+      en: `=>${this.tT}°C`,
+      ru: `=>${this.tT}°C`,
     };
 
     // ----- параметри пошуку першої хвилі ----------

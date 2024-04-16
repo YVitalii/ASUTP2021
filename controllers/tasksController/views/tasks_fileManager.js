@@ -1,12 +1,11 @@
 //- парсимо отримані з сервера дані, та зберігаємо їх в fileManager
 //let fileManager= JSON.parse( '!{JSON.stringify(manager.fileManager.reg)}' );
 // передаємо контейнер в якому буде побудований менеджер файлів
+
 let props = {};
 props.container = document.getElementById("fileManagerContainer");
 // тут зберігаються всі елементи
 props.types = myElementsRender;
-
-//props.value = tasks.value;
 
 props.id = "fileManager";
 //- props.reg ={
@@ -156,23 +155,25 @@ props.buttons.reg.regs.btnDelete = {
 
 props.filesList = {
   container: document.getElementById("el_fileMan_listFiles"),
-  attributes: { size: 10 },
+  attributes: { size: 15 },
   afterChange: async () => {
     // функція обробки зміни поля filesList
     let trace = 1,
       ln = "fileList::afterChange::";
     try {
       let { err, data } = await fileManager.post("readFile");
-      tasks.renderList(data);
+      if (data) {
+        tasks.renderList(data);
+      }
     } catch (error) {
       console.error(ln + error.message);
     }
-  },
+  }, //afterChange
 
   reg: {
     prefix: props.id,
     id: "filesList",
-    value: props.value,
+    value: tasks.list[0].name, //список поточних задач вже завантажено з сервера беремо ім'я
     header: {
       ua: `Список програм`,
       en: `The list of program`,

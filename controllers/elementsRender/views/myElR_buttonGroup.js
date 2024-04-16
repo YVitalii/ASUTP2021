@@ -1,8 +1,11 @@
 // ------- myElR_buttonGroup.js -----------------------------------
 beforeTrace = trace;
 trace = 1;
-/** Створює та повертає елемент buttonGroupe
- *
+/** Створює та повертає елемент buttonGroup
+ * @prop {object} props.types - рендер myElementsRender
+ * @prop {object} props.reg.classes - класи, що потрібно застосувати до групи кнопок
+ * @prop {object} props.reg.attributes  - атрибути, що потрібно застосувати до групи кнопок
+ * @prop {object} props.reg.regs  - список дітей
  */
 myElementsRender["buttonGroup"] = class ClassButtonGroup extends (
   myElementsRender.ClassGeneralElement
@@ -20,6 +23,9 @@ myElementsRender["buttonGroup"] = class ClassButtonGroup extends (
     this.types = props.types
       ? props.types
       : console.error(this.ln + " types is not defined! ");
+    // -- милиця для регістрів ---------
+    // this.reg.regs = props.regs;
+    // this.regs = this.reg.regs;
     // створюємо группу кнопок
     let btnGroup = document.createElement("div");
     // налаштовуємо класи
@@ -36,6 +42,10 @@ myElementsRender["buttonGroup"] = class ClassButtonGroup extends (
     this.btnGroup = btnGroup;
     // створюємо кнопки
     this.children = {};
+    if (trace) {
+      console.log(ln + `Before parse children: this=`);
+      console.dir(this);
+    }
     for (let key in this.reg.regs) {
       if (this.reg.regs.hasOwnProperty(key)) {
         let trace = 1,

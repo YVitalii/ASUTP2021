@@ -4,10 +4,13 @@ const pug = require("pug");
 const resolvePath = require("path").resolve;
 const log = require("../../../tools/log.js");
 
-router.post("/getProgramList", function (req, res, next) {
+router.post("/getProgram", function (req, res, next) {
   res.json(req.entity.processManager.htmlProgram);
 });
-
+router.post("/start", function (req, res, next) {
+  let data = { ua: `Ok`, en: `Ok`, ru: `Ok` };
+  res.json(data);
+});
 /* main page  */
 router.get("/", function (req, res, next) {
   let user = req.user.username,

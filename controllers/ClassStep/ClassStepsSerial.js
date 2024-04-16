@@ -4,7 +4,7 @@ const dummy = require("../../tools/dummy.js").dummyPromise;
 
 class ClassSerialSteps extends ClassStepGeneral {
   constructor(props) {
-    props.ln = "ClassSerialSteps::";
+    props.ln = (props.ln ? props.ln : "") + "ClassSerialSteps::";
     super(props);
     this.tasks = props.tasks; //Array of async functions
     // current task
@@ -57,9 +57,15 @@ class ClassSerialSteps extends ClassStepGeneral {
   }
 
   getState() {
+    let trace = 1,
+      ln = this.ln + "getState()::";
     let res = super.getState();
     res.tasks = [];
     for (let i = 0; i < this.tasks.length; i++) {
+      if (trace) {
+        log("i", ln, `this.tasks[${i}]=`);
+        console.dir(this.tasks[i]);
+      }
       res.tasks.push(this.tasks[i].getState());
     }
 

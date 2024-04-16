@@ -95,44 +95,23 @@ module.exports = class ClassLoggerManager {
   async start(fileName = "") {
     let trace = 1;
     let ln = this.ln + `start(${fileName})::`;
-    // --- якщо це файл тимчасового логу---------------
-    if (fileName === this.tmpLogFileName) {
-      // перевіряємо розмір файлу
-      try {
-        // отримуємо його довжину
-        let { size } = await this.fileManager.getFileStats(
-          fileName + this._fileExtensions.logger
-        );
-        trace ? log("i", ln, `"${this.fileName}"; size=`, size) : null;
-        if (size > 10 * 1000) {
-          // обрізка на випадок якщо сервер не перезапускається
-          // довгий період
-          this.fileManager.truncateFileBeforeDate(
-            fileName + this._fileExtensions.logger
-          );
-          this.fileManager.truncateFileBeforeDate(
-            fileName + this._fileExtensions.pnt,
-            Date.now() - 7 * 24 * 60 * 60 * 1000 // визначні точки за останній тиждень
-          );
-        } //if (size > 50 * 1000)
-      } catch (error) {
-        log("e", ln + `File  not exist`);
-      }
-    }
+
     // ------------ імя файлу не вказано, генеруємо нове -------------
     if (fileName === "") {
-      // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024t10-11"
-      do {
-        let newFileN = new Date().toLocaleString();
-        log(`newFileN=`, newFileN);
-        newFileN = newFileN.replace(/\./g, "-");
-        newFileN = newFileN.replace(/\:/g, "-");
-        newFileN = newFileN.replace(", ", "t");
-        fileName = newFileN.slice(0, -3);
-        trace
-          ? log("i", ln, `New file name generated: fileName=`, fileName)
-          : null;
-      } while (this.fileManager.exist(fileName));
+      fileName = this.tmpFileName;
+      // Імя файлу потрібно давати в викликаючому модулі, якщо імя не вказано - то беремо tmpFileName
+      // застаріло // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024t10-11"
+      // do {
+      //   let newFileN = new Date().toLocaleString();
+      //   log(`newFileN=`, newFileN);
+      //   newFileN = newFileN.replace(/\./g, "-");
+      //   newFileN = newFileN.replace(/\:/g, "-");
+      //   newFileN = newFileN.replace(", ", "t");
+      //   fileName = newFileN.slice(0, -3);
+      //   trace
+      //     ? log("i", ln, `New file name generated: fileName=`, fileName)
+      //     : null;
+      // } while (this.fileManager.exist(fileName));
     } // if (fileName === "")
 
     ln = this.ln + `start(${fileName})::`;
@@ -154,6 +133,12 @@ module.exports = class ClassLoggerManager {
         firstLine
       );
     } //if (!this.fileManager.exist(this.fileName+this._fileExtensions["logger"]))
+
+    // запускаємо очищення тимчасового файлу
+    if (this.fileName === this.tmpLogFileName) {
+      this.truncateTmpFile();
+    }
+
     // змінюємо стан
     this.state = this._states.started;
     let msg = ` "${this.fileName + this._fileExtensions.logger}" `;
@@ -203,11 +188,39 @@ module.exports = class ClassLoggerManager {
       line
     );
     trace ? log("", ln, `Was appended line=`, line) : null;
+
     // плануємо наступний запуск
     setTimeout(() => {
       this.writeLine();
     }, this.period);
   }
+
+  /**
+   * Перевіряє тимчасові файли, залишає інформацію за останню добу
+   * Так як при перерві в роботі файл tmp буде маленький, а між останніми точками буде
+   * декілька діб, тому розмір не перевіряємо, а просто залишаємо інфо за останню добу
+   */
+  async truncateTmpFile() {
+    let fileName = this.fileName;
+    // --- якщо це файл тимчасового логу плануємо наступгий запуск через 1 годину---------------
+    if (fileName === this.tmpLogFileName) {
+      // перевіряємо розмір файлу
+      try {
+        this.fileManager.truncateFileBeforeDate(
+          fileName + this._fileExtensions.logger // залишаємо тільки точки за останній день
+        );
+        this.fileManager.truncateFileBeforeDate(
+          fileName + this._fileExtensions.pnt,
+          Date.now() - 1 * 24 * 60 * 60 * 1000 // визначні точки за останній день
+        );
+      } catch (error) {
+        log("e", ln + `File  not exist`);
+      }
+      setTimeout(() => {
+        this.truncateTmpFile();
+      }, 1 * 60 * 60 * 1000);
+    }
+  } //  async truncateTmpFile()
 
   /**
    * Додає визначну точку процесу в файл етапів

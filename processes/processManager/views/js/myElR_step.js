@@ -26,6 +26,7 @@ myElementsRender["step"] = class ClassElementStep extends (
       "text-light"
     );
     this.div.setAttribute("title", this.reg.comment[lang]);
+    this.div.setAttribute("id", this.id);
 
     // ----- рядок заголовка
     let headerRow = document.createElement("div");
@@ -68,7 +69,7 @@ myElementsRender["step"] = class ClassElementStep extends (
       const element = this.reg.tasks[i];
 
       let subStepCol = document.createElement("div");
-      subStepCol.classList.add("col", "text-center");
+      subStepCol.classList.add("col", "text-center", "text-nowrap");
       subStepCol.setAttribute("id", this.id + "_" + element.id);
       subStepCol.setAttribute("title", element.comment[lang]);
       subStepCol.innerHTML = element.header[lang];

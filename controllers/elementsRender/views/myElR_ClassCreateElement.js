@@ -80,10 +80,6 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
     trace ? console.log(ln + "this.field.value=" + this.field.value) : null;
   }
 
-  // async _afterChange(parent) {
-  //   await this.afterChange(parent);
-  // }
-
   setValue(val) {
     let trace = 1,
       ln = this.ln + `setValue(${val})::`;
@@ -104,7 +100,7 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
       : null;
     this.field.value = val;
     this.reg.value = val;
-    this.afterChange(this);
+    //this.afterChange(this);
   }
   // /** встановлює атрибути елемента Field */
   // setProperties(el = "field", obj = {}) {

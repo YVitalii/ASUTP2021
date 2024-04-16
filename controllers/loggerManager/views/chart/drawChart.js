@@ -516,7 +516,7 @@ class Chart {
    * @return {null}  не возвращает ничего,
    */
   getData() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getData()::";
     trace ? console.log(ln, "----- Started -----") : null;
     //trace ? console.log(ln,):null;
@@ -1099,7 +1099,7 @@ class Chart {
    * Запуск автоматичного опитування та побудови поточних значень
    */
   async start() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "start()::";
     let url = this.config.regsUrl;
     let response = await fetch(url, {

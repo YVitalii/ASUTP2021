@@ -1,1 +1,0 @@
-[{"id":"description","name":"prg02","note":"Приклад програми №2"},{"id":"taskThermal","tT":"11","errTmin":-15,"errTmax":15,"H":0,"Y":0,"regMode":"pos","o":-2},{"id":"taskThermal","tT":"500","errTmin":-15,"errTmax":15,"H":0,"Y":0,"regMode":"pid","wT":"-5","o":0,"ti":0,"td":0}]

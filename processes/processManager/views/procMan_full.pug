@@ -3,16 +3,18 @@ pre #{JSON.stringify(processMan.htmlProgram)}
 -var buttonsContainer = "process_buttonsContainer"
 -var programContainer = "process_programContainer"
 
-div.row
-  div.column 
-hr
-div.row
-  div.column(id=buttonsContainer)     
-div.row
-  div.column(id=programContainer)     
+
+
+div.row(id=buttonsContainer) 
+  //- div.col  
+hr  
+div.row.h-100
+  div.col(id=programContainer)     
 
 script.
   var  processMan = {};
+
+  processMan.myElementsRender = myElementsRender;
   processMan.homeUrl = `#{processMan.homeUrl}`;
   processMan.editTaskUrl = `#{processMan.tasksManager.homeURL}`;
   processMan.buttons = {};
@@ -21,5 +23,6 @@ script.
   processMan.program.container = document.getElementById(!{`"${programContainer}"`});
 
 script
+  include ./js/processMan_Buttons.js
   include ./js/myElR_step.js
   include ./js/processMan_Main.js

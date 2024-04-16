@@ -1,0 +1,1 @@
+[{"id":"description","name":"prg04","note":"Опис програми №4"},{"id":"taskThermal","tT":"45","wT":"-15","errTmin":-5,"errTmax":5,"H":0,"errH":5,"Y":5,"regMode":"pid","o":"5","ti":"5","td":"5"},{"id":"taskThermal","tT":"65","wT":"-25","errTmin":"-10","errTmax":"10","H":0,"errH":20,"Y":20,"regMode":"pid","o":"25","ti":"25","td":"25"}]

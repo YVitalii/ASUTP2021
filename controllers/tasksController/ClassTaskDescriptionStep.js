@@ -23,7 +23,7 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
           id: "name",
           type: "text",
           ln: "tasks.description.name::",
-          value: "empty",
+          value: props.name ? props.name : "empty",
           header: {
             ua: `Назва програми`,
             en: `Program name`,
@@ -40,7 +40,7 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
           id: "note",
           type: "textarea",
           ln: "tasks.description.note::",
-          value: "empty",
+          value: props.note ? props.note : "empty",
           header: {
             ua: "Примітки",
             en: "Notes",
@@ -56,7 +56,8 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
     };
     super(props);
   } //constructor
-  getState(regs = {}) {
+
+  getState() {
     let trace = 1,
       ln = this.ln + "getState()::";
     if (trace) {
@@ -64,14 +65,22 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
       console.dir(this);
     }
     let res = {
+      id: this.id,
       header: this.header,
-      comment: this.comment,
-      regs: this.regs,
+      comment: {
+        ua: `${this.regs.note.value}`,
+        en: `${this.regs.note.value}`,
+        ru: `${this.regs.note.value}`,
+      },
+      value: this.regs.name.value,
       editable: false,
     };
     return res;
   }
-  getStep() {
+
+  getStep(regs) {
+    this.regs.name.value = regs.name;
+    this.regs.note.value = regs.note;
     // let res = this.getState();
     // res.type = "description";
     return this;

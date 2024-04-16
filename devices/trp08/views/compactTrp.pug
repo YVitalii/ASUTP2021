@@ -44,7 +44,7 @@ script.
 
 
   el.getRegs = async function () {
-    let trace=1, ln=`${this.prefix}::getRegs()::`+(new Date()).toLocaleTimeString()+":: ";
+    let trace=0, ln=`${this.prefix}::getRegs()::`+(new Date()).toLocaleTimeString()+":: ";
     //- trace ? console.log(ln+"Started!") : null;
     // запит поточних значень
     let response = await fetch( this.homeUrl+"/getRegs",

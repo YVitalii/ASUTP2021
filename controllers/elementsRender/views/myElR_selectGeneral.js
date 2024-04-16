@@ -62,6 +62,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     if (!this.hasChanged()) {
       return;
     }
+    debugger;
     // this.children.remove();
     // this.render(this.regs[this.getFieldValue()]);
     this.setValue(this.getOption(this.getFieldValue()));
@@ -179,19 +180,19 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     this.field.innerHTML = keys;
     // -- даємо час щоби створити елементи
 
-    setTimeout(() => {
-      // оновлюємо поточне значення
-      let trace = 1,
-        ln = this.ln + "setTimeOut()::";
+    // setTimeout(() => {
+    //   // оновлюємо поточне значення
+    //   let trace = 1,
+    //     ln = this.ln + "setTimeOut()::";
 
-      let val = this.getFieldValue();
-      trace
-        ? console.log(
-            ln + `----- Started! this.id=${this.id}; field.value = ${val}`
-          )
-        : null;
-      this.setValue(val);
-    }, 500);
+    //   let val = this.getFieldValue();
+    //   trace
+    //     ? console.log(
+    //         ln + `----- Started! this.id=${this.id}; field.value = ${val}`
+    //       )
+    //     : null;
+    //   this.setValue(val);
+    // }, 500);
   }
 };
 

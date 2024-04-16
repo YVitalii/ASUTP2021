@@ -3,13 +3,13 @@ const pug = require("pug");
 const path = require("path");
 const log = require("../../tools/log");
 const clone = require("clone");
+const ClassStepsSerial = require("../../controllers/ClassStep/ClassStepsSerial");
 
 class ClassProcessManager {
   constructor(props = {}) {
     this.homeUrl = props.homeUrl ? props.homeUrl + "processManager/" : "/";
     this.homeDir = props.homeDir ? props.homeDir + "processManager\\" : "/";
     // this.moduleDir = __dirname;
-
     this.id = "processManager";
     this.header = {
       ua: `Менеджер процесу`,
@@ -27,22 +27,19 @@ class ClassProcessManager {
       throw new Error(this.ln + "TasksManager must be defined!! ");
     }
     this.tasksManager = props.tasksManager;
-    // поточний стан процессу
-    this.state = {};
-    // індикатор виконання завдань
-    this.state.isRunning = false;
-    // список поточних кроків
-    this.state.activeSteps = {};
+
+    // поточна програма
+    this.program = {};
     // программа
-    this.program = [];
+    //this.program = [];
     // програма з даними для браузера
-    this.htmlProgram;
+    this.htmlProgram = {};
     // парсимо поточну програму 3 сек - щоб встиг завантажитися tasksManager
     setTimeout(() => this.setProgram(), 3000);
   }
 
   /**
-   *
+   * парсить крок
    */
   setStep(prefix, arr, list) {
     let trace = 1,
@@ -69,19 +66,7 @@ class ClassProcessManager {
         this.setStep(newPrefix, newArr, item);
       }
       arr.push(newArr);
-    } //if (Array.isArray(list))
-    // if (trace) {
-    //   log("i", ln, `this.tasksManager.getType(list.id)=`);
-    //   console.dir(this.tasksManager.getType(list.id));
-    // }
-    // let constructor = this.tasksManager.getType(list.id).getStep;
-    // // if (trace) {
-    // //   log("i", ln, `constructor=`);
-    // //   console.dir(constructor);
-    // // }
-    // if (!constructor) {
-    //   throw new Error(`Type "${list.id}" not defined!!`);
-    // }
+    }
     if (!list.id) {
       return;
     }
@@ -100,37 +85,55 @@ class ClassProcessManager {
     // --беремо готову прогаму з tasksManager--
     // готову програму брати неможна, так як іншмй користувач може її змінити,
     // а нам потрібно зафіксувати момент "Пуск" і виконувати останню програму
-    //  тому парсимо кроки тут.
+    //  тому робимо копію списку завдань та парсимо кроки тут.
     //  TODO Перенести в процесМенеджер список доступних кроків з tasksManager
     // в tasksManager брати список звідси
     let trace = 1,
       ln = this.ln + " setProgram()::";
     //копіюємо поточний список завдань
     this.listSteps = clone(this.tasksManager.list);
+
     if (trace) {
       log("i", ln, `this.listSteps=`);
       console.dir(this.listSteps);
     }
     // очищуємо програму
-    this.program = [];
+    let program = [];
     // створюємо кроки
-    // for (let i = 0; i < this.listSteps.length; i++) {
-    //   const step = this.listSteps[i];
+    // запускаємо рекурсивну функцію-генератор кроків
+    this.setStep("st", program, this.listSteps);
+    // оскільки функція видає масив масивів, беремо перший елемент
+    // це милиця але поки немає часу розбиратися
+    this.program = new ClassStepsSerial({
+      id: this.id + ".program::",
+      header: this.listSteps[0].name,
+      comment: {
+        ua: `Активна програма`,
+        en: `Active program`,
+        ru: `Активная программа`,
+      },
+      ln: this.ln,
+      tasks: program[0],
+    });
 
-    // }
-    this.setStep("st", this.program, this.listSteps);
-
-    this.program = this.program[0];
-    trace = 0;
+    trace = 1;
     if (trace) {
       log("", ln, `this.program=`);
       console.dir(this.program, { depth: 3 });
     }
+    // парсимо програму для HTML
     this.htmlProgram = this.getHtmlProgram();
   } // setProgram() {
 
+  /**
+   *
+   * @param {String} prefix - префікс кроку
+   * @param {Object | Array} item  - під-крок для парсингу
+   * @param {Array} result - результат парсингу
+   * @returns
+   */
   getStep(prefix, item, result = []) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getStep()::";
     if (Array.isArray(item)) {
       let newArr = [];
@@ -154,16 +157,38 @@ class ClassProcessManager {
     }
   }
 
+  getStates() {
+    let trace = 0,
+      ln = this.ln + "getStates()::";
+    let states = this.program.getStates();
+    if (trace) {
+      log("i", ln, `states=`);
+      console.dir(states);
+    }
+    return states;
+  }
+
+  /**
+   * Проходить по всім крокам та збирає інфо про їх стан
+   * @returns повертає в браузер об'єкт зі станами кроків програми
+   */
   getHtmlProgram() {
     let trace = 1,
-      ln = this.ln + "getProgram()::";
-    let htmlProgram = [];
-    this.getStep("st", this.program, htmlProgram);
+      ln = this.ln + "getHtmlProgram()::";
+    let htmlProgram = this.program.getState(); //[];
+
+    // this.getStep("st", this.program, htmlProgram);
+    // if (trace) {
+    //   log("i", ln, `htmlProgram=`);
+    //   console.dir(htmlProgram[0], { depth: 4 });
+    // }
+    // htmlProgram = htmlProgram[0];
+    // htmlProgram[0]["_id"] = this.state.isRunning;
     if (trace) {
       log("i", ln, `htmlProgram=`);
-      console.dir(htmlProgram[0], { depth: 4 });
+      console.dir(htmlProgram, { depth: 3 });
     }
-    return htmlProgram[0];
+    return htmlProgram;
   }
 
   getFullHtml(req) {

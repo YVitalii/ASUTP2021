@@ -117,6 +117,20 @@ class ClassTaskThermal extends ClassTaskGeneral {
     });
 
     // максимальне відхилення температури вниз
+    this.regs.wT = new ClassReg_number({
+      id: "wT",
+      header: { ua: "wT,°C", en: "wT,°C", ru: "wT,°C" },
+      value: props.wT ? props.wT : -0, //від'ємні значення
+      comment: {
+        ua: `Закінчення швидrого нагрівання (0=вимкн)`,
+        en: `Limit for quick heating (0=disable)`,
+        ru: `Окончание быстрого нагрева (0=выкл)`,
+      },
+      min: -100,
+      max: 0,
+    });
+
+    // максимальне відхилення температури вниз
     this.regs.errTmin = new ClassReg_number({
       id: "errTmin",
       header: { ua: "errTmin,°C", en: "errTmin,°C", ru: "errTmin,°C" },
@@ -244,7 +258,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
    * @returns
    */
   getStep(regs) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getStep()::";
 
     if (typeof regs != "object") {
@@ -311,7 +325,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
       res.push(holdingSteps);
     }
     let header = `tT=${regs.tT}; H=${regs.H}; Y=${regs.Y}`;
-    let comment = `errTmin=${regs.errTmin}; errTmax=${regs.errTmax}; errH=${regs.errH}; regMode=${regs.regMode}; o=${regs.o}; ti=${regs.ti}; td=${regs.td};`;
+    let comment = `wT=${regs.wT}; errTmin=${regs.errTmin}; errTmax=${regs.errTmax}; errH=${regs.errH}; regMode=${regs.regMode}; o=${regs.o}; ti=${regs.ti}; td=${regs.td};`;
     res = new ClassStepsSerial({
       id: regs.id,
       header: {

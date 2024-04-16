@@ -74,16 +74,16 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     //  TODO Зробити контроль поточної цільової температури при Н != 0 Поки: милиця
 
     // Назва кроку
-    let tT = `${this.goal_tT} &deg;C`;
+    let tT = `${this.goal_tT}°C`;
     this.comment = {
       ua: `Нагрівання до ${tT}`,
       en: `Heating to ${tT}`,
       ru: `Нагрев до ${tT}`,
     };
     this.header = {
-      ua: `->${this.tT}`,
-      en: `->${this.tT}`,
-      ru: `->${this.tT}`,
+      ua: `->${this.tT}°C`,
+      en: `->${this.tT}°C`,
+      ru: `->${this.tT}°C`,
     };
     // --------------------------------
     this.ln = `${this.id}(goal tT=${this.tT};H=${this.H}min)::`;

@@ -35,7 +35,7 @@ myElementsRender["button"] = class ClassButton extends (
     // console.warn(ln + `props.action=${props.action}; this.tag=${this.tag}; `);
     // створюємо елемент ДОМ
     let but = document.createElement(this.tag);
-    console.warn(`this.parent.id=${this.parent.id}`);
+    //console.warn(`this.parent.id=${this.parent.id}`);
     but.id = (this.parent.id ? this.parent.id + "_" : "") + this.id;
     // ? this.id
     // : console.error(this.ln + "Id of button not defined!");

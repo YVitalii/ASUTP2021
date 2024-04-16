@@ -163,7 +163,7 @@ class ClassFileManager {
   }
 
   async writeFile(fName, data) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `writeFile(${fName})::`;
     trace ? log("i", ln, `data=`, data) : null;
     if (fName == undefined) {
