@@ -92,48 +92,7 @@ if (emulate) {
 // log("i", `entity.devices=`);
 // console.dir(entity.devicesManager);
 
-// задача термообробка
-let taskThermal = new ClassTaskThermal({
-  maxT: entity.maxT,
-  devices: [entity.devicesManager.getDevice(dev1.id)],
-  firstWave: {
-    period: 10, //період між запитами
-    //points:10, //кількість точок вимірювання
-    // dT:0.1, // середня похідна за 10 точок
-  },
-});
-
-// менеджер завдань
-entity.tasksManager = new TasksManager({
-  ln: entity.id + "::TasksManager::",
-  homeDir: entity.homeDir,
-  homeURL: entity.homeUrl,
-});
-
-// реєструємо задачу термообробки в менеджері завдань
-entity.tasksManager.addType(taskThermal);
-
-entity.processManager = new ClassProcessManager({
-  homeDir: entity.homeDir,
-  homeUrl: entity.homeUrl,
-  tasksManager: entity.tasksManager,
-  ln: entity.id + "::ProcessManager::",
-});
-
-// entity.processController = new ProgramController({
-//   tasksManager: entity.tasksManager,
-// });
-
-//  завантажуємо контролери
-// entity.controllers = require("./controllers/controllers.js");
-
-// ??? сутність де зберігається програма
-// entity.program = new require("./program/program/ClassProgram.js");
-
-// // тут зберігається програма
-// entity.processes = {};
-// // entity.processes.thermProcess = new ThermProcess();
-
+// ================  loggerManager ====================
 entity.loggerManager = new ClassLoggerManager({
   ln: entity.id + "::loggerManager()::",
   baseUrl: entity.homeUrl,
@@ -181,6 +140,49 @@ entity.loggerManager = new ClassLoggerManager({
     },
   ],
 }); //entity.loggerManager = new LoggerManager
+
+// =====================  задача термообробка
+let taskThermal = new ClassTaskThermal({
+  maxT: entity.maxT,
+  devices: [entity.devicesManager.getDevice(dev1.id)],
+  firstWave: {
+    period: 10, //період між запитами
+    //points:10, //кількість точок вимірювання
+    // dT:0.1, // середня похідна за 10 точок
+  },
+});
+
+// менеджер завдань
+entity.tasksManager = new TasksManager({
+  ln: entity.id + "::TasksManager::",
+  homeDir: entity.homeDir,
+  homeURL: entity.homeUrl,
+});
+
+// реєструємо задачу термообробки в менеджері завдань
+entity.tasksManager.addType(taskThermal);
+
+entity.processManager = new ClassProcessManager({
+  homeDir: entity.homeDir,
+  homeUrl: entity.homeUrl,
+  tasksManager: entity.tasksManager,
+  loggerManager: entity.loggerManager,
+  ln: entity.id + "::ProcessManager::",
+});
+
+// entity.processController = new ProgramController({
+//   tasksManager: entity.tasksManager,
+// });
+
+//  завантажуємо контролери
+// entity.controllers = require("./controllers/controllers.js");
+
+// ??? сутність де зберігається програма
+// entity.program = new require("./program/program/ClassProgram.js");
+
+// // тут зберігається програма
+// entity.processes = {};
+// // entity.processes.thermProcess = new ThermProcess();
 
 // log("i", `entity.loggerManager=`);
 // console.dir(entity.loggerManager);

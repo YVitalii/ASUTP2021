@@ -67,7 +67,8 @@ myElementsRender["timer"] = class ClassElementTimer extends (
     return val;
   }
 
-  minutesToString(minutes) {
+  minutesToString(minutes = 0) {
+    minutes = isNaN(parseInt(minutes)) ? 0 : parseInt(minutes);
     let time = new Date(minutes * 60 * 1000).toISOString();
     //console.log(time);
     return time.slice(11, -8);

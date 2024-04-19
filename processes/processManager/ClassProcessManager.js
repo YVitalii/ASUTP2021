@@ -27,13 +27,18 @@ class ClassProcessManager {
       throw new Error(this.ln + "TasksManager must be defined!! ");
     }
     this.tasksManager = props.tasksManager;
-
+    if (!props.loggerManager) {
+      throw new Error(this.ln + "loggerManager must be defined!! ");
+    }
+    this.loggerManager = props.loggerManager;
     // поточна програма
     this.program = {};
     // программа
     //this.program = [];
     // програма з даними для браузера
     this.htmlProgram = {};
+    this.htmlProgram.states = []; // програма для браузера
+    this.htmlProgram.lastUpdate = 0; // відмітка часу останнього оновлення програми для браузера
     // парсимо поточну програму 3 сек - щоб встиг завантажитися tasksManager
     setTimeout(() => this.setProgram(), 3000);
   }
@@ -78,7 +83,6 @@ class ClassProcessManager {
     //   console.dir(step);
     // }
     arr.push(step);
-    //return arr;
   } //setStep()
 
   setProgram() {
@@ -90,6 +94,16 @@ class ClassProcessManager {
     // в tasksManager брати список звідси
     let trace = 1,
       ln = this.ln + " setProgram()::";
+    if (this.program.state && this.program.state._id == "going") {
+      // -------- програма на виконанні, неможливо її змінити --------
+      let err = {
+        ua: `Не можна завантажити нову програму, в режимі виконання поточної`,
+        en: `Can't set new tasks while the program is running`,
+        ru: `Нельзя загрузить новую програму во время выполнения текущей `,
+      };
+      return { err, data: null };
+    }
+
     //копіюємо поточний список завдань
     this.listSteps = clone(this.tasksManager.list);
 
@@ -106,7 +120,11 @@ class ClassProcessManager {
     // це милиця але поки немає часу розбиратися
     this.program = new ClassStepsSerial({
       id: this.id + ".program::",
-      header: this.listSteps[0].name,
+      header: {
+        ua: `${this.listSteps[0].name}`,
+        en: `${this.listSteps[0].name}`,
+        ru: `${this.listSteps[0].name}`,
+      },
       comment: {
         ua: `Активна програма`,
         en: `Active program`,
@@ -122,7 +140,13 @@ class ClassProcessManager {
       console.dir(this.program, { depth: 3 });
     }
     // парсимо програму для HTML
-    this.htmlProgram = this.getHtmlProgram();
+    this.getHtmlProgram();
+    let data = {
+      ua: `Програму "${this.listSteps[0].name}" успішно завантажено.`,
+      en: `Program "${this.listSteps[0].name}" was set successfully.`,
+      ru: `Программа "${this.listSteps[0].name}" успешно загружена.`,
+    };
+    return { err: null, data };
   } // setProgram() {
 
   /**
@@ -173,31 +197,30 @@ class ClassProcessManager {
    * @returns повертає в браузер об'єкт зі станами кроків програми
    */
   getHtmlProgram() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getHtmlProgram()::";
-    let htmlProgram = this.program.getState(); //[];
-
-    // this.getStep("st", this.program, htmlProgram);
-    // if (trace) {
-    //   log("i", ln, `htmlProgram=`);
-    //   console.dir(htmlProgram[0], { depth: 4 });
-    // }
-    // htmlProgram = htmlProgram[0];
-    // htmlProgram[0]["_id"] = this.state.isRunning;
+    // перевіряємо час останнього оновлення програми
+    let now = new Date().getTime();
+    if (now - this.htmlProgram.lastUpdate > 10 * 1000) {
+      // оновлювалась більше 10 сек назад, оновлюємо
+      this.htmlProgram.states = this.program.getState(); //;
+      this.htmlProgram.states.logFileName = this.loggerManager.fileName;
+      this.htmlProgram.lastUpdate = new Date().getTime();
+    }
     if (trace) {
       log("i", ln, `htmlProgram=`);
       console.dir(htmlProgram, { depth: 3 });
     }
-    return htmlProgram;
+    return this.htmlProgram.states;
   }
-
+  /**
+   * Рендерить pug шаблони та ініціює модуль
+   * @param {Object} req - обєкт запиту
+   * @returns
+   */
   getFullHtml(req) {
     let trace = 1,
       ln = this.ln + "getFullHtml()::";
-    // if (trace) {
-    //   log("i", ln, `Started with props=`);
-    //   console.dir(props);
-    // }
 
     let lang = req.user.lang ? req.user.lang : "ua";
     let template = path.resolve(__dirname + "/views/procMan_full.pug");
@@ -206,29 +229,66 @@ class ClassProcessManager {
     return html;
   }
 
-  async startStep(step) {
-    if (Array.isArray(step)) {
-      for (let i = 0; i < step.length; i++) {
-        const el = step[i];
-        await this.startStep(el);
-      }
-    }
-    if (typeof step != "object" || typeof step.start != "function") {
-      return;
-    }
-    this.state.activeTasks[step.id] = step;
-    await step.this.start();
-    this.state.activeTasks[step.id] = undefined;
+  // async startStep(step) {
+  //   if (Array.isArray(step)) {
+  //     for (let i = 0; i < step.length; i++) {
+  //       const el = step[i];
+  //       await this.startStep(el);
+  //     }
+  //   }
+  //   if (typeof step != "object" || typeof step.start != "function") {
+  //     return;
+  //   }
+  //   this.state.activeTasks[step.id] = step;
+  //   await step.this.start();
+  //   this.state.activeTasks[step.id] = undefined;
 
-    return;
-  }
+  //   return;
+  // }
 
-  start(stepN = 1) {
+  async start(stepN = 1) {
+    let trace = 1,
+      ln = this.ln + `Start(${stepN})::`;
     stepN = parseInt(stepN);
     if (isNaN(stepN)) {
-      throw new Error("Invalid step number");
+      throw new Error("Invalid step number: " + stepN);
     }
-    this.startStep(this.program[step]);
+    if (this.program.state._id == "going") {
+      let err = {
+        ua: `Програма вже "${this.program.header.ua}" виконується!`,
+        en: `Program is already "${this.program.header.en}" running!`,
+        ru: `Програма уже "${this.program.header.ru}" запущена!`,
+      };
+      log("e", ln + err.ua);
+      return { err, data: null };
+    }
+    this.program.start(stepN);
+    // Імя файлу потрібно давати в викликаючому модулі, якщо імя не вказано - то беремо tmpFileName
+    // застаріло // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024t10-11"
+    let fileName = "";
+    do {
+      let newFileN = new Date().toLocaleString();
+      //log(`newFileN=`, newFileN);
+      newFileN = newFileN.replace(/\./g, "-");
+      newFileN = newFileN.replace(/\:/g, "-");
+      newFileN = newFileN.replace(", ", "t");
+      fileName = newFileN.slice(0, -3);
+      trace
+        ? log("i", ln, `New log file name generated: fileName=`, fileName)
+        : null;
+    } while (this.loggerManager.fileManager.exist(fileName));
+
+    await this.loggerManager.start(fileName);
+    let data = {
+      ua: `Програма "${this.program.header.ua}" почала виконання!`,
+      en: `Program is "${this.program.header.en}" started!`,
+      ru: `Програма "${this.program.header.ru}" запущена!`,
+    };
+    return { err: null, data };
+  }
+
+  stop() {
+    this.program.stop();
     // for (let i = stepN; i < this.program.length; i++) {
     //   const element = this.program[i];
     // }

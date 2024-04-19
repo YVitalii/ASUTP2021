@@ -91,15 +91,15 @@ props.buttons.reg.regs.btnAccept = {
     }
     try {
       // запит на сервер
-      let { err, data } = await acceptFile("acceptFile", {
+      let res = await acceptFile("acceptFile", {
         fileName,
       });
-      if (err) {
-        throw new Error(error[lang]);
-      }
       if (trace) {
-        console.log(ln + `data=`);
-        console.dir(data);
+        console.log(ln + `res=`);
+        console.dir(res);
+      }
+      if (res.err) {
+        throw new Error(res.err[lang]);
       }
       fileManager.currPrg.setValue(fileName);
     } catch (error) {
@@ -245,8 +245,8 @@ async function acceptFile(path, addData = {}) {
       console.dir(result);
     }
     if (result.err != null) {
-      console.error(ln + "Error" + err[lang]);
-      throw new Error(ln + err[lang]);
+      console.error(ln + "Error" + result.err[lang]);
+      throw new Error(result.err[lang]);
     }
     return result;
   } else {

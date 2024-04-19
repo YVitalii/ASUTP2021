@@ -98,20 +98,7 @@ module.exports = class ClassLoggerManager {
 
     // ------------ імя файлу не вказано, генеруємо нове -------------
     if (fileName === "") {
-      fileName = this.tmpFileName;
-      // Імя файлу потрібно давати в викликаючому модулі, якщо імя не вказано - то беремо tmpFileName
-      // застаріло // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024t10-11"
-      // do {
-      //   let newFileN = new Date().toLocaleString();
-      //   log(`newFileN=`, newFileN);
-      //   newFileN = newFileN.replace(/\./g, "-");
-      //   newFileN = newFileN.replace(/\:/g, "-");
-      //   newFileN = newFileN.replace(", ", "t");
-      //   fileName = newFileN.slice(0, -3);
-      //   trace
-      //     ? log("i", ln, `New file name generated: fileName=`, fileName)
-      //     : null;
-      // } while (this.fileManager.exist(fileName));
+      fileName = this.tmpLogFileName;
     } // if (fileName === "")
 
     ln = this.ln + `start(${fileName})::`;
@@ -204,14 +191,16 @@ module.exports = class ClassLoggerManager {
     let fileName = this.fileName;
     // --- якщо це файл тимчасового логу плануємо наступгий запуск через 1 годину---------------
     if (fileName === this.tmpLogFileName) {
+      let trimTo = Date.now() - 4 * 60 * 60 * 1000; // останні 4 години
       // перевіряємо розмір файлу
       try {
         this.fileManager.truncateFileBeforeDate(
-          fileName + this._fileExtensions.logger // залишаємо тільки точки за останній день
+          fileName + this._fileExtensions.logger,
+          trimTo
         );
         this.fileManager.truncateFileBeforeDate(
-          fileName + this._fileExtensions.pnt,
-          Date.now() - 1 * 24 * 60 * 60 * 1000 // визначні точки за останній день
+          fileName + this._fileExtensions.points,
+          trimTo
         );
       } catch (error) {
         log("e", ln + `File  not exist`);

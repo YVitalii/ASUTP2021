@@ -40,13 +40,9 @@ router.post("/acceptFile", async function (req, res, next) {
   trace ? console.log("w", ln, `fileName=`, fileName) : null;
   try {
     await req.tasksManager.setCurrentValue(fileName);
+    let answer = req.entity.processManager.setProgram();
     log("w", `File "${fileName}" was set as current! `);
-    let data = {
-      ua: `Программа успішно завантажена!`,
-      en: `Program succesfully accepted!`,
-      ru: `Программа успешно загружена!`,
-    };
-    res.send({ err: null, data: JSON.stringify(data) });
+    res.send(answer);
     return;
   } catch (error) {
     let msg = error.message;

@@ -58,7 +58,7 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
   } //constructor
 
   getState() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getState()::";
     if (trace) {
       this.log("i", ln, `this=`);

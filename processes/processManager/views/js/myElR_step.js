@@ -5,9 +5,7 @@ trace = 1;
  * Створює та повертає елемент відображення задачі
  *
  */
-myElementsRender["step"] = class ClassElementStep extends (
-  myElementsRender.ClassGeneralElement
-) {
+class ClassElementStep extends myElementsRender.ClassGeneralElement {
   constructor(props = {}) {
     super(props);
 
@@ -16,8 +14,8 @@ myElementsRender["step"] = class ClassElementStep extends (
       ln = this.ln + "Constructor()::";
 
     // --- загальний контейнер для кроку
-    this.div = document.createElement("div");
-    this.div.classList.add(
+    this.el = document.createElement("div");
+    this.el.classList.add(
       "col",
       "border",
       "border-2",
@@ -25,8 +23,8 @@ myElementsRender["step"] = class ClassElementStep extends (
       "bg-secondary",
       "text-light"
     );
-    this.div.setAttribute("title", this.reg.comment[lang]);
-    this.div.setAttribute("id", this.id);
+    this.el.setAttribute("title", this.reg.comment[lang]);
+    this.el.setAttribute("id", this.id);
 
     // ----- рядок заголовка
     let headerRow = document.createElement("div");
@@ -49,7 +47,7 @@ myElementsRender["step"] = class ClassElementStep extends (
     header.innerHTML = this.reg.header[lang];
     headerRow.appendChild(number);
     headerRow.appendChild(header);
-    this.div.appendChild(headerRow);
+    this.el.appendChild(headerRow);
 
     // // ----- рядок поточного стану -
     //  2024-04-12 не використовуємо щоб зберегти місце, і так видно стан по кольору
@@ -59,7 +57,7 @@ myElementsRender["step"] = class ClassElementStep extends (
     // note.classList.add("col");
     // note.innerHTML = this.reg.note[lang];
     // stateRow.appendChild(note);
-    // this.div.appendChild(stateRow);
+    // this.el.appendChild(stateRow);
 
     // ----- під-кроки
     let subStepRow = document.createElement("div");
@@ -67,48 +65,69 @@ myElementsRender["step"] = class ClassElementStep extends (
 
     for (let i = 0; i < this.reg.tasks.length; i++) {
       const element = this.reg.tasks[i];
-
+      //debugger;
       let subStepCol = document.createElement("div");
+
       subStepCol.classList.add("col", "text-center", "text-nowrap");
       subStepCol.setAttribute("id", this.id + "_" + element.id);
       subStepCol.setAttribute("title", element.comment[lang]);
+      ClassElementStep.setState(subStepCol, element._id);
       subStepCol.innerHTML = element.header[lang];
-      //let subStep = document.createElement("div");
-      //let note = document.createElement("small");
-      //subStep.innerHTML = element.header[lang];
-      //subStep.appendChild(note);
-      //subStepCol.appendChild(subStep);
+      element.el = subStepCol;
       subStepRow.appendChild(subStepCol);
     }
-    this.div.appendChild(subStepRow);
+    this.el.appendChild(subStepRow);
 
-    this.container.appendChild(this.div);
+    this.container.appendChild(this.el);
     if (trace) {
       console.log(ln + "this=");
       console.dir(this);
     }
-  }
-  onchange(event) {
-    let trace = 0,
-      ln = this.ln + "onchange()::";
-    super.onchange(event);
-    let val = this.getFieldValue();
-    this.setValue(val);
-    //this.field.value = this.value;
-  } // onchange()
+  } // constructor
 
-  setValue(val) {
-    super.setValue(val);
-  }
-}; // class
+  // onchange(event) {
+  //   let trace = 0,
+  //     ln = this.ln + "onchange()::";
+  //   super.onchange(event);
+  //   // let val = this.getFieldValue();
+  //   // this.setValue(val);
+  //   //this.field.value = this.value;
+  // } // onchange()
 
-myElementsRender["step"].stateClasses = {
+  // setValue(val) {
+  //   super.setValue(val);
+  // }
+  // setState (newState){
+  //   let states = myElementsRender["step"].stateClasses;
+  //   let beforeState = el.getAttribute("data-state");
+  // if (!states[newState]) {
+  //   console.error(`Undefined state: "${newState}"`);
+  //   return;
+  // }
+  // if (beforeState == newState) {
+  //   return;
+  // }
+  // if (beforeState) {
+  //   for (let i = 0; i < states[beforeState].length; i++) {
+  //     el.classList.remove(states[beforeState][i]);
+  //   }
+  // }
+  // for (let i = 0; i < states[newState].length; i++) {
+  //   el.classList.add(states[newState][i]);
+  // }
+  // el.setAttribute("data-state", newState);
+  // }
+} // class
+
+ClassElementStep.stateClasses = {
   waiting: ["bg-secondary", "text-light"],
-  going: ["bg-success", "text-light"],
-  finished: ["bg-primary", "text-light"],
+  going: ["bg-primary", "text-light"],
+  finished: ["bg-success", "text-light"],
   error: ["bg-danger", "text-light"],
+  stoped: ["bg-warning", "text-dark"],
 };
-myElementsRender["step"].setState = (el, newState) => {
+
+ClassElementStep.setState = (el, newState) => {
   let states = myElementsRender["step"].stateClasses;
   let beforeState = el.getAttribute("data-state");
   if (!states[newState]) {
@@ -129,4 +148,5 @@ myElementsRender["step"].setState = (el, newState) => {
   el.setAttribute("data-state", newState);
 };
 
+myElementsRender["step"] = ClassElementStep;
 trace = beforeTrace;

@@ -62,7 +62,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     if (!this.hasChanged()) {
       return;
     }
-    debugger;
+    //debugger;
     // this.children.remove();
     // this.render(this.regs[this.getFieldValue()]);
     this.setValue(this.getOption(this.getFieldValue()));

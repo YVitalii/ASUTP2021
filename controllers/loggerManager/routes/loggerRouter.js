@@ -16,10 +16,10 @@ router.all("*", function (req, res, next) {
   next();
 });
 router.post("/getRegs", async function (req, res, next) {
-  let trace = 1,
+  let trace = 0,
     ln = `${req.baseUrl}::`;
   if (trace) {
-    log("i", ln, `req.body=`);
+    log("", ln, `req.body=`);
     console.dir(req.body);
   }
   let response = req.entity.loggerManager.getRegsValue();
@@ -31,7 +31,7 @@ router.get("/logs/:id", async function (req, res, next) {
   let trace = 0,
     ln = `${req.baseUrl}::`;
   if (trace) {
-    log("i", ln, `req.params=`);
+    log("", ln, `req.params=`);
     console.dir(req.params);
   }
   let response = await req.entity.loggerManager.getLoggerArchiv(req.params.id);
@@ -46,7 +46,7 @@ router.get("/", function (req, res, next) {
   let trace = 0,
     ln = `${req.baseUrl}::`;
   if (trace) {
-    log("i", ln, `req.entity.graphManager=`);
+    log("", ln, `req.entity.graphManager=`);
     console.dir(req.entity.graphManager);
   }
 

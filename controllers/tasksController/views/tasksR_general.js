@@ -233,7 +233,7 @@ tasks.renderList = function (list = undefined) {
       continue;
     }
     tasks.model.data.push(el);
-    debugger;
+    //debugger;
     if (trace) {
       console.log(ln + `el=`);
       console.dir(el);

@@ -882,8 +882,8 @@ class Chart {
       //console.log("Mouse position: x=",mouse);//[0],"y=",mouse[1]
       let time = dataPoint.time;
       let x = this.xScale(dataPoint.time); // позиция линии по координате х
-      let y_top = this.yScale(this.config.y.max * 1); // верх линии по y
-      let y_bottom = this.yScale(this.config.y.min * 1.05); // низ линии по y
+      let y_top = this.yScale(this.y.max * 1); //this.yScale(this.config.y.max * 1); // верх линии по y
+      let y_bottom = this.yScale(this.y.min * 0.98); // низ линии по y
       this.tooltip
         .attr("transform", `translate(${x},${y_top})`)
         .style("display", null)
@@ -1055,28 +1055,28 @@ class Chart {
       return; // если нет - выход
     }
 
-    $.ajax({
-      method: "POST",
-      url: this.config.taskURL,
-      data: { fName: fName },
-      success: (msg) => {
-        trace ? console.log(logH + "Tasks:  ") : null;
-        trace ? console.log(msg.d) : null;
-        let task = msg.d;
-        if (!task) {
-          return;
-        }
-        for (var i = 0; i < task.length; i++) {
-          console.log(task[i].time);
-          task[i].time = new Date(task[i].time);
-        }
-        let t = new Date(task[0].time.getTime());
-        this.timeDomain.start = timeRoundDown(t);
-        this.timeDomain.end = task[task.length - 1].time;
+    // $.ajax({
+    //   method: "POST",
+    //   url: this.config.taskURL,
+    //   data: { fName: fName },
+    //   success: (msg) => {
+    //     trace ? console.log(logH + "Tasks:  ") : null;
+    //     trace ? console.log(msg.d) : null;
+    //     let task = msg.d;
+    //     if (!task) {
+    //       return;
+    //     }
+    //     for (var i = 0; i < task.length; i++) {
+    //       console.log(task[i].time);
+    //       task[i].time = new Date(task[i].time);
+    //     }
+    //     let t = new Date(task[0].time.getTime());
+    //     this.timeDomain.start = timeRoundDown(t);
+    //     this.timeDomain.end = task[task.length - 1].time;
 
-        this.task = task;
-      },
-    }); //$.ajax
+    //     this.task = task;
+    //   },
+    // }); //$.ajax
   } //loadData()*/
   resize() {
     // let value = this.data[0].time;
@@ -1085,11 +1085,15 @@ class Chart {
     this.timeDomain.start = timeRoundDown(this.data[0].time);
     this.timeDomain.end = timeRoundDown(this.data[this.data.length - 2].time);
   }
-
-  reload() {
+  /**
+   * перезавантажує інформацію з нового файлу fileName
+   * @param {String} fileName
+   */
+  reload(fileName) {
     let trace = 0,
       logH = "drawChart()::" + "reload()" + "::";
     trace ? console.log(logH + "Enter") : 0;
+    this.config.logFileName = fileName;
     this.getTasks();
     this.getData();
 

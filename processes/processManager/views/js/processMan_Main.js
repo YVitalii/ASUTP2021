@@ -1,7 +1,8 @@
 /** Виконує базові налаштування панелі керування програмою */
 processMan.program.ln = "processMan.program::";
-// кнопка "Редагувати завдання"
+
 {
+  /** Отримує поточний список кроків та їх стан з сервера та повертає їх*/
   processMan.program.getProgram = async () => {
     let trace = 1,
       ln = "getProgram()::";
@@ -23,34 +24,122 @@ processMan.program.ln = "processMan.program::";
     } else {
       // помилка запиту
       // плануємо наступний запит через 2 сек
-      setTimeout(() => {
-        processMan.program.getList();
-      }, 2000);
       console.warn(ln + response.status);
+      return [];
     }
   };
 
   /**
-   * Отримує дані з серверу, генерує кроки, та налаштовує їх
+   * Отримує дані з серверу, та стартово генерує кроки, та налаштовує їх
    */
   processMan.program.init = async () => {
+    //debugger;
     let trace = 1,
       ln = processMan.program.ln + "init()::";
     try {
       trace ? console.log(ln + `Started`) : null;
-      processMan.program.tasks = await processMan.program.getProgram();
+      let model = await processMan.program.getProgram();
+      let ok = model.tasks[0].id;
+      if (!ok) {
+        setTimeout(() => {
+          processMan.program.init();
+        }, 2000);
+        return;
+      }
       if (trace) {
         console.log(ln + `tasks=`);
-        console.dir(processMan.program.tasks);
+        console.dir(processMan.program.model);
       }
+      processMan.program.model = model;
       // очищуємо контейнер
       processMan.program.container.innerHTML = "";
-
       // промальовуємо кроки
       processMan.program.renderTasks();
-    } catch (error) {}
+      // запускаємо періодичне опистування серверу про стан кроків
+      processMan.program.updateStates();
+    } catch (error) {
+      console.error(error);
+      // setTimeout(() => {
+      //   processMan.program.init();
+      // }, 2000);
+      return;
+    }
   };
 
+  setTimeout(() => {
+    // запускаємо початкову ініціалізацію
+    processMan.program.init();
+  }, 2000);
+
+  processMan.program.updateStates = async () => {
+    let trace = 1,
+      ln = "processMan.program.updateSteps::";
+    let newSteps = await processMan.program.getProgram();
+    if (trace) {
+      console.log(ln + `newSteps=`);
+      console.dir(newSteps);
+    }
+    // if (newSteps._id) {
+    //   ClassElementStep.setState(processMan.program.model.ta)
+    // Якщо відповідь з сервера має поле _id, то відповідь коректна
+    if (newSteps._id) {
+      let model = processMan.program.model;
+      // змінюємо загальний стан програми
+      model._id = newSteps._id;
+      model.note = newSteps.note;
+      model.duration = newSteps.duration;
+      // якщо змінилася назва лог файлу - перезавантажуємо графік
+      if (model.logFileName != newSteps.logFileName) {
+        chartMan.chart.reload(newSteps.logFileName);
+        model.logFileName = newSteps.logFileName;
+      }
+      // змінюємо стан всіх кроків
+      let tasks = newSteps.tasks;
+      for (let i = 1; i < tasks.length; i++) {
+        let newStep = tasks[i];
+        let currStep = processMan.program.model.tasks[i];
+        processMan.program.updateStepState(newStep, currStep);
+      } //for
+    } //if (tasks._id){
+
+    // плануємо новий запит
+    setTimeout(() => processMan.program.updateStates(), 10 * 1000);
+  };
+
+  /**
+   * Рекурсивна функція, що проходить всі вкладені кроки та змінює їх стан
+   * @param {Array|Object} newStep  - крок отриманий з сервера
+   * @param {*} currStep  - локальний поточний крок (в браузері)
+   * @returns
+   */
+  processMan.program.updateStepState = (newStep = null, currStep = null) => {
+    //let trace=1, ln=`processMan.program.updateStep::`;
+    if (newStep === null || currStep === null) {
+      console.error(`processMan.program.updateStep::Один з аргументів == null`);
+    }
+    //debugger;
+    if (Array.isArray(newStep) && Array.isArray(currStep)) {
+      // обидва кроки масиви
+      for (let i = 0; i < currStep.length; i++) {
+        const element = currStep[i];
+        processMan.program.updateStepState(newStep[i], currStep[i]);
+      }
+      return;
+    }
+    if (newStep._id && currStep._id) {
+      ClassElementStep.setState(currStep.el, newStep._id);
+      if (Array.isArray(newStep.tasks) && Array.isArray(currStep.tasks)) {
+        processMan.program.updateStepState(newStep.tasks, currStep.tasks);
+      }
+    }
+    //if (typeof newStep == "object")
+  };
+
+  /**
+   * рекурсивна функція, яка будує кроки в масиві(масивів) item
+   * @param {*} container - контейнер для елементів
+   * @param {Array|Object} item - список кроків
+   */
   processMan.program.renderSteps = (container, item) => {
     if (Array.isArray(item)) {
       let row = document.createElement("div");
@@ -62,52 +151,35 @@ processMan.program.ln = "processMan.program::";
     } else {
       // let col = document.createElement("div");
       // col.classList.add("col");
-      item.state =
-        // рендеримо задачу
-        container.appendChild(
-          new processMan.myElementsRender["step"]({
-            container: container,
-            reg: item,
-          }).div
-        );
+      //debugger;
+      // рендеримо задачу
+      let el = new processMan.myElementsRender["step"]({
+        container: container,
+        reg: item,
+      });
+      item.el = el.el;
+      container.appendChild(el.el);
       // let task = new processMan.myElementsRender (
 
       // )
     }
-  };
+  }; // processMan.program.renderSteps
+
   processMan.program.stop = async () => {
     let trace = 1,
       ln = processMan.program.ln + "stop()::";
     trace ? console.log(ln + `Started`) : null;
-    // let response = await fetch(processMan.homeUrl + "getProgram", {
-    //   method: "post",
-    //   headers: {
-    //     "Content-Type": "application/json;charset=utf-8",
-    //   },
-    // }); //
-    // if (response.ok) {
-    //   // отримуємо інформацію з сервера
-    //   let res = await response.json();
-    //   if (trace) {
-    //     console.log(ln + `res=`);
-    //     console.dir(res);
-    //   }
-    //   return res;
-    // } else {
-    //   // помилка запиту
-    //   // плануємо наступний запит через 2 сек
-    //   setTimeout(() => {
-    //     processMan.program.getList();
-    //   }, 2000);
-    //   console.warn(ln + response.status);
-    // }
+    await processMan.post("stop");
   }; //processMan.program.stop()
 
   processMan.program.start = async (step = 1) => {
     let trace = 1,
       ln = processMan.program.ln + "start()::";
     trace ? console.log(ln + `Started`) : null;
-    await processMan.post("start", { step });
+    let res = await processMan.post("start", { step });
+    // if (res.err === null) {
+
+    // }
 
     //return 1;
   }; //processMan.program.start)
@@ -120,13 +192,13 @@ processMan.program.ln = "processMan.program::";
    * @returns {Object} - результат запису
    */
   processMan.post = async (url = "", body = {}) => {
-    debugger;
-    url = processMan.homeUrl + url;
+    //debugger;
+    //url = ;
     let trace = 1,
       ln = processMan.program.ln + `post(${url}::`;
     let response;
     try {
-      response = await fetch(url, {
+      response = await fetch(processMan.homeUrl + url, {
         method: "post",
         headers: {
           "Content-Type": "application/json;charset=utf-8",
@@ -159,7 +231,7 @@ processMan.program.ln = "processMan.program::";
   processMan.program.renderTasks = () => {
     let trace = 1,
       ln = processMan.program.ln + "renderTasks()::";
-    let list = processMan.program.tasks.tasks;
+    let list = processMan.program.model.tasks;
     for (let i = 0; i < list.length; i++) {
       if (trace) {
         console.log(ln + `list[${i}]=`);
@@ -189,15 +261,12 @@ processMan.program.ln = "processMan.program::";
         }
         // row.appendChild(list[0].el.div);
       } else {
+        // debugger;
         processMan.program.renderSteps(row, list[i]);
       }
       processMan.program.container.appendChild(row);
     }
   };
-
-  setTimeout(() => {
-    processMan.program.init();
-  }, 1000);
 
   //JSON.parse("!{JSON.stringify(processMan.htmlProgram)}");
 

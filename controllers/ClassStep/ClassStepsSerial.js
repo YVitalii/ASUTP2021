@@ -57,7 +57,7 @@ class ClassSerialSteps extends ClassStepGeneral {
   }
 
   getState() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getState()::";
     let res = super.getState();
     res.tasks = [];

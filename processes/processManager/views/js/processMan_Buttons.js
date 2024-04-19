@@ -29,7 +29,7 @@
         en: `Edit task`,
         ru: `Редактирование задания`,
       },
-      classes: "btn-primary",
+      classes: "btn-primary border fw-bold",
       attributes: { href: processMan.editTaskUrl },
       onclick: async function (e) {
         let trace = 1,
@@ -47,23 +47,27 @@
     reg: {
       id: "buttonStart",
       //ln: ln + this.id,
-      header: { ua: `Виконати`, en: `Start`, ru: `Выполнить` },
+      header: { ua: `???`, en: `???`, ru: `???` },
       type: "button",
       comment: {
         ua: `Виконання завдання`,
         en: `Running task`,
         ru: `Выполнение задания`,
       },
-      classes: "btn-success",
+      classes: "border fw-bold",
+
       attributes: { href: processMan.homeUrl + "start" },
     },
     onclick: async function (e) {
-      let trace = 1,
+      let trace = 0,
         ln = `${this.el.id}::onclick::`;
       trace ? console.log(ln, "Was pressed!") : null;
+      if (trace) {
+        debugger;
+      }
 
-      let state = processMan.program.tasks;
-      //debugger;
+      let state = processMan.program.model;
+
       if (state._id == "going") {
         let msg = {
           ua: `Дійсно бажаєте зупинити програму?`,
@@ -73,9 +77,11 @@
         if (confirm(msg)) {
           // зупиняємо програму
           try {
-            await this.parent.program.stop();
+            await processMan.program.stop();
             //return;
-          } catch (error) {}
+          } catch (error) {
+            console.error(error);
+          }
         }
       } //if (state._id != "going")
 
@@ -90,7 +96,9 @@
           try {
             await processMan.program.start();
             //return;
-          } catch (error) {}
+          } catch (error) {
+            console.error(error);
+          }
         }
       } //if (state._id != "going")
     }, //onclick
@@ -103,3 +111,44 @@
   }
   btnGr.elements = new processMan.myElementsRender[buttons.reg.type](buttons);
 }
+
+/** Періодично опитує стан процессу та, за потреби,  змінює зовнішній вигляд кнопки */
+processMan.buttons.checkState = () => {
+  //debugger;
+
+  // елемент кнопки
+  let el = processMan.buttons.elements.children["buttonStart"];
+  // поточний стан процесу
+  if (!processMan.program.model) return; // задачі ще не завантажено
+  let newState = processMan.program.model._id == "going" ? "going" : "stoped";
+  // попередній стан процесу
+  let beforeState = el.state;
+  // якщо стан не змінився - виходимо
+  if (newState && beforeState != newState) {
+    let states = {
+      going: {
+        classList: ["btn-warning", "text-dark"],
+        innerHTML: { ua: `Стоп`, en: `Stop`, ru: `Стоп` },
+      },
+      stoped: {
+        classList: ["btn-primary", "text-light"],
+        innerHTML: { ua: `Пуск`, en: `Start`, ru: `Пуск` },
+      },
+    };
+    if (states[beforeState]) {
+      // видаляємо попередні класи
+      states[beforeState].classList.map((c) => el.el.classList.remove(c));
+    }
+    //  додаємо нові класи
+    states[newState].classList.map((c) => el.el.classList.add(c));
+    // змінюємо напис
+    el.el.innerHTML = states[newState].innerHTML[lang];
+    // запамятовуємо новий стан
+    el.state = newState;
+  }
+}; //processMan.buttons.checkState
+
+// запускаємо періодичне опитування стану процесу
+setInterval(() => {
+  processMan.buttons.checkState();
+}, 5000);
