@@ -17,6 +17,7 @@ class ClassSerialSteps extends ClassStepGeneral {
     let trace = 1,
       ln = this.ln + `start(from=${from})::`;
     super.start();
+
     // TODO Милиця для очікування завершення deforestart
     await dummy(3000);
     //this.testProcess();
@@ -26,12 +27,14 @@ class ClassSerialSteps extends ClassStepGeneral {
         break;
       }
       const element = this.tasks[step];
+      if (!element) throw new Error(ln + `Step number ${step} not finded!`);
       trace ? log("i", ln, `Started step.id=`, element.id) : null;
       this.curTask.item = element;
       this.curTask.number = step;
       await element.start();
       trace ? log("i", ln, `Finished step.id=`, element.id) : null;
     }
+
     if (this.state._id == "going") {
       this.finish();
       trace ? log("i", ln, `All steps finished`) : null;

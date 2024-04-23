@@ -274,6 +274,8 @@ class ClassTaskThermal extends ClassTaskGeneral {
     let quickHeatingSteps = [];
     let heatingSteps = [];
     let holdingSteps = [];
+    let stepTaskPoints = [];
+
     // --- для всіх приладів створюємо кроки
     for (let i = 0; i < this.devices.length; i++) {
       const device = this.devices[i];
@@ -285,10 +287,32 @@ class ClassTaskThermal extends ClassTaskGeneral {
       } //if (regs.wT != undefined || regs.wT != 0 || regs.H == 0)
 
       // ---------- heating step ----------
-      heatingSteps.push(new ClassHeatingStep({ regs, device })); //push
+      let hs = new ClassHeatingStep({ regs, device });
+      heatingSteps.push(hs); //push
+      if (i == 0) {
+        // завдання точка "Нагрівання"
+        stepTaskPoints.push({
+          // time = undefined, коли гріти максимально швидко і час невизначений
+          time: regs.H == 0 ? undefined : parseInt(regs.H),
+          value: regs.tT,
+          errVmin: hs.errTmin,
+          errVmax: hs.errTmax,
+        });
+      }
 
       // ---------- holding step ----------
-      holdingSteps.push(new ClassHoldingStep({ regs, device })); //push
+      hs = new ClassHoldingStep({ regs, device });
+      holdingSteps.push(hs); //push
+      if (i == 0) {
+        // завдання точка "Витримка"
+        stepTaskPoints.push({
+          // time = undefined, коли гріти максимально швидко і час невизначений
+          time: regs.Y == 0 ? undefined : parseInt(regs.Y),
+          value: regs.tT,
+          errVmin: hs.errTmin,
+          errVmax: hs.errTmax,
+        });
+      }
     } // for
 
     // якщо приладів в процесі декілька - запускаємо кожний тип кроку паралельно
@@ -298,6 +322,11 @@ class ClassTaskThermal extends ClassTaskGeneral {
       } else {
         quickHeatingSteps = new ClassStepsParallel({
           tasks: quickHeatingSteps,
+          header: {
+            ua: `Швидке нагрівання `,
+            en: `Quick heating `,
+            ru: `Быстрое нагревание `,
+          },
         });
       }
       res.push(quickHeatingSteps);
@@ -309,6 +338,11 @@ class ClassTaskThermal extends ClassTaskGeneral {
       } else {
         heatingSteps = new ClassStepsParallel({
           tasks: heatingSteps,
+          header: {
+            ua: `Нагрівання `,
+            en: `Heating `,
+            ru: `Нагревание `,
+          },
         });
       }
       res.push(heatingSteps);
@@ -320,12 +354,22 @@ class ClassTaskThermal extends ClassTaskGeneral {
       } else {
         holdingSteps = new ClassStepsParallel({
           tasks: holdingSteps,
+          header: {
+            ua: `Витримка `,
+            en: `Holding `,
+            ru: `Удержание `,
+          },
         });
       }
       res.push(holdingSteps);
     }
+    // ---------- загальний опис кроку ----------
     let header = `tT=${regs.tT}; H=${regs.H}; Y=${regs.Y}`;
-    let comment = `wT=${regs.wT}; errTmin=${regs.errTmin}; errTmax=${regs.errTmax}; errH=${regs.errH}; regMode=${regs.regMode}; o=${regs.o}; ti=${regs.ti}; td=${regs.td};`;
+    let comment = `wT=${regs.wT}; errTmin=${regs.errTmin}; errTmax=${
+      regs.errTmax
+    }; errH=${regs.errH}; regMode=${regs.regMode}; o=${regs.o}; ti=${
+      regs.ti == undefined ? "0" : regs.ti
+    }; td=${regs.td == undefined ? "0" : regs.td};`;
     res = new ClassStepsSerial({
       id: regs.id,
       header: {
@@ -336,6 +380,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
       comment: { ua: `${comment}`, en: `${comment}`, ru: `${comment}` },
       tasks: res,
     });
+    res.taskPoints = stepTaskPoints;
     return res; //{ header: { ua: `123`, en: `123`, ru: `123` } };
   }
 } //class ClassThermoStep

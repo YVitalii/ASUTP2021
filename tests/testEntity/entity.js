@@ -13,7 +13,7 @@ const pathJoin = require("path").join;
 const pathNormalize = require("path").normalize;
 
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
-
+const enableDev2 = true; //
 const emulate = 0; //true;
 
 let TRP08, ifaceW2;
@@ -56,41 +56,44 @@ entity.maxT = 150;
 // URL адреса гілки
 entity.homeUrl = "/entity/" + entity.id + "/";
 
-// завантажуємо пристрої
+// ---------------  завантажуємо пристрої ----------------------
 
 entity.devicesManager = new ClassDevicesManager({
   baseUrl: entity.homeUrl,
 });
 
 let dev1, dev2;
+
 if (emulate) {
-  // емулятор терморегулятора
+  // емулятори терморегулятора
   dev1 = new TRP08({
     id: "trp08n1",
     heating: { time: 30, tT: entity.maxT - 25 },
   });
-  dev2 = new TRP08({
-    id: "trp08n2",
-    heating: { time: 25, tT: entity.maxT - 25 },
-  });
-  dev1.start();
-  entity.devicesManager.addDevice(dev1.id, dev1);
+  if (enableDev2) {
+    dev2 = new TRP08({
+      id: "trp08n2",
+      heating: { time: 25, tT: entity.maxT - 25 },
+    });
+    entity.devicesManager.addDevice(dev2.id, dev2);
+  }
+  //dev1.start();
   // dev2.start();
-  //entity.devicesManager.addDevice(dev2.id, dev2);
 } else {
+  // реальні прилади
   dev1 = new TRP08(ifaceW2, 1, { id: "trp08n1" });
-  entity.devicesManager.addDevice(dev1.id, dev1);
+  if (enableDev2) {
+    dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2" });
+  }
 }
 
-// let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2" });
-// entity.devicesManager.addDevice(dev2.id, dev2);
+entity.devicesManager.addDevice(dev1.id, dev1);
+if (enableDev2) {
+  entity.devicesManager.addDevice(dev2.id, dev2);
+}
 
-// let dev3 = new TRP08(ifaceW2, 3, { id: "trp08n3" });
-// entity.devicesManager.addDevice(dev3.id, dev3);
-
-//entity.devices.addDevice("trp08-2", new TRP08(ifaceW2, 2));
-// log("i", `entity.devices=`);
-// console.dir(entity.devicesManager);
+log("i", `entity.devices=`);
+console.dir(entity.devicesManager);
 
 // ================  loggerManager ====================
 entity.loggerManager = new ClassLoggerManager({
@@ -99,6 +102,28 @@ entity.loggerManager = new ClassLoggerManager({
   baseDir: entity.homeDir,
   period: emulate ? 1 * 1000 : 10 * 1000, // для пришвидшення тестування 1 c
   regs: [
+    {
+      id: "tT",
+      units: { ua: `C`, en: `C`, ru: `C` },
+      header: {
+        ua: `Завдання`,
+        en: `task T`,
+        ru: `Задание`,
+      },
+      comment: {
+        ua: `Цільова температура`,
+        en: `Target temperature`,
+        ru: `Заданная температура`,
+      },
+      getValue: async () => {
+        let res = await entity.devicesManager
+          .getDevice("trp08n1")
+          .getParams("tT");
+        //console.log(`res=`);
+        //console.dir(res);
+        return res.tT.value;
+      },
+    },
     {
       id: "T1",
       units: { ua: `C`, en: `C`, ru: `C` },
@@ -116,30 +141,32 @@ entity.loggerManager = new ClassLoggerManager({
         return await entity.devicesManager.getDevice("trp08n1").getT();
       },
     },
-    {
-      id: "tT",
-      units: { ua: `C`, en: `C`, ru: `C` },
-      header: {
-        ua: `Завдання`,
-        en: `task T`,
-        ru: `Задание`,
-      },
-      comment: {
-        ua: `Поточна температура в зоні №2`,
-        en: `Current temperature in zone 2`,
-        ru: `Текущая температура в зоне №2`,
-      },
-      getValue: async () => {
-        let res = await entity.devicesManager
-          .getDevice("trp08n1")
-          .getParams("tT");
-        //console.log(`res=`);
-        //console.dir(res);
-        return res.tT.value;
-      },
-    },
   ],
-}); //entity.loggerManager = new LoggerManager
+}); //new ClassLoggerManager(
+// trace = 1;
+// if (trace) {
+//   log("i", gln, `entity.loggerManager=`);
+//   console.dir(entity.loggerManager);
+// }
+if (enableDev2) {
+  entity.loggerManager.addReg({
+    id: "T2",
+    units: { ua: `C`, en: `C`, ru: `C` },
+    header: {
+      ua: `T2`,
+      en: `T2`,
+      ru: `T2`,
+    },
+    comment: {
+      ua: `Поточна температура в зоні №2`,
+      en: `Current temperature in zone 2`,
+      ru: `Текущая температура в зоне №2`,
+    },
+    getValue: async () => {
+      return await entity.devicesManager.getDevice("trp08n2").getT();
+    },
+  });
+}
 
 // =====================  задача термообробка
 let taskThermal = new ClassTaskThermal({
@@ -151,8 +178,10 @@ let taskThermal = new ClassTaskThermal({
     // dT:0.1, // середня похідна за 10 точок
   },
 });
-
-// менеджер завдань
+if (enableDev2) {
+  taskThermal.devices.push(entity.devicesManager.getDevice(dev2.id));
+}
+// --------------- менеджер завдань -----------------
 entity.tasksManager = new TasksManager({
   ln: entity.id + "::TasksManager::",
   homeDir: entity.homeDir,
@@ -162,6 +191,7 @@ entity.tasksManager = new TasksManager({
 // реєструємо задачу термообробки в менеджері завдань
 entity.tasksManager.addType(taskThermal);
 
+// ------------- processManager -----------------
 entity.processManager = new ClassProcessManager({
   homeDir: entity.homeDir,
   homeUrl: entity.homeUrl,

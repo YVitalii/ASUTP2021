@@ -877,7 +877,15 @@ class Chart {
       trace
         ? console.log(title, "d3.pointer(event,svg)=", d3.pointer(event))
         : null;
-      const dataPoint = this.bisect(d3.pointer(event)[0]);
+      let dataPoint;
+      try {
+        dataPoint = this.bisect(d3.pointer(event)[0]);
+      } catch (error) {
+        // точок ще немає, виходимо
+        //console.error(error);
+        return;
+      }
+
       trace ? console.log(title, "dataPoint=", dataPoint) : null;
       //console.log("Mouse position: x=",mouse);//[0],"y=",mouse[1]
       let time = dataPoint.time;

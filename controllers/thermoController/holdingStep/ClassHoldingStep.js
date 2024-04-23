@@ -1,7 +1,5 @@
 const ClassThermoStepGeneral = require("../ClassThermoStepGeneral.js");
 const log = require("../../../tools/log");
-const parseLinearFunction =
-  require("../../../tools/general.js").parseLinearFunction;
 
 class ClassHoldingStep extends ClassThermoStepGeneral {
   /**
@@ -19,9 +17,8 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     //         en: `Heating`,
     //         ru: `Нагрев`,
     // };
-    props.ln = props.ln ? props.ln : "ClassHoldingStep::";
-
-    props.id = "holing";
+    // props.ln = props.ln ? props.ln : "ClassHoldingStep::";
+    props.id = props.id ? props.id : "holding";
     props.ln = props.ln ? props.ln : props.id + "::";
     let trace = 0,
       ln = props.id + "::constructor()::";
@@ -56,15 +53,16 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     // Назва кроку
     let tT = `${this.tT}°C`;
     this.comment = {
-      ua: `Витримка ${tT}`,
-      en: `Holding  ${tT}`,
-      ru: `Удержание ${tT}`,
+      ua: `${this.device.header.ua}.Витримка ${tT}`,
+      en: `${this.device.header.en}.Holding  ${tT}`,
+      ru: `${this.device.header.ru}.Удержание ${tT}`,
     };
     this.header = {
-      ua: `= ${this.tT}°C`,
-      en: `= ${this.tT}°C`,
-      ru: `= ${this.tT}°C`,
+      ua: `= ${tT}`,
+      en: `= ${tT}`,
+      ru: `= ${tT}`,
     };
+
     // --------------------------------
     this.ln = `${this.id}(tT=${this.tT}); Y=${this.Y}::`;
 
@@ -94,7 +92,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     }
     if (this.t != null) {
       let info = `t=${this.t}*C; ${this.state.duration}`;
-      if (this.currentDuration > this.Y * 60) {
+      if (this.Y != 0 && this.currentDuration > this.Y * 60) {
         let msg = {
           ua: `Витримка завершена: ${info}`,
           en: `Holding finished: ${info}`,

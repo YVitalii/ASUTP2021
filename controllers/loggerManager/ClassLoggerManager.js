@@ -45,18 +45,14 @@ module.exports = class ClassLoggerManager {
 
     // масив з id регістрів для забезпечення сталого порядку при записі
     this.regsId = new Array(); // ["T1","tT1", ..]
-
     // список регістрів для логування параметрів процесу
     this.regs = {};
-    if (Array.isArray(props.regs)) {
-      for (let i = 0; i < props.regs.length; i++) {
-        const reg = props.regs[i];
-        this.regs[reg.id] = new ClassLoggerRegisters(reg);
-        this.regsId.push(reg.id);
-      }
-    } //if (Array.isArray(props.regs))
+    // реєструємо регістри
+    if (props.regs) {
+      this.addReg(props.regs);
+    }
 
-    // останній записаний рядок, використовується для відповіді браузеру
+    // останній записаний рядок, використовується для відповіді побудовнику графіку в браузеру
     this.lastDataLine = "";
 
     //опис можливих станів, щоб все було в одному місці
@@ -76,7 +72,34 @@ module.exports = class ClassLoggerManager {
   } // constructor
 
   /**
+   * Додає регістр(и) для логування
+   * @param {Object | Array } reg - (масив) опис регістра
+   * @returns
+   */
+  addReg(reg = undefined) {
+    let trace = 1,
+      ln = this.ln + "addRegs()::";
+    if (reg == undefined) {
+      throw new Error(ln + "regs=undefined");
+    }
+    if (Array.isArray(reg)) {
+      for (let i = 0; i < reg.length; i++) {
+        const element = reg[i];
+        this.addReg(element);
+      }
+      return;
+    }
+    // не масив отже додаємо
+    if (!reg.id) {
+      throw new Error(ln + "reg.id=undefined");
+    }
+    this.regs[reg.id] = new ClassLoggerRegisters(reg);
+    this.regsId.push(reg.id);
+  }
+
+  /**
    * Продовжує запис процесу у вказаний файл (наприклад після збою - продовжити процес)
+   * 2024-04-23 Очікує реалізіції
    * @param {String} fileName - назва файлу логу
    */
   resume(fileName) {
@@ -96,9 +119,26 @@ module.exports = class ClassLoggerManager {
     let trace = 1;
     let ln = this.ln + `start(${fileName})::`;
 
-    // ------------ імя файлу не вказано, генеруємо нове -------------
-    if (fileName === "") {
+    // ------------ імя файлу не вказано, або це тимчасовий файл -------------
+    if (fileName === "" || fileName == this.tmpLogFileName) {
       fileName = this.tmpLogFileName;
+      // видаляємо tmp-файли, бо якщо показувати записи за минулий день - дуже стиснутий графік
+      // 1. тому ми обрізаємо тимчасовий файл і залишаємо останні 3 години
+      // 2. у Замовника сервер буде перезапускатися рідко, тому все буде працювати Ок
+      // 3. після  закінчення програми запис буде починатися з початку
+      // 4. при наладці, коли змінюєш перелік логуємих регістрів і файл не видаляється - потрібно
+      // видаляти тимч. файл вручну, а так це виконується автоматично
+      let fn = fileName + this._fileExtensions["logger"];
+      if (this.fileManager.exist(fn)) {
+        await this.fileManager.deleteFile(fn);
+        log("w", ln + `File ${fn} was deleted`);
+      }
+
+      fn = fileName + this._fileExtensions["points"];
+      if (this.fileManager.exist(fn)) {
+        await this.fileManager.deleteFile(fn);
+        log("w", ln + `File ${fn} was deleted`);
+      }
     } // if (fileName === "")
 
     ln = this.ln + `start(${fileName})::`;
@@ -123,14 +163,17 @@ module.exports = class ClassLoggerManager {
 
     // запускаємо очищення тимчасового файлу
     if (this.fileName === this.tmpLogFileName) {
-      this.truncateTmpFile();
+      // оскільки сервер може не перезапускатися тижнями,
+      // періодично обрізаємо дані
+      // що старше останніх хх годин (період див. в описі функції)
+      await this.truncateTmpFile();
     }
 
     // змінюємо стан
     this.state = this._states.started;
     let msg = ` "${this.fileName + this._fileExtensions.logger}" `;
     // запускаємо періодичне опитування
-    this.writeLine();
+    await this.writeLine();
     // додаємо визначну точку
     this.addPoint({
       ua: `Запис ${msg} розпочато`,
@@ -186,6 +229,7 @@ module.exports = class ClassLoggerManager {
    * Перевіряє тимчасові файли, залишає інформацію за останню добу
    * Так як при перерві в роботі файл tmp буде маленький, а між останніми точками буде
    * декілька діб, тому розмір не перевіряємо, а просто залишаємо інфо за останню добу
+   *
    */
   async truncateTmpFile() {
     let fileName = this.fileName;

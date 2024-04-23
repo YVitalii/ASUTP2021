@@ -51,33 +51,31 @@ class ClassElementStep extends myElementsRender.ClassGeneralElement {
 
     // // ----- рядок поточного стану -
     //  2024-04-12 не використовуємо щоб зберегти місце, і так видно стан по кольору
-    // let stateRow = document.createElement("div");
-    // stateRow.classList.add("row");
-    // let note = document.createElement("div");
-    // note.classList.add("col");
-    // note.innerHTML = this.reg.note[lang];
-    // stateRow.appendChild(note);
-    // this.el.appendChild(stateRow);
 
     // ----- під-кроки
-    let subStepRow = document.createElement("div");
-    subStepRow.classList.add("row");
+    // let subStepRow = document.createElement("div");
+    // subStepRow.classList.add("row");
 
-    for (let i = 0; i < this.reg.tasks.length; i++) {
-      const element = this.reg.tasks[i];
-      //debugger;
-      let subStepCol = document.createElement("div");
+    // for (let i = 0; i < this.reg.tasks.length; i++) {
+    //   const element = this.reg.tasks[i];
+    //   //debugger;
+    //   let subStepCol = document.createElement("div");
 
-      subStepCol.classList.add("col", "text-center", "text-nowrap");
-      subStepCol.setAttribute("id", this.id + "_" + element.id);
-      subStepCol.setAttribute("title", element.comment[lang]);
-      ClassElementStep.setState(subStepCol, element._id);
-      subStepCol.innerHTML = element.header[lang];
-      element.el = subStepCol;
-      subStepRow.appendChild(subStepCol);
+    //   subStepCol.classList.add("col", "text-center", "text-nowrap");
+    //   subStepCol.setAttribute("id", this.id + "_" + element.id);
+    //   subStepCol.setAttribute("title", element.comment[lang]);
+    //   ClassElementStep.setState(subStepCol, element._id);
+    //   subStepCol.innerHTML = element.header[lang];
+    //   element.el = subStepCol;
+    //   subStepRow.appendChild(subStepCol);
+    // }
+    // this.el.appendChild(subStepRow);
+    //this.container.appendChild(this.el);
+    if (trace) {
+      console.log(ln + `this.reg=`);
+      console.dir(this.reg);
     }
-    this.el.appendChild(subStepRow);
-
+    this.parseSubStep(this.el, this.prefix, this.reg.tasks);
     this.container.appendChild(this.el);
     if (trace) {
       console.log(ln + "this=");
@@ -85,6 +83,36 @@ class ClassElementStep extends myElementsRender.ClassGeneralElement {
     }
   } // constructor
 
+  parseSubStep(container, prefix, element) {
+    //debugger;
+
+    // елемент має вкладені задачі
+    if (Array.isArray(element)) {
+      let subStepRow = document.createElement("div");
+      subStepRow.classList.add("row");
+      container.appendChild(subStepRow);
+      for (let i = 0; i < element.length; i++) {
+        const el = element[i];
+        //container.appendChild(subStepRow);
+        this.parseSubStep(subStepRow, prefix + "_" + el.id, el);
+      } //for (
+      return;
+      //container.appendChild(subStepCol);
+    } //if (step.tasks
+    // рендеримо крок
+    let subStepCol = document.createElement("div");
+    subStepCol.classList.add("col", "text-center", "text-nowrap", "border");
+    subStepCol.setAttribute("id", prefix + "_" + element.id);
+    subStepCol.setAttribute("title", element.comment[lang]);
+    ClassElementStep.setState(subStepCol, element._id);
+    subStepCol.innerHTML = element.header[lang];
+    element.el = subStepCol;
+    container.appendChild(subStepCol);
+    if (element.tasks || Array.isArray(element.tasks)) {
+      this.parseSubStep(subStepCol, prefix, element.tasks);
+    }
+    //this.el.appendChild(subStepRow);
+  }
   // onchange(event) {
   //   let trace = 0,
   //     ln = this.ln + "onchange()::";
@@ -129,7 +157,14 @@ ClassElementStep.stateClasses = {
 
 ClassElementStep.setState = (el, newState) => {
   let states = myElementsRender["step"].stateClasses;
-  let beforeState = el.getAttribute("data-state");
+  let beforeState;
+  try {
+    beforeState = el.getAttribute("data-state");
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
   if (!states[newState]) {
     console.error(`Undefined state: "${newState}"`);
     return;

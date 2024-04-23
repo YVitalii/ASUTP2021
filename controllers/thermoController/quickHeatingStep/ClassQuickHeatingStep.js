@@ -73,14 +73,15 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     // Назва кроку
     let tT = `${this.tT} °C`;
     this.comment = {
-      ua: `Шв. нагр. до ${tT}`,
-      en: `Quick heating to ${tT}`,
-      ru: `Быстрое нагр. до ${tT}`,
+      ua: `${this.device.header.ua}.Шв. нагр. до ${tT}`,
+      en: `${this.device.header.en}.Quick heating to ${tT}`,
+      ru: `${this.device.header.ru}.Быстрое нагр. до ${tT}`,
     };
+
     this.header = {
-      ua: `=>${this.tT}°C`,
-      en: `=>${this.tT}°C`,
-      ru: `=>${this.tT}°C`,
+      ua: `=>${tT}`,
+      en: `=>${tT}`,
+      ru: `=>${tT}`,
     };
 
     // ----- параметри пошуку першої хвилі ----------

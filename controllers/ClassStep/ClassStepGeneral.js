@@ -42,10 +42,15 @@ class ClassStep {
       ? props.header
       : { ua: `Крок ${this.id}`, en: `Step ${this.id}`, ru: `Шаг ${this.id}` };
     this.comment = props.comment ? props.comment : { ua: ``, en: ``, ru: `` };
+    // stepPoints=[] масив точок, що використовуються для відображення задачі на графіку
+    // {dTime, value, valMin, valMax}
+    //  dTime - хв, тривалість кроку (різниця часу між початком кроку та його завершенням) або undefined= очікувати завершення
+    //  value - значення величини яке потрібно досягти по закінченню часу dTime
+    //  valMin, valMax - коридор нормальних значень
+    this.stepPoints = [];
 
     this.ln = props.ln ? props.ln : "ClassStep(" + this.header.ua + ")::";
     let ln = this.ln + "Constructor()::";
-
     trace ? log("i", ln, `props=`, props) : null;
 
     // асинхронна функція для виконання перед початком кроку (підготовка)

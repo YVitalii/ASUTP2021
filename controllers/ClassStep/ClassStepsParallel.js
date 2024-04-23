@@ -4,11 +4,11 @@ const dummy = require("../../tools/dummy.js").dummyPromise;
 
 module.exports = class ClassStepParallel extends ClassStepGeneral {
   constructor(props) {
-    props.ln = "ClassStepParallel::";
+    props.ln = props.ln ? props.ln : "ClassStepParallel::";
     super(props);
     this.tasks = props.tasks; //Array of async functions
     // current tasks
-    this.curTasks = [];
+    //this.curTasks = [];
   } //constructor(props)
   async start() {
     let trace = 1,

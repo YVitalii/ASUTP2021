@@ -44,10 +44,10 @@ class ClassProcessManager {
   }
 
   /**
-   * парсить крок
+   * рекурсивна функція, що парсить крок(и)
    */
   setStep(prefix, arr, list) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "setStep()::";
     trace
       ? log(
@@ -64,24 +64,32 @@ class ClassProcessManager {
     //   console.dir(list);
     // }
     if (Array.isArray(list)) {
+      // list - масив
+      // створюємо внутрішній масив
       let newArr = [];
       for (let j = 0; j < list.length; j++) {
         let newPrefix = prefix + `_${j}`;
         const item = list[j];
+        // викликаємо самі себе для кожного елементу масиву
         this.setStep(newPrefix, newArr, item);
       }
+      // після обходу всіх потомків, отриманий внутрішній масив додаємо до батьківського
       arr.push(newArr);
     }
     if (!list.id) {
+      // якщо елемент не має поля id - вихід
       return;
     }
+    // копіюємо елемент в props
     let props = { ...list };
     props.id = prefix;
+    // створюємо крок
     let step = this.tasksManager.getType(list.id).getStep(props);
     // if (trace) {
     //   log("i", ln, `step=`);
     //   console.dir(step);
     // }
+    // додаємо крок до масиву
     arr.push(step);
   } //setStep()
 
@@ -92,7 +100,7 @@ class ClassProcessManager {
     //  тому робимо копію списку завдань та парсимо кроки тут.
     //  TODO Перенести в процесМенеджер список доступних кроків з tasksManager
     // в tasksManager брати список звідси
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + " setProgram()::";
     if (this.program.state && this.program.state._id == "going") {
       // -------- програма на виконанні, неможливо її змінити --------
@@ -106,11 +114,12 @@ class ClassProcessManager {
 
     //копіюємо поточний список завдань
     this.listSteps = clone(this.tasksManager.list);
-
+    trace = 0;
     if (trace) {
       log("i", ln, `this.listSteps=`);
       console.dir(this.listSteps);
     }
+    trace = 1;
     // очищуємо програму
     let program = [];
     // створюємо кроки
@@ -134,10 +143,12 @@ class ClassProcessManager {
       tasks: program[0],
     });
 
+    // this.setTaskPoints(program[0]);
+
     trace = 1;
     if (trace) {
-      log("", ln, `this.program=`);
-      console.dir(this.program, { depth: 3 });
+      log("", ln, `this.program.tasks[1]=`);
+      console.dir(this.program.tasks[1], { depth: 4 }); //, { depth: 4 }
     }
     // парсимо програму для HTML
     this.getHtmlProgram();
@@ -146,6 +157,11 @@ class ClassProcessManager {
       en: `Program "${this.listSteps[0].name}" was set successfully.`,
       ru: `Программа "${this.listSteps[0].name}" успешно загружена.`,
     };
+    trace = 0;
+    if (trace) {
+      log("", ln, `this.htmlProgram=`);
+      console.dir(this.htmlProgram.states.tasks[1], { depth: 3 });
+    }
     return { err: null, data };
   } // setProgram() {
 
@@ -263,8 +279,8 @@ class ClassProcessManager {
       return { err, data: null };
     }
     this.program.start(stepN);
-    // Імя файлу потрібно давати в викликаючому модулі, якщо імя не вказано - то беремо tmpFileName
-    // застаріло // якщо імя файлу не вказано формуємо його у вигляді: "05-04-2024t10-11"
+
+    // імя файлів логів   формуємо  у вигляді: "05-04-2024t10-11"
     let fileName = "";
     do {
       let newFileN = new Date().toLocaleString();

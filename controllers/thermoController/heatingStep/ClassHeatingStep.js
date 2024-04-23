@@ -76,17 +76,26 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     // Назва кроку
     let tT = `${this.goal_tT}°C`;
     this.comment = {
-      ua: `Нагрівання до ${tT}`,
-      en: `Heating to ${tT}`,
-      ru: `Нагрев до ${tT}`,
+      ua: `${this.device.header.ua}.Нагрівання до ${tT}`,
+      en: `${this.device.header.en}.Heating to ${tT}`,
+      ru: `${this.device.header.ru}.Нагрев до ${tT}`,
     };
+
     this.header = {
-      ua: `->${this.tT}°C`,
-      en: `->${this.tT}°C`,
-      ru: `->${this.tT}°C`,
+      ua: `->${tT}`,
+      en: `->${tT}`,
+      ru: `->${tT}`,
     };
     // --------------------------------
     this.ln = `${this.id}(goal tT=${this.tT};H=${this.H}min)::`;
+    // цільова точка завдання
+    this.stepPoints.push({
+      dTime: this.H != 0 ? this.H : undefined,
+      value: this.goal_tT,
+      valMin: this.errTmin,
+      valMax: this.errTmax,
+    });
+
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
