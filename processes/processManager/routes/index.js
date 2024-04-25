@@ -10,8 +10,16 @@ const log = require("../../../tools/log.js");
 router.post("/getProgram", function (req, res, next) {
   res.json(req.entity.processManager.getHtmlProgram());
 });
+
 router.post("/start", async function (req, res, next) {
-  let result = await req.entity.processManager.start();
+  let trace = 1,
+    ln = `post("${req.originalUrl}")::`;
+  let step = req.body.step;
+  if (trace) {
+    log("w", ln, `Recived command start from step N ${step}`);
+    console.dir(req.body);
+  }
+  let result = await req.entity.processManager.start(step);
   res.json(result);
 });
 

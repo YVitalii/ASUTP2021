@@ -119,8 +119,8 @@ script.
           this.stateClasses[this.state].map((item) => {this.container.classList.remove (item)})
           } 
 
-        console.log(ln+`Before state:${this.state}. New state:: newState=${newState}`);
-        console.dir (this);
+        //- console.log(ln+`Before state:${this.state}. New state:: newState=${newState}`);
+        //- console.dir (this);
         // додаємо нову класи
         this.stateClasses[newState].map((item)=>{this.container.classList.add(item)});
         // запамятовуємо новий стан

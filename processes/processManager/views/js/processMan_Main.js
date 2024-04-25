@@ -1,5 +1,6 @@
 /** Виконує базові налаштування панелі керування програмою */
 processMan.program.ln = "processMan.program::";
+processMan.program.startStepNumber = {}; // контейнер для елементу вибору номера стартового кроку
 
 {
   /** Отримує поточний список кроків та їх стан з сервера та повертає їх*/
@@ -53,6 +54,37 @@ processMan.program.ln = "processMan.program::";
       processMan.program.model = model;
       // очищуємо контейнер
       processMan.program.container.innerHTML = "";
+      // додаємо поле вибору номера стартового кроку
+      let row = document.createElement("div");
+      row.classList.add("row");
+      processMan.program.startStepNumber = new processMan.myElementsRender[
+        "number"
+      ]({
+        reg: {
+          id: "stepNumber",
+          ln: ln,
+          header: {
+            ua: `Почати з кроку:`,
+            en: `Start from step:`,
+            ru: `Начать с шага:`,
+          },
+          type: "number",
+          value: 1,
+          comment: {
+            ua: ``,
+            en: ``,
+            ru: ``,
+          },
+          min: 1,
+          max: processMan.program.model.tasks.length - 1,
+        }, //reg
+        container: row,
+      });
+
+      processMan.program.container.appendChild(
+        processMan.program.startStepNumber.container
+      );
+
       // промальовуємо кроки
       processMan.program.renderTasks();
       // запускаємо періодичне опистування серверу про стан кроків
@@ -90,8 +122,10 @@ processMan.program.ln = "processMan.program::";
       model.duration = newSteps.duration;
       // якщо змінилася назва лог файлу - перезавантажуємо графік
       if (model.logFileName != newSteps.logFileName) {
-        chartMan.chart.reload(newSteps.logFileName);
-        model.logFileName = newSteps.logFileName;
+        setTimeout(() => {
+          chartMan.chart.reload(newSteps.logFileName);
+          model.logFileName = newSteps.logFileName;
+        }, 5000);
       }
       // змінюємо стан всіх кроків
       let tasks = newSteps.tasks;
@@ -174,7 +208,7 @@ processMan.program.ln = "processMan.program::";
 
   processMan.program.start = async (step = 1) => {
     let trace = 1,
-      ln = processMan.program.ln + "start()::";
+      ln = processMan.program.ln + `start(${step})::`;
     trace ? console.log(ln + `Started`) : null;
     let res = await processMan.post("start", { step });
     // if (res.err === null) {

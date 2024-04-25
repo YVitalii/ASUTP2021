@@ -6,6 +6,7 @@ const log = require("../../tools/log.js");
 const trySomeTimes = require("../../tools/trySomeTimes.js");
 const pug = require("pug");
 const path = require("path");
+const { dummyPromise } = require("../../tools/dummy.js");
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор
@@ -193,54 +194,45 @@ class Manager {
   getAddT() {
     return this.addT;
   }
+
   /** Функція записує 1 параметр */
   async setRegister(regName, value) {
     let trace = 0,
       ln = this.ln + `setRegister(${regName}=${value})::`;
     trace ? log("i", ln, `Started`) : null;
-
+    // очікуємо закінчення попередньої операції
+    while (this.buzy) {
+      await dummyPromise(2000);
+    }
     let reg = this.state[regName];
-    // let value = params[prop];
-    // if (regName == "tT") {
-    // додавати потрібно в завданні кроку інакше крок контролює tT,
-    // а регулятор намагається тримати value += this.addT;
-    // може викликати подію  "перегрів"
-    //   value += this.addT;
-    // }
-    return new Promise(async (resolve, reject) => {
-      // даємо запит на запис
-      let res,
-        resString = "";
-      try {
-        res = await trySomeTimes(device.setRegPromise, {
-          iface: this.iface,
-          id: this.addr,
-          regName: regName,
-          value: value,
-        });
-
-        // оновлюємо дані в state
-
-        reg.value = res.value;
-        reg.timestamp = res.timestamp;
-        resString += `${regName}=${res.value}; `;
-        if (trace) {
-          log("i", ln, `reg=`);
-          console.dir(reg);
-        }
-        resolve(resString);
-      } catch (error) {
-        // if (trace) {
-        //   log("e", ln, `error=`);
-        //   console.dir(error);
-        // }
-        log("e", ln, JSON.stringify(error));
-        setTimeout(() => {
-          this.setRegister(regName, value);
-        }, 2000);
-        //throw new Error(error.message);
-      }
-    });
+    // даємо запит на запис
+    let res,
+      resString = "";
+    this.buzy = true;
+    try {
+      res = await device.setRegPromise({
+        iface: this.iface,
+        id: this.addr,
+        regName: regName,
+        value: value,
+      });
+    } catch (error) {
+      this.buzy = false;
+      log("e", ln + "error=");
+      console.dir(error);
+      throw new Error(error);
+    }
+    this.buzy = false;
+    // оновлюємо дані в state
+    trace ? log("i", ln, `res=`, res) : null;
+    reg.value = res.value;
+    reg.timestamp = res.timestamp;
+    resString += `${regName}=${res.value}; `;
+    if (trace) {
+      log("i", ln, `reg=`);
+      console.dir(reg);
+    }
+    return resString;
   } //async setRegister(regName, value)
 
   /** Функція записує налаштування в прилад
@@ -260,8 +252,8 @@ class Manager {
         // перевірка наявності регістра виконується в драйвері, тому на цьому етапі не потрібна
         let res = await this.setRegister(prop, params[prop]);
         if (trace) {
-          log("i", ln, `res=`);
-          console.dir(res);
+          log("i", ln, res);
+          //console.dir(res);
         }
         resString += res;
       }
@@ -310,15 +302,18 @@ class Manager {
   } //async deforeStart(regs={})
 
   async start(regs = {}) {
-    let trace = 0;
-    let ln = this.ln + `start()::`;
-    trace ? log("w", ln, "Start") : null;
+    let trace = 1;
+    regs = this.parseRegs(regs);
+    let ln = this.ln + `start(${JSON.stringify(regs)})::`;
+    trace ? log("w", ln, "Started") : null;
 
     try {
       // зупинка приладу
       await this.stop();
+      trace ? log("w", ln, "Device stoped") : null;
       // запис налаштувань
-      await this.setParams(this.parseRegs(regs));
+      await this.setParams(regs);
+      trace ? log("w", ln, "Params was setted!") : null;
       // запуск на виконання
       await this.setParams({ state: 17 });
       //await this.getParams("state");
@@ -331,9 +326,9 @@ class Manager {
   }
 
   async stop() {
-    let trace = 0;
+    let trace = 1;
     let ln = this.ln + `stop()::`;
-    trace ? log("w", ln, "Device stoped") : null;
+    trace ? log("w", ln, "Started.") : null;
     try {
       await this.setParams({ state: 1 });
       this.state.T.obsolescense = 10 * 1000; // збільшуємо період оновлення даних до 30 с
@@ -359,7 +354,11 @@ class Manager {
       ? console.log(ln, `Started at ${new Date().toLocaleTimeString()}`)
       : null;
     try {
-      await this.getParams("T");
+      let res = await this.getParams("T");
+      if (trace) {
+        log("i", ln, `res=`);
+        console.dir(res);
+      }
     } catch (error) {
       log("e", this.ln, "Помилка зчитування температури");
       return Promise.reject(error);
@@ -415,26 +414,27 @@ class Manager {
 
       // робимо запит в прилад по інтерфейсу
       let res;
+      this.buzy = true;
       try {
-        res = await trySomeTimes(device.getRegPromise, {
+        res = await device.getRegPromise({
           iface: this.iface,
           id: this.addr,
           regName: item,
         });
+        if (trace) {
+          log("i", ln, `res=`);
+          console.dir(res);
+        }
         currReg.value = res[0].value;
         currReg.timestamp = res[0].timestamp;
+        this.buzy = false;
       } catch (error) {
+        log("e", ln, error);
         currReg.value = null;
+        this.buzy = false;
       }
 
       trace ? console.log(ln, item, "=", currReg.value) : null;
-
-      // response[item] = res[0];
-      // оновлюємо дані в state
-
-      //currReg.regName = res[0].regName;
-      //currReg.note = res[0].note;
-      // додаємо отримані дані в відповідь
       response[item] = currReg;
       // додаємо інформацію для повідомлення в консолі
       resString += `${item}=${currReg.value}; `;

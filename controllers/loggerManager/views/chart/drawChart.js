@@ -469,6 +469,10 @@ class Chart {
     // рисуем линии по полученным данным
     let lastData = this.data[this.data.length - 2];
     let newData = this.data[this.data.length - 1];
+    // якщо даних ще немає - вихід
+    if (lastData == undefined) {
+      return;
+    }
     trace
       ? console.log(logCaption + "lastData=" + JSON.stringify(lastData))
       : null;

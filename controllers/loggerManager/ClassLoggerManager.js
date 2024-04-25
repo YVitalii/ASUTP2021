@@ -161,14 +161,6 @@ module.exports = class ClassLoggerManager {
       );
     } //if (!this.fileManager.exist(this.fileName+this._fileExtensions["logger"]))
 
-    // запускаємо очищення тимчасового файлу
-    if (this.fileName === this.tmpLogFileName) {
-      // оскільки сервер може не перезапускатися тижнями,
-      // періодично обрізаємо дані
-      // що старше останніх хх годин (період див. в описі функції)
-      await this.truncateTmpFile();
-    }
-
     // змінюємо стан
     this.state = this._states.started;
     let msg = ` "${this.fileName + this._fileExtensions.logger}" `;
@@ -180,6 +172,15 @@ module.exports = class ClassLoggerManager {
       en: `Write file ${msg} started.`,
       ru: `Запись ${msg} начата.`,
     });
+    // запускаємо очищення тимчасового файлу
+    if (this.fileName === this.tmpLogFileName) {
+      // оскільки сервер може не перезапускатися тижнями,
+      // періодично обрізаємо дані
+      // що старше останніх хх годин (період див. в описі функції)
+      setTimeout(() => {
+        this.truncateTmpFile();
+      }, 3000);
+    }
   } //   async start(fileName = "")
 
   /**
@@ -259,7 +260,10 @@ module.exports = class ClassLoggerManager {
    * Додає визначну точку процесу в файл етапів
    * @param {Object} note={ua:"???",en:"???",ru:"???"} - опис точки
    */
-  async addPoint(note = { ua: "???", en: "???", ru: "???" }) {
+  async addPoint(note = undefined) {
+    if (note === undefined) {
+      return;
+    }
     let trace = 1,
       ln = this.ln + "addPoint()::";
     let line = getCurrTimeString() + "\t" + JSON.stringify(note) + "\n";

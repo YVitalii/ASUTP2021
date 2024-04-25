@@ -145,7 +145,7 @@ class ClassProcessManager {
 
     // this.setTaskPoints(program[0]);
 
-    trace = 1;
+    trace = 0;
     if (trace) {
       log("", ln, `this.program.tasks[1]=`);
       console.dir(this.program.tasks[1], { depth: 4 }); //, { depth: 4 }

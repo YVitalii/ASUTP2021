@@ -27,7 +27,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     //     };
     // props.ln = props.ln ? props.ln : props.header.ua + "::";
 
-    props.id = "quickHeating";
+    props.id = props.id ? props.id : "quickHeating";
     props.ln = props.ln ? props.ln : props.id + "::";
     let trace = 0,
       ln = props.id + "::constructor()::";
@@ -68,7 +68,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     //В цьому кроці не контролюємо нижню границю
     this.errTmin = 0;
     // Максимальний закид як для номінальної цільової tТ : - wT + errTmax
-    this.errTmax = -this.wT + props.regs.errTmax;
+    this.errTmax = -this.wT + this.errTmax; //props.regs.errTmax;
 
     // Назва кроку
     let tT = `${this.tT} °C`;
@@ -121,12 +121,12 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
       "i",
       `Started with: tT=${this.tT}; wT=${this.wT}; errTmin=${this.errTmin}C; errTmax=${this.errTmax}C; H=${this.H}min; Y=${this.Y}min;`
     );
-    this.testProcess();
+    //this.testProcess();
     await super.start();
   }
   // TODO Коли немає звязку з приладом крок рахує що наступила вершина хвилі, що невірно
   //  потрібно додати очікування досягнення температури  tT-5, потім вмикати пошух перегину
-  // TODO Потрібно враховувати addT для кожного приладу, інакше буде помилка "перевищення температури"
+  // Потрібно враховувати addT для кожного приладу, інакше буде помилка "перевищення температури" - враховується в батьківському класі
   /**
    * Перевірка стану процесу
    */

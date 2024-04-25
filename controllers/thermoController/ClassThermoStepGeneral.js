@@ -43,7 +43,8 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
     if (typeof this.device.start != "function") {
       throw new Error(this.ln + " typeof this.device.start != 'function'!");
     }
-    // цільова температура + добавка для конкретного приладу
+
+    // цільова температура + добавка для конкретного приладу, щоб не було помилки виходу за межі допуст.границі
     if (!props.regs.tT) {
       throw new Error(this.ln + "  must be (tT != 0) and  (tT != undefined)!");
     }
@@ -57,9 +58,15 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
 
     // --------- temperature limits --------
     this.errTmin =
-      props.regs.errTmin || props.regs.errTmin == 0 ? props.regs.errTmin : -50;
+      props.regs.errTmin ||
+      (props.regs.errTmin == 0 && !isNaN(props.regs.errTmin))
+        ? props.regs.errTmin
+        : -50;
     this.errTmax =
-      props.regs.errTmax || props.regs.errTmax == 0 ? props.regs.errTmax : 50;
+      props.regs.errTmax ||
+      (props.regs.errTmax == 0 && !isNaN(props.regs.errTmax))
+        ? props.regs.errTmax
+        : 50;
 
     // --------- regulation  --------
     this.regMode =
@@ -90,9 +97,12 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
 
     // Функція для запуску приладу
     this.beforeStart = async () => {
-      log("", "beforeStart()::Started");
+      log("", this.ln + "beforeStart()::Started");
       await this.device.start(this);
-      log("", "beforeStart()::Completed");
+      log("", this.ln + "beforeStart()::Completed");
+      // запускаємо контроль кроку після виконання beforeStart()
+      // інакше при відсутності звязку крок піде але параметри задані не будуть
+      this.testProcess();
     };
 
     // Період між опитуваннями

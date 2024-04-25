@@ -86,13 +86,16 @@ class ClassStep {
   }
 
   async start() {
-    this.logger("w", "start()::Received command  'Start'");
+    let trace = 1,
+      ln = this.ln + "start()::";
+    this.logger("w", this.ln + "Received command  'Start'");
     //  початкові налаштування
     try {
       await this.beforeStart();
-      this.logger("i", "beforeStart()::Completed.");
+      this.logger("i", this.ln + "beforeStart()::Completed.");
     } catch (error) {
       this.error(error);
+      return;
     }
     // стан виконання
     this.state._id = "going";
@@ -103,7 +106,7 @@ class ClassStep {
       en: `Started at ${msg}`,
       ru: `Старт в ${msg}`,
     };
-    this.logger("w", this.state.note.ua);
+    this.logger("w", this.ln + this.state.note.ua);
 
     this.setChanged();
 

@@ -86,15 +86,16 @@
       } //if (state._id != "going")
 
       if (state._id != "going") {
+        let startStep = parseInt(processMan.program.startStepNumber.value);
         let msg = {
-          ua: `Дійсно бажаєте запустити виконання програми?`,
-          en: `Do you really want to start the program?`,
-          ru: `Вы действительно хотите запустить программу?`,
+          ua: `Дійсно бажаєте запустити виконання програми з кроку N${startStep}?`,
+          en: `Do you really want to start the program from step N ${startStep}?`,
+          ru: `Вы действительно хотите запустить программу с шага N${startStep}?`,
         }[lang];
         if (confirm(msg)) {
           // зупиняємо програму
           try {
-            await processMan.program.start();
+            await processMan.program.start(startStep);
             //return;
           } catch (error) {
             console.error(error);
@@ -110,44 +111,43 @@
     console.dir(buttons);
   }
   btnGr.elements = new processMan.myElementsRender[buttons.reg.type](buttons);
-}
 
-/** Періодично опитує стан процессу та, за потреби,  змінює зовнішній вигляд кнопки */
-processMan.buttons.checkState = () => {
-  //debugger;
+  /** Періодично опитує стан процессу та, за потреби,  змінює зовнішній вигляд кнопки */
+  processMan.buttons.checkState = () => {
+    //debugger;
 
-  // елемент кнопки
-  let el = processMan.buttons.elements.children["buttonStart"];
-  // поточний стан процесу
-  if (!processMan.program.model) return; // задачі ще не завантажено
-  let newState = processMan.program.model._id == "going" ? "going" : "stoped";
-  // попередній стан процесу
-  let beforeState = el.state;
-  // якщо стан не змінився - виходимо
-  if (newState && beforeState != newState) {
-    let states = {
-      going: {
-        classList: ["btn-warning", "text-dark"],
-        innerHTML: { ua: `Стоп`, en: `Stop`, ru: `Стоп` },
-      },
-      stoped: {
-        classList: ["btn-primary", "text-light"],
-        innerHTML: { ua: `Пуск`, en: `Start`, ru: `Пуск` },
-      },
-    };
-    if (states[beforeState]) {
-      // видаляємо попередні класи
-      states[beforeState].classList.map((c) => el.el.classList.remove(c));
+    // елемент кнопки
+    let el = processMan.buttons.elements.children["buttonStart"];
+    // поточний стан процесу
+    if (!processMan.program.model) return; // задачі ще не завантажено
+    let newState = processMan.program.model._id == "going" ? "going" : "stoped";
+    // попередній стан процесу
+    let beforeState = el.state;
+    // якщо стан не змінився - виходимо
+    if (newState && beforeState != newState) {
+      let states = {
+        going: {
+          classList: ["btn-warning", "text-dark"],
+          innerHTML: { ua: `Стоп`, en: `Stop`, ru: `Стоп` },
+        },
+        stoped: {
+          classList: ["btn-primary", "text-light"],
+          innerHTML: { ua: `Пуск`, en: `Start`, ru: `Пуск` },
+        },
+      };
+      if (states[beforeState]) {
+        // видаляємо попередні класи
+        states[beforeState].classList.map((c) => el.el.classList.remove(c));
+      }
+      //  додаємо нові класи
+      states[newState].classList.map((c) => el.el.classList.add(c));
+      // змінюємо напис
+      el.el.innerHTML = states[newState].innerHTML[lang];
+      // запамятовуємо новий стан
+      el.state = newState;
     }
-    //  додаємо нові класи
-    states[newState].classList.map((c) => el.el.classList.add(c));
-    // змінюємо напис
-    el.el.innerHTML = states[newState].innerHTML[lang];
-    // запамятовуємо новий стан
-    el.state = newState;
-  }
-}; //processMan.buttons.checkState
-
+  }; //processMan.buttons.checkState
+}
 // запускаємо періодичне опитування стану процесу
 setInterval(() => {
   processMan.buttons.checkState();

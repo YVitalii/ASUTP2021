@@ -92,8 +92,8 @@ if (enableDev2) {
   entity.devicesManager.addDevice(dev2.id, dev2);
 }
 
-log("i", `entity.devices=`);
-console.dir(entity.devicesManager);
+// log("i", `entity.devices=`);
+// console.dir(entity.devicesManager);
 
 // ================  loggerManager ====================
 entity.loggerManager = new ClassLoggerManager({

@@ -60,7 +60,7 @@ class IfaceRS485 {
     // вимикаємо автоматиче відкриття порту, щоб поставити прослуховувача
     // порт відкривається далі в циклі
     props.autoOpen = false;
-
+    this.isOpen = false;
     /**
      * Поточна задача
      * @typedef {Object} Task
@@ -115,6 +115,7 @@ class IfaceRS485 {
         }, 5000);
         return;
       } // err
+      this.isOpen = true;
       log("i", ln, `Порт відкрито! `);
       // ---------------- Запускаємо цикл опитування ---------
       this.iterate();
@@ -146,7 +147,7 @@ class IfaceRS485 {
     trace ? log(ln, `Started!`) : null;
 
     // якщо порт ще не відкрито, повертаємо помилку
-    if (!this.serial.isOpen) {
+    if (!this.isOpen) {
       let err = {
         ua: `Помилка порт не відкрито!`,
         en: `Error port not opened!`,
@@ -204,8 +205,8 @@ class IfaceRS485 {
       ln = this.ln + `iterate()::`;
     trace ? log("i", ln, `Started!`) : null;
 
-    // -- якщо черга пуста або э активна задача - плануємо перевірку через 1 с
-    if ((this.queue.length < 1) | (this.task.timer != 0)) {
+    // -- якщо порт не відкрито  або черга пуста або э активна задача - плануємо перевірку через 1 с
+    if (!this.isOpen || this.queue.length < 1 || this.task.timer != 0) {
       setTimeout(() => {
         this.iterate();
       }, 1000);
@@ -215,11 +216,13 @@ class IfaceRS485 {
     // ------ черга не пуста --------------------
     // беремо першу задачу
     this.task = this.queue.shift();
+    trace ? log("i", ln, `this.queue.length=`, this.queue.length) : null;
     // плануємо запуск послання через this.timeoutBetweenCalls
     setTimeout(() => {
       this.transactionStart(this.task); //transaction
     }, this.timeoutBetweenCalls);
   } // iterate()
+
   /**
    * Починає тразакцію, запускає таймер очікування timeot
    * @param {Task} task
@@ -267,11 +270,11 @@ class IfaceRS485 {
     // перевірка на помилки отриманого повідомлення
     let err = checkBuffer(task);
     if (err) {
-      // помилку ModBus виявлено
-      task.cb(err, null);
       trace ? log("e", ln, `err=`, err) : null;
       //викликаємо наступну ітерацію
       this.iterate();
+      // помилку ModBus виявлено
+      task.cb(err, null);
       return;
     }
     // виділяємо з посилки корисне повідомлення

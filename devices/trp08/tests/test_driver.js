@@ -1,5 +1,5 @@
 // 2024-03-29 Перевірена, працююча версія
-
+const dummy = require("../../../tools/dummy.js").dummyPromise;
 let iface = require("../../../conf_iface.js").w2;
 // ------------ логгер  --------------------
 const log = require("../../../tools/log.js"); // логер
@@ -37,20 +37,31 @@ function test() {
 } //function test()
 
 async function testPromise() {
-  let ln = "Promise::";
+  let ln = "testPromise()::";
+  let res;
 
   log("i", ln, " --------> get tT");
-  let res = await driver.getRegPromise({ iface, id, regName: "tT" });
+  res = await driver.getRegPromise({ iface, id, regName: "tT" });
+  log("i", ln, " -------> get tT - finished");
   console.dir(res);
 
   log("i", ln, " --------> set tT");
-  res = await driver.setRegPromise({ iface, id, regName: "tT", value: 80 });
+  if (res == undefined) {
+    res = [{ value: 10 }];
+  }
+  res = await driver.setRegPromise({
+    iface,
+    id,
+    regName: "tT",
+    value: res[0].value ? res[0].value + 1 : 50,
+  });
+  log("i", ln, " --------> set tT -finished");
   console.dir(res);
 } //async function testPromise
 
-setTimeout(() => {
-  test();
-}, 3000);
+// setTimeout(() => {
+//   test();
+// }, 3000);
 
 setTimeout(() => {
   testPromise();

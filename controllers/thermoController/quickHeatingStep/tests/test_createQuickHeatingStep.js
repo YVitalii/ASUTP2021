@@ -1,29 +1,36 @@
 const ClassQuickHeatingStep = require("../ClassQuickHeatingStep.js");
 const ClassTemperatureEmulator = require("../../../../devices/ClassTemperatureEmulator.js");
-
+const entity = require("../../../../tests/testEntity/entity");
 let gLn = "test_createQuickHeatingStep.js::";
-
-let trp = new ClassTemperatureEmulator({
-  heating: {
-    tT: 200,
-    time: 30,
-  },
-});
+let trace = 1,
+  ln = gLn;
+let trp = entity.devicesManager.devices["trp08n1"];
+if (trace) {
+  console.log("i", ln, `entity.devicesManager=`);
+  console.dir(entity.devicesManager);
+}
 
 let step = new ClassQuickHeatingStep({
-  tT: trp.heating.tT,
+  tT: 55,
   header: {
     ua: `Тестовий крок швидкого нагрівання`,
     en: `Test step of quick heating`,
     ru: ``,
   },
-  beforeStart: async function () {
-    await trp.setRegs({ tT: this.tT, H: 50 });
-    await trp.start();
+  device: trp,
+  regs: {
+    tT: 100,
+    wT: -5,
+    errTmin: -10,
+    errTmax: 10,
   },
-  getT: async function () {
-    return await trp.getT();
-  },
+  // beforeStart: async function () {
+  //   await trp.setRegs({ tT: this.tT, H: 50 });
+  //   await trp.start();
+  // },
+  // getT: async function () {
+  //   return await trp.getT();
+  // },
   // async function () {
   //     let trace = 1,
   //       ln = gLn + "getT()::";
@@ -34,8 +41,8 @@ let step = new ClassQuickHeatingStep({
   //     return t;
   //   },
 
-  wT: -10,
-  wave: { period: 1 },
+  // wT: -10,
+  // wave: { period: 1 },
 });
 
 module.exports = step;
@@ -54,6 +61,7 @@ if (!module.parent) {
       //step.error({ ua: `Капец!`, en: `Yuck!`, ru: `Пипец!` });
       //   step.stop({ ua: `Зупинено!`, en: `Stoped!`, ru: `Остановлено!` });
     }, 5 * 1000);
+    console.log(gLn + "Запуск кроку на виконання");
     await step.start();
     console.log(gLn + "Крок завершено");
     console.dir(step.getState());

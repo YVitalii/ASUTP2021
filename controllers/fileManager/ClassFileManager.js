@@ -86,8 +86,15 @@ class ClassFileManager {
     trace
       ? log("i", ln, `startDate=`, new Date(startDate).toLocaleString())
       : null;
-    let data = await this.readFile(fileName);
-    trace ? log("i", ln, `data=`, data) : null;
+    let data = "";
+    try {
+      data = await this.readFile(fileName);
+      trace ? log("i", ln, `data=`, data) : null;
+    } catch (error) {
+      log("e", ln);
+      console.error(error);
+    }
+
     let arr = data.split("\n");
     data = arr[0] + "\n";
     if (trace) {

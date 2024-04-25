@@ -47,11 +47,12 @@
 // ----- стандартні позначення, щоб міняти в одному місці  -------
 let degC = "\u00b0C"; // °C - позначення градуса
 
+const { dummyPromise } = require("../../tools/dummy.js");
 const log = require("../../tools/log.js");
 //log.setName("TRP08.js");
 const ln = "driver.js::";
 const timeout = 2000; //таймаут запроса
-
+var buzy = false; // ознака активного процесу запису / читання
 //var values=[];// хранит текущие значения  регистров, номер элемента массива = адрес прибора в сети RS485 (id)
 
 function fromBCD(buf) {
@@ -800,7 +801,7 @@ function has(regName) {
 function getReg(iface, id, regName, cb) {
   let trace = 0;
   regName = regName.trim();
-  let modul = "TRP08.getReg(id=" + id + ":regName=" + regName + "):";
+  let modul = "trp08.driver.getReg(id=" + id + ":regName=" + regName + "):";
   trace ? log(3, modul) : null;
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
@@ -818,7 +819,7 @@ function getReg(iface, id, regName, cb) {
         res["buf"] = buf;
         trace ? log(2, modul, "buf=", buf) : null;
         if (err) {
-          log(0, modul, "err=", err);
+          //log(0, modul, "err=", err, "buf=", buf);
           return cb(err, [res]);
         }
         let { data, error } = reg.get_(buf);
@@ -838,9 +839,9 @@ function getReg(iface, id, regName, cb) {
  * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,id,regName}
  * @returns {Ppomise}
  */
-function getRegPromise(props) {
+function getRegProm(props) {
   let trace = 0,
-    ln = "getRegPromise(" + props.id + "-" + props.regName + ")";
+    ln = "getRegPromise(" + props.id + "-" + props.regName + ")::";
   trace ? log(1, ln) : null;
   return new Promise(function (resolve, reject) {
     trace ? log(1, ln + "in Promise") : null;
@@ -848,22 +849,58 @@ function getRegPromise(props) {
 
     getReg(props.iface, props.id, props.regName, (err, data) => {
       let trace = 0;
-      if (trace) {
-        console.log(ln, "err=");
-        console.dir(err);
+      // if (trace) {
+      //   console.log(ln, "err=");
+      //   console.dir(err);
+      // }
+      if (err) {
+        if (trace) {
+          log("i", ln, `err=`);
+          console.dir(err);
+        }
+        reject(err);
+        return;
       }
       if (trace) {
         console.log(ln, "data=");
         console.dir(data);
       }
-      if (err) {
-        reject(err);
-        return;
-      }
       resolve(data);
       return;
     });
   });
+}
+async function getRegPromise(props) {
+  let trace = 1,
+    ln = `driver::getRegPromise(id=${props.id};${props.regName})::`;
+  let res;
+  let i = 0;
+  while (buzy) {
+    log("", ln + "Device are buzy. Waiting: ", i);
+    await dummyPromise(2000);
+  }
+  buzy = true;
+  i = 0;
+  let ok = false;
+  do {
+    try {
+      res = await getRegProm(props);
+      ok = true;
+      buzy = false;
+    } catch (error) {
+      log("e", ln, "err=", error.messages.en);
+      if (error.code != 13) {
+        ok = true;
+        buzy = false;
+        throw new Error(error.messages.en);
+      }
+
+      log("w", ln + `Try again.. ${i}`);
+      i++;
+      dummyPromise(2000);
+    }
+  } while (!ok);
+  return res;
 }
 
 // -------------------------- setReg callback ---------------------------
@@ -881,7 +918,13 @@ function setReg(iface, id, regName, value, cb) {
   // и возвращает такой же объект как и getReg
   let trace = 0;
   let modul =
-    "TRP08.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
+    "trp08.driver.setReg(id=" +
+    id +
+    ":regName=" +
+    regName +
+    ":value=" +
+    value +
+    "):";
   regName = regName.trim();
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
@@ -951,7 +994,7 @@ function setReg(iface, id, regName, value, cb) {
  * @returns {Ppomise}
  */
 
-function setRegPromise(props) {
+function setRegProm(props) {
   return new Promise(function (resolve, reject) {
     setReg(props.iface, props.id, props.regName, props.value, (err, data) => {
       if (err) {
@@ -962,6 +1005,39 @@ function setRegPromise(props) {
       return;
     });
   });
+}
+
+async function setRegPromise(props) {
+  let trace = 1,
+    ln = `driver::setRegPromise(id=${props.id};${props.regName}=${props.value})::`;
+  let res;
+  let i = 0;
+  while (buzy) {
+    log("", ln + "Device are buzy. Waiting: ", i);
+    await dummyPromise(2000);
+  }
+  buzy = true;
+  i = 0;
+  let ok = false;
+  do {
+    try {
+      res = await setRegProm(props);
+      ok = true;
+      buzy = false;
+    } catch (error) {
+      log("e", ln, "err=", error.messages.en);
+      if (error.code != 13) {
+        ok = true;
+        buzy = false;
+        throw new Error(error.messages.en);
+      }
+
+      log("w", ln + `Try again.. ${i}`);
+      i++;
+      dummyPromise(2000);
+    }
+  } while (!ok);
+  return res;
 }
 
 /**
