@@ -9,6 +9,7 @@ const log = require("../../../tools/log");
 router.post("/getFilesList", function (req, res, next) {
   let trace = 1,
     ln = req.fileManager.ln + 'post("/")::';
+  trace ? log("i", ln, `Started=`) : null;
   //const mainPug = pathResolve("../../../../views/main.pug");
   let data = req.fileManager.getFilesList();
   console.log(`Resolved data= ${data}`);

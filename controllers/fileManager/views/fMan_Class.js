@@ -2,7 +2,13 @@ const ClassFileManager = class FileManager {
   /**
    *
    * @param {Object} props - список параметрів
-   *
+   * @prop {String} props.id - ідентифікатор менеджера
+   * @prop {Object} props.types - рендер myElRender
+   * @prop {DOM node} props.container - контейнер для відображення елементу
+   * @prop {ClassButtonGroup} props.buttons - об'єкт з описом кнопок керування типу ClassButton
+   * @prop {selectGeneral} props.filesList - елемент вибору назви файлу
+   * @prop {async Function} props.getFilesList - елемент вибору назви файлу
+   * @prop {async Function} props.homeUrl - адреса за якою виконуються запити
    */
 
   constructor(props) {
@@ -13,10 +19,12 @@ const ClassFileManager = class FileManager {
       console.log(ln + `props=`);
       console.dir(props);
     }
+    //debugger;
     this.id = props.id;
     // list of types
     this.types = props.types;
-
+    //
+    this.homeUrl = (props.homeUrl ? props.homeUrl : "") + "/fileManager";
     // container
     this.container = props.container
       ? props.container

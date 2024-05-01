@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "supervisor --watch ./,../../entities/general,../testEntity,../../processes/processManager --no-restart-on error  --extensions js,pug,json --timestamp ./bin/www"
+    "start": "supervisor --watch ./,../../controllers,../testEntity --no-restart-on error  --extensions js,pug,json --timestamp ./bin/www"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

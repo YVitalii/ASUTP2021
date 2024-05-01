@@ -839,7 +839,7 @@ function getReg(iface, id, regName, cb) {
  * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,id,regName}
  * @returns {Ppomise}
  */
-function getRegProm(props) {
+function getRegPromise(props) {
   let trace = 0,
     ln = "getRegPromise(" + props.id + "-" + props.regName + ")::";
   trace ? log(1, ln) : null;
@@ -869,38 +869,6 @@ function getRegProm(props) {
       return;
     });
   });
-}
-async function getRegPromise(props) {
-  let trace = 1,
-    ln = `driver::getRegPromise(id=${props.id};${props.regName})::`;
-  let res;
-  let i = 0;
-  while (buzy) {
-    log("", ln + "Device are buzy. Waiting: ", i);
-    await dummyPromise(2000);
-  }
-  buzy = true;
-  i = 0;
-  let ok = false;
-  do {
-    try {
-      res = await getRegProm(props);
-      ok = true;
-      buzy = false;
-    } catch (error) {
-      log("e", ln, "err=", error.messages.en);
-      if (error.code != 13) {
-        ok = true;
-        buzy = false;
-        throw new Error(error.messages.en);
-      }
-
-      log("w", ln + `Try again.. ${i}`);
-      i++;
-      dummyPromise(2000);
-    }
-  } while (!ok);
-  return res;
 }
 
 // -------------------------- setReg callback ---------------------------
@@ -994,7 +962,7 @@ function setReg(iface, id, regName, value, cb) {
  * @returns {Ppomise}
  */
 
-function setRegProm(props) {
+function setRegPromise(props) {
   return new Promise(function (resolve, reject) {
     setReg(props.iface, props.id, props.regName, props.value, (err, data) => {
       if (err) {
@@ -1005,39 +973,6 @@ function setRegProm(props) {
       return;
     });
   });
-}
-
-async function setRegPromise(props) {
-  let trace = 1,
-    ln = `driver::setRegPromise(id=${props.id};${props.regName}=${props.value})::`;
-  let res;
-  let i = 0;
-  while (buzy) {
-    log("", ln + "Device are buzy. Waiting: ", i);
-    await dummyPromise(2000);
-  }
-  buzy = true;
-  i = 0;
-  let ok = false;
-  do {
-    try {
-      res = await setRegProm(props);
-      ok = true;
-      buzy = false;
-    } catch (error) {
-      log("e", ln, "err=", error.messages.en);
-      if (error.code != 13) {
-        ok = true;
-        buzy = false;
-        throw new Error(error.messages.en);
-      }
-
-      log("w", ln + `Try again.. ${i}`);
-      i++;
-      dummyPromise(2000);
-    }
-  } while (!ok);
-  return res;
 }
 
 /**

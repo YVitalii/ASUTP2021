@@ -292,6 +292,37 @@ module.exports = class ClassLoggerManager {
     return await this.fileManager.readFile(fileName + fileExt);
   }
 
+  getFilesList() {
+    let trace = 1,
+      ln = this.ln + "getFilesList ()::";
+    trace ? log("i", ln, `Started=`) : null;
+    let fList = this.fileManager.getFilesList();
+    if (trace) {
+      log("i", ln, `fList=`);
+      console.dir(fList);
+    }
+    let res = [];
+    for (let i = 0; i < fList.length; i++) {
+      const el = fList[i].split(".");
+      trace
+        ? log(
+            "i",
+            ln,
+            `${el[0]} type  "${el[1]}"  logger: ${this._fileExtensions.logger}`
+          )
+        : null;
+      if ("." + el[1] === this._fileExtensions.logger) {
+        res.push(el[0]);
+      }
+    }
+    res.sort();
+    if (trace) {
+      log("i", ln, `res=`);
+      console.dir(res);
+    }
+    return res;
+  }
+
   async getLoggerArchiv(fileName = "") {
     return this.getFile(fileName, this._fileExtensions.logger);
   }

@@ -3,11 +3,13 @@ var router = express.Router();
 const pug = require("pug");
 const resolvePath = require("path").resolve;
 const log = require("../../../tools/log.js");
+const fileManagerRouter = require("../../fileManager/routes/index.js");
 
 router.all("*", function (req, res, next) {
   let trace = 0,
     ln = `${req.originalUrl}::`;
   req.loggerManager = req.entity.loggerManager;
+  req.fileManager = req.loggerManager.fileManager;
   trace ? log("i", ln, `Started`) : null;
   // if (trace) {
   //   log("i", ln, `req.params=`);
@@ -15,6 +17,15 @@ router.all("*", function (req, res, next) {
   // }
   next();
 });
+
+router.post("/fileManager/getFilesList", (req, res, next) => {
+  let trace = 1,
+    ln = `${req.originalUrl}::`;
+  trace ? log("w", ln, `Started`) : null;
+  let filesList = req.loggerManager.getFilesList();
+  res.json({ err: null, data: filesList });
+});
+
 router.post("/getRegs", async function (req, res, next) {
   let trace = 0,
     ln = `${req.baseUrl}::`;

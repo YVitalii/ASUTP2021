@@ -16,9 +16,9 @@ class Manager {
   /**
    * Конструктор
    * @param {Object} iface - об'єкт до якого підключено цей прилад
-   * @param {Integer} id - ідентифікатор приладу в iface
    * @param {Integer} addr - адреса приладу в iface
    * @param {Object} params - додаткові налаштування конкретного приладу
+   * @param {Integer} params.id - ідентифікатор приладу в deviceManager
    * @param {Number} params.addT=0 - зміщення завдання для конкретного приладу (потрібно вручну додавати до завдання tT в кроці)
    * @param {Number} params.header={ua,en..} - назва приладу
    */
@@ -29,9 +29,11 @@ class Manager {
 
     // -------- інтерфейс -----------
     this.iface = iface;
-
+    // ознака поточного циклу запису
+    this.busy = false;
+    // ідентифікатор приладу d deviceManager наприклад trp08_1
     this.id = params.id;
-
+    //
     // ----- перевіряємо addr ----------------
     if (!addr) {
       throw new Error("Не вказана адреса приладу addr=" + addr);
@@ -44,7 +46,7 @@ class Manager {
     } catch (error) {
       throw new Error("addr неможливо перетворити в цифру:" + error.message);
     }
-    // назва приладу
+    // назва приладу для відображення
     this.header =
       params.header && params.header.ua
         ? params.header
@@ -71,18 +73,19 @@ class Manager {
      */
 
     // поточні налаштування приладу поки null
+    let period = { high: 10 * 1000, middle: 20 * 1000, low: 60 * 1000 };
     this.state = {
       T: {
         id: "T",
         value: null, // значення регістру
         timestamp: new Date(startTime), // відмітка часу останнього оновлення
-        obsolescense: 5 * 1000, //мс, період за який дані застаріють
+        obsolescense: period.high, //мс, період за який дані застаріють
       },
       state: {
         id: "state",
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 30 * 1000, //період за який дані застаріють
+        obsolescense: period.middle, //період за який дані застаріють
         states: {
           1: { ua: `Зупинка`, en: `Stoping`, ru: `Остановка` },
           7: { ua: `Зупинено`, en: `Stoped`, ru: `Остановлен` },
@@ -108,48 +111,48 @@ class Manager {
       timer: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 60 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       regMode: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       tT: {
         id: "tT",
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       H: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       Y: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       o: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       ti: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       td: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
       u: {
         value: null,
         timestamp: new Date(startTime),
-        obsolescense: 180 * 1000, //період за який дані застаріють
+        obsolescense: period.low, //період за який дані застаріють
       },
     }; //state
 
@@ -182,7 +185,7 @@ class Manager {
       // при ініціалізації об'єкту зупиняємо прилад так як він міг бути в стані Пуск
       await this.stop();
       //log("i", this.ln, "Command 'Stop' done!");
-    }, 1000);
+    }, 5000);
 
     log("w", `${this.ln}:: ===>  Device was created. `);
   } //constructor
@@ -195,34 +198,72 @@ class Manager {
     return this.addT;
   }
 
+  async iteration(func, params) {
+    let trace = 0,
+      ln =
+        this.ln +
+        `iteration(${func.name},${params.regName}${
+          params.value || params.value === 0 ? "=" + params.value : ""
+        })::`;
+    trace ? log("i", ln, `Started`) : null;
+    // очікуємо закінчення попередньої операції
+    let i = 0; // лічильник повторів
+    while (!this.iface.isOpen || this.busy) {
+      !this.iface.isOpen ? log("", ln + `Port not opened. Waiting: `, i) : null;
+      trace
+        ? log("", ln + `Device ${this.header.ua} are busy. Waiting: `, i)
+        : null;
+      await dummyPromise(3000);
+    }
+    // даємо запит на запис
+    let res,
+      resString = "";
+    this.busy = true;
+    i = 0;
+    let ok = false;
+    do {
+      try {
+        if (!this.iface.isOpen) {
+          let err = new Error();
+          err.code = 13;
+          err.messages = { en: "Port not opened!" };
+          throw err;
+        }
+        res = await func(params);
+        ok = true;
+      } catch (error) {
+        log("", ln, "err=", error.messages.en);
+        if (error.code != 13) {
+          ok = true;
+          this.busy = false;
+          throw new Error(error.messages.en);
+        }
+        log("", ln + `Try again.. ${i}`);
+        i++;
+        await dummyPromise(3000);
+      }
+    } while (!ok);
+    this.busy = false;
+    trace ? log("i", ln + "Completed") : null;
+    return res;
+  } //async iteration
+
   /** Функція записує 1 параметр */
   async setRegister(regName, value) {
     let trace = 0,
       ln = this.ln + `setRegister(${regName}=${value})::`;
     trace ? log("i", ln, `Started`) : null;
-    // очікуємо закінчення попередньої операції
-    while (this.buzy) {
-      await dummyPromise(2000);
-    }
     let reg = this.state[regName];
     // даємо запит на запис
     let res,
       resString = "";
-    this.buzy = true;
-    try {
-      res = await device.setRegPromise({
-        iface: this.iface,
-        id: this.addr,
-        regName: regName,
-        value: value,
-      });
-    } catch (error) {
-      this.buzy = false;
-      log("e", ln + "error=");
-      console.dir(error);
-      throw new Error(error);
-    }
-    this.buzy = false;
+
+    res = await this.iteration(device.setRegPromise, {
+      iface: this.iface,
+      id: this.addr,
+      regName: regName,
+      value: value,
+    });
     // оновлюємо дані в state
     trace ? log("i", ln, `res=`, res) : null;
     reg.value = res.value;
@@ -413,26 +454,36 @@ class Manager {
       }
 
       // робимо запит в прилад по інтерфейсу
-      let res;
-      this.buzy = true;
-      try {
-        res = await device.getRegPromise({
-          iface: this.iface,
-          id: this.addr,
-          regName: item,
-        });
-        if (trace) {
-          log("i", ln, `res=`);
-          console.dir(res);
-        }
-        currReg.value = res[0].value;
-        currReg.timestamp = res[0].timestamp;
-        this.buzy = false;
-      } catch (error) {
-        log("e", ln, error);
-        currReg.value = null;
-        this.buzy = false;
+      let res = await this.iteration(device.getRegPromise, {
+        iface: this.iface,
+        id: this.addr,
+        regName: item,
+      });
+      if (trace) {
+        log("i", ln, `res=`);
+        console.dir(res);
       }
+      currReg.value = res[0].value;
+      currReg.timestamp = res[0].timestamp;
+
+      // try {
+      //   res = await device.getRegPromise({
+      //     iface: this.iface,
+      //     id: this.addr,
+      //     regName: item,
+      //   });
+      //   if (trace) {
+      //     log("i", ln, `res=`);
+      //     console.dir(res);
+      //   }
+      //   currReg.value = res[0].value;
+      //   currReg.timestamp = res[0].timestamp;
+      //   this.busy = false;
+      // } catch (error) {
+      //   log("e", ln, error);
+      //   currReg.value = null;
+      //   this.busy = false;
+      // }
 
       trace ? console.log(ln, item, "=", currReg.value) : null;
       response[item] = currReg;
@@ -449,6 +500,71 @@ class Manager {
     trace ? log("i", resString) : null;
     return response;
   }
+
+  // async getRegPromise(props) {
+  //   let trace = 1,
+  //     ln = `driver::getRegPromise(id=${props.id};${props.regName})::`;
+  //   let res;
+  //   let i = 0;
+  //   while (this.busy) {
+  //     log("", ln + "Device are this.busy. Waiting: ", i);
+  //     await dummyPromise(2000);
+  //   }
+  //   this.busy = true;
+  //   i = 0;
+  //   let ok = false;
+  //   do {
+  //     try {
+  //       res = await device.getRegPromise(props);
+  //       ok = true;
+  //       this.busy = false;
+  //     } catch (error) {
+  //       log("e", ln, "err=", error.messages.en);
+  //       if (error.code != 13) {
+  //         ok = true;
+  //         this.busy = false;
+  //         throw new Error(error.messages.en);
+  //       }
+
+  //       log("w", ln + `Try again.. ${i}`);
+  //       i++;
+  //       dummyPromise(2000);
+  //     }
+  //   } while (!ok);
+  //   return res;
+  // }
+
+  // async setRegPromise(props) {
+  //   let trace = 1,
+  //     ln = `driver::setRegPromise(id=${props.id};${props.regName}=${props.value})::`;
+  //   let res;
+  //   let i = 0;
+  //   while (this.busy) {
+  //     log("", ln + "Device are busy. Waiting: ", i);
+  //     await dummyPromise(2000);
+  //   }
+  //   this.busy = true;
+  //   i = 0;
+  //   let ok = false;
+  //   do {
+  //     try {
+  //       res = await device.setRegPromise(props);
+  //       ok = true;
+  //       this.busy = false;
+  //     } catch (error) {
+  //       log("e", ln, "err=", error.messages.en);
+  //       if (error.code != 13) {
+  //         ok = true;
+  //         this.busy = false;
+  //         throw new Error(error.messages.en);
+  //       }
+  //       log("w", ln + `Try again.. ${i}`);
+  //       i++;
+  //       dummyPromise(2000);
+  //     }
+  //   } while (!ok);
+  //   return res;
+  // }
 
   getCompactHtml(params = { baseUrl: "/", prefix: "" }) {
     params.prefix =

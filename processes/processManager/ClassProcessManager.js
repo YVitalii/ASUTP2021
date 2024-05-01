@@ -23,14 +23,24 @@ class ClassProcessManager {
       log("i", ln, `Started with props=`);
       console.dir(props);
     }
+    //    ------ tasksManager -----------
     if (!props.tasksManager) {
       throw new Error(this.ln + "TasksManager must be defined!! ");
     }
     this.tasksManager = props.tasksManager;
+
+    //  -------- loggerManager ---------
     if (!props.loggerManager) {
       throw new Error(this.ln + "loggerManager must be defined!! ");
     }
     this.loggerManager = props.loggerManager;
+
+    //  -------- loggerManager ---------
+    if (!props.devicesManager) {
+      throw new Error(this.ln + "devicesManager must be defined!! ");
+    }
+    this.devicesManager = props.devicesManager;
+
     // поточна програма
     this.program = {};
     // программа
@@ -143,6 +153,27 @@ class ClassProcessManager {
       tasks: program[0],
     });
 
+    // --- по завершенню програми потрібно зупинити всі прилади
+    this.program.afterAll = async () => {
+      let trace = 1,
+        ln = this.ln + "afterAll()::";
+      trace ? log("i", ln, `Started`) : null;
+
+      try {
+        await this.devicesManager.stopAll();
+        trace ? log("i", ln, `All devices was stoped!`) : null;
+      } catch (error) {
+        log("e", ln + error.message);
+      }
+      // зупиняємо запис лог-файлу через 10 хв по закінченню програми
+      // якщо стан будь-який а не finished, то продовжуємо запис
+      trace ? log("i", ln, `Stop writing log file`) : null;
+      if (this.program.state._id == "finished") {
+        setTimeout(() => {
+          this.loggerManager.start();
+        }, 10 * 60 * 1000);
+      }
+    }; //this.program.afterAll
     // this.setTaskPoints(program[0]);
 
     trace = 0;
@@ -209,7 +240,7 @@ class ClassProcessManager {
   }
 
   /**
-   * Проходить по всім крокам та збирає інфо про їх стан
+   * Проходить по всім крокам програми та збирає інфо про їх стан
    * @returns повертає в браузер об'єкт зі станами кроків програми
    */
   getHtmlProgram() {
@@ -229,6 +260,7 @@ class ClassProcessManager {
     }
     return this.htmlProgram.states;
   }
+
   /**
    * Рендерить pug шаблони та ініціює модуль
    * @param {Object} req - обєкт запиту
@@ -280,26 +312,28 @@ class ClassProcessManager {
     }
     this.program.start(stepN);
 
-    // імя файлів логів   формуємо  у вигляді: "05-04-2024t10-11"
+    // імя файлів логів   формуємо  у вигляді: "2024-04-05_16-31"
+    // від назви "05-04-2024t10-11" - відмовився не зручно сортувати
     let fileName = "";
     do {
-      let newFileN = new Date().toLocaleString();
+      let newFileN = new Date().toLocaleTimeString().slice(0, -3);
       //log(`newFileN=`, newFileN);
-      newFileN = newFileN.replace(/\./g, "-");
       newFileN = newFileN.replace(/\:/g, "-");
-      newFileN = newFileN.replace(", ", "t");
-      fileName = newFileN.slice(0, -3);
+      newFileN = new Date().toISOString().split("T")[0] + "_" + newFileN;
+      fileName = newFileN;
       trace
         ? log("i", ln, `New log file name generated: fileName=`, fileName)
         : null;
     } while (this.loggerManager.fileManager.exist(fileName));
 
     await this.loggerManager.start(fileName);
+
     let data = {
       ua: `Програма "${this.program.header.ua}" почала виконання!`,
       en: `Program is "${this.program.header.en}" started!`,
       ru: `Програма "${this.program.header.ru}" запущена!`,
     };
+
     return { err: null, data };
   }
 

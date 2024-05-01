@@ -7,7 +7,7 @@ const Manager = require("../manager.js");
 let ln = "testCreateTrp.js::";
 let id = 1;
 
-let device1 = new Manager(iface, id, { addT: 5 });
+let device1 = new Manager(iface, 1, { id: "trp08_1", addT: 5 });
 
 module.exports = device1;
 

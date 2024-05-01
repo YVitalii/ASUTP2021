@@ -60,6 +60,20 @@ module.exports = class ClassDevicesManager {
   getAll(id) {
     return this.devices;
   }
+  /** Зупиняє всі зареєстровані прилади  */
+  async stopAll() {
+    try {
+      for (const dev in this.devices) {
+        if (Object.hasOwnProperty.call(this.devices, dev)) {
+          await this.devices[dev].stop();
+        }
+      }
+      return true;
+    } catch (error) {
+      throw new Error(error);
+    }
+  } // async stopAll()
+
   getCompactHtml(req) {
     let content = "";
     for (let key in this.getAll()) {

@@ -181,6 +181,7 @@ let taskThermal = new ClassTaskThermal({
 if (enableDev2) {
   taskThermal.devices.push(entity.devicesManager.getDevice(dev2.id));
 }
+
 // --------------- менеджер завдань -----------------
 entity.tasksManager = new TasksManager({
   ln: entity.id + "::TasksManager::",
@@ -197,6 +198,7 @@ entity.processManager = new ClassProcessManager({
   homeUrl: entity.homeUrl,
   tasksManager: entity.tasksManager,
   loggerManager: entity.loggerManager,
+  devicesManager: entity.devicesManager,
   ln: entity.id + "::ProcessManager::",
 });
 

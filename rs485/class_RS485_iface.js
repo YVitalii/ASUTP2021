@@ -19,7 +19,7 @@ const parseBuf = require("../tools/parseBuf.js");
 
 // завантаження логера
 const log = require("../tools/log.js");
-
+const dummy = require("../tools/dummy.js").dummyPromise;
 class IfaceRS485 {
   /**
    * @param {String} path - шлях до порту в системі, наприклад '/dev/ttyUSB0' або 'COM3'
@@ -60,7 +60,9 @@ class IfaceRS485 {
     // вимикаємо автоматиче відкриття порту, щоб поставити прослуховувача
     // порт відкривається далі в циклі
     props.autoOpen = false;
-    this.isOpen = false;
+    this.isOpen = () => {
+      return this.serial.isOpen;
+    };
     /**
      * Поточна задача
      * @typedef {Object} Task
@@ -99,30 +101,46 @@ class IfaceRS485 {
       }
     });
 
-    // функція callback для serial.open,
-    // створена для перезапуску самої себе до моменту успішного відкриття порту
-    let openCb = (err, data) => {
-      if (err) {
-        log("e", ln, err.message);
-
-        // плануємо наступну спробу відкрити порт через 5 сек
-        setTimeout(() => {
-          // if (trace) {
-          //   log("i", ln, `this=`);
-          //   console.dir(this);
-          // }
-          this.serial.open(openCb);
-        }, 5000);
-        return;
-      } // err
-      this.isOpen = true;
-      log("i", ln, `Порт відкрито! `);
-      // ---------------- Запускаємо цикл опитування ---------
-      this.iterate();
-    };
     // --------- запускаємо спроби відкрити порт  ----------
-    this.serial.open(openCb);
+    this.openPort();
+    // ---------------- Запускаємо цикл опитування ---------
+    this.iterate();
   } // constructor
+
+  // функція callback для serial.open,
+  // створена для перезапуску самої себе до моменту успішного відкриття порту
+  async openPort() {
+    while (!this.serial.isOpen) {
+      log("i", this.ln + "Try to open port!");
+      try {
+        await this.serial.open();
+      } catch (error) {
+        log("e", this.ln + error.message);
+      }
+      log("i", this.ln + "Waiting 3 s !");
+      await dummy(3000);
+    } //while
+    // this.serialisOpen = true;
+    log("i", this.ln, `Порт відкрито! `);
+  }
+
+  // checkPortOpen() {
+  //   // якщо порт ще не відкрито, повертаємо помилку
+  //   if (!this.isOpen) {
+  //     let err = {
+  //       ua: `Помилка порт не відкрито!`,
+  //       en: `Error port not opened!`,
+  //       ru: `Ошибка порт не открыт!`,
+  //     };
+  //     this.transactionFinish(this.task);
+  //     this.iterate();
+  //     // process.nextTick(() => {
+  //     //   this.task.cb(new Error(err), null);
+  //     // });
+  //     trace ? log("Error:", ln, err.en) : null;
+  //     return;
+  //   }
+  // }
 
   /**
    * функція формує та ставить запит в чергу
@@ -135,7 +153,6 @@ class IfaceRS485 {
    * @return {callback} (err,data) = >
    * @typedef {Object} data - отримані дані
    */
-
   send(req, cb) {
     // налаштування трасувальника
     let trace = 0,
@@ -146,19 +163,19 @@ class IfaceRS485 {
         )})::`;
     trace ? log(ln, `Started!`) : null;
 
-    // якщо порт ще не відкрито, повертаємо помилку
-    if (!this.isOpen) {
-      let err = {
-        ua: `Помилка порт не відкрито!`,
-        en: `Error port not opened!`,
-        ru: `Ошибка порт не открыт!`,
-      };
-      process.nextTick(() => {
-        cb(new Error(err), null);
-      });
-      trace ? log("Error:", ln, err.en) : null;
-      return;
-    }
+    // // якщо порт ще не відкрито, повертаємо помилку
+    // if (!this.isOpen) {
+    //   let err = {
+    //     ua: `Помилка порт не відкрито!`,
+    //     en: `Error port not opened!`,
+    //     ru: `Ошибка порт не открыт!`,
+    //   };
+    //   process.nextTick(() => {
+    //     cb(new Error(err), null);
+    //   });
+    //   trace ? log("Error:", ln, err.en) : null;
+    //   return;
+    // }
     // заготовка послання
     let msg = {
       timeout: req.timeout ? req.timeout : 1000,
@@ -203,10 +220,10 @@ class IfaceRS485 {
     // -- налаштування трасувальника -----
     let trace = 0,
       ln = this.ln + `iterate()::`;
-    trace ? log("i", ln, `Started!`) : null;
+    trace ? log("i", ln, `Started! isOpen=${this.serial.isOpen}`) : null;
 
     // -- якщо порт не відкрито  або черга пуста або э активна задача - плануємо перевірку через 1 с
-    if (!this.isOpen || this.queue.length < 1 || this.task.timer != 0) {
+    if (this.queue.length < 1 || this.task.timer != 0) {
       setTimeout(() => {
         this.iterate();
       }, 1000);
@@ -217,6 +234,8 @@ class IfaceRS485 {
     // беремо першу задачу
     this.task = this.queue.shift();
     trace ? log("i", ln, `this.queue.length=`, this.queue.length) : null;
+    // перевіряємо відкритий порт чи ні
+    // this.checkPortOpen();
     // плануємо запуск послання через this.timeoutBetweenCalls
     setTimeout(() => {
       this.transactionStart(this.task); //transaction
@@ -231,6 +250,20 @@ class IfaceRS485 {
     let trace = 0,
       ln = this.ln + `transactionStart(${parseBuf(task.req)})::`;
     trace ? log("i", ln, `Started!`) : null;
+    // якщо порт ще не відкрито, повертаємо помилку
+    if (!this.serial.isOpen) {
+      let err = {
+        ua: `Помилка порт не відкрито!`,
+        en: `Error port not opened!`,
+        ru: `Ошибка порт не открыт!`,
+      };
+      log("e", err.en);
+      // --------- запускаємо спроби відкрити порт  ----------
+      this.serial.open(this.openCb);
+      // - завершуємо поточну задачу
+      this.transactionFinish(task);
+      return;
+    }
     // очищуємо приймальний буфер
     task.res = Buffer.alloc(0);
     // запамятовуємо час

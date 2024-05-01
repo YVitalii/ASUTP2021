@@ -10,14 +10,10 @@ let i = 0;
 
 async function getT() {
   let t = await device1.getT();
-  log("", ln + `iteration :${i};t=${t}C`);
+  log("", ln + `iteration :${i}; t= ${t} C`);
   i++;
   setTimeout(() => getT(), 2000);
 }
-
-setTimeout(async () => {
-  getT();
-}, 2000);
 
 async function test() {
   // await device1.getT();
@@ -39,6 +35,9 @@ async function test() {
     checkPeriod: 30,
     wT: -5,
   });
+  setTimeout(async () => {
+    getT();
+  }, 2000);
   // await device1.getParams("tT;o;H;Y;ti;td");
   setTimeout(() => {
     device1.stop();

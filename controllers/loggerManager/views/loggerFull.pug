@@ -1,8 +1,19 @@
 diw.row.h-100
   div.col-2.h-100#fileManagerContainer
-    p fileManager will be here
+    div.row#el_fileMan_btnGroup
+    div.row#fileMan_currFile
+    div.row#el_fileMan_listFiles
+
   div.col-10.h-100 !{chart} 
     //- include loggerCompact.pug
 
 script.
+  var logMan = {};
+  logMan.homeUrl = JSON.parse('!{JSON.stringify(logger.homeUrl)}');
+  //- logMan.fileManager = {
+  //- }
   setTimeout(()=>{chartMan.chart.start()},5000);
+
+script 
+  include ../../fileManager/views/fMan_Class.js
+  include ./logger_fileManager.js
