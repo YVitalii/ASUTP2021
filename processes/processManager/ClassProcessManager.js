@@ -295,6 +295,10 @@ class ClassProcessManager {
   // }
 
   async start(stepN = 1) {
+    // TODO Якщо в нас падає сервер, то на сторінці нічого не міняється і не видно,
+    // що проблема і система не працює
+    // можливо ставити сторожевий таймер і скидати його при вдалих запитах або робити
+    // автоматичний перезапуск  сервера
     let trace = 1,
       ln = this.ln + `Start(${stepN})::`;
     stepN = parseInt(stepN);
@@ -310,17 +314,25 @@ class ClassProcessManager {
       log("e", ln + err.ua);
       return { err, data: null };
     }
+    // якщо починаємо з кроку №1 - очищуємо попередній стан кроків
+    if (stepN == 1) {
+      this.setProgram();
+    }
+
     this.program.start(stepN);
 
     // імя файлів логів   формуємо  у вигляді: "2024-04-05_16-31"
     // від назви "05-04-2024t10-11" - відмовився не зручно сортувати
+    //
     let fileName = "";
     do {
       let newFileN = new Date().toLocaleTimeString().slice(0, -3);
       //log(`newFileN=`, newFileN);
       newFileN = newFileN.replace(/\:/g, "-");
       newFileN = new Date().toISOString().split("T")[0] + "_" + newFileN;
-      fileName = newFileN;
+      // TODO не працює так як не додається розширення файлу, шукається файл "2024-04-05_16-31"
+      //  а не "2024-04-05_16-31.log"
+      fileName = newFileN + this.loggerManager._fileExtensions.logger;
       trace
         ? log("i", ln, `New log file name generated: fileName=`, fileName)
         : null;
@@ -333,7 +345,8 @@ class ClassProcessManager {
       en: `Program is "${this.program.header.en}" started!`,
       ru: `Програма "${this.program.header.ru}" запущена!`,
     };
-
+    this.listSteps[0].started = new Date().toISOString();
+    await this.loggerManager.saveTasks(this.listSteps);
     return { err: null, data };
   }
 

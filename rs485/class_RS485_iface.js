@@ -100,29 +100,60 @@ class IfaceRS485 {
         this.transactionFinish(this.task);
       }
     });
-
+    this.isOpened = false;
     // --------- запускаємо спроби відкрити порт  ----------
     this.openPort();
     // ---------------- Запускаємо цикл опитування ---------
     this.iterate();
   } // constructor
 
+  async openPortPromise(serial) {
+    let trace = 1,
+      ln = this.ln + "openPortPromise(serial)::";
+    return new Promise(function (resolve, reject) {
+      if (serial.isOpen) {
+        log("i", ln, `Порт вже відкрито! `);
+        resolve(true);
+      }
+      log("i", ln + "Try to open port!");
+      serial.open((err) => {
+        if (err) {
+          log("e", ln + err.message);
+          reject(err);
+          return;
+        }
+        log("i", ln, `Порт відкрито! `);
+        resolve(true);
+      });
+    });
+  } //async openPortPromise()
+
   // функція callback для serial.open,
   // створена для перезапуску самої себе до моменту успішного відкриття порту
   async openPort() {
-    while (!this.serial.isOpen) {
-      log("i", this.ln + "Try to open port!");
+    let trace = 1,
+      ln = this.ln + "openPort()::";
+    //this.isOpened = this.serial.isOpen;
+    while (!this.isOpened) {
       try {
-        await this.serial.open();
+        this.isOpeningPort = true;
+        await this.openPortPromise(this.serial);
+        log("i", ln, `Порт відкрито! `);
+        this.isOpened = this.serial.isOpen;
+        this.isOpeningPort = false;
+        return 1;
       } catch (error) {
-        log("e", this.ln + error.message);
+        // if (trace) {
+        //   log("i", ln, `error=`);
+        //   console.dir(error);
+        // }
       }
-      log("i", this.ln + "Waiting 3 s !");
+      this.isOpened = false;
+      log("i", ln + "Will waiting 3 s !");
       await dummy(3000);
     } //while
-    // this.serialisOpen = true;
-    log("i", this.ln, `Порт відкрито! `);
-  }
+    //this.isOpened = true;
+  } // async openPort()
 
   // checkPortOpen() {
   //   // якщо порт ще не відкрито, повертаємо помилку
@@ -221,9 +252,22 @@ class IfaceRS485 {
     let trace = 0,
       ln = this.ln + `iterate()::`;
     trace ? log("i", ln, `Started! isOpen=${this.serial.isOpen}`) : null;
-
-    // -- якщо порт не відкрито  або черга пуста або э активна задача - плануємо перевірку через 1 с
-    if (this.queue.length < 1 || this.task.timer != 0) {
+    this.isOpened = this.serial.isOpen;
+    // якщо порт ще не відкрито, повертаємо помилку
+    if (!this.isOpened) {
+      let err = {
+        ua: `Помилка порт не відкрито!`,
+        en: `Error port not opened!`,
+        ru: `Ошибка порт не открыт!`,
+      };
+      // --------- запускаємо спроби відкрити порт  ----------
+      if (!this.isOpeningPort) {
+        log("e", ln + err.en);
+        this.openPort();
+      }
+    }
+    // -- якщо черга пуста або э активна задача - плануємо перевірку через 1 с
+    if (!this.isOpened || this.queue.length < 1 || this.task.timer != 0) {
       setTimeout(() => {
         this.iterate();
       }, 1000);
@@ -234,8 +278,7 @@ class IfaceRS485 {
     // беремо першу задачу
     this.task = this.queue.shift();
     trace ? log("i", ln, `this.queue.length=`, this.queue.length) : null;
-    // перевіряємо відкритий порт чи ні
-    // this.checkPortOpen();
+
     // плануємо запуск послання через this.timeoutBetweenCalls
     setTimeout(() => {
       this.transactionStart(this.task); //transaction
@@ -250,20 +293,7 @@ class IfaceRS485 {
     let trace = 0,
       ln = this.ln + `transactionStart(${parseBuf(task.req)})::`;
     trace ? log("i", ln, `Started!`) : null;
-    // якщо порт ще не відкрито, повертаємо помилку
-    if (!this.serial.isOpen) {
-      let err = {
-        ua: `Помилка порт не відкрито!`,
-        en: `Error port not opened!`,
-        ru: `Ошибка порт не открыт!`,
-      };
-      log("e", err.en);
-      // --------- запускаємо спроби відкрити порт  ----------
-      this.serial.open(this.openCb);
-      // - завершуємо поточну задачу
-      this.transactionFinish(task);
-      return;
-    }
+
     // очищуємо приймальний буфер
     task.res = Buffer.alloc(0);
     // запамятовуємо час

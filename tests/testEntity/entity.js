@@ -8,6 +8,7 @@ const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskTh
 const ClassDevicesManager = require("../../devices/devicesManager/ClassDevicesManager.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
 const ClassLoggerManager = require("../../controllers/loggerManager/ClassLoggerManager.js");
+const ClassReportManager = require("../../controllers/reportsManager/ClassReportsManager.js");
 const pathResolve = require("path").resolve;
 const pathJoin = require("path").join;
 const pathNormalize = require("path").normalize;
@@ -202,6 +203,11 @@ entity.processManager = new ClassProcessManager({
   ln: entity.id + "::ProcessManager::",
 });
 
+entity.reportManager = new ClassReportManager({
+  homeDir: entity.homeDir,
+  homeUrl: entity.homeUrl,
+  loggerManager: entity.loggerManager,
+});
 // entity.processController = new ProgramController({
 //   tasksManager: entity.tasksManager,
 // });

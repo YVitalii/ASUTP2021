@@ -42,6 +42,8 @@ class ClassStep {
       ? props.header
       : { ua: `Крок ${this.id}`, en: `Step ${this.id}`, ru: `Шаг ${this.id}` };
     this.comment = props.comment ? props.comment : { ua: ``, en: ``, ru: `` };
+    // на 2024-05-02 не використовується, залишена для сумісності з нащадками
+    // TODO видалити цю змінну
     // stepPoints=[] масив точок, що використовуються для відображення задачі на графіку
     // {dTime, value, valMin, valMax}
     //  dTime - хв, тривалість кроку (різниця часу між початком кроку та його завершенням) або undefined= очікувати завершення
@@ -57,7 +59,7 @@ class ClassStep {
     this.beforeStart = props.beforeStart
       ? props.beforeStart
       : async (regs = {}) => {
-          log("w", ln, "beforeStart()::Not defined. Return 1.");
+          //log("", ln, "beforeStart()::Not defined. Return 1.");
           return 1;
         };
     if (typeof this.beforeStart != "function") {
@@ -82,7 +84,22 @@ class ClassStep {
   } // constructor
 
   logger(level, msg) {
-    log(level, this.ln, "[", new Date().toLocaleTimeString() + "]::" + msg);
+    let now = new Date();
+    let { header, comment } = this;
+    let point = {
+      comment: {
+        ua: `${header.ua}::${comment.ua}::${msg.ua ? msg.ua : msg}`,
+        en: `${header.en}::${comment.en}::${msg.en ? msg.en : msg}`,
+        ru: `${header.ru}::${comment.ru}::${msg.ru ? msg.ru : msg}`,
+      },
+    };
+
+    log(
+      level,
+      this.ln,
+      "[",
+      now.toLocaleTimeString() + "]::" + `${msg.en ? msg.en : msg}`
+    );
   }
 
   async start() {

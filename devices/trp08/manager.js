@@ -208,8 +208,10 @@ class Manager {
     trace ? log("i", ln, `Started`) : null;
     // очікуємо закінчення попередньої операції
     let i = 0; // лічильник повторів
-    while (!this.iface.isOpen || this.busy) {
-      !this.iface.isOpen ? log("", ln + `Port not opened. Waiting: `, i) : null;
+    while (!this.iface.isOpened || this.busy) {
+      !this.iface.isOpened
+        ? log("", ln + `Port not opened. Waiting: `, i)
+        : null;
       trace
         ? log("", ln + `Device ${this.header.ua} are busy. Waiting: `, i)
         : null;
@@ -223,10 +225,10 @@ class Manager {
     let ok = false;
     do {
       try {
-        if (!this.iface.isOpen) {
+        if (!this.iface.isOpened) {
           let err = new Error();
           err.code = 13;
-          err.messages = { en: "Port not opened!" };
+          err.messages = { en: ln + "Port not opened!" };
           throw err;
         }
         res = await func(params);

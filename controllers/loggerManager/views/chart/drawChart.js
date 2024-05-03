@@ -1097,12 +1097,13 @@ class Chart {
     this.timeDomain.start = timeRoundDown(this.data[0].time);
     this.timeDomain.end = timeRoundDown(this.data[this.data.length - 2].time);
   }
+
   /**
    * перезавантажує інформацію з нового файлу fileName
    * @param {String} fileName
    */
   reload(fileName) {
-    let trace = 0,
+    let trace = 1,
       logH = "drawChart()::" + "reload()" + "::";
     trace ? console.log(logH + "Enter") : 0;
     this.config.logFileName = fileName;

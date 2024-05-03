@@ -56,6 +56,10 @@ const ClassFileManager = class FileManager {
     this.filesList.render(regs);
   }
 
+  setFileName(fName) {
+    this.filesList.setValue(fName);
+  }
+
   async loadFilesList() {
     try {
       // запит на сервер

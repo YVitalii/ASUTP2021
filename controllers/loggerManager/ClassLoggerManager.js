@@ -39,7 +39,7 @@ module.exports = class ClassLoggerManager {
     // розширення для файлів
     this._fileExtensions = {
       logger: ".log", // файл з записом параметрів процесу
-      steps: ".stp", // файл з запланованим перебігом процесу (програма)
+      tasks: ".tsk", // файл з завданням та описом поточного процесу (програма)
       points: ".pnt", // файл з точками подій
     };
 
@@ -257,6 +257,34 @@ module.exports = class ClassLoggerManager {
   } //  async truncateTmpFile()
 
   /**
+   * Записує перелік кроків активного процесу
+   * @param {string} tasks - імя файлу без розширення
+   */
+  async saveTasks(tasks = {}) {
+    await this.fileManager.writeFile(
+      this.fileName + this._fileExtensions.tasks,
+      JSON.stringify(tasks)
+    );
+  }
+
+  /** читає список завдань та повертає їх у вигляді Object
+   *  @param {string} fName=this.fileName - імя файлу без розширення
+   */
+  async readTasks(fName = "") {
+    fName = fName == "" ? this.fileName : fName;
+    fName = fName + this._fileExtensions.tasks;
+    if (this.fileManager.exist(fName)) {
+      try {
+        let res = await this.fileManager.readFile(fName);
+        res = JSON.parse(res);
+      } catch (error) {
+        throw new Error(error);
+      }
+    }
+    return res;
+  } // async readTasks
+
+  /**
    * Додає визначну точку процесу в файл етапів
    * @param {Object} note={ua:"???",en:"???",ru:"???"} - опис точки
    */
@@ -266,7 +294,8 @@ module.exports = class ClassLoggerManager {
     }
     let trace = 1,
       ln = this.ln + "addPoint()::";
-    let line = getCurrTimeString() + "\t" + JSON.stringify(note) + "\n";
+    let now = getCurrTimeString();
+    let line = now + "\t" + JSON.stringify(note) + "\n";
     await this.fileManager.appendFile(
       this.fileName + this._fileExtensions.points,
       line
@@ -293,7 +322,7 @@ module.exports = class ClassLoggerManager {
   }
 
   getFilesList() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getFilesList ()::";
     trace ? log("i", ln, `Started=`) : null;
     let fList = this.fileManager.getFilesList();
@@ -322,6 +351,36 @@ module.exports = class ClassLoggerManager {
     }
     return res;
   }
+  async deleteFile(fileName) {
+    if (fileName == this.fileName) {
+      return {
+        err: {
+          ua: `Ви не можете видалити файл активний файл "${fileName}"`,
+          en: `You can't delete active log file "${fileName}"`,
+          ru: `Вы не можете удалить активный файл записи "${fileName}"`,
+        },
+        data: null,
+      };
+    }
+    for (const key in this._fileExtensions) {
+      if (Object.hasOwnProperty.call(this._fileExtensions, key)) {
+        const ext = this._fileExtensions[key];
+        try {
+          await this.fileManager.deleteFile(fileName + ext);
+        } catch (error) {
+          log("e", error);
+        }
+      }
+    } // for
+    return {
+      err: null,
+      data: {
+        ua: `Запис "${fileName}" успішно видалено`,
+        en: `The record "${fileName}" was deleted successfully`,
+        ru: `Запись "${fileName}" была успешно удалена`,
+      },
+    };
+  } //async deleteFile(fileName
 
   async getLoggerArchiv(fileName = "") {
     return this.getFile(fileName, this._fileExtensions.logger);

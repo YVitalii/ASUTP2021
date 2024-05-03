@@ -33,7 +33,7 @@ props.buttons.reg.regs.btnSave = {
   },
   onclick: async function (e) {
     let trace = 1,
-      ln = "btnAccept::onClick::";
+      ln = "btnReport::onClick::";
     trace ? console.log(ln + ` Pressed!`) : null;
     // Отримуємо дані
     let content = tasks.model.getValues();
@@ -66,50 +66,57 @@ props.buttons.reg.regs.btnSave = {
   }, //onclick:
 };
 
-// ------------------- btnAccept -----------------------------
-props.buttons.reg.regs.btnAccept = {
+// ------------------- btnReport -----------------------------
+props.buttons.reg.regs.btnReport = {
   reg: {
     classes: ["btn-success"],
-    header: { ua: "Звіт", en: "Report", ru: "Отчет" },
+    header: { ua: "Створити звіт", en: "Create report", ru: "Создать отчет" },
   },
+  action: "link",
   onclick: async function (e) {
+    let fileName = fileManager.getFileName();
     let trace = 1,
-      ln = "btnAccept::onClick::";
+      ln = `btnReport(${fileName})::onClick::`;
     trace ? console.log(ln + ` Pressed!`) : null;
+    this.el.setAttribute("href", logMan.homeUrl + "/report/" + fileName);
+    if (trace) {
+      console.log(ln + `this=`);
+      console.dir(this);
+    }
     //let data = tasks.model.getValues();
     // Беремо імя файлу зі списку файлів а не з форми, так як там можуть бути
     // змінені та не збережені дані, тобто спочатку зберегти - потім Застосувати
-    let fileName = fileManager.getFileName();
-    if (
-      !confirm(
-        {
-          ua: `Ви дійсно бажаєте завантажити програму "${fileName}"?`,
-          en: `Do You really want to load program  "${fileName}"?`,
-          ru: `Вы действительно хотите загрузить программу "${fileName}"?`,
-        }[lang]
-      )
-    ) {
-      console.log(ln + "Cancelled by user.");
-      return;
-    }
-    try {
-      // запит на сервер
-      let res = await acceptFile("acceptFile", {
-        fileName,
-      });
-      if (trace) {
-        console.log(ln + `res=`);
-        console.dir(res);
-      }
-      if (res.err) {
-        throw new Error(res.err[lang]);
-      }
-      fileManager.currPrg.setValue(fileName);
-    } catch (error) {
-      console.error(error);
-      // Помилка
-      alert(error.message);
-    } // try catch
+
+    // if (
+    //   !confirm(
+    //     {
+    //       ua: `Ви дійсно бажаєте завантажити програму "${fileName}"?`,
+    //       en: `Do You really want to load program  "${fileName}"?`,
+    //       ru: `Вы действительно хотите загрузить программу "${fileName}"?`,
+    //     }[lang]
+    //   )
+    // ) {
+    //   console.log(ln + "Cancelled by user.");
+    //   return;
+    // }
+    // try {
+    //   // запит на сервер
+    //   let res = await acceptFile("acceptFile", {
+    //     fileName,
+    //   });
+    //   if (trace) {
+    //     console.log(ln + `res=`);
+    //     console.dir(res);
+    //   }
+    //   if (res.err) {
+    //     throw new Error(res.err[lang]);
+    //   }
+    //   fileManager.currPrg.setValue(fileName);
+    // } catch (error) {
+    //   console.error(error);
+    //   // Помилка
+    //   alert(error.message);
+    // } // try catch
   }, // onclick
 };
 // ------------------- btnDelete -----------------------------
@@ -130,9 +137,9 @@ props.buttons.reg.regs.btnDelete = {
     if (
       !confirm(
         {
-          ua: `Ви дійсно бажаєте видалити програму "${fileName}"?`,
-          en: `Do You really want to delete the program  "${fileName}"?`,
-          ru: `Вы действительно хотите удалить программу "${fileName}"?`,
+          ua: `Ви дійсно бажаєте видалити запис: "${fileName}"?`,
+          en: `Do You really want to delete the record:  "${fileName}"?`,
+          ru: `Вы действительно хотите удалить запись: "${fileName}"?`,
         }[lang]
       )
     ) {
@@ -147,7 +154,7 @@ props.buttons.reg.regs.btnDelete = {
       if (err) {
         alert(err[lang]);
       }
-      await fileManager.loadFilesList();
+      await logMan.fileManager.init();
     } catch (error) {
       // Помилка
       alert(error.message);
@@ -162,9 +169,13 @@ props.filesList = {
 
   afterChange: async () => {
     // функція обробки зміни поля filesList
+    let fName = logMan.fileManager.getFileName();
     let trace = 1,
-      ln = "fileList::afterChange::";
+      ln = `filesList::afterChange(${fName})::`;
     trace ? console.log(ln, `Started`) : null;
+    chartMan.chart.reload(fName);
+    //chartMan.chart.start()
+
     // try {
     //   let { err, data } = await fileManager.post("readFile");
     //   if (data) {
@@ -178,9 +189,9 @@ props.filesList = {
   reg: {
     prefix: props.id,
     id: "filesList",
-    value: "", //tasks.list[0].name, //список поточних задач вже завантажено з сервера беремо ім'я
+    value: undefined, //список поточних задач вже завантажено з сервера беремо ім'я
     header: {
-      ua: `Список архів`,
+      ua: `Список записів`,
       en: `The list of records`,
       ru: `Список архивов`,
     },
@@ -204,7 +215,28 @@ props.filesList = {
 const fileManager = new ClassFileManager(props);
 logMan.fileManager = fileManager;
 
-logMan.fileManager.loadFilesList();
+// зачантажуємо список файлів з сервера
+logMan.fileManager.init = async () => {
+  let ok = false;
+  while (!ok) {
+    try {
+      await logMan.fileManager.loadFilesList();
+      logMan.fileManager.setFileName(logMan.currentFile);
+      ok = true;
+    } catch (error) {
+      let s = 5;
+      console.err(
+        ln + `error.message=${error.message}. Try again after ${s}s.`
+      );
+      await myTools.dummy(s * 1000);
+    }
+  }
+}; //logMan.fileManager.init = async ()
+
+logMan.fileManager.init();
+
+// TODO Зробити автоматичний вибір поточного лог-файлу на разі видається пусте поле якщо до цього не клацнути на списку
+// також після видалення файлу в полі value залишається імя вже видаленого файлу
 
 // fileManager.currPrg = new props.types["text"]({
 //   container: document.getElementById("fileMan_currFile"),

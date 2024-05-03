@@ -3,7 +3,9 @@ var router = express.Router();
 const pug = require("pug");
 const resolvePath = require("path").resolve;
 const log = require("../../../tools/log.js");
-const fileManagerRouter = require("../../fileManager/routes/index.js");
+// const fileManagerRouter = require("../../fileManager/routes/index.js");
+const reportRouter = require("../../reportsManager/routes/reportsRouter.js");
+let gLn = "loggerRouter.js::";
 
 router.all("*", function (req, res, next) {
   let trace = 0,
@@ -17,6 +19,12 @@ router.all("*", function (req, res, next) {
   // }
   next();
 });
+router.all("/report/*", reportRouter);
+// router.all("/report/*", (req, res, next) => {
+//   let trace = 1,
+//     ln = gLn + `req.originalUrl=${req.originalUrl}::`;
+//   trace ? log("i", ln, `Started`) : null;
+// });
 
 router.post("/fileManager/getFilesList", (req, res, next) => {
   let trace = 1,
@@ -24,6 +32,18 @@ router.post("/fileManager/getFilesList", (req, res, next) => {
   trace ? log("w", ln, `Started`) : null;
   let filesList = req.loggerManager.getFilesList();
   res.json({ err: null, data: filesList });
+});
+
+router.post("/fileManager/deleteFile", async (req, res, next) => {
+  let trace = 1,
+    ln = `${req.originalUrl}::`;
+  trace ? log("w", ln, `Started`) : null;
+  if (trace) {
+    log("i", ln, `req.body=`);
+    console.dir(req.body);
+  }
+  let result = await req.loggerManager.deleteFile(req.body.fileName);
+  res.json(result);
 });
 
 router.post("/getRegs", async function (req, res, next) {

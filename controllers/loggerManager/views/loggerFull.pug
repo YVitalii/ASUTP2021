@@ -10,9 +10,10 @@ diw.row.h-100
 script.
   var logMan = {};
   logMan.homeUrl = JSON.parse('!{JSON.stringify(logger.homeUrl)}');
+  logMan.currentFile = JSON.parse('!{JSON.stringify(logger.fileName)}')
   //- logMan.fileManager = {
   //- }
-  setTimeout(()=>{chartMan.chart.start()},5000);
+  //- setTimeout(()=>{chartMan.chart.start()},5000);
 
 script 
   include ../../fileManager/views/fMan_Class.js
