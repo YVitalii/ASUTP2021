@@ -172,7 +172,9 @@ class ClassTasksManager extends ClassReg_select {
     }
     // якщо такого файлу не існує - помилка
     if (!this.fileManager.exist(val)) {
-      let msg = ln + "Incorrect fileName: " + `[ ${val} ]`;
+      // TODO При установці виникає помилка так як файл типової програми ще не існує
+      let msg =
+        ln + "Incorrect fileName: " + `[ ${this.fileManager.homeDir}/${val} ]`;
       throw new Error(msg);
     }
     await this.loadTask(val);

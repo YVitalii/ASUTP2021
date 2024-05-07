@@ -18,7 +18,7 @@ router.all("*/:fileName", function (req, res, next) {
   //   log("i", ln, `req.params=`);
   //   console.dir(req.params);
   // }
-  let html = req.entity.reportsManager.getFullHtml(req);
+  let html = req.entity.reportManager.getFullHtml(req);
   res.send(html);
   //   next();
 });

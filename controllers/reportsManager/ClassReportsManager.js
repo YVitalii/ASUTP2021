@@ -12,8 +12,8 @@ module.exports = class ReportManagerClass {
   constructor(props = {}) {
     this.ln = props.loggerManager.ln + "ReportManagerClass()::";
     // this.loggerManager = props.loggerManager;
-    this.baseDir = props.loggerManager.baseDir;
-    this.baseUrl = props.baseUrl ? props.baseUrl : "" + "/reports";
+    this.baseDir = props.homeDir;
+    this.baseUrl = (props.homeUrl ? props.homeUrl : "") + "/reports";
   }
 
   getPugTemplateDir(req) {
@@ -33,8 +33,18 @@ module.exports = class ReportManagerClass {
     const pugTemplate = this.getPugTemplateDir(req) + "/reportFull.pug";
     trace ? log("i", ln, `pugTemplateDir=`, pugTemplate) : null;
     let html = "";
+    let lang = req.user.lang;
     html = html = pug.renderFile(pugTemplate, {
+      lang,
+      pageTitle: {
+        ua: `Генератор звітів`,
+        en: `Reports manager`,
+        ru: `Генератор отчетов`,
+      },
       logger: req.entity.loggerManager,
+      entityHeader: req.entity.fullName,
+      report: this,
+      homeUrl: this.baseUrl,
     });
     return html;
   }

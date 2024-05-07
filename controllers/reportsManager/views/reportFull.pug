@@ -1,1 +1,55 @@
-style "@page {size:20cm 30cm; margin: 7mm 7mm 7mm 7mm}"
+doctype html
+-var _lang = lang ? lang : 'ua'
+-var _pageTitle = pageTitle[_lang] ? pageTitle[_lang] : 'pageTitle: not defined'
+html(class="h-100")
+  head
+    title !{_pageTitle}
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/bootstrap/bootstrap.min.css')
+    script(src="/bootstrap/bootstrap.bundle.min.js") 
+    script.
+      const lang = "!{_lang}";
+    include ../../elementsRender/views/myElementsRender.pug
+body(class="h-100")
+  div.container-fluide.h-100
+    //- --------------  header -----------(style="height:30mm")
+    div.row 
+      div.col-md-auto 
+        img(src="/logo.png")
+      div.col.d-flex.align-items-center.justify-content-center
+        p.h4 !{`${entityHeader[lang]}`}
+    div.row
+      div.col-4
+        div.mb-3.row
+          label.col-sm-2.col-form-label !{`${logger.program[0].name[lang]}`}
+//- div.col 
+//-   p Program Name
+//-         div.row
+//-           div.col 
+//-             p Program description
+//-       div.col
+//-         p Notes
+
+  //- div.row.h-75
+  //-   div.col#chart
+  //-     h4 Chart
+//- (style= "color:grey; padding-bottom: 10%;padding-top:15%")
+
+  //- style "@page {size:20cm 30cm; margin: 7mm 7mm 7mm 7mm}"
+//-   header    
+//-     div.container-fluide
+//-       div.row
+//-         div.col-md-auto 
+//-           img(src="/logo.png")
+//-         div.col
+//-           h6.align-middle Header
+//-   div.container-fluide.h-100.pb-4
+//-     div.row
+//-       div.col.fluide#chart
+//-   div.row.footer
+//-     div.col-6 
+//-       h6 Footer. Legend description
+//-     div.col
+//-       h6 sign
+
+  script(src="/bootstrap/bootstrap.min.js")

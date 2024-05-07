@@ -44,7 +44,7 @@ entity.shortName = {
 
 // id печі має співпадати з назвою теки в якій вона розташована
 // TODO потрібно автоматизувати: використовувати в якості id імя батьківської теки
-entity.homeDir = __dirname + "\\";
+entity.homeDir = pathNormalize(__dirname + "\\");
 
 entity.id = "furnace2024";
 
