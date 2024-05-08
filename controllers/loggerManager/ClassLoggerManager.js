@@ -390,6 +390,25 @@ module.exports = class ClassLoggerManager {
     return this.getFile(fileName, this._fileExtensions.points);
   }
 
+  async getTasksArchiv(fileName = "") {
+    let trace = 1,
+      ln = this.ln + `getTasksArchiv(${fileName})::`;
+    trace ? log("i", ln, `Started`) : null;
+    try {
+      let res = await this.getFile(fileName, this._fileExtensions.tasks);
+      //res = JSON.parse(res);
+
+      if (trace) {
+        log("i", ln, `res=`);
+        console.dir(res);
+      }
+      return res;
+    } catch (error) {
+      throw new Error(error);
+    }
+    return;
+  }
+
   getCompactHtml(req) {
     let html = pug.renderFile(
       resolvePath(

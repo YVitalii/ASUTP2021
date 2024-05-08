@@ -137,6 +137,7 @@ class ClassFileManager {
       return data.toString();
     } catch (error) {
       log("e", ln + "Can't read file:" + path);
+      throw new Error(error);
     }
   }
 

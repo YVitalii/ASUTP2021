@@ -34,6 +34,21 @@ router.post("/fileManager/getFilesList", (req, res, next) => {
   res.json({ err: null, data: filesList });
 });
 
+router.post("/fileManager/readTasks", async (req, res, next) => {
+  let trace = 1,
+    ln = `${req.originalUrl}::`;
+  trace ? log("w", ln, `Started`) : null;
+  let data;
+  try {
+    data = await req.loggerManager.getTasksArchiv(req.body.fileName);
+    res.json({ err: null, data: data });
+  } catch (error) {
+    res.json({ err: error, data: null });
+  }
+
+  // res.json({ err: null, data: "Ok" });
+});
+
 router.post("/fileManager/deleteFile", async (req, res, next) => {
   let trace = 1,
     ln = `${req.originalUrl}::`;

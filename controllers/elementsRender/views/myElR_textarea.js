@@ -16,7 +16,9 @@ myElementsRender["textarea"] = class ClassElementNumber extends (
       ln = this.ln + "Constructor()::";
 
     // -- тип поля Number -------
-    this.field.setAttribute("rows", "3");
+    if (!props.reg.attributes || !props.reg.attributes.rows) {
+      this.field.setAttribute("rows", "3");
+    }
 
     // -- обробник зміни значення поля ----------
     // 2024-01-31 перенесено в батьківський клас

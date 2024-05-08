@@ -2,8 +2,9 @@
 
 //- div.container.h-100
 //-   div.row.h-100
-div.col.h-100(id=chartContainerId) 
-pre #{"logger="+JSON.stringify(logger)}
+
+//- pre #{"logger="+JSON.stringify(logger)}
+div(style="margin:0; padding:0; width:100%; height:100%;" id=chartContainerId)
 script 
   include ./chart/d3/d3.min.js
   include ./chart/drawChart.js    

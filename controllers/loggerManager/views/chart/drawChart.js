@@ -40,7 +40,7 @@ class Chart {
 
   constructor(elementId, config) {
     this.ln = "chart()::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
     // создает объект графика и настраивает его основные свойства
     /** Задает диапазон цветов для линий графиков */
@@ -109,29 +109,33 @@ class Chart {
     // для обнаружения изменившегося размера родительского элемента
     // и перерисовки графика с новыми размерами
     this.resizeTimer = setInterval(() => {
-      // считываем предыдущие размеры контейнера
-      let nowW = this.client.width;
-      let nowH = this.client.height;
-      // узнаем текущие размеры контейнера
-      let newW = this.elementDOM.clientWidth;
-      let newH = this.elementDOM.clientHeight;
-      // проверяем на соответствие
-      if (nowW != newW || nowH != newH) {
-        // размеры контейнера изменились
-        console.log(
-          "nowW=" + nowW + ";nowH=" + nowH + ";newW=" + newW + ";newH=" + newH
-        );
-        // запоминаем новые размеры контейнера
-        this.client.width = newW;
-        this.client.height = newH;
-        //перерисовываем график
-        this.redraw();
-      }
+      this.checkSize();
     }, 1000); //setInterval
 
     // запрашиваем данные
     this.getData();
   } // constructor
+
+  checkSize() {
+    // считываем предыдущие размеры контейнера
+    let nowW = this.client.width;
+    let nowH = this.client.height;
+    // узнаем текущие размеры контейнера
+    let newW = this.elementDOM.clientWidth;
+    let newH = this.elementDOM.clientHeight;
+    // проверяем на соответствие
+    if (nowW != newW || nowH != newH) {
+      // размеры контейнера изменились
+      console.log(
+        "nowW=" + nowW + ";nowH=" + nowH + ";newW=" + newW + ";newH=" + newH
+      );
+      // запоминаем новые размеры контейнера
+      this.client.width = newW;
+      this.client.height = newH;
+      //перерисовываем график
+      this.redraw();
+    }
+  }
 
   /**
  * вызов функции приводит к загрузке браузером графика в виде изображения-svg
@@ -143,7 +147,7 @@ class Chart {
     // вызов функции приводит к загрузке браузером графика в виде изображения-svg с именем fName
     let svgEl = this.svg._groups[0][0]; // svg - элемент DOM
     let name = this.config.logFileName + ".svg"; // имя файла
-    let trace = 1,
+    let trace = 0,
       title = "saveSVG():";
     trace ? console.log(title, "---- Started ----") : null;
     trace ? console.log(title, "svgEl=", svgEl) : null;
@@ -421,7 +425,7 @@ class Chart {
    * @return {string}  - undefined или код цвета в формате "#377eb8"
    */
   getColorRegister(reg) {
-    var trace = 1,
+    var trace = 0,
       title = "getColorRegister(" + reg + "):";
     trace ? console.log(title, "---- Started ----") : null;
     let color = undefined;
@@ -447,7 +451,7 @@ class Chart {
    *
    */
   getColorsRegisters(reg) {
-    var trace = 1,
+    var trace = 0,
       title = "getColorsRegisters(" + reg.toString() + "):";
     trace ? console.log(title, "---- Started ----") : null;
     let obj = {};
@@ -640,7 +644,7 @@ class Chart {
   меняет физические границы this.timeDomain.start, this.timeDomain.end
 */
   refreshTimeDomain() {
-    let trace = 1,
+    let trace = 0,
       logH = "refreshTimeDomain():";
     trace ? console.log(logH, "----- Started -----") : null;
     //trace ? console.log(logH,):null;
@@ -995,7 +999,7 @@ class Chart {
 
   drawTask() {
     // --- отрисовка заданной программы ----------
-    let trace = 1,
+    let trace = 0,
       logH = "drawChart()::" + " drawTask()" + "::";
     trace ? console.log(logH + "Task:") : 0;
     trace ? console.log(this.task) : 0;
@@ -1051,7 +1055,7 @@ class Chart {
   getTasks() {
     this.task = null;
     let fName = this.config.logFileName + ".tsk";
-    let trace = 1,
+    let trace = 0,
       logH = "drawChart()::" + "loadTask()" + "::";
     trace
       ? console.log(
@@ -1103,7 +1107,7 @@ class Chart {
    * @param {String} fileName
    */
   reload(fileName) {
-    let trace = 1,
+    let trace = 0,
       logH = "drawChart()::" + "reload()" + "::";
     trace ? console.log(logH + "Enter") : 0;
     this.config.logFileName = fileName;

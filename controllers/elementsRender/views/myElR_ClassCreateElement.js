@@ -32,8 +32,13 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
     this.div.classList.add("form-group");
 
     // ---- <comment> --------
-    this.comment = document.createElement("small");
-    this.comment.innerHTML = this.reg.comment[lang];
+    if (this.reg.comment && this.reg.comment[lang]) {
+      this.comment = document.createElement("small");
+      this.comment.innerHTML = this.reg.comment[lang];
+    } else {
+      this.comment = undefined;
+    }
+
     // ---- Field --------
     this.field = document.createElement(this.tag);
     this.field.classList.add("form-control");
@@ -57,7 +62,9 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
     // ---- зв'язуємо разом ----------
     this.div.appendChild(this.label);
     this.div.appendChild(this.field);
-    this.div.appendChild(this.comment);
+    if (this.comment) {
+      this.div.appendChild(this.comment);
+    }
     // -- поточне значення -----
     if (props.reg.value | (props.reg.value === 0)) {
       this.value = props.reg.value;

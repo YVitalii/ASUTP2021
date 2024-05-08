@@ -1,16 +1,46 @@
-diw.row.h-100
+//- style.
+//-   @page { 
+//-     size: A4 landscape; 
+//-     margin: 18mm 5mm 5mm 5mm;
+//-     border: 1px solid;
+//-     }
+
+
+diw.row.h-100#bodyRow
   div.col-2.h-100#fileManagerContainer
     div.row#el_fileMan_btnGroup
     div.row#fileMan_currFile
     div.row#el_fileMan_listFiles
+  //- div.col.h-100  
+  //-   div.row.h-100
+  div.col-10.h-100#chartColumn
+    div.row#programHeader 
+      div.col-3
+        div  
+          span.h6 Назва програми: 
+          span#tasksName
+        div
+          span.h6 Початок:  
+          span#tasksStarted
+      div.col-9#tasksNote
 
-  div.col-10.h-100 !{chart} 
+        //- div
+        //-   span.h6 Початок
+        //-   span#tasksFinished
+
+    div.row.h-75#chartRow
+      div.col-12
+        include ./loggerCompact.pug
+    div.row#programFooter Footer
+    //- div.col-10.h-100 !{chart} 
     //- include loggerCompact.pug
 
 script.
   var logMan = {};
   logMan.homeUrl = JSON.parse('!{JSON.stringify(logger.homeUrl)}');
   logMan.currentFile = JSON.parse('!{JSON.stringify(logger.fileName)}')
+
+
   //- logMan.fileManager = {
   //- }
   //- setTimeout(()=>{chartMan.chart.start()},5000);
@@ -18,3 +48,5 @@ script.
 script 
   include ../../fileManager/views/fMan_Class.js
   include ./logger_fileManager.js
+  include ./logger_printReport.js
+  include ./logger_tasksManager.js

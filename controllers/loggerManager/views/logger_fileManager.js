@@ -173,17 +173,28 @@ props.filesList = {
     let trace = 1,
       ln = `filesList::afterChange(${fName})::`;
     trace ? console.log(ln, `Started`) : null;
-    chartMan.chart.reload(fName);
-    //chartMan.chart.start()
+    let res;
+    try {
+      //
+      res = await fileManager.post("readTasks", {
+        fileName: fName,
+      });
 
-    // try {
-    //   let { err, data } = await fileManager.post("readFile");
-    //   if (data) {
-    //     tasks.renderList(data);
-    //   }
-    // } catch (error) {
-    //   console.error(ln + error.message);
-    // }
+      //chartMan.chart.start();
+    } catch (error) {
+      console.error(ln + error.message);
+    }
+    if (!res || res.err || res.data == null || res.data == undefined) {
+      res && res.err ? console.error(res.err) : null;
+      logMan.tasks.data = [
+        { name: undefined, note: undefined, started: undefined },
+      ];
+    }
+    if (res && res.data) {
+      logMan.tasks.data = JSON.parse(res.data);
+    }
+    logMan.tasks.render();
+    chartMan.chart.reload(fName);
   }, //afterChange
 
   reg: {
@@ -235,63 +246,5 @@ logMan.fileManager.init = async () => {
 
 logMan.fileManager.init();
 
-// TODO Зробити автоматичний вибір поточного лог-файлу на разі видається пусте поле якщо до цього не клацнути на списку
+// Зробити автоматичний вибір поточного лог-файлу на разі видається пусте поле якщо до цього не клацнути на списку
 // також після видалення файлу в полі value залишається імя вже видаленого файлу
-
-// fileManager.currPrg = new props.types["text"]({
-//   container: document.getElementById("fileMan_currFile"),
-//   attributes: { size: 10 },
-//   reg: {
-//     id: "currPrg",
-//     value: "default",
-//     header: {
-//       ua: `Імя файлу`,
-//       en: `The active program`,
-//       ru: `Текущая программа`,
-//     },
-//     comment: {
-//       ua: `Для зміни програми натисніть кнопку "Застосувати"`,
-//       en: `For set The active program push "Accept" button`,
-//       ru: `Для выбора активной программы нажмите кнопку "Применить"`,
-//     },
-//     type: "text",
-//     editable: false,
-//   },
-// });
-
-// async function acceptFile(path, addData = {}) {
-//   let trace = 1,
-//     ln = `tasks_fileManager.js::acceptFile::.post(${path})::`;
-//   trace
-//     ? console.log(ln + `Started: path=${path}; fileName=${addData.fileName}`)
-//     : null;
-//   // let req =
-//   // запит POST
-//   let response = await fetch(path, {
-//     method: "POST",
-//     headers: { "Content-type": "application/json;charset=utf-8" },
-//     body: JSON.stringify(addData), //  ,
-//   });
-//   if (response.status === 200) {
-//     // отримуємо результат
-//     let result = await response.json();
-//     trace
-//       ? console.log(
-//           ln + `url=${path}?fileName=${addData.fileName}. Успішно виконаний!`
-//         )
-//       : null;
-//     if (trace) {
-//       console.log(ln + `result=`);
-//       console.dir(result);
-//     }
-//     if (result.err != null) {
-//       console.error(ln + "Error" + result.err[lang]);
-//       throw new Error(result.err[lang]);
-//     }
-//     return result;
-//   } else {
-//     let msg = ln + "Error post request code=" + response.status;
-//     console.error(msg);
-//     throw new Error(ln + msg);
-//   } //if (response.status === 200)
-// } // acceptFile(

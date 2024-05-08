@@ -6,8 +6,10 @@ const ClassRegister = require("../regsController/ClassRegister.js");
 // const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const pathNormalize = require("path").normalize;
+const pathResolve = require("path").resolve;
 //const { readFileSync, writeFile } = require("fs");
 const ClassTaskDescriptionStep = require("./ClassTaskDescriptionStep.js");
+const { chdir } = require("process");
 /**
  * Клас виконує керування завданнями
  * для тестування при розробці створено локальний сервер
@@ -43,7 +45,7 @@ class ClassTasksManager extends ClassReg_select {
     super(props);
 
     this.ln = this.ln ? this.ln : "ClassTasksManager::";
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "constructor()::";
 
     if (trace) {
@@ -55,7 +57,8 @@ class ClassTasksManager extends ClassReg_select {
       throw new Error(this.ln + "homeDir not defined! ");
     }
     // домашня директорія
-    this.homeDir = pathNormalize(props.homeDir + "tasksManager");
+    this.homeDir = pathResolve(props.homeDir, "tasksManager");
+    trace ? log("i", ln, `this.homeDir=`, this.homeDir) : null;
     // кореневий URL
     this.homeURL = props.homeURL ? props.homeURL + "tasksManager/" : "/";
     // робота з файлом поточного стану
@@ -83,7 +86,7 @@ class ClassTasksManager extends ClassReg_select {
 
     // файловий менеджер, що відповідає за роботу з файлами завдань
     this.fileManager = new ClassFileManager({
-      homeDir: this.homeDir + "/tasksList",
+      homeDir: pathNormalize(this.homeDir + "/tasksList"),
       ln: this.ln,
       homeURL: this.homeURL + "fileManager/",
     });
@@ -164,7 +167,7 @@ class ClassTasksManager extends ClassReg_select {
 
   /** Встановлює поточний список задач для виконання */
   async setCurrentValue(val) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `setValue(${val})::`;
     if (trace) {
       log("w", ln, `this.fileManager=`);
@@ -174,7 +177,11 @@ class ClassTasksManager extends ClassReg_select {
     if (!this.fileManager.exist(val)) {
       // TODO При установці виникає помилка так як файл типової програми ще не існує
       let msg =
-        ln + "Incorrect fileName: " + `[ ${this.fileManager.homeDir}/${val} ]`;
+        ln + "Incorrect fileName: " + `[${this.fileManager.homeDir}\\${val}]`;
+      if (trace) {
+        log("i", ln, `this.fileManager.getFilesList()=`);
+        console.dir(this.fileManager.getFilesList());
+      }
       throw new Error(msg);
     }
     await this.loadTask(val);
