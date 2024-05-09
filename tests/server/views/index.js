@@ -46,7 +46,7 @@ btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
-    attributes: { href: buttons.homeUrl + "tasksManager/" },
+    attributes: { href: buttons.homeUrl + "/tasksManager/" },
     id: "bTasksManager",
     header: { ua: `Менеджер задач`, en: `Tasks manager`, ru: `Менеджер задач` },
     type: "button",
@@ -61,7 +61,7 @@ btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
-    attributes: { href: buttons.homeUrl + "processManager/" },
+    attributes: { href: buttons.homeUrl + "/processManager/" },
     id: "bProcessManager",
     header: {
       ua: `Менеджер процесу`,
@@ -79,7 +79,7 @@ btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
-    attributes: { href: buttons.homeUrl + "devicesManager/" },
+    attributes: { href: buttons.homeUrl + "/devicesManager/" },
     id: "bDevicesManager",
     header: {
       ua: `Менеджер приладів`,
@@ -97,7 +97,7 @@ btn = {
   action: "link",
   reg: {
     classes: "btn btn-success",
-    attributes: { href: buttons.homeUrl + "loggerManager/" },
+    attributes: { href: buttons.homeUrl + "/loggerManager/" },
     id: "bGraphManager",
     header: {
       ua: `Менеджер самописця`,

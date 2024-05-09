@@ -4,6 +4,7 @@ class ClassReg_number extends ClassRegister {
   constructor(props = {}) {
     props.type = "number";
     super(props);
+    this.step = props.step;
     this.ln = "ClassReg_number(" + this.id + ")::";
     let trace = 1,
       ln = this.ln + "constructor()::";

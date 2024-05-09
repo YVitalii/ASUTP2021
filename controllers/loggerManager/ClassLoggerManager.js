@@ -24,7 +24,7 @@ module.exports = class ClassLoggerManager {
     this.baseUrl = props.baseUrl ? props.baseUrl : "";
     this.baseDir = props.baseDir ? props.baseDir : __dirname;
     // локальні шляхи
-    this.homeUrl = this.baseUrl + this.id;
+    this.homeUrl = this.baseUrl + "/" + this.id;
     this.homeDir = this.baseDir + "\\" + this.id;
     // період між запитами
     this.period = props.period ? props.period : 10 * 1000;
@@ -95,6 +95,15 @@ module.exports = class ClassLoggerManager {
     }
     this.regs[reg.id] = new ClassLoggerRegisters(reg);
     this.regsId.push(reg.id);
+  }
+
+  getRegsDescription(lang = "ua") {
+    let res = "";
+    for (let i = 0; i < this.regsId.length; i++) {
+      const el = this.regs[this.regsId[i]];
+      res += `<b><i>${el.header[lang]}</b></i> - ${el.comment[lang]}; `;
+    }
+    return res;
   }
 
   /**
@@ -430,6 +439,8 @@ module.exports = class ClassLoggerManager {
         req.locals.homeDir + "/controllers/loggerManager/views/loggerFull.pug"
       ),
       {
+        req,
+        lang: req.user.lang,
         entity: req.entity,
         logger: req.entity.loggerManager,
         chart: chart,

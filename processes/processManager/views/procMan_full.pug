@@ -5,18 +5,21 @@
 
 
 
-div.row(id=buttonsContainer) 
-  //- div.col  
-hr  
-div.row.h-100
-  div.col(id=programContainer)     
+//- div.row(id=buttonsContainer) 
+//- div.col  
+
+div.col.h-100.bordered.border-secondary
+  div.row(id=buttonsContainer)
+    //- div.col
+  div.row 
+    div.col(id=programContainer)     
 
 script.
   var  processMan = {};
 
   processMan.myElementsRender = myElementsRender;
-  processMan.homeUrl = `#{processMan.homeUrl}`;
-  processMan.editTaskUrl = `#{processMan.tasksManager.homeURL}`;
+  processMan.homeUrl = `#{processMan.homeUrl}/`;
+  processMan.editTaskUrl = `#{processMan.tasksManager.homeURL}/`;
   processMan.buttons = {};
   processMan.buttons.container =  document.getElementById(!{`"${buttonsContainer}"`}); 
   processMan.program = {};

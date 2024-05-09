@@ -24,16 +24,15 @@ html(class="h-100")
     div(class="container-fluid h-100 d-flex flex-column" ) 
       //- header
       div(class="row")#header
-        div(class="col-3")
+        div(class="col-2")
           img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
-        div(class="col my-auto mx-auto " )
+        div(class="col my-auto mx-auto" )
           div(class="h2 " id="pageTitle") !{_pageTitle}
-        div(class="col-1 my-auto mx-auto ")
-          div( class="h5" id="timedisplay" )
-      hr
+        div(class="col-2 d-flex justify-content-center align-items-center")
+          div( class="h5 text-center" id="timedisplay" )
       //- pageBody 
       div(class="row h-100" )
-        div(class="col")
+        div(class="col h-100")
           div(id="pageBody" class="container-fluide h-100") !{body}
 
       //- від footera поки відмовився

@@ -50,8 +50,8 @@ class ClassTaskThermal extends ClassTaskGeneral {
     props.ln = props.ln ? props.ln : props.id + "::";
 
     super(props);
-    let trace = 0,
-      ln = this.ln + "constructor()";
+    let trace = 1,
+      ln = this.ln + "constructor()::";
     if (trace) {
       log("i", ln, `props=`);
       console.dir(props);
@@ -235,6 +235,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
       },
       min: -20,
       max: 0,
+      attributes: { step: 1 },
     });
 
     let pid = new ClassControllerPID();
@@ -250,6 +251,11 @@ class ClassTaskThermal extends ClassTaskGeneral {
         ru: `Закон регулирования`,
       },
     });
+
+    if (trace) {
+      log("i", ln, `this.regs.regMode=`);
+      console.dir(this.regs.regMode, { depth: 4 });
+    }
   } // constructor
 
   /**

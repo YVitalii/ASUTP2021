@@ -82,9 +82,13 @@ const ClassFileManager = class FileManager {
     let fileName = addData.fileName
       ? addData.fileName
       : this.filesList.getValue();
-    addData["fileName"] = fileName;
+    if (fileName) {
+      addData["fileName"] = fileName;
+    }
+    // debugger;
     // запит POST baseUrl +
-    let response = await fetch("fileManager/" + path, {
+    //let response = await fetch("./fileManager/" + path, {
+    let response = await fetch(baseUrl + "/" + path, {
       method: "POST",
       headers: { "Content-type": "application/json;charset=utf-8" },
       body: JSON.stringify(addData), //  ,

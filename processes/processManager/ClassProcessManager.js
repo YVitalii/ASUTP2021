@@ -7,7 +7,7 @@ const ClassStepsSerial = require("../../controllers/ClassStep/ClassStepsSerial")
 
 class ClassProcessManager {
   constructor(props = {}) {
-    this.homeUrl = props.homeUrl ? props.homeUrl + "processManager/" : "/";
+    this.homeUrl = props.homeUrl ? props.homeUrl + "/processManager" : "/";
     this.homeDir = props.homeDir ? props.homeDir + "processManager\\" : "/";
     // this.moduleDir = __dirname;
     this.id = "processManager";
@@ -332,11 +332,15 @@ class ClassProcessManager {
       newFileN = new Date().toISOString().split("T")[0] + "_" + newFileN;
       // TODO не працює так як не додається розширення файлу, шукається файл "2024-04-05_16-31"
       //  а не "2024-04-05_16-31.log"
-      fileName = newFileN + this.loggerManager._fileExtensions.logger;
+      fileName = newFileN;
       trace
         ? log("i", ln, `New log file name generated: fileName=`, fileName)
         : null;
-    } while (this.loggerManager.fileManager.exist(fileName));
+    } while (
+      this.loggerManager.fileManager.exist(
+        fileName + this.loggerManager._fileExtensions.logger
+      )
+    );
 
     await this.loggerManager.start(fileName);
 

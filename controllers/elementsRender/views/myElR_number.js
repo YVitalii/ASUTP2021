@@ -9,8 +9,14 @@ myElementsRender["number"] = class ClassElementNumber extends (
   myElementsRender.ClassCreateElement
 ) {
   constructor(props = {}) {
+    //debugger;
     props.tag = "input";
+    if (props.reg.step) {
+      props.attributes = { step: "" + props.reg.step };
+    }
+
     super(props);
+
     this.ln = "ClassElementNumber(" + props.reg.id + ")::";
     let trace = 0,
       ln = this.ln + "Constructor()::";

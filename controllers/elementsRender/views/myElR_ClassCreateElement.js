@@ -88,15 +88,12 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
   }
 
   setValue(val) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setValue(${val})::`;
     trace
-      ? console.log(
-          ln +
-            `Started:this.beforeValue=${this.beforeValue};this.value=${this.value}`
-        )
+      ? console.log(ln + `Started:this.beforeValue=${this.beforeValue}`)
       : null;
-    trace = 1;
+    trace = 0;
     this.value = val;
     this.beforeValue = this.value;
     trace

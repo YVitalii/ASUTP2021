@@ -60,7 +60,7 @@ class ClassTasksManager extends ClassReg_select {
     this.homeDir = pathResolve(props.homeDir, "tasksManager");
     trace ? log("i", ln, `this.homeDir=`, this.homeDir) : null;
     // кореневий URL
-    this.homeURL = props.homeURL ? props.homeURL + "tasksManager/" : "/";
+    this.homeURL = props.homeURL ? props.homeURL + "/tasksManager/" : "/";
     // робота з файлом поточного стану
     this.lastState = new ClassFileManager({
       homeDir: this.homeDir,
@@ -287,9 +287,10 @@ class ClassTasksManager extends ClassReg_select {
    * генерує код для вставляння в веб сторінку
    * @returns html
    */
-  getFullHtml() {
+  getFullHtml(req) {
     let html = "";
     html = pug.renderFile(__dirname + "/views/editTasks.pug", {
+      req,
       manager: this,
     });
     return html;

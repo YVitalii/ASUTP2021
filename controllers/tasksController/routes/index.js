@@ -7,7 +7,7 @@ var router = express.Router();
 const pathResolve = require("path").resolve;
 const pug = require("pug");
 const fileManagerRouter = require("../../fileManager/routes/");
-// const mainPug = pathResolve("/views/main.pug");
+const dummy = require("../../../tools/dummy.js").dummyPromise;
 
 const log = require("../../../tools/log");
 let logName = __dirname + "::",
@@ -93,15 +93,16 @@ router.use("/fileManager/deleteFile", (req, res, next) => {
 router.use("/fileManager", fileManagerRouter);
 
 /* GET home page. */
-router.get("/", function (req, res, next) {
+router.get("/", async function (req, res, next) {
   let trace = 1,
     ln = req.tasksManager.ln + `router.get((${req.originalUrl})::`;
   trace ? console.log("w", ln, ` GET home page. Started`) : null;
+  await dummy(1000);
   res.send(
     pug.renderFile(req.info.mainPug, {
       pageTitle: `Сторінка для тестування роботи tasksManager <br> <small>
       /controllers/tasksController </small>`,
-      body: req.tasksManager.getFullHtml(),
+      body: req.tasksManager.getFullHtml(req),
     })
   );
   //res.render("index", { title: req.tasksManager.ln });

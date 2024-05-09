@@ -5,6 +5,7 @@
 
 //- pre #{"logger="+JSON.stringify(logger)}
 div(style="margin:0; padding:0; width:100%; height:100%;" id=chartContainerId)
+div.text-center !{logger.getRegsDescription(lang)}
 script 
   include ./chart/d3/d3.min.js
   include ./chart/drawChart.js    

@@ -74,51 +74,13 @@ props.buttons.reg.regs.btnReport = {
   },
   action: "link",
   onclick: async function (e) {
-    let fileName = fileManager.getFileName();
-    let trace = 1,
-      ln = `btnReport(${fileName})::onClick::`;
+    let trace = 0,
+      ln = `btnReport()::onClick::`;
     trace ? console.log(ln + ` Pressed!`) : null;
-    this.el.setAttribute("href", logMan.homeUrl + "/report/" + fileName);
-    if (trace) {
-      console.log(ln + `this=`);
-      console.dir(this);
-    }
-    //let data = tasks.model.getValues();
-    // Беремо імя файлу зі списку файлів а не з форми, так як там можуть бути
-    // змінені та не збережені дані, тобто спочатку зберегти - потім Застосувати
-
-    // if (
-    //   !confirm(
-    //     {
-    //       ua: `Ви дійсно бажаєте завантажити програму "${fileName}"?`,
-    //       en: `Do You really want to load program  "${fileName}"?`,
-    //       ru: `Вы действительно хотите загрузить программу "${fileName}"?`,
-    //     }[lang]
-    //   )
-    // ) {
-    //   console.log(ln + "Cancelled by user.");
-    //   return;
-    // }
-    // try {
-    //   // запит на сервер
-    //   let res = await acceptFile("acceptFile", {
-    //     fileName,
-    //   });
-    //   if (trace) {
-    //     console.log(ln + `res=`);
-    //     console.dir(res);
-    //   }
-    //   if (res.err) {
-    //     throw new Error(res.err[lang]);
-    //   }
-    //   fileManager.currPrg.setValue(fileName);
-    // } catch (error) {
-    //   console.error(error);
-    //   // Помилка
-    //   alert(error.message);
-    // } // try catch
+    window.print();
   }, // onclick
 };
+
 // ------------------- btnDelete -----------------------------
 props.buttons.reg.regs.btnDelete = {
   reg: {

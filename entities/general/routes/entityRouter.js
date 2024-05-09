@@ -1,6 +1,6 @@
 var express = require("express");
 var router = express.Router();
-const tasksManagerRouter = require("../../../controllers/tasksController/routes/index.js");
+//const tasksManagerRouter = require("../../../controllers/tasksController/routes/index.js");
 const pug = require("pug");
 // ------------ логгер  --------------------
 let log = require("../../../tools/log.js"); // логер
@@ -28,6 +28,8 @@ router.get("/", function (req, res, next) {
   let html = pug.renderFile(
     req.info.homeDir + "/entities/general/views/mainPage_template1.pug",
     {
+      req,
+      lang: req.user.language,
       currentValuesContainer: req.entity.devicesManager.getCompactHtml(req),
       graphContainer: req.entity.loggerManager.getCompactHtml(req),
       processContainer: req.entity.processManager.getCompactHtml(req), // req.entity.processManager.getFullHtml(),

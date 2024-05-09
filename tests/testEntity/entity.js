@@ -55,7 +55,7 @@ let trace = 0,
 entity.maxT = 150;
 
 // URL адреса гілки
-entity.homeUrl = "/entity/" + entity.id + "/";
+entity.homeUrl = "/entity/" + entity.id;
 
 // ---------------  завантажуємо пристрої ----------------------
 
@@ -249,7 +249,7 @@ entity.getFullHtml = (req) => {
   let html = pug.renderFile(
     req.locals.homeDir + "/entities/general/views/mainTemplate1.pug",
     {
-      entity: this,
+      entity: req.entity,
       lang: req.user.lang,
     }
   );

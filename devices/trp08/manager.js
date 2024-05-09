@@ -319,8 +319,12 @@ class Manager {
    *
    */
   parseRegs(regs = {}) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "parseRegs()::";
+    if (trace) {
+      log("i", ln, `regs=`);
+      console.dir(regs);
+    }
     // if (trace) {
     //   log("i", ln, `Started with regs=`);
     //   console.dir(regs);
@@ -328,12 +332,15 @@ class Manager {
     let props = {};
     if (regs.regMode && regs.regMode === "pid") {
       props.regMode = 1; //pid
-      props.ti = regs.ti ? regs.ti : 0;
-      props.td = regs.td ? regs.td : 0;
+      // точність для ti, td = 0,01 в програмі, а в приладі ціле число
+      props.ti = regs.ti ? parseInt(regs.ti * 100) : 0;
+      props.td = regs.td ? parseInt(regs.td * 100) : 0;
+      // точність для о = 0,1 в програмі, а в приладі ціле число
+      props.o = regs.o ? parseInt(regs.o * 10) : 0;
     } else {
       props.regMode = 2; //pos
+      props.o = regs.o ? parseInt(regs.o) : 0;
     }
-    props.o = regs.o ? regs.o : 0;
     props.tT = regs.tT ? regs.tT : 0;
     props.H = regs.H ? regs.H : 0;
     props.Y = regs.Y ? regs.Y : 0;

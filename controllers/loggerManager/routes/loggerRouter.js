@@ -98,18 +98,10 @@ router.get("/", function (req, res, next) {
 
   //   let html = req.entity.processManager.getFullHtml({ lang: req.user.lang });
   let pageTitle = {
-    ua: `${req.entity.fullName["ua"]} <br> <small>Тестувальник графіку</small>`,
-    en: `${req.entity.fullName["en"]} <br> <small>Testing graph</small>`,
-    ru: `${req.entity.fullName["ru"]} <br> <small>Тестирование графика</small>`,
+    ua: `${req.entity.fullName["ua"]} <br> <small>Архів записів</small>`,
+    en: `${req.entity.fullName["en"]} <br> <small>The records archive</small>`,
+    ru: `${req.entity.fullName["ru"]} <br> <small>Архив записей</small>`,
   };
-
-  //   let content = "";
-  //   for (let key in req.entity.devicesManager.getAll()) {
-  //     content += req.entity.devicesManager.getDevice(key).getCompactHtml({
-  //       baseUrl: req.entity.devicesManager.homeUrl,
-  //       prefix: "devicesManager_",
-  //     });
-  //   }
 
   let html = req.entity.loggerManager.getFullHtml(req);
   res.send(pug.renderFile(req.locals.mainPug, { pageTitle, body: html }));

@@ -91,6 +91,7 @@ props.buttons.reg.regs.btnAccept = {
     }
     try {
       // запит на сервер
+      debugger;
       let res = await acceptFile("acceptFile", {
         fileName,
       });
@@ -152,7 +153,7 @@ props.buttons.reg.regs.btnDelete = {
     } // try catch
   }, //oclick,
 };
-
+props.homeUrl = tasks.homeURL;
 props.filesList = {
   container: document.getElementById("el_fileMan_listFiles"),
   attributes: { size: 15 },
@@ -227,7 +228,7 @@ async function acceptFile(path, addData = {}) {
     : null;
   // let req =
   // запит POST
-  let response = await fetch(path, {
+  let response = await fetch(tasks.homeURL + path, {
     method: "POST",
     headers: { "Content-type": "application/json;charset=utf-8" },
     body: JSON.stringify(addData), //  ,

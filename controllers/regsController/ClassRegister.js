@@ -74,6 +74,9 @@ class ClassRegister {
 
     // дозвіл на редагування регістру
     this.editable = props.editable === undefined ? true : props.editable;
+    // додаткові налаштування для HTML елементів повинні бути не тут
+    // this.attributes = props.attributes;
+    // this.classes = props.classes;
   } // constructor
 
   getValue() {

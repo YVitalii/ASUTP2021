@@ -1,0 +1,16 @@
+//- pre #{JSON.stringify(req.baseUrl)} 
+
+div.row#naviButtonsContainer
+hr
+script.
+  const naviButtons={};
+  // запамятовуємо базові посилання для використання в кнопках
+  naviButtons.urls={};
+  naviButtons.urls.currPage= `#{req.baseUrl}`;
+  naviButtons.urls.entity = `#{req.entity.homeUrl}`;
+  naviButtons.urls.tasks = `#{req.entity.tasksManager.homeURL.slice(0,-1)}`;
+  naviButtons.urls.logger = `#{req.entity.loggerManager.homeUrl}`;
+  // контейнер
+  naviButtons.container = document.getElementById("naviButtonsContainer");
+script  
+  include ./naviButtons.js

@@ -8,12 +8,21 @@
 
 diw.row.h-100#bodyRow
   div.col-2.h-100#fileManagerContainer
+    include ../../naviButtons/naviButtons.pug
     div.row#el_fileMan_btnGroup
     div.row#fileMan_currFile
     div.row#el_fileMan_listFiles
   //- div.col.h-100  
   //-   div.row.h-100
   div.col-10.h-100#chartColumn
+    div.row.d-none#reportHeader
+      div.col-2
+        img(src="/img/logo.png" style="height:42px" )
+      div.col-2
+        img(src="/img/logo_bortek.png" style="height:42px")
+      div.col-md-auto.h4.text-center  #{req.entity.fullName[lang]}
+      div.col.h4.text-center  #{{ua:`Звіт № _____`,en:`Report _____`,ru:`Отчет № ______`}[lang]}
+        //- pre #{JSON.stringify(req.entity.fullName)} 
     div.row#programHeader 
       div.col-3
         div  
@@ -31,7 +40,13 @@ diw.row.h-100#bodyRow
     div.row.h-75#chartRow
       div.col-12
         include ./loggerCompact.pug
-    div.row#programFooter Footer
+    div.row.d-none#reportSignature
+      div.col-4.text-center !{'Підпис: ________ / ____________________ /'}
+      div.col-4.text-center !{'Підпис: ________ / ____________________ /'}
+      div.col-4.text-center !{'Дата: __________________ '}
+
+
+
     //- div.col-10.h-100 !{chart} 
     //- include loggerCompact.pug
 

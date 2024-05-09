@@ -14,31 +14,32 @@
       regs: {},
     },
   };
+  let button;
   // -------------  buttonEditTask ------------
-  let button = {
-    //container: processMan.buttons.container,
-    parent: processMan,
-    action: "link", // default= "button" or "link"
-    reg: {
-      id: "buttonEditTask",
-      //ln: ln + this.id,
-      header: { ua: `Задача`, en: `Task`, ru: `Задание` },
-      type: "button",
-      comment: {
-        ua: `Редагування задачі`,
-        en: `Edit task`,
-        ru: `Редактирование задания`,
-      },
-      classes: "btn-primary border fw-bold",
-      attributes: { href: processMan.editTaskUrl },
-      onclick: async function (e) {
-        let trace = 1,
-          ln = `${this.el.id}::Was pressed!!`;
-        trace ? console.log(ln) : null;
-      },
-    },
-  };
-  buttons.reg.regs[button.reg.id] = button;
+  // button = {
+  //   //container: processMan.buttons.container,
+  //   parent: processMan,
+  //   action: "link", // default= "button" or "link"
+  //   reg: {
+  //     id: "buttonEditTask",
+  //     //ln: ln + this.id,
+  //     header: { ua: `Задача`, en: `Task`, ru: `Задание` },
+  //     type: "button",
+  //     comment: {
+  //       ua: `Редагування задачі`,
+  //       en: `Edit task`,
+  //       ru: `Редактирование задания`,
+  //     },
+  //     classes: "btn-primary border fw-bold",
+  //     attributes: { href: processMan.editTaskUrl },
+  //     onclick: async function (e) {
+  //       let trace = 1,
+  //         ln = `${this.el.id}::Was pressed!!`;
+  //       trace ? console.log(ln) : null;
+  //     },
+  //   },
+  // };
+  // buttons.reg.regs[button.reg.id] = button;
   // -------------  buttonStart ------------
   button = {
     //container: processMan.buttons.container,

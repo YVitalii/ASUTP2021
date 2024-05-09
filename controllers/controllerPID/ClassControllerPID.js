@@ -25,6 +25,7 @@ module.exports = class ClassControllerPID extends ClassReg_regsList {
         en: "Proportional gain",
         ru: "Пропорциональная составляющая",
       },
+      step: 0.1,
       min: 0,
       max: 100,
     });
@@ -43,6 +44,7 @@ module.exports = class ClassControllerPID extends ClassReg_regsList {
       },
       min: 0,
       max: 100,
+      step: 0.01,
     });
     this.regs.td = new ClassReg_number({
       id: "td",
@@ -59,6 +61,7 @@ module.exports = class ClassControllerPID extends ClassReg_regsList {
       },
       min: 0,
       max: 100,
+      step: 0.01,
     });
   }
 };

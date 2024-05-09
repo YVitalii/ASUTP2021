@@ -23,7 +23,7 @@ module.exports = class ClassDevicesManager {
       : (() => {
           throw new Error(ln + "baseUrl must be setted!");
         })();
-    this.homeUrl = this.baseUrl + "devicesManager/";
+    this.homeUrl = this.baseUrl + "/devicesManager/";
     // --------- devices ---------
     this.devices = {};
   } // constructor()
