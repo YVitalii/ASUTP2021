@@ -1,6 +1,6 @@
 // -----------  element: select -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 
 /**
  * Створює елемент вибору select
@@ -34,7 +34,7 @@ myElementsRender["select"] = class ClassElementSelectRegsList extends (
 
   onchange(event) {
     let ln = this.ln + "onchange()::elem_select()::";
-    let trace = 1;
+    let trace = 0;
     if (!this.hasChanged()) {
       return;
     }
@@ -43,7 +43,7 @@ myElementsRender["select"] = class ClassElementSelectRegsList extends (
   }
 
   setValue(val) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setValue(${val})::`;
     trace ? console.log(ln + `Started`) : null;
     super.setValue(val);

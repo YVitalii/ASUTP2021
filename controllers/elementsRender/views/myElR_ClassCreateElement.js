@@ -12,7 +12,7 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
     props.ln = props.ln ? props.ln : "ClassCreateElement()::";
     super(props);
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructror()::";
     trace ? console.log(ln + "props=") : null;
     trace ? console.dir(props) : null;
@@ -122,7 +122,7 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
    */
 
   hasChanged() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "hasChanged()::";
 
     let res;

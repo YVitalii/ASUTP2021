@@ -1,6 +1,6 @@
 // -----------  element: textarea;  file: myElR_textarea  -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /**
  * Створює та повертає елемент багаторядкового тексту
  *
@@ -12,7 +12,7 @@ myElementsRender["textarea"] = class ClassElementNumber extends (
     props.tag = "textarea";
     super(props);
     this.ln = "ClassElementTextArea(" + props.reg.id + ")::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Constructor()::";
 
     // -- тип поля Number -------
@@ -31,7 +31,7 @@ myElementsRender["textarea"] = class ClassElementNumber extends (
     }
   }
   onchange(event) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "onchange()::";
     super.onchange(event);
     let val = this.getFieldValue();

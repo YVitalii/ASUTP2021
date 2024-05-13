@@ -52,7 +52,7 @@ myElementsRender["ClassGeneralElement"] = class ClassGeneralElement {
       this.afterChange = props.afterChange.bind(this);
     } else {
       this.afterChange = async (el = {}) => {
-        let trace = 1,
+        let trace = 0,
           ln = el.ln + "afterChange()::";
         if (trace) {
           console.log(ln + `this.value=`);

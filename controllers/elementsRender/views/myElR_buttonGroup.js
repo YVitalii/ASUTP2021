@@ -1,6 +1,6 @@
 // ------- myElR_buttonGroup.js -----------------------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /** Створює та повертає елемент buttonGroup
  * @prop {object} props.types - рендер myElementsRender
  * @prop {object} props.reg.classes - класи, що потрібно застосувати до групи кнопок
@@ -13,7 +13,7 @@ myElementsRender["buttonGroup"] = class ClassButtonGroup extends (
   constructor(props = {}) {
     props.ln = props.ln ? props.ln : `buttonGroup()::`;
     super(props);
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Constructor()::";
     if (trace) {
       console.log(ln + `props=`);
@@ -48,7 +48,7 @@ myElementsRender["buttonGroup"] = class ClassButtonGroup extends (
     }
     for (let key in this.reg.regs) {
       if (this.reg.regs.hasOwnProperty(key)) {
-        let trace = 1,
+        let trace = 0,
           ln = this.ln + `CreateButton(${key})::`;
         let btn = {};
         btn = this.reg.regs[key];

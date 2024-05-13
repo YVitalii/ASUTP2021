@@ -1,6 +1,6 @@
 // ------- myElR_button.js -----------------------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /** Створює та повертає елемент button
  *
  */
@@ -18,7 +18,7 @@ myElementsRender["button"] = class ClassButton extends (
 
     super(props);
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "ClassButton::constructor::";
 
     if (trace) {
@@ -72,7 +72,7 @@ myElementsRender["button"] = class ClassButton extends (
     this.container.appendChild(but);
   } // constructor
   onclick(event) {
-    let trace = 1,
+    let trace = 0,
       ln = `${this.el.id}::Was pressed!! External event listener not defined!   `;
     trace ? console.log(ln) : null;
   }

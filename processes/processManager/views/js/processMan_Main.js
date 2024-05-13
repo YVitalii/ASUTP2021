@@ -5,15 +5,22 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
 {
   /** Отримує поточний список кроків та їх стан з сервера та повертає їх*/
   processMan.program.getProgram = async () => {
-    let trace = 1,
+    let trace = 0,
       ln = "getProgram()::";
+    //debugger;
+    let response;
     trace ? console.log(ln + `Started`) : null;
-    let response = await fetch(processMan.homeUrl + "getProgram", {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8",
-      },
-    }); //
+    try {
+      response = await fetch(processMan.homeUrl + "getProgram", {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json;charset=utf-8",
+        },
+      }); //
+    } catch (error) {
+      response = { ok: false, status: error.message };
+    }
+
     if (response.ok) {
       // отримуємо інформацію з сервера
       let res = await response.json();
@@ -24,9 +31,13 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
       return res;
     } else {
       // помилка запиту
-      // плануємо наступний запит через 2 сек
+
       console.warn(ln + response.status);
-      return [];
+      // плануємо наступний запит через 2 сек
+      setTimeout(() => {
+        processMan.program.getProgram();
+      }, 5000);
+      //return [];
     }
   };
 
@@ -35,7 +46,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
    */
   processMan.program.init = async () => {
     //debugger;
-    let trace = 1,
+    let trace = 0,
       ln = processMan.program.ln + "init()::";
     try {
       trace ? console.log(ln + `Started`) : null;
@@ -104,7 +115,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
   }, 2000);
 
   processMan.program.updateStates = async () => {
-    let trace = 1,
+    let trace = 0,
       ln = "processMan.program.updateSteps::";
     let newSteps = await processMan.program.getProgram();
     if (trace) {
@@ -114,7 +125,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
     // if (newSteps._id) {
     //   ClassElementStep.setState(processMan.program.model.ta)
     // Якщо відповідь з сервера має поле _id, то відповідь коректна
-    if (newSteps._id) {
+    if (newSteps && newSteps._id) {
       let model = processMan.program.model;
       // змінюємо загальний стан програми
       model._id = newSteps._id;
@@ -134,7 +145,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
         let currStep = processMan.program.model.tasks[i];
         processMan.program.updateStepState(newStep, currStep);
       } //for
-    } //if (tasks._id){
+    } //if (newSteps && newSteps._id)
 
     // плануємо новий запит
     setTimeout(() => processMan.program.updateStates(), 10 * 1000);
@@ -200,14 +211,14 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
   }; // processMan.program.renderSteps
 
   processMan.program.stop = async () => {
-    let trace = 1,
+    let trace = 0,
       ln = processMan.program.ln + "stop()::";
     trace ? console.log(ln + `Started`) : null;
     await processMan.post("stop");
   }; //processMan.program.stop()
 
   processMan.program.start = async (step = 1) => {
-    let trace = 1,
+    let trace = 0,
       ln = processMan.program.ln + `start(${step})::`;
     trace ? console.log(ln + `Started`) : null;
     let res = await processMan.post("start", { step });
@@ -228,7 +239,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
   processMan.post = async (url = "", body = {}) => {
     //debugger;
     //url = ;
-    let trace = 1,
+    let trace = 0,
       ln = processMan.program.ln + `post(${url}::`;
     let response;
     try {
@@ -263,7 +274,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
   };
 
   processMan.program.renderTasks = () => {
-    let trace = 1,
+    let trace = 0,
       ln = processMan.program.ln + "renderTasks()::";
     let list = processMan.program.model.tasks;
     for (let i = 0; i < list.length; i++) {

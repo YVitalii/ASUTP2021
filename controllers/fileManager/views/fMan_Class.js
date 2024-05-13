@@ -13,7 +13,7 @@ const ClassFileManager = class FileManager {
 
   constructor(props) {
     this.ln = `ClassFileManager(${props.id})::`;
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
     if (trace) {
       console.log(ln + `props=`);

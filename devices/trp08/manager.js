@@ -34,6 +34,10 @@ class Manager {
     // ідентифікатор приладу d deviceManager наприклад trp08_1
     this.id = params.id;
     //
+    this.errorCounter = { value: 0, max: 20 };
+    this.offLine = false;
+    this.period = 3;
+
     // ----- перевіряємо addr ----------------
     if (!addr) {
       throw new Error("Не вказана адреса приладу addr=" + addr);
@@ -198,56 +202,77 @@ class Manager {
     return this.addT;
   }
 
+  /**
+   *
+   * @param {async function} func - функція яку потрібно виконати
+   * @param {*} params - параметри функції
+   * @returns
+   */
   async iteration(func, params) {
-    let trace = 0,
-      ln =
-        this.ln +
-        `iteration(${func.name},${params.regName}${
-          params.value || params.value === 0 ? "=" + params.value : ""
-        })::`;
-    trace ? log("i", ln, `Started`) : null;
-    // очікуємо закінчення попередньої операції
-    let i = 0; // лічильник повторів
-    while (!this.iface.isOpened || this.busy) {
-      !this.iface.isOpened
-        ? log("", ln + `Port not opened. Waiting: `, i)
-        : null;
-      trace
-        ? log("", ln + `Device ${this.header.ua} are busy. Waiting: `, i)
-        : null;
-      await dummyPromise(3000);
-    }
-    // даємо запит на запис
-    let res,
-      resString = "";
-    this.busy = true;
-    i = 0;
-    let ok = false;
-    do {
-      try {
-        if (!this.iface.isOpened) {
-          let err = new Error();
-          err.code = 13;
-          err.messages = { en: ln + "Port not opened!" };
-          throw err;
-        }
-        res = await func(params);
-        ok = true;
-      } catch (error) {
-        log("", ln, "err=", error.messages.en);
-        if (error.code != 13) {
-          ok = true;
-          this.busy = false;
-          throw new Error(error.messages.en);
-        }
-        log("", ln + `Try again.. ${i}`);
+    return new Promise(async (resolve, reject) => {
+      let trace = 0,
+        ln =
+          this.ln +
+          `iteration(${func.name},${params.regName}${
+            params.value || params.value === 0 ? "=" + params.value : ""
+          })::`;
+      trace ? log("i", ln, `Started`) : null;
+      // очікуємо закінчення попередньої операції
+      let i = 0; // лічильник повторів
+      while (!this.iface.isOpened || this.busy) {
+        let msg = this.iface.isOpened ? "" : "Port not opened.";
+        msg += this.busy ? `Device ${this.header.ua} are busy.` : "";
+        msg += `Trying N:${i}. Waiting: ${this.period}s`;
+        log("", ln, msg);
         i++;
-        await dummyPromise(3000);
+        await dummyPromise(this.period * 1000);
       }
-    } while (!ok);
-    this.busy = false;
-    trace ? log("i", ln + "Completed") : null;
-    return res;
+      // даємо запит на запис
+      let res,
+        resString = "";
+      this.busy = true;
+      i = 0;
+      let ok = false;
+      do {
+        try {
+          if (!this.iface.isOpened) {
+            let err = new Error();
+            err.code = 13;
+            err.messages = { en: ln + "Port not opened!" };
+            throw err;
+          }
+          res = await func(params);
+          ok = true;
+        } catch (error) {
+          log("", ln, "err=", error.messages.en);
+          if (error.code != 13) {
+            ok = true;
+            this.busy = false;
+            reject(new Error(error.messages.en));
+          }
+          // лічимо помилки
+          this.errorCounter.value += 1;
+          if (this.errorCounter.value >= this.errorCounter.max) {
+            this.errorCounter.value = this.errorCounter.max;
+            this.offLine = true;
+            this.period = 10;
+          }
+          log(
+            "",
+            ln +
+              `errCounter=${this.errorCounter.value}.Try again.. ${i} after ${this.period}s`
+          );
+          i++;
+          await dummyPromise(this.period * 1000);
+        }
+      } while (!ok);
+      this.busy = false;
+      this.errorCounter.value = 0;
+      this.offLine = false;
+      this.period = 3;
+      trace ? log("i", ln + "Completed") : null;
+      resolve(res);
+    });
   } //async iteration
 
   /** Функція записує 1 параметр */

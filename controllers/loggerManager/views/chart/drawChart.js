@@ -1123,13 +1123,18 @@ class Chart {
     let trace = 0,
       ln = this.ln + "start()::";
     let url = this.config.regsUrl;
-    let response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json;charset=utf-8",
-      },
-      body: JSON.stringify(this.data.columns),
-    });
+    let response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json;charset=utf-8",
+        },
+        body: JSON.stringify(this.data.columns),
+      });
+    } catch (error) {
+      response = { ok: false };
+    }
 
     if (response.ok) {
       let result = await response.text();
@@ -1145,7 +1150,7 @@ class Chart {
         console.dir(d);
       }
       this.addData(d);
-    }
+    } //if (response.ok
     setTimeout(() => {
       this.start();
     }, this.period);

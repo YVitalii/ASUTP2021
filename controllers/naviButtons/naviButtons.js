@@ -140,7 +140,7 @@ naviButtons.ln = "naviButtons::";
     naviButtons.reg.regs[button.reg.id] = button;
   }
 
-  trace = 1;
+  trace = 0;
   if (trace) {
     console.log(naviButtons.ln + `naviButtons=`);
     console.dir(naviButtons);

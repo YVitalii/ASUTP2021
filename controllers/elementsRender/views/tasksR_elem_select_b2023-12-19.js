@@ -1,6 +1,6 @@
 // -----------  element: select -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 
 /**
  * Генерує елемент для вибору можливих варіантів
@@ -29,13 +29,13 @@ tasks.elementsTypes.select.set = function (prefix, regsList) {
   select.id = id;
   let keys = "";
   for (let key in regsList.regs) {
-    let trace = 1;
+    let trace = 0;
     trace ? console.log(ln + "key=" + key) : null;
     keys += `<option value='${key}'> ${regsList.regs[key].type.title[lang]} </option>`;
   }
   select.innerHTML = keys;
   select.onchange = function (event) {
-    let trace = 1;
+    let trace = 0;
     let el = event.target;
     let id = el.id;
     //tasks.deleteRegs(regs);

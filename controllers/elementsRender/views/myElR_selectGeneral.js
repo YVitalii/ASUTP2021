@@ -24,7 +24,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     props.tag = "select";
     super(props);
     this.ln = "ClassElementSelectGeneral(" + props.reg.id + ")::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Constructor()::";
     if (trace) {
       console.log(ln + `props=`);
@@ -58,7 +58,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
 
   async onchange(event) {
     let ln = this.ln + "onchange()::";
-    let trace = 1;
+    let trace = 0;
     if (!this.hasChanged()) {
       return;
     }
@@ -73,14 +73,14 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
   }
 
   setValue(val) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setValue(${val})::`;
     trace ? console.log(ln + `Started`) : null;
     super.setValue(val);
   }
 
   render(regs = undefined) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "render()::";
     trace ? console.log(ln + `Started::this.value=${this.value}`) : null;
 
@@ -142,7 +142,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
 
     // якщо  regs - Масив
     if (Array.isArray(this.regs)) {
-      let trace = 1;
+      let trace = 0;
 
       for (let i = 0; i < this.regs.length; i++) {
         const key = this.regs[i];
