@@ -1,10 +1,13 @@
 let comName = "";
 let platform = process.platform;
 
+let comId;
+
 if (platform != "win32") {
   comName = "/dev/ttyUSB0";
+  comId = comName.split("/")[2];
 } else {
-  comName = "COM3";
+  comId = comName = "COM3";
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");
@@ -13,6 +16,8 @@ const Iface = require("./rs485/class_RS485_iface.js");
 module.exports.w2 = new Iface(comName, {
   baudRate: 2400,
   timeoutBetweenCalls: 100,
+  id: comId,
+  headers: { ua: `${comId}`, en: `${comId}`, ru: `${comId}` },
 });
 
 // -- чотирьох провідна лінія ------------------

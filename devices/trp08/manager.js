@@ -255,7 +255,7 @@ class Manager {
           if (this.errorCounter.value >= this.errorCounter.max) {
             this.errorCounter.value = this.errorCounter.max;
             this.offLine = true;
-            this.period = 10;
+            this.period = 10;6
           }
           log(
             "",

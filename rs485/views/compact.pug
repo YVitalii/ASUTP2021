@@ -1,0 +1,7 @@
+-var id = "rs485_"+iface.id+"_"
+div.col
+  img(width=32px height=32px src="/disconnected.png" id=id+"disconnected")
+  img.hidden(src="/connected.png",id=id+"connected")
+
+script.
+  let !{id} = #{id}

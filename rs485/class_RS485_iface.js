@@ -7,7 +7,7 @@
  */
 
 const SerialPort = require("serialport");
-
+const pug = require("pug");
 // функція для перевірки вхідного буфера на помилки
 const checkBuffer = require("./checkBuffer.js");
 
@@ -46,6 +46,21 @@ class IfaceRS485 {
       throw new Error(err);
     }
 
+    this.id = props.id;
+    this.header = props.header;
+    this.stateMessages = {
+      disconnected: {
+        ua: `Не приєднано`,
+        en: `Not connected`,
+        ru: `Не подключен`,
+      },
+      connected: {
+        ua: `Приєднано`,
+        en: `Сonnected`,
+        ru: `Подключен`,
+      },
+    };
+    this.comment = this.stateMessages.disconnected;
     // налаштування логера
     this.ln = `class_RS485_iface(${path})::`;
     let ln = this.ln + "constructor()::";
@@ -60,9 +75,11 @@ class IfaceRS485 {
     // вимикаємо автоматиче відкриття порту, щоб поставити прослуховувача
     // порт відкривається далі в циклі
     props.autoOpen = false;
+
     this.isOpen = () => {
       return this.serial.isOpen;
     };
+
     /**
      * Поточна задача
      * @typedef {Object} Task
@@ -140,6 +157,7 @@ class IfaceRS485 {
         await this.openPortPromise(this.serial);
         log("i", ln, `Порт відкрито! `);
         this.isOpened = this.serial.isOpen;
+        this.comment = this.stateMessages.connected;
         this.isOpeningPort = false;
         return 1;
       } catch (error) {
@@ -149,29 +167,12 @@ class IfaceRS485 {
         // }
       }
       this.isOpened = false;
+      this.comment = this.stateMessages.disconnected;
       log("i", ln + "Will waiting 3 s !");
       await dummy(3000);
     } //while
     //this.isOpened = true;
   } // async openPort()
-
-  // checkPortOpen() {
-  //   // якщо порт ще не відкрито, повертаємо помилку
-  //   if (!this.isOpen) {
-  //     let err = {
-  //       ua: `Помилка порт не відкрито!`,
-  //       en: `Error port not opened!`,
-  //       ru: `Ошибка порт не открыт!`,
-  //     };
-  //     this.transactionFinish(this.task);
-  //     this.iterate();
-  //     // process.nextTick(() => {
-  //     //   this.task.cb(new Error(err), null);
-  //     // });
-  //     trace ? log("Error:", ln, err.en) : null;
-  //     return;
-  //   }
-  // }
 
   /**
    * функція формує та ставить запит в чергу
@@ -354,6 +355,15 @@ class IfaceRS485 {
     task.cb(null, task.data);
     //викликаємо наступну ітерацію
     this.iterate();
+  }
+  getHtmlCompact(req) {
+    let html = "";
+    html = pug.renderFile(req.locals.homeDir + "/rs485/views/compact.pug", {
+      req,
+      iface: this,
+      lang: req.user.lang,
+    });
+    return html;
   }
 } // class
 
