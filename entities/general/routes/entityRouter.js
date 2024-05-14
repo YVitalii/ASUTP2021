@@ -37,7 +37,11 @@ router.get("/", function (req, res, next) {
   );
   res.render(req.info.mainPug, {
     body: html,
-    pageTitle: req.entity.fullName,
+    pageTitle: {
+      ua: `${req.entity.fullName.ua} <br> <small>Головна сторінка</small>`,
+      en: `${req.entity.fullName.en} <br> <small>the Main page</small>`,
+      ru: `${req.entity.fullName.ru}<br> <small>Главная страница</small>`,
+    },
   });
   return; //
 });

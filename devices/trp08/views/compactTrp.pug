@@ -34,7 +34,8 @@ script.
   el.regs.T = JSON.parse('!{JSON.stringify(T)}');
   //- стан приладу 
   el.regs.state = JSON.parse('!{JSON.stringify(state)}');
-  el.regs.state.value = 0;
+  el.regs.state.value = undefined;
+
   el.homeUrl = JSON.parse('!{JSON.stringify(baseUrl+device.id)}');
   el.reqString = "";
   // основні скрипти  керування
@@ -45,6 +46,103 @@ script.
       el.regs[key].container = document.getElementById(el.prefix + key);
     }
   }
+
+  el.getState = async function() {
+    //debugger;
+    let trace = 1,
+      ln =
+        `${this.prefix}::getState::` + new Date().toLocaleTimeString() + ":: ";
+    let response, res,  err=false;
+    try {
+      response = await fetch(this.homeUrl + "/getState", {
+      method: "POST",
+      headers: { "Content-type": "application/json;charset=utf-8" },
+      body: JSON.stringify({}),
+    }); //fetch
+      if (response.ok) {
+        // запит поточних значень
+        res = await response.json();
+      }
+    } catch (error) {
+      console.error(ln+error.message);
+      err=true;
+    };
+    // трасувальник
+  if (trace) {
+    let msg = "";
+    console.log(ln + "res=");
+    console.dir(res);
+  }
+  // опис зовнішнього вигляду стану приладу
+  el.stateClasses = {
+    stop: ["bg-secondary", "text-light"],
+    running: ["bg-success", "text-light"],
+    warning: ["bg-warning", "text-dark"],
+    error: ["bg-danger", "text-light"],
+  };
+    // обробка зміни стану приладу Пуск / Стоп / Помилка
+  let value = (res && res[key] && res[key].value) ? parseInt(res[key].value) : undefined;
+    if (! value || isNaN(value)) {
+      value = 13; // немає зв'язку
+    }
+    // якщо стан не змінився - наступна ітерація
+    //- console.log(ln+`this.regs.state.value=${this.regs.state.value};value=${value}.`)
+    if (this.regs.state.value != value) {
+      this.regs.state.value = value;
+    // визначаємо новий стиль
+    let newState = "warning";
+    switch (value) {
+      case 1:
+      case 7:
+        // режим стоп
+        newState = "stop";
+        break;
+      case 13:
+        //увага
+        newState = "error";
+        break;
+      case 17:
+      case 23:
+        //режим Пуск
+        newState = "running";
+        break;
+      case 71:
+      case 87:
+        //аварія
+        newState = "error";
+        break;
+
+      default:
+        console.log(`Not defined state= ${res.state}`);
+    }
+    // let contClassList=this.container.classList;
+    if (this.state) {
+      // видаляємо попередні класи
+      this.stateClasses[this.state].map((item) => {
+        this.container.classList.remove(item);
+      });
+    }
+
+    //- console.log(ln+`Before state:${this.state}. New state:: newState=${newState}`);
+    //- console.dir (this);
+    // додаємо нову класи
+    this.stateClasses[newState].map((item) => {
+      this.container.classList.add(item);
+    });
+    // запамятовуємо новий стан
+    this.state = newState;
+    let title = this.regs["state"].states[value][lang];
+    this.container.setAttribute("title", title);
+    }
+
+
+    // плануємо наступний запит
+  setTimeout(() => {
+    this.getState();
+  }, 6000);
+  }//el.getState = async function() {
+
+    el.getState();
 
   el.getRegs = async function () {
     let trace = 1,
@@ -64,14 +162,9 @@ script.
         res = await response.json();
       }
     } catch (error) {
-
       console.error(ln+error.message);
       err=true;
-    };
-
-
-
-  // трасувальник
+    };  // трасувальник
   if (trace) {
     let msg = "";
     for (let key in res) {
@@ -82,75 +175,14 @@ script.
     console.log(ln + msg);
     console.dir(res);
   }
-  // опис зовнішнього вигляду стану приладу
-  el.stateClasses = {
-    stop: ["bg-secondary", "text-light"],
-    running: ["bg-success", "text-light"],
-    warning: ["bg-warning", "text-dark"],
-    error: ["bg-danger", "text-light"],
-  };
+
   // обробка отриманих значень
 
   for (let key in this.regs) {
+
+    if (key == "state") { continue }
+
     let value = (res && res[key] && res[key].value) ? parseInt(res[key].value) : undefined;
-    // обробка зміни стану приладу Пуск / Стоп / Помилка
-    if (key == "state") {  
-      if (! value || isNaN(value)) {
-        value = 13; // немає зв'язку
-      }
-      // якщо стан не змінився - наступна ітерація
-      //- console.log(ln+`this.regs.state.value=${this.regs.state.value};value=${value}.`)
-      if (this.regs.state.value == value) {
-        continue;
-      }
-      this.regs.state.value = value;
-      // визначаємо новий стиль
-      let newState = "warning";
-      switch (value) {
-        case 1:
-        case 7:
-          // режим стоп
-          newState = "stop";
-          break;
-        case 13:
-          //увага
-          newState = "error";
-          break;
-        case 17:
-        case 23:
-          //режим Пуск
-          newState = "running";
-          break;
-        case 71:
-        case 87:
-          //аварія
-          newState = "error";
-          break;
-
-        default:
-          console.log(`Not defined state= ${res.state}`);
-      }
-      // let contClassList=this.container.classList;
-      if (this.state) {
-        // видаляємо попередні класи
-        this.stateClasses[this.state].map((item) => {
-          this.container.classList.remove(item);
-        });
-      }
-
-      //- console.log(ln+`Before state:${this.state}. New state:: newState=${newState}`);
-      //- console.dir (this);
-      // додаємо нову класи
-      this.stateClasses[newState].map((item) => {
-        this.container.classList.add(item);
-      });
-      // запамятовуємо новий стан
-      this.state = newState;
-      let title = this.regs["state"].states[value][lang];
-      this.container.setAttribute("title", title);
-
-      continue;
-    } //if (key == "state")
 
     this.regs[key].container.innerText =
       (value && ! isNaN(value)) ? value : "???";

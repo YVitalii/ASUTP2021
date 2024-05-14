@@ -15,6 +15,13 @@ async function getT() {
   setTimeout(() => getT(), 2000);
 }
 
+async function getState() {
+  let t = device1.getState();
+  log("", ln + `iteration :${i}; state= ${t}`);
+  i++;
+  setTimeout(() => getState(), 2000);
+}
+
 async function test() {
   // await device1.getT();
   // await device1.setParams({ tT: 100, o: 5, H: 10, Y: 20, ti: 100, td: 150 });
@@ -44,7 +51,10 @@ async function test() {
   }, 60000);
 }
 
-setTimeout(test, 5000);
+setTimeout(() => {
+  getState();
+  test();
+}, 5000);
 
 (async () => {
   //   let ln = "Promise::";

@@ -100,8 +100,11 @@ router.get("/", async function (req, res, next) {
   await dummy(1000);
   res.send(
     pug.renderFile(req.info.mainPug, {
-      pageTitle: `Сторінка для тестування роботи tasksManager <br> <small>
-      /controllers/tasksController </small>`,
+      pageTitle: {
+        ua: `${req.entity.fullName.ua} <br> <small>Редагування програм</small>`,
+        en: `${req.entity.fullName.en} <br> <small>Program editing.</small>`,
+        ru: `${req.entity.fullName.ru}<br> <small>Редактирование программ</small>`,
+      },
       body: req.tasksManager.getFullHtml(req),
     })
   );
@@ -110,3 +113,4 @@ router.get("/", async function (req, res, next) {
 });
 
 module.exports = router;
+// `Сторінка для тестування роботи tasksManager <br> <small>/controllers/tasksController </small>`
