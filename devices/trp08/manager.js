@@ -202,6 +202,10 @@ class Manager {
     return this.addT;
   }
 
+  getState() {
+    return this.state.state;
+  }
+
   /**
    *
    * @param {async function} func - функція яку потрібно виконати
@@ -210,7 +214,7 @@ class Manager {
    */
   async iteration(func, params) {
     return new Promise(async (resolve, reject) => {
-      let trace = 0,
+      let trace = 1,
         ln =
           this.ln +
           `iteration(${func.name},${params.regName}${
@@ -256,7 +260,9 @@ class Manager {
             this.errorCounter.value = this.errorCounter.max;
             this.offLine = true;
             this.period = 10;
+            this.state.state.value = undefined;
           }
+
           log(
             "",
             ln +

@@ -12,7 +12,17 @@ router.all("/:id/*", (req, res, next) => {
     log("i", ln, `req.params=`);
     console.dir(req.params);
   }
+  req.dev = req.entity.devicesManager.getDevice(req.params.id);
+
   next();
+});
+
+router.post("/:id/getState", (req, res, next) => {
+  let trace = 0,
+    ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
+  trace ? log("i", ln, `Started`) : null;
+  let data = req.dev.getState();
+  res.json(data);
 });
 
 router.post("/:id/getRegs", async (req, res, next) => {
