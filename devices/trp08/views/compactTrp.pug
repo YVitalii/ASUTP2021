@@ -49,7 +49,7 @@ script.
 
   el.getState = async function() {
     //debugger;
-    let trace = 1,
+    let trace = 0, key="state",
       ln =
         `${this.prefix}::getState::` + new Date().toLocaleTimeString() + ":: ";
     let response, res,  err=false;
@@ -81,7 +81,7 @@ script.
     error: ["bg-danger", "text-light"],
   };
     // обробка зміни стану приладу Пуск / Стоп / Помилка
-  let value = (res && res[key] && res[key].value) ? parseInt(res[key].value) : undefined;
+  let value = (res && res.value) ? parseInt(res.value) : undefined;
     if (! value || isNaN(value)) {
       value = 13; // немає зв'язку
     }
@@ -145,7 +145,7 @@ script.
     el.getState();
 
   el.getRegs = async function () {
-    let trace = 1,
+    let trace = 0,
       ln =
         `${this.prefix}::getRegs()::` + new Date().toLocaleTimeString() + ":: ";
     //- trace ? console.log(ln+"Started!") : null;

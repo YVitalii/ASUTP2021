@@ -19,6 +19,7 @@ const addInfoToReq = require("../../addInfoToReq.js");
 // var tasksManager = require("../testCreateTaskManager");
 const users = require("../../db/users"); // користувачі
 const entity = require("../testEntity/entity.js");
+const ifaceW2 = require("../../conf_iface.js").w2;
 const tasksManagerRouter = require("../../controllers/tasksController/routes/index.js");
 const processManagerRouter = require("../../processes/processManager/routes/index.js");
 const devicesManagerRouter = require("../../devices/devicesManager/routes/devicesRouter.js");
@@ -95,6 +96,16 @@ app.use("/entity/:id/devicesManager/", devicesManagerRouter);
 app.use("/entity/:id/loggerManager/", loggerManagerRouter);
 
 app.use("/entity/:id/", entityRouter);
+app.use("/connections", (req, res, next) => {
+  let trace = 1,
+    ln = req.originalUrl + "::";
+  trace ? log("i", ln, `Started`) : null;
+  let result = {
+    isOpen: ifaceW2.isOpen(),
+    comment: ifaceW2.getComment(),
+  };
+  res.json(result);
+});
 
 app.use("/", indexRouter);
 //app.use("/fileManager", fileManagerRouter);

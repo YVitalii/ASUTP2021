@@ -1,7 +1,14 @@
--var id = "rs485_"+iface.id+"_"
-div.col
-  img(width=32px height=32px src="/disconnected.png" id=id+"disconnected")
-  img.hidden(src="/connected.png",id=id+"connected")
+-var id = "rs485_w2"
+div.w-100.h-100.d-flex.justify-content-center.align-items-center#connectionsContainer
+  img(width="32px" height="32px" src="/img/rs485_disconnected.png" id=id+"_disconnected")
+  img.d-none(src="/img/rs485_connected.png",id=id+"_connected")
+
+script
+  include ./v_rs485.js
 
 script.
-  let !{id} = #{id}
+  var connMan=new ClassConnectionManager({
+    reg:{id:"#{id}"},
+    container: document.getElementById("connectionsContainer"),
+  });
+

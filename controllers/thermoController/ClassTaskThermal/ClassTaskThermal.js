@@ -50,7 +50,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
     props.ln = props.ln ? props.ln : props.id + "::";
 
     super(props);
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
     if (trace) {
       log("i", ln, `props=`);

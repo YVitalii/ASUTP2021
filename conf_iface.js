@@ -17,7 +17,7 @@ module.exports.w2 = new Iface(comName, {
   baudRate: 2400,
   timeoutBetweenCalls: 100,
   id: comId,
-  headers: { ua: `${comId}`, en: `${comId}`, ru: `${comId}` },
+  header: { ua: `${comId}`, en: `${comId}`, ru: `${comId}` },
 });
 
 // -- чотирьох провідна лінія ------------------

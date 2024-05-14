@@ -50,14 +50,14 @@ class IfaceRS485 {
     this.header = props.header;
     this.stateMessages = {
       disconnected: {
-        ua: `Не приєднано`,
-        en: `Not connected`,
-        ru: `Не подключен`,
+        ua: `${this.id}. Не приєднано`,
+        en: `${this.id}. Not connected`,
+        ru: `${this.id}. Не подключен`,
       },
       connected: {
-        ua: `Приєднано`,
-        en: `Сonnected`,
-        ru: `Подключен`,
+        ua: `${this.id}. Приєднано`,
+        en: `${this.id}. Сonnected`,
+        ru: `${this.id}. Подключен`,
       },
     };
     this.comment = this.stateMessages.disconnected;
@@ -122,7 +122,15 @@ class IfaceRS485 {
     this.openPort();
     // ---------------- Запускаємо цикл опитування ---------
     this.iterate();
+    if (trace) {
+      log("i", ln, `this.id=`);
+      console.dir(this.id);
+    }
   } // constructor
+
+  getComment() {
+    return this.comment;
+  }
 
   async openPortPromise(serial) {
     let trace = 1,
@@ -139,7 +147,8 @@ class IfaceRS485 {
           reject(err);
           return;
         }
-        log("i", ln, `Порт відкрито! `);
+        let msg = `Порт відкрито! `;
+        log("i", ln, msg);
         resolve(true);
       });
     });

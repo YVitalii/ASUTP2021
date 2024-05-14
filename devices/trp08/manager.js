@@ -34,7 +34,7 @@ class Manager {
     // ідентифікатор приладу d deviceManager наприклад trp08_1
     this.id = params.id;
     //
-    this.errorCounter = { value: 0, max: 20 };
+    this.errorCounter = { value: 0, max: 10 };
     this.offLine = false;
     this.period = 3;
 
@@ -214,7 +214,7 @@ class Manager {
    */
   async iteration(func, params) {
     return new Promise(async (resolve, reject) => {
-      let trace = 1,
+      let trace = 0,
         ln =
           this.ln +
           `iteration(${func.name},${params.regName}${

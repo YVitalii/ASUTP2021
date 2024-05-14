@@ -45,7 +45,7 @@ class ClassTasksManager extends ClassReg_select {
     super(props);
 
     this.ln = this.ln ? this.ln : "ClassTasksManager::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "constructor()::";
 
     if (trace) {
@@ -167,7 +167,7 @@ class ClassTasksManager extends ClassReg_select {
 
   /** Встановлює поточний список задач для виконання */
   async setCurrentValue(val) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setValue(${val})::`;
     if (trace) {
       log("w", ln, `this.fileManager=`);
