@@ -67,10 +67,11 @@ module.exports = class ClassLoggerManager {
       },
     }; //this._states={
     this.state = this._states.stoped;
-
-    setTimeout(() => {
-      this.start(this.tmpLogFileName);
-    }, 3000); // запускаємо запис поточного стану в тимчасовий файл
+    // не можна в цьому місці запускати запис , так як запис запускає processManager і отримуємо 2 конкуруючі паралельні записи
+    // ПОМИЛКА: запускаємо запис поточного стану в тимчасовий файл
+    // setTimeout(() => {
+    //   this.start(this.tmpLogFileName);
+    // }, 3000); 
   } // constructor
 
   /**
@@ -154,7 +155,7 @@ module.exports = class ClassLoggerManager {
 
     ln = this.ln + `start(${fileName})::`;
     this.fileName = fileName;
-    trace ? log("i", ln, `Started`) : null;
+    log("i", ln, `Started`);
     // якщо вказаного файлу немає - пишемо заголовки
     if (
       !this.fileManager.exist(this.fileName + this._fileExtensions["logger"])
@@ -194,6 +195,11 @@ module.exports = class ClassLoggerManager {
     }
   } //   async start(fileName = "")
 
+  stop () {
+    log("i", ln, `Stoped`);
+    this.state.id = this._states.stoped;
+  }
+
   /**
    * Опитує поточний стан регістрів та записує їх в поточний файл.
    * @returns Promise
@@ -202,7 +208,7 @@ module.exports = class ClassLoggerManager {
     let trace = 0,
       ln = this.ln + "writeLine()::";
     // якщо режим не "started" - виходимо
-    if (this.state.id != "started") {
+    if (this.state.id != this._states.started ) {
       log("i", ln, 'state.id != "started" exit.');
       if (trace) {
         log("i", ln, `this.state=`);
