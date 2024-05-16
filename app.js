@@ -6,20 +6,21 @@ var logger = require("morgan");
 //const logWriter = require("./logger/logWriter.js");
 const nocache = require("nocache");
 const logName = "app.js::";
+const config = require("./config.js");
 const ipAddr = require("./config.js").ipAddr;
-const entities = require("./entities/general/entities.js");
+//server = http.createServer(app);const entities = require("./entities/general/entities.js");
 var passport = require("./tools/passport-loc.js");
-const ClassProgram = require("./entities/SShAM-7-12_2023/program/program/ClassProgram.js");
+//const ClassProgram = require("./entities/SShAM-7-12_2023/program/program/ClassProgram.js");
 //var flash = require("express-flash");
 
 var indexRouter = require("./entities/general/routes/entitiesRouter.js"); // require("./routes/index");
 
-const SShAM_7_12_Router = require("./entities/SShAM-7-12_2023/routes/entityRouter.js");
+//const SShAM_7_12_Router = require("./entities/SShAM-7-12_2023/routes/entityRouter.js");
 // var graphRouter = require("./routes/graph");
 // var akonRouter = require("./routes/akon");
 // var parameterSettingRouter = require("./routes/parameterSetting");
 var loginRouter = require("./routes/login");
-const processRouter = require("./entities/general/routes/processRouter.js");
+//const processRouter = require("./entities/general/routes/processRouter.js");
 // var reportRouter = require("./routes/report");
 // var usersRouter = require("./routes/users");
 // var setTimeRouter = require("./routes/setTime.js");
@@ -50,15 +51,14 @@ log(
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
-app.use(nocache());
-
 // Отключение кэширования. ист. https://coderoad.ru/22632593/%D0%9A%D0%B0%D0%BA-%D0%BE%D1%82%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C-%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%B2%D0%B5%D0%B1-%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86-%D0%B2-ExpressJS-NodeJS
+app.use(nocache());
 app.set("etag", false);
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
-
+// діагностичні повідомлення в консоль
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

@@ -1,6 +1,6 @@
 // -----------  element: select -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /**
  * Створює та повертає елемент вибору
  *
@@ -11,8 +11,8 @@ myElementsRender["text"] = class ClassElementNumber extends (
   constructor(props = {}) {
     props.tag = "input";
     super(props);
-    this.ln = "ClassElementTextArea(" + props.reg.id + ")::";
-    let trace = 1,
+    this.ln = "ClassElementText(" + props.reg.id + ")::";
+    let trace = 0,
       ln = this.ln + "Constructor()::";
 
     // -- тип поля Number -------
@@ -31,7 +31,7 @@ myElementsRender["text"] = class ClassElementNumber extends (
     }
   }
   onchange(event) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "onchange()::";
     super.onchange(event);
     let val = this.getFieldValue();

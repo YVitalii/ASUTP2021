@@ -1,6 +1,6 @@
 var express = require("express");
 var router = express.Router();
-//const tasksManagerRouter = require("../../../controllers/tasksController/routes/index.js");
+
 const pug = require("pug");
 // ------------ логгер  --------------------
 let log = require("../../../tools/log.js"); // логер
@@ -11,12 +11,19 @@ gTrace ? log("i", logName) : null;
 /**
  *трасувальник
  */
-router.use(function (req, res, next) {
+router.use("/:id/*", function (req, res, next) {
   let trace = 1,
     ln = logName + `(${req.originalUrl})::`;
   trace ? log("w", `------${ln} ---- Started ------`) : null;
   next();
 });
+// app.use("/entity/:id/tasksManager/", tasksManagerRouter);
+
+// app.use("/entity/:id/processManager/", processManagerRouter);
+
+// app.use("/entity/:id/devicesManager/", devicesManagerRouter);
+
+// app.use("/entity/:id/loggerManager/", loggerManagerRouter);
 
 router.get("/", function (req, res, next) {
   // сторінка зі списком печей

@@ -13,10 +13,10 @@ router.all("*", function (req, res, next) {
   req.loggerManager = req.entity.loggerManager;
   req.fileManager = req.loggerManager.fileManager;
   trace ? log("i", ln, `Started`) : null;
-  // if (trace) {
-  //   log("i", ln, `req.params=`);
-  //   console.dir(req.params);
-  // }
+  if (trace) {
+    log("i", ln, `req.params=`);
+    console.dir(req.params);
+  }
   next();
 });
 router.all("/report/*", reportRouter);
@@ -91,10 +91,10 @@ router.get("/", function (req, res, next) {
   //     entityName = req.entity.fullName[req.user.lang];
   let trace = 0,
     ln = `${req.baseUrl}::`;
-  if (trace) {
-    log("", ln, `req.entity.graphManager=`);
-    console.dir(req.entity.graphManager);
-  }
+  // if (trace) {
+  //   log("", ln, `req.entity.graphManager=`);
+  //   console.dir(req.entity.graphManager);
+  // }
 
   //   let html = req.entity.processManager.getFullHtml({ lang: req.user.lang });
   let pageTitle = {

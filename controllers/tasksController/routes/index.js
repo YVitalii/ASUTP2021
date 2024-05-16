@@ -21,7 +21,7 @@ const getFileName = require("../../../tools/reqTools.js").reqGetFileName;
 
 // трасувальник
 router.use(function (req, res, next) {
-  let trace = 1,
+  let trace = 0,
     ln = `tasksControllerRouter("${req.originalUrl}")::`;
   trace
     ? log("i", `---------- tasksControllerRouter-----------Started!`)

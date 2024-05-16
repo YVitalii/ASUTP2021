@@ -34,7 +34,7 @@ tasks.model.deleteStep = (stepNumber) => {
     return;
   }
   let stepString = ("00" + stepNumber).slice(-2);
-  let trace = 1,
+  let trace = 0,
     ln = `tasks.model.deleteStep(${stepString})::`;
   trace ? console.log(ln + `Started!`) : null;
 
@@ -79,7 +79,7 @@ tasks.model.insertStep = (stepNumber = 0) => {
     stepNumber = tasks.model.data.length;
   }
 
-  let trace = 1,
+  let trace = 0,
     ln = `tasks.model.insertStep(after N${stepNumber})::`;
   trace ? console.log(ln + `Started!`) : null;
 
@@ -188,7 +188,7 @@ tasks.createStep = (props = {}) => {
 };
 
 tasks.renderList = function (list = undefined) {
-  let trace = 1,
+  let trace = 0,
     ln = "tasks.renderList()::";
 
   // очищуємо модель

@@ -19,15 +19,15 @@ const addInfoToReq = require("../../addInfoToReq.js");
 // var tasksManager = require("../testCreateTaskManager");
 const users = require("../../db/users"); // користувачі
 const entity = require("../testEntity/entity.js");
-const ifaceW2 = require("../../conf_iface.js").w2;
+const iface = require("../../conf_iface.js");
 const tasksManagerRouter = require("../../controllers/tasksController/routes/index.js");
 const processManagerRouter = require("../../processes/processManager/routes/index.js");
 const devicesManagerRouter = require("../../devices/devicesManager/routes/devicesRouter.js");
 const loggerManagerRouter = require("../../controllers/loggerManager/routes/loggerRouter.js");
 const entityRouter = require("../../entities/general/routes/entityRouter.js");
-
+let myAddress = `http://${iface.ipAddr}:3033`;
 console.log(
-  `---------------- server started at ${new Date().toLocaleTimeString()} --------`
+  `---------------- ${myAddress} server started at ${new Date().toLocaleTimeString()} --------`
 );
 
 var app = express();
@@ -49,6 +49,16 @@ app.set("etag", false);
 
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
+  next();
+});
+
+app.use(function (req, res, next) {
+  res.set("Acess-Control-Allow-Origin", myAddress);
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+  // console.log('------req.query-------');
+  // console.log(req.query);
+  // console.log('-------------');
   next();
 });
 
@@ -74,7 +84,7 @@ app.use("*", (req, res, next) => {
     trace ? log("i", ln, `user=`, data) : null;
     next();
   });
-  req.entity = entity;
+
   if (trace) {
     log("i", ln, `req.entity=`);
     console.dir(req.entity);
@@ -87,6 +97,14 @@ app.use("*", (req, res, next) => {
 // });
 app.use("*", addInfoToReq);
 
+app.use("*", (req, res, next) => {
+  req.entity = entity;
+  let trace = 1,
+    ln = req.originalUrl + "::";
+  trace ? log("i", ln, `entity.id=`, entity.id) : null;
+  next();
+});
+
 app.use("/entity/:id/tasksManager/", tasksManagerRouter);
 
 app.use("/entity/:id/processManager/", processManagerRouter);
@@ -95,19 +113,23 @@ app.use("/entity/:id/devicesManager/", devicesManagerRouter);
 
 app.use("/entity/:id/loggerManager/", loggerManagerRouter);
 
-app.use("/entity/:id/", entityRouter);
+app.use("/entity/:id", entityRouter);
+
 app.use("/connections", (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = req.originalUrl + "::";
   trace ? log("i", ln, `Started`) : null;
   let result = {
-    isOpen: ifaceW2.isOpen(),
-    comment: ifaceW2.getComment(),
+    isOpen: iface.w2.isOpen(),
+    comment: iface.w2.getComment(),
   };
   res.json(result);
 });
-
-app.use("/", indexRouter);
+// TODO: поки не зроблений менеджер цеху - перенаправляємо на сторінку печі
+app.use("/", (req, res, next) => {
+  res.redirect(`/entity/${entity.id}`);
+});
+//app.use("/", indexRouter);
 //app.use("/fileManager", fileManagerRouter);
 app.use("/users", usersRouter);
 

@@ -1,6 +1,6 @@
 // -----------  element: select -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /**
  * Створює та повертає елемент вибору
  *
@@ -19,7 +19,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
   constructor(props = {}) {
     this.ln = "ClassCreateStep(" + props.reg.id + ")::";
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Constructor()::";
     if (trace) {
       console.log(ln + `props=`);
@@ -88,7 +88,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
     //  створюємо заголовок
 
     {
-      let trace = 1;
+      let trace = 0;
       let header = document.createElement("div");
       header.classList.add("row");
 
@@ -256,7 +256,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
 
     let id = target.id;
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `button_onclick()::`; //
     trace
       ? console.log(ln + `Was pressed button [${id ? id : target.tagName}]!`)
@@ -290,7 +290,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
   }
 
   setValues(values) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setValues()::`;
     trace ? console.log(ln + `Started`) : null;
     for (let key in values) {

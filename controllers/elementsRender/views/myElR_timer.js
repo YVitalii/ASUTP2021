@@ -1,6 +1,6 @@
 // -----------  element: select -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 
 /**
  * Створює елемент для вводу часу
@@ -16,7 +16,7 @@ myElementsRender["timer"] = class ClassElementTimer extends (
     props.tag = "input";
     super(props);
     this.ln = "ClassElementTimer(" + props.reg.id + ")::";
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "Constructor()::";
 
     // -- тип поля  -------
@@ -45,7 +45,7 @@ myElementsRender["timer"] = class ClassElementTimer extends (
     }
   }
   onchange(event) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "onchange()::";
     super.onchange(event);
     let val = this.getFieldValue();

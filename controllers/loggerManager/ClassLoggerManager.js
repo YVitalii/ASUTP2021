@@ -68,7 +68,9 @@ module.exports = class ClassLoggerManager {
     }; //this._states={
     this.state = this._states.stoped;
 
-    this.start(this.tmpLogFileName); // запускаємо запис поточного стану в тимчасовий файл
+    setTimeout(() => {
+      this.start(this.tmpLogFileName);
+    }, 3000); // запускаємо запис поточного стану в тимчасовий файл
   } // constructor
 
   /**

@@ -42,7 +42,8 @@ naviButtons.ln = "naviButtons::";
       }
     }, //onclick
   };
-  naviButtons.reg.regs[button.reg.id] = button;
+  // TODO кнопка цех відключена, поки не зроблю менеджер цеху
+  //naviButtons.reg.regs[button.reg.id] = button;
 
   // -------------  buttonEntity ------------
   button = {

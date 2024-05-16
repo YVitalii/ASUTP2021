@@ -1,6 +1,6 @@
 // -----------  element: regsList -------------------
 beforeTrace = trace;
-trace = 1;
+trace = 0;
 /**
  * Створює та повертає колекцію об'єктів регістрів та їх DOM - елементи
  *
@@ -87,7 +87,7 @@ myElementsRender["regsList"] = class ClassRegsList {
       } //if (regs.hasOwnProperty(key))
     } //for
     this.children = {};
-    console.log(ln + "Completed!");
+    trace ? console.log(ln + "Completed!") : null;
   }
 
   render(regs) {
@@ -99,7 +99,7 @@ myElementsRender["regsList"] = class ClassRegsList {
     for (let key in regs) {
       trace ? console.log(ln + `key=${key}`) : null;
       if (regs.hasOwnProperty(key)) {
-        let trace = 1;
+        let trace = 0;
         let item = regs[key];
         trace
           ? console.log(
@@ -166,7 +166,7 @@ myElementsRender["regsList"] = class ClassRegsList {
         }
       }
     }
-    //trace = 1;
+    //trace = 0;
     if (trace) {
       console.log(ln + `Response=`);
       console.dir(res);

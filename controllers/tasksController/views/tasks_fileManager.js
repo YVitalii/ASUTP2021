@@ -91,7 +91,7 @@ props.buttons.reg.regs.btnAccept = {
     }
     try {
       // запит на сервер
-      debugger;
+      //debugger;
       let res = await acceptFile("acceptFile", {
         fileName,
       });

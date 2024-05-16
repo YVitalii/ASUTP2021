@@ -43,14 +43,6 @@ router.post("/deleteFile", async (req, res, next) => {
       res.send({ err: err, data: null });
     }
   }
-
-  let err = {
-    ua: `Файл з ім'ям ${fileName} не знайдено`,
-    en: `File ${fileName} not finded!`,
-    ru: `Файл ${fileName} не найден!`,
-  };
-  log("e", err.ua);
-  res.status(404).send({ err: err, data: "Ok" });
 });
 
 router.post("/writeFile", async (req, res, next) => {
@@ -89,7 +81,7 @@ router.post("/writeFile", async (req, res, next) => {
 }); //router.post("/writeFile"
 
 router.post("/readFile", async (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = req.fileManager.ln + `post(${req.originalUrl})::`;
   let fileName = getFileName(req);
   //trace ? console.log("w", ln, `req=`, req) : null;
@@ -110,7 +102,7 @@ router.post("/readFile", async (req, res, next) => {
   }
   try {
     let data = await req.fileManager.readFile(fileName);
-    log("w", `File ${fileName} was readed! `);
+    //log("w", ln+`File ${fileName} was readed! `);
 
     res.send({ err: null, data: JSON.parse(data) });
   } catch (error) {

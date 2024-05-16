@@ -62,43 +62,21 @@ class ClassTaskThermal extends ClassTaskGeneral {
         this.ln + `Property "maxT" must be cpecified! maxT=${props.maxT}`
       );
     }
+
     this.devices = [];
+
     // перевіряємо список приладів, що приймають участь в керуванні
     if (
-      !(
-        props.devices &&
-        Array.isArray(props.devices) &&
-        props.devices.length > 0
-      )
+      props.devices &&
+      Array.isArray(props.devices) &&
+      props.devices.length > 0
     ) {
-      throw new Error(
-        this.ln +
-          `props.devices must be cpecified! typeof props.devices = ${typeof props.devices}`
-      );
+      for (let i = 0; i < props.devices.length; i++) {
+        this.addDevice(props.devices[i]);
+      } //for (let i = 0; i < props.devices.length; i++)
     }
-    for (let i = 0; i < props.devices.length; i++) {
-      let trace = 0,
-        ln = this.ln + "testDevices()::";
-      let element = props.devices[i];
-      if (trace) {
-        log("i", ln, `device=`);
-        console.dir(element);
-      }
-      if (!element) {
-        log("e", ln, ` device not defined!`);
-      }
-      // if (trace) {
-      //   console.log("i", ln, `props.devices[${i}].getT=`);
-      //   console.dir(props.devices[i].getT);
-      // }
-      if (!element.getT || typeof element.getT != "function") {
-        throw new Error(
-          this.ln +
-            `props.devices.getT must be async function? but typeof props.devices[${i}].getT = ${typeof element.getT}`
-        );
-      } //if (!element.getT || typeof element.getT != "function"
-      this.devices.push(element);
-    } //for (let i = 0; i < props.devices.length; i++)
+
+    // параметри першої хвилі
     this.firstWave = props.firstWave ? props.firstWave : {};
     // в this.regs знаходяться параметри програми, які задає користувач
     // задана температура
@@ -257,6 +235,28 @@ class ClassTaskThermal extends ClassTaskGeneral {
       console.dir(this.regs.regMode, { depth: 4 });
     }
   } // constructor
+
+  /**
+   * Реєструє прилад
+   * @param {Object} device
+   */
+  addDevice(device) {
+    let trace = 0,
+      ln = this.ln + "addDevice::";
+    if (trace) {
+      log("i", ln, `device=`);
+      console.dir(device);
+    }
+    log("i", ln, `device=`, device.id);
+    if (!device.getT || typeof device.getT != "function") {
+      throw new Error(
+        this.ln +
+          `props.devices.getT must be async function? but typeof props.devices[${i}].getT = ${typeof device.getT}`
+      );
+    }
+    this.devices.push(device);
+    log("i", ln, `device= [`, device.id, "] was added.");
+  }
 
   /**
    * Створює та повертає крок термообробки

@@ -176,6 +176,9 @@ class ClassTasksManager extends ClassReg_select {
     // якщо такого файлу не існує - помилка
     if (!this.fileManager.exist(val)) {
       // TODO При установці виникає помилка так як файл типової програми ще не існує
+      // якщо неіснує - потрібно автоматично його створювати на основі getDefaultStep()
+      // функцію getDefaultStep() - потрібно буде створити в кожному менеджері задач,
+
       let msg =
         ln + "Incorrect fileName: " + `[${this.fileManager.homeDir}\\${val}]`;
       if (trace) {
@@ -232,6 +235,15 @@ class ClassTasksManager extends ClassReg_select {
 
   //   // let description = new this.regs['description'];
   // }
+
+  /** Повертає посилання на контролер кроку */
+  getTask(taskId) {
+    let task = this.reg.regs[taskId];
+    if (!task) {
+      throw new Error(this.ln + `getTask(${taskId}):: not defined!`);
+    }
+    return task;
+  }
 
   /** Завантажує список задач з файлу
    *
