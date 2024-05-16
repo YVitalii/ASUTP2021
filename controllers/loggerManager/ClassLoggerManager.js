@@ -3,6 +3,7 @@ const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const ClassLoggerRegisters = require("./ClassLoggerRegister.js");
 const pug = require("pug");
 const normalizePath = require("path").normalize;
+const dummy = require("../../tools/dummy").dummyPromise;
 
 module.exports = class ClassLoggerManager {
   /**
@@ -61,9 +62,13 @@ module.exports = class ClassLoggerManager {
         id: "stoped",
         header: { ua: `Зупинено`, en: `Stoped`, ru: `Остановлен` },
       },
-      started: {
-        id: "started",
+      going: {
+        id: "going",
         header: { ua: `Запис`, en: `Writing`, ru: `Запись` },
+      },
+      stoping: {
+        id: "stoping",
+        header: { ua: `Зупиняється`, en: `Stoping`, ru: `Останавливается` },
       },
     }; //this._states={
     this.state = this._states.stoped;
@@ -71,7 +76,7 @@ module.exports = class ClassLoggerManager {
     // ПОМИЛКА: запускаємо запис поточного стану в тимчасовий файл
     // setTimeout(() => {
     //   this.start(this.tmpLogFileName);
-    // }, 3000); 
+    // }, 3000);
   } // constructor
 
   /**
@@ -130,7 +135,9 @@ module.exports = class ClassLoggerManager {
   async start(fileName = "") {
     let trace = 1;
     let ln = this.ln + `start(${fileName})::`;
-
+    trace ? log("i", ln, `Started`) : null;
+    await this.stop();
+    trace ? log("i", ln, `Before writing was stoped`) : null;
     // ------------ імя файлу не вказано, або це тимчасовий файл -------------
     if (fileName === "" || fileName == this.tmpLogFileName) {
       fileName = this.tmpLogFileName;
@@ -174,7 +181,7 @@ module.exports = class ClassLoggerManager {
     } //if (!this.fileManager.exist(this.fileName+this._fileExtensions["logger"]))
 
     // змінюємо стан
-    this.state = this._states.started;
+    this.state = this._states.going;
     let msg = ` "${this.fileName + this._fileExtensions.logger}" `;
     // запускаємо періодичне опитування
     await this.writeLine();
@@ -195,9 +202,19 @@ module.exports = class ClassLoggerManager {
     }
   } //   async start(fileName = "")
 
-  stop () {
+  async stop() {
+    let trace = 0,
+      ln = this.ln + "stop()";
+    trace ? log("i", ln, `Started this.state.id=${this.state.id}`) : null;
+    if (this.state.id == this._states.going.id) {
+      this.state = this._states.stoping;
+    }
+    //this.state.id = this._states.stoping;
+    while (this.state.id != this._states.stoped.id) {
+      await dummy(2000);
+    }
     log("i", ln, `Stoped`);
-    this.state.id = this._states.stoped;
+    return 1;
   }
 
   /**
@@ -206,14 +223,16 @@ module.exports = class ClassLoggerManager {
    */
   async writeLine() {
     let trace = 0,
-      ln = this.ln + "writeLine()::";
+      ln =
+        this.ln + `writeLine(${this.fileName + this._fileExtensions.logger})::`;
     // якщо режим не "started" - виходимо
-    if (this.state.id != this._states.started ) {
-      log("i", ln, 'state.id != "started" exit.');
+    if (this.state.id != this._states.going.id) {
+      log("i", ln, 'state.id != "going" exit.');
       if (trace) {
         log("i", ln, `this.state=`);
         console.dir(this.state);
       }
+      this.state = this._states.stoped;
       return 1;
     }
 

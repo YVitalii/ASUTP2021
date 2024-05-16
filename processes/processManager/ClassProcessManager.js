@@ -53,7 +53,10 @@ class ClassProcessManager {
     this.htmlProgram.states = []; // програма для браузера
     this.htmlProgram.lastUpdate = 0; // відмітка часу останнього оновлення програми для браузера
     // парсимо поточну програму 3 сек - щоб встиг завантажитися tasksManager
-    setTimeout(() => this.setProgram(), 3000);
+    setTimeout(() => {
+      this.setProgram();
+      this.loggerManager.start();
+    }, 3000);
   }
 
   /**

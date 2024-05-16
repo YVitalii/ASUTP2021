@@ -12,7 +12,7 @@ gTrace ? log("i", logName) : null;
  *трасувальник
  */
 router.use("/:id/*", function (req, res, next) {
-  let trace = 1,
+  let trace = 0,
     ln = logName + `(${req.originalUrl})::`;
   trace ? log("w", `------${ln} ---- Started ------`) : null;
   next();

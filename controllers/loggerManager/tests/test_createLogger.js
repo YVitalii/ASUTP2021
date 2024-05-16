@@ -54,3 +54,7 @@ let go = async () => {
 setTimeout(() => {
   go();
 }, 1000);
+setTimeout(() => {
+  console.log(ln, "Start new log file.");
+  logger.start("2023-05-16");
+}, 15 * 1000);
