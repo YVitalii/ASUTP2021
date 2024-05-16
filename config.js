@@ -3,7 +3,7 @@ const config = {};
 // включает/выключает  эмуляцию обмена по RS485
 config.emulateRS485 = 0; //емуляція rs485;
 
-config.test = true; // режим розробки
+config.test = false; // режим розробки
 
 // трасувальник
 let trace = 0;

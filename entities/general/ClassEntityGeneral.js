@@ -49,7 +49,7 @@ class ClassEntityGeneral {
       ln: this.id + "::loggerManager()::",
       baseUrl: this.homeUrl,
       baseDir: this.homeDir,
-      period: test ? 1 * 1000 : 10 * 1000,
+      period: test ? 2 * 1000 : 10 * 1000,
       regs: [],
     });
 

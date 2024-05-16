@@ -2,7 +2,7 @@ const log = require("../../tools/log.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const ClassLoggerRegisters = require("./ClassLoggerRegister.js");
 const pug = require("pug");
-const resolvePath = require("path").resolve;
+const normalizePath = require("path").normalize;
 
 module.exports = class ClassLoggerManager {
   /**
@@ -25,7 +25,7 @@ module.exports = class ClassLoggerManager {
     this.baseDir = props.baseDir ? props.baseDir : __dirname;
     // локальні шляхи
     this.homeUrl = this.baseUrl + "/" + this.id;
-    this.homeDir = this.baseDir + "\\" + this.id;
+    this.homeDir = normalizePath(this.baseDir + "\\" + this.id);
     // період між запитами
     this.period = props.period ? props.period : 10 * 1000;
     // файловий менеджер
@@ -422,7 +422,7 @@ module.exports = class ClassLoggerManager {
 
   getCompactHtml(req) {
     let html = pug.renderFile(
-      resolvePath(
+      normalizePath(
         req.locals.homeDir +
           "/controllers/loggerManager/views/loggerCompact.pug"
       ),
@@ -437,7 +437,7 @@ module.exports = class ClassLoggerManager {
   getFullHtml(req) {
     let chart = this.getCompactHtml(req);
     let html = pug.renderFile(
-      resolvePath(
+      normalizePath(
         req.locals.homeDir + "/controllers/loggerManager/views/loggerFull.pug"
       ),
       {

@@ -4,11 +4,14 @@ const path = require("path");
 const log = require("../../tools/log");
 const clone = require("clone");
 const ClassStepsSerial = require("../../controllers/ClassStep/ClassStepsSerial");
+const normalizePath = require("path").normalize;
 
 class ClassProcessManager {
   constructor(props = {}) {
     this.homeUrl = props.homeUrl ? props.homeUrl + "/processManager" : "/";
-    this.homeDir = props.homeDir ? props.homeDir + "processManager\\" : "/";
+    this.homeDir = normalizePath(
+      props.homeDir ? props.homeDir + "processManager\\" : "/"
+    );
     // this.moduleDir = __dirname;
     this.id = "processManager";
     this.header = {
