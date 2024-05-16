@@ -26,7 +26,7 @@ module.exports = class ClassLoggerManager {
     this.baseDir = props.baseDir ? props.baseDir : __dirname;
     // локальні шляхи
     this.homeUrl = this.baseUrl + "/" + this.id;
-    this.homeDir = normalizePath(this.baseDir + "\\" + this.id);
+    this.homeDir = normalizePath(this.baseDir + "/" + this.id);
     // період між запитами
     this.period = props.period ? props.period : 10 * 1000;
     // файловий менеджер
