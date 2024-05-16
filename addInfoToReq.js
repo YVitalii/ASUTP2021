@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
   req.locals = {};
   req.locals.homeDir = __dirname;
   // шлях до базового шаблону main.pug
-  req.locals.mainPug = req.locals.homeDir + "\\views\\main.pug";
+  req.locals.mainPug = req.locals.homeDir + "/views/main.pug";
   // милиця для  сумісності з попереднім кодом, при нагоді пропатчити код та видалити милицю
   req.info = {};
   req.info.homeDir = req.locals.homeDir;

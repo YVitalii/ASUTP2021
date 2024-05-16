@@ -99,7 +99,7 @@ app.use("*", addInfoToReq);
 
 app.use("*", (req, res, next) => {
   req.entity = entity;
-  let trace = 1,
+  let trace = 0,
     ln = req.originalUrl + "::";
   trace ? log("i", ln, `entity.id=`, entity.id) : null;
   next();
