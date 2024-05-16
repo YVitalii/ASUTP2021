@@ -39,6 +39,14 @@ class ClassConnectionManager extends myElementsRender.ClassGeneralElement {
       }
     } catch (error) {
       console.error(error);
+      res = {
+        isOpen: false,
+        comment: {
+          ua: `${error.message}`,
+          en: `${error.message}`,
+          ru: `${error.message}`,
+        },
+      };
     }
     if (res && (this.reg.value != res.isOpen || this.reg.value === undefined)) {
       let connected = document.getElementById(this.id + "_connected");
