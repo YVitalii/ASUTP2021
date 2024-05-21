@@ -104,7 +104,8 @@ myElementsRender["ClassCreateElement"] = class ClassCreateElement extends (
       : null;
     this.field.value = val;
     this.reg.value = val;
-    //this.afterChange(this);
+
+    this.afterChange(this);
   }
   // /** встановлює атрибути елемента Field */
   // setProperties(el = "field", obj = {}) {

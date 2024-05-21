@@ -14,13 +14,14 @@ myElementsRender["select"] = class ClassElementSelectRegsList extends (
     this.ln = "ClassElementSelectRegsList(" + props.reg.id + ")::";
     let trace = 0,
       ln = this.ln + "Constructor()::";
-
+    //debugger;
     // create children
     this.children = new tasks.ClassRegsList({
       container: this.container,
       prefix: this.elId,
       regs: this.regs[this.value].regs,
       types: this.types,
+      afterChange: this.afterChange,
     });
 
     // рендерим

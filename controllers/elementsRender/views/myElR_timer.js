@@ -6,9 +6,6 @@ trace = 0;
  * Створює елемент для вводу часу
  *
  */
-
-//
-
 myElementsRender["timer"] = class ClassElementTimer extends (
   myElementsRender.ClassCreateElement
 ) {
@@ -30,7 +27,7 @@ myElementsRender["timer"] = class ClassElementTimer extends (
     this.field.setAttribute("min", this.minutesToString(this.min));
 
     // хв, максимальне значення
-    this.max = 99 * 60; //99 годин
+    this.max = 99 * 60 - 1; //99 годин
     if (props.reg.max | (props.reg.max === 0)) {
       this.max = props.reg.max;
     }
@@ -38,7 +35,7 @@ myElementsRender["timer"] = class ClassElementTimer extends (
 
     // встановлюємо значення поля
     this.field.value = this.minutesToString(this.value);
-
+    this.reg.value = this.field.value;
     if (trace) {
       console.log(ln + "this=");
       console.dir(this);
@@ -47,9 +44,11 @@ myElementsRender["timer"] = class ClassElementTimer extends (
   onchange(event) {
     let trace = 0,
       ln = this.ln + "onchange()::";
+    //debugger;
     super.onchange(event);
-    let val = this.getFieldValue();
-    this.setValue(this.stringToMinutes(val));
+    let val = this.stringToMinutes(this.getFieldValue());
+    this.setValue(val);
+    //this.setValue(this.stringToMinutes(val));
     //this.field.value = this.value;
   } // onchange()
 
@@ -74,7 +73,13 @@ myElementsRender["timer"] = class ClassElementTimer extends (
     return time.slice(11, -8);
   }
 
+  getValue() {
+    let v = super.getValue();
+    return this.stringToMinutes(v);
+  }
+
   setValue(val) {
+    //val = this.stringToMinutes(val);
     if (val > this.max) {
       console.error(
         this.ln +
@@ -89,8 +94,8 @@ myElementsRender["timer"] = class ClassElementTimer extends (
           `Can't set ${val}, because min=${this.min}. Was setted min value!`
       );
     }
-    super.setValue(val);
-    this.field.value = this.minutesToString(val);
+    super.setValue(this.minutesToString(val));
+    //this.field.value = this.minutesToString(val);
   }
 }; // class
 // console.log("Element type : timer loaded");

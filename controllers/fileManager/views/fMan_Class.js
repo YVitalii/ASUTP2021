@@ -19,6 +19,8 @@ const ClassFileManager = class FileManager {
       console.log(ln + `props=`);
       console.dir(props);
     }
+    // debugger;
+
     //debugger;
     this.id = props.id;
     // list of types
@@ -57,6 +59,7 @@ const ClassFileManager = class FileManager {
   }
 
   setFileName(fName) {
+    this.currFileName = fName;
     this.filesList.setValue(fName);
   }
 

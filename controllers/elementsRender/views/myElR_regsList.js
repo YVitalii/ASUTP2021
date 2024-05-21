@@ -13,6 +13,7 @@ myElementsRender["regsList"] = class ClassRegsList {
    * @property {DOMnode} props.container - DOM контенер в якому буде розміщено
    * @property {String} props.prefix - префікс до id
    * @property {Object} props.regs - список регістрів
+   * @property {async Function} props.afterChange - функція котра викликається після зміни value кожного елемента
    */
 
   constructor(props = {}) {
@@ -31,6 +32,8 @@ myElementsRender["regsList"] = class ClassRegsList {
 
     this.types = myElementsRender; // список доступних класів, що рендерять елементи
 
+    this.afterChange = props.afterChange;
+    //debugger;
     // список регістрів
     if (!props.regs) {
       props.regs = {};
@@ -114,6 +117,7 @@ myElementsRender["regsList"] = class ClassRegsList {
             prefix: this.prefix,
             reg: item,
             container: this.container,
+            afterChange: this.afterChange,
           });
           // перевіряємо чи є елемент з таким id в DOM
           if (document.getElementById(el.idEl)) {
@@ -159,7 +163,7 @@ myElementsRender["regsList"] = class ClassRegsList {
           console.log(lln + `child=`);
           console.dir(child);
         }
-        res[child.id] = child.value;
+        res[child.id] = child.getValue();
         if (child.children) {
           let resChild = child.children.getValues();
           Object.assign(res, resChild);

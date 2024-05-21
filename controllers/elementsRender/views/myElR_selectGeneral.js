@@ -67,7 +67,7 @@ myElementsRender["selectGeneral"] = class ClassElementSelect extends (
     // this.render(this.regs[this.getFieldValue()]);
     this.setValue(this.getOption(this.getFieldValue()));
 
-    await this.afterChange(this);
+    //await this.afterChange(this);
 
     super.onchange(event);
   }

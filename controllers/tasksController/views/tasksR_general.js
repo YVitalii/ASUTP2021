@@ -1,8 +1,39 @@
 // аналог list, але в ньому зберігаються всі створені js-об'єкти регістрів
 // для швидкого доступу
 tasks.model = {};
+// дані моделі
 tasks.model.data = [];
+// ознака редагування
+tasks.model.edited = false;
+tasks.model.hasEdited = () => tasks.model.edited;
+// функція що змінює стан на "редаговано"
+tasks.model.setEdited = async (el = {}) => {
+  let trace = 0,
+    ln = "tasks.model.setEdited::";
+  if (trace) {
+    console.log("i", ln, `el=`);
+    console.dir(el);
+  }
+  if (tasks.model.hasEdited()) return;
+  tasks.model.edited = true;
+  fileManager.buttons.checkState();
+  return;
+};
+// функція що змінює стан на "не редаговано"
+tasks.model.setNotEdited = () => {
+  tasks.model.edited = false;
+  fileManager.buttons.checkState();
+};
+// ознака рендерингу програми, бо якщо вибрати інше імя програми коли вона рендериться,
+// виникає ситуація : Програму змінено, так як на момент рендерингу ми встановлюємо нові
+// значення і tasks.model.hasEdited=true
+tasks.model.rendering = false;
 
+/**
+ * Перенумеровує кроки у випадку видалення/додавання
+ * @param {*} array
+ * @param {*} start
+ */
 tasks.model.renumber = (array, start = 1) => {
   if (!array) {
     array = tasks.model.data;
@@ -170,18 +201,18 @@ tasks.createStep = async (props = {}) => {
   let el;
   if (reg) {
     el = new tasks.ClassCreateStep({
-      //editable: false, //tasks.reg.editable,
       model: tasks.model,
       stepNumber: props.stepNumber,
       reg: reg,
       container: props.container ? props.container : tasks.container,
       types: tasks.elementsTypes,
       previousStep: props.previousStep,
+      afterChange: props.afterChange,
     });
     if (props.values) {
       el.setValues(props.values);
     }
-    await myTools.dummy(200);
+    await myTools.dummy(150);
   } else {
     console.error("tasks.createStep undefined type of task:" + props.id);
   }
@@ -191,7 +222,8 @@ tasks.createStep = async (props = {}) => {
 tasks.renderList = async function (list = undefined) {
   let trace = 0,
     ln = "tasks.renderList()::";
-
+  // встановлюємо ознаку рендерингу
+  tasks.model.rendering = true;
   // очищуємо модель
   tasks.model.data = [];
 
@@ -228,6 +260,7 @@ tasks.renderList = async function (list = undefined) {
       id: step.id,
       stepNumber: i,
       values: step,
+      afterChange: tasks.model.setEdited,
     };
     let el = await tasks.createStep(props);
     if (!el) {
@@ -249,4 +282,8 @@ tasks.renderList = async function (list = undefined) {
     // }
     trace ? console.timeEnd("createStep") : null;
   } //for
+  // скидаємо ознаку рендерингу
+  tasks.model.rendering = false;
+  // скидаємо ознаку редагування
+  tasks.model.setNotEdited();
 };

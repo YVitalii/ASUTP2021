@@ -14,11 +14,12 @@ tasks.ClassCreateStep = class ClassCreateStep {
    * @property {Object} props.reg - регістр, що містить в собі опис кроку
    * @property {Object} props.types - список доступних класів, що рендерять елементи
    * @property {Object} props.previousStep=undefined - елемент DOM після якого вставляти новий крок
+   * @property {async Function} props.afterChange - функція котра викликається після зміни value кожного елемента
    */
 
   constructor(props = {}) {
     this.ln = "ClassCreateStep(" + props.reg.id + ")::";
-
+    //debugger;
     let trace = 0,
       ln = this.ln + "Constructor()::";
     if (trace) {
@@ -133,7 +134,7 @@ tasks.ClassCreateStep = class ClassCreateStep {
     this.children = new tasks.ClassRegsList({
       prefix: this.prefix,
       container: this.container,
-      //parent: this,
+      afterChange: props.afterChange,
       regs: this.reg.regs,
       types: this.types,
     });

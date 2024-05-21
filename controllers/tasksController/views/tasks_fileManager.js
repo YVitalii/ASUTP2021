@@ -31,7 +31,7 @@ props.buttons.reg.regs.btnSave = {
   },
   onclick: async function (e) {
     let trace = 1,
-      ln = "btnAccept::onClick::";
+      ln = "btnSave::onClick::";
     trace ? console.log(ln + ` Pressed!`) : null;
     // Отримуємо дані
     let content = tasks.model.getValues();
@@ -58,6 +58,8 @@ props.buttons.reg.regs.btnSave = {
       await fileManager.loadFilesList();
       // Підтвердження
       alert(data[lang]);
+      // знімаємо ознаку редагування програми
+      tasks.model.setNotEdited();
     } catch (error) {
       console.error(error);
     } // try catch
@@ -161,12 +163,48 @@ props.filesList = {
     // функція обробки зміни поля filesList
     let trace = 1,
       ln = "fileList::afterChange::";
+
+    // поточна програма
+    let fileName = fileManager.currFileName;
+    // обрана нова програма
+    let newFileName = fileManager.getFileName();
+    // якщо наразі проходить рендеринг кроків програми, очікуємо
+    while (tasks.model.rendering) {
+      await myTools.dummy(500);
+    }
+    // якщо імя файлу не змінилось - нічого не робимо, інакше видаляться зміни
+    if (fileName === newFileName) {
+      trace
+        ? console.log(ln + `fileName=newFileName=${fileName}. Exit.`)
+        : null;
+      return;
+    }
+    // якщо поточну програму змінено - запит користувачу
+    if (
+      tasks.model.hasEdited() &&
+      !confirm(
+        {
+          ua: `Програму "${fileName}" було змінено. \n Не зберігати зміни?`,
+          en: `Program  "${fileName}" was changed. \n Do you want to reset changes?`,
+          ru: `Программа "${fileName}" была изменена. \n Сбросить изменения?`,
+        }[lang]
+      )
+    ) {
+      // користувач відмінив перехід, повертаємо все як було
+      console.log(ln + "Cancelled by user.");
+      // debugger;
+      fileManager.filesList.setValue(fileName);
+      return;
+    }
     try {
       let { err, data } = await fileManager.post("readFile");
       if (data) {
         tasks.renderList(data);
+        fileManager.currFileName = newFileName;
       }
     } catch (error) {
+      // помилка, повертаємо все як було
+      fileManager.filesList.setValue(fileName);
       console.error(ln + error.message);
     }
   }, //afterChange
@@ -198,6 +236,21 @@ props.filesList = {
 };
 
 const fileManager = new ClassFileManager(props);
+
+//поточне імя останнього встановленого файлу
+fileManager.currFileName = tasks.list[0].name;
+
+/** Змінює активність кнопок в залежності від того, редагована програма чи ні */
+fileManager.buttons.checkState = () => {
+  let buttons = fileManager.buttons.children;
+  if (tasks.model.hasEdited()) {
+    buttons.btnSave.el.classList.remove("disabled");
+    buttons.btnAccept.el.classList.add("disabled");
+  } else {
+    buttons.btnAccept.el.classList.remove("disabled");
+    buttons.btnSave.el.classList.add("disabled");
+  }
+};
 
 fileManager.currPrg = new props.types["text"]({
   container: document.getElementById("fileMan_currPrg"),
