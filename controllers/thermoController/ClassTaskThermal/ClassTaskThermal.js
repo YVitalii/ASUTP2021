@@ -10,6 +10,7 @@ const ClassHeatingStep = require("../heatingStep/ClassHeatingStep.js");
 const ClassHoldingStep = require("../holdingStep/ClassHoldingStep.js");
 const ClassStepsSerial = require("../../ClassStep/ClassStepsSerial.js");
 const ClassStepsParallel = require("../../ClassStep/ClassStepsParallel.js");
+const clone = require("clone");
 
 const log = require("../../../tools/log.js");
 
@@ -256,6 +257,24 @@ class ClassTaskThermal extends ClassTaskGeneral {
     }
     this.devices.push(device);
     log("i", ln, `device= [`, device.id, "] was added.");
+  }
+
+  /**
+   * Повертає копію this.reg для рендерингу сторінки
+   * видаляє непотрібні поля devices
+   */
+  getRegForHtml() {
+    let trace = 0,
+      ln = this.ln + "getRegForHtml()::";
+    let reg = clone(this);
+    reg.devices = undefined;
+    reg.firstWave = undefined;
+    if (trace) {
+      log("i", ln, `reg=`);
+      console.dir(reg);
+    }
+
+    return reg;
   }
 
   /**

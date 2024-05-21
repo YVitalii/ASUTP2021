@@ -189,7 +189,7 @@ tasks.createStep = async (props = {}) => {
 };
 
 tasks.renderList = async function (list = undefined) {
-  let trace = 1,
+  let trace = 0,
     ln = "tasks.renderList()::";
 
   // очищуємо модель

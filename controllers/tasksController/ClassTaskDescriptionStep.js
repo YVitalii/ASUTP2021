@@ -1,5 +1,6 @@
 const ClassReg_regsList = require("../regsController/ClassReg_regsList.js");
 const ClassRegister = require("../regsController/ClassRegister.js");
+const clone = require("clone");
 
 class ClassTaskDescriptionStep extends ClassReg_regsList {
   constructor(props = {}) {
@@ -84,6 +85,14 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
     // let res = this.getState();
     // res.type = "description";
     return this;
+  }
+
+  /**
+   * Повертає копію this.reg для рендерингу сторінки
+   * видаляє непотрібні поля devices
+   */
+  getRegForHtml() {
+    return clone(this);
   }
 }
 
