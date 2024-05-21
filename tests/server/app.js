@@ -105,6 +105,17 @@ app.use("*", (req, res, next) => {
   next();
 });
 
+app.use("/ping", (req, res, next) => {
+  res.json({
+    err: null,
+    data: {
+      ua: `Сервер на зв'язку`,
+      en: `Server online`,
+      ru: `Сервер на связи`,
+    },
+  });
+});
+
 app.use("/entity/:id/tasksManager/", tasksManagerRouter);
 
 app.use("/entity/:id/processManager/", processManagerRouter);
