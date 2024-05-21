@@ -9,12 +9,13 @@ const pathNormalize = require("path").normalize;
 const pathResolve = require("path").resolve;
 //const { readFileSync, writeFile } = require("fs");
 const ClassTaskDescriptionStep = require("./ClassTaskDescriptionStep.js");
-const { chdir } = require("process");
+// const { chdir } = require("process");
 /**
  * Клас виконує керування завданнями
  * для тестування при розробці створено локальний сервер
  * що знаходиться в теці ./tests/testServer/ npm start
  */
+const clone = require("clone");
 
 class ClassTasksManager extends ClassReg_select {
   /**
@@ -300,10 +301,44 @@ class ClassTasksManager extends ClassReg_select {
    * @returns html
    */
   getFullHtml(req) {
+    let trace = 0,
+      ln = this.ln + `getFullHtml(${req.id})::`;
+    let reg = clone(this.reg);
+
+    reg.regs = {};
+    if (trace) {
+      log("i", ln, `Cloned reg=`);
+      console.dir(reg);
+    }
+    // перебираємо всі можливі кроки та отримуємо копію опису для рендерингу
+    // якщо цього не зробити, в браузер передається повна копія об'єкту
+    // разом з iface, devices та інше
+    for (const key in this.reg.regs) {
+      if (Object.hasOwnProperty.call(this.reg.regs, key)) {
+        const element = this.reg.regs[key];
+        reg.regs[key] = element.getRegForHtml();
+      }
+    }
+    let manager = {
+      header: this.header,
+      id: this.id,
+      reg,
+      list: this.list,
+      homeURL: this.homeURL,
+      value: this.value,
+      fileManager: {
+        filesList: this.fileManager.getFilesList(),
+        homeURL: this.fileManager.homeURL,
+      },
+    };
+    if (trace) {
+      log("i", ln, `manager=`);
+      console.dir(manager);
+    }
     let html = "";
     html = pug.renderFile(__dirname + "/views/editTasks.pug", {
       req,
-      manager: this,
+      manager,
     });
     return html;
   }
