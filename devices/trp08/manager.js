@@ -343,6 +343,7 @@ class Manager {
     //   console.dir(this.state);
     // }
   }
+
   /**
    * Функція підлаштовує узагальнені параметри завдання
    * конкретно під ТРП-08
@@ -370,7 +371,7 @@ class Manager {
       props.o = regs.o ? parseInt(regs.o * 10) : 0;
     } else {
       props.regMode = 2; //pos
-      props.o = regs.o ? parseInt(regs.o) : 0;
+      props.o = regs.o ? Math.abs(parseInt(regs.o)) : 0; //оскільки неузгодження відємне а в ТРП - має бути позитивним - інвертуємо знак
     }
     props.tT = regs.tT ? regs.tT : 0;
     props.H = regs.H ? regs.H : 0;
