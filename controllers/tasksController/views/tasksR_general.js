@@ -165,7 +165,7 @@ tasks.model.moveDown = (stepNumber = undefined) => {
   // trace ? console.log(ln + `Started!`) : null;
 };
 
-tasks.createStep = (props = {}) => {
+tasks.createStep = async (props = {}) => {
   let reg = tasks.reg.regs[props.id];
   let el;
   if (reg) {
@@ -181,14 +181,15 @@ tasks.createStep = (props = {}) => {
     if (props.values) {
       el.setValues(props.values);
     }
+    await myTools.dummy(200);
   } else {
     console.error("tasks.createStep undefined type of task:" + props.id);
   }
   return el;
 };
 
-tasks.renderList = function (list = undefined) {
-  let trace = 0,
+tasks.renderList = async function (list = undefined) {
+  let trace = 1,
     ln = "tasks.renderList()::";
 
   // очищуємо модель
@@ -221,13 +222,14 @@ tasks.renderList = function (list = undefined) {
 
   let i = 0;
   for (i = 0; i < list.length; i++) {
+    trace ? console.time("createStep") : null;
     let step = list[i];
     let props = {
       id: step.id,
       stepNumber: i,
       values: step,
     };
-    let el = tasks.createStep(props);
+    let el = await tasks.createStep(props);
     if (!el) {
       console.error(`Помилка створення кроку: ${JSON.stringify(props)}`);
       continue;
@@ -238,5 +240,13 @@ tasks.renderList = function (list = undefined) {
       console.log(ln + `el=`);
       console.dir(el);
     }
+    // костиль-затримка, так як ДОМ інколи не встигає додати всіх дітей
+    // і вони потрапляють в наступний крок
+
+    // for (let j = 0; j < 10000; j++) {
+    //   let r = Math.sqrt(j) + Math.sqrt(j + 3);
+    //   null;
+    // }
+    trace ? console.timeEnd("createStep") : null;
   } //for
 };
