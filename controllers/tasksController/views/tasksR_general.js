@@ -104,7 +104,7 @@ tasks.model.deleteStep = (stepNumber) => {
 };
 
 tasks.model.insertStep = async (stepNumber = 0) => {
-  debugger;
+  //debugger;
   stepNumber = parseInt(stepNumber);
 
   if (!stepNumber) {
