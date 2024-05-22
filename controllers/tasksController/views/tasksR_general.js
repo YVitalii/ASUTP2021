@@ -100,9 +100,11 @@ tasks.model.deleteStep = (stepNumber) => {
   // delete from tasks.model.data
   model.data.splice(stepNumber, 1);
   tasks.model.renumber();
+  tasks.model.setEdited();
 };
 
-tasks.model.insertStep = (stepNumber = 0) => {
+tasks.model.insertStep = async (stepNumber = 0) => {
+  debugger;
   stepNumber = parseInt(stepNumber);
 
   if (!stepNumber) {
@@ -140,7 +142,7 @@ tasks.model.insertStep = (stepNumber = 0) => {
   // крок після якого додавати новий
   let previousStep = document.getElementById(model.data[stepNumber].prefix);
 
-  let el = tasks.createStep({
+  let el = await tasks.createStep({
     stepNumber: 99,
     id: stepType,
     //container: hiddenStep,
@@ -156,7 +158,8 @@ tasks.model.insertStep = (stepNumber = 0) => {
   model.data.splice(stepNumber + 1, 0, el);
   // перенумеровуємо список
   model.renumber();
-  // видаляємо вміст прихованого поля
+
+  tasks.model.setEdited();
 };
 
 /** Функція проходить по всім елементам tasks.model.data
