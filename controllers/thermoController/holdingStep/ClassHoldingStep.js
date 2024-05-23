@@ -27,7 +27,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
       console.dir(props);
     }
     super(props);
-
+    this.ln = this.device.header.en + "::" + this.ln;
     ln = this.ln + "constructor()::";
     if (trace) {
       log("i", ln, `after super() this=`);

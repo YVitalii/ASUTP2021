@@ -173,8 +173,10 @@ class ClassProcessManager {
       }
       // зупиняємо запис лог-файлу через 10 хв по закінченню програми
       // якщо стан будь-який а не finished, то продовжуємо запис
-      trace ? log("i", ln, `Stop writing log file`) : null;
+
       if (this.program.state._id == "finished") {
+        this.currLogFileName = undefined;
+        trace ? log("i", ln, `Stop writing log file`) : null;
         setTimeout(() => {
           this.loggerManager.start();
         }, 10 * 60 * 1000);
@@ -299,12 +301,35 @@ class ClassProcessManager {
 
   //   return;
   // }
+  /**
+   *  Генерує імя файлів логів   формуємо  у вигляді: "2024-04-05_16-31"
+   *  від назви "05-04-2024t10-11" - відмовився не зручно сортуват
+   */
+
+  generateLogFileName() {
+    let fileName = "",
+      i = 0;
+    let trace = 1,
+      ln = this.ln + "generateLogFileName()::";
+    do {
+      let newFileN = new Date().toLocaleTimeString().slice(0, -3);
+      //log(`newFileN=`, newFileN);
+      newFileN = newFileN.replace(/\:/g, "-");
+      newFileN = new Date().toISOString().split("T")[0] + "_" + newFileN;
+      fileName = newFileN + (i == 0 ? "" : "-" + i);
+      i++;
+      trace
+        ? log("i", ln, `New log file name generated: fileName=`, fileName)
+        : null;
+    } while (
+      this.loggerManager.fileManager.exist(
+        fileName + this.loggerManager._fileExtensions.logger
+      )
+    );
+    return fileName;
+  }
 
   async start(stepN = 1) {
-    // TODO Якщо в нас падає сервер, то на сторінці нічого не міняється і не видно,
-    // що проблема і система не працює
-    // можливо ставити сторожевий таймер і скидати його при вдалих запитах або робити
-    // автоматичний перезапуск  сервера
     let trace = 1,
       ln = this.ln + `Start(${stepN})::`;
     stepN = parseInt(stepN);
@@ -320,35 +345,18 @@ class ClassProcessManager {
       log("e", ln + err.ua);
       return { err, data: null };
     }
-    // якщо починаємо з кроку №1 - очищуємо попередній стан кроків
-    if (stepN == 1) {
+    // якщо починаємо з кроку №1 - то програму запущено спочатку
+    if (stepN == 1 || this.currLogFileName === undefined) {
+      //очищуємо попередній стан кроків
       this.setProgram();
+      //створюємо нове імя файлу
+      this.currLogFileName = this.generateLogFileName();
     }
 
+    await this.loggerManager.start(this.currLogFileName);
     this.program.start(stepN);
 
-    // імя файлів логів   формуємо  у вигляді: "2024-04-05_16-31"
-    // від назви "05-04-2024t10-11" - відмовився не зручно сортувати
-    //
-    let fileName = "";
-    do {
-      let newFileN = new Date().toLocaleTimeString().slice(0, -3);
-      //log(`newFileN=`, newFileN);
-      newFileN = newFileN.replace(/\:/g, "-");
-      newFileN = new Date().toISOString().split("T")[0] + "_" + newFileN;
-      // TODO не працює так як не додається розширення файлу, шукається файл "2024-04-05_16-31"
-      //  а не "2024-04-05_16-31.log"
-      fileName = newFileN;
-      trace
-        ? log("i", ln, `New log file name generated: fileName=`, fileName)
-        : null;
-    } while (
-      this.loggerManager.fileManager.exist(
-        fileName + this.loggerManager._fileExtensions.logger
-      )
-    );
-
-    await this.loggerManager.start(fileName);
+    //await this.loggerManager.start(fileName);
 
     let data = {
       ua: `Програма "${this.program.header.ua}" почала виконання!`,

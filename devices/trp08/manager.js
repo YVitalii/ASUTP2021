@@ -361,18 +361,22 @@ class Manager {
     //   log("i", ln, `Started with regs=`);
     //   console.dir(regs);
     // }
-    let props = {};
+    let props = {},
+      max = 9998;
     if (regs.regMode && regs.regMode === "pid") {
       props.regMode = 1; //pid
       // точність для ti, td = 0,01 в програмі, а в приладі ціле число
       props.ti = regs.ti ? parseInt(regs.ti * 100) : 0;
+      props.ti > max ? max : props.ti;
       props.td = regs.td ? parseInt(regs.td * 100) : 0;
+      props.td > max ? max : props.td;
       // точність для о = 0,1 в програмі, а в приладі ціле число
       props.o = regs.o ? parseInt(regs.o * 10) : 0;
     } else {
       props.regMode = 2; //pos
       props.o = regs.o ? Math.abs(parseInt(regs.o)) : 0; //оскільки неузгодження відємне а в ТРП - має бути позитивним - інвертуємо знак
     }
+    props.o > max ? max : props.o;
     props.tT = regs.tT ? regs.tT : 0;
     props.H = regs.H ? regs.H : 0;
     props.Y = regs.Y ? regs.Y : 0;
