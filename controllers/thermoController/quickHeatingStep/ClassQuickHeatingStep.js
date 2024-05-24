@@ -96,10 +96,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     this.wave.pointer = 0;
     // попередня температура
     this.wave.beforeT = 0;
-    // для ініціалізації заповнюємо масив 2-ками
-    for (let i = 0; i < this.wave.points; i++) {
-      this.wave.arr.push(2);
-    }
+
     // --- немає сенсу перевіряти частіше ніж частота пошуку першої хвилі ----
     this.checkPeriod = this.wave.period;
     // --------------------------------
@@ -112,6 +109,13 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
   } //constructor
 
   async start() {
+    // ініціалізація пошуку хвилі - заповнюємо масив 2-ками
+    for (let i = 0; i < this.wave.points; i++) {
+      this.wave.arr[i] = 2;
+    }
+    this.wave.pointer = 0;
+    this.wave.checking = false;
+
     this.state.note = {
       ua: `Швидке нагрівання.`,
       en: `Quick heating`,
@@ -153,6 +157,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
           "w",
           `t=${this.t}>(tT-5). Вмикаємо очікування стабілізації температури`
         );
+        this.wave.beforeT = this.t;
       }
 
       if (this.wave.checking && this.checkWave()) {
@@ -171,7 +176,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
   checkWave() {
     let t = this.t;
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "checkWave(" + JSON.stringify(t) + ")::";
 
     // поточний приріст температури (похідна)
@@ -185,7 +190,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
     if (this.wave.pointer >= this.wave.points) {
       this.wave.pointer = 0;
     }
-    trace = 0;
+
     if (trace) {
       console.log(ln + ` this.wave=`);
       console.dir(this.wave);
@@ -196,7 +201,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
       sum += this.wave.arr[i];
     }
     sum = sum / this.wave.points;
-    trace = 1;
+
     let info = `t=${this.t}*C; dT=${sum.toFixed(2)}`;
     this.logger("", `${info}`);
 

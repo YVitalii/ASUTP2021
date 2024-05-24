@@ -242,7 +242,7 @@ class Chart {
 
   insertLegend() {
     // если данных еще нет - выходим
-    if (!this.data.columns) {
+    if (!this.data || !this.data.columns) {
       return;
     }
     // настройки трасировщика

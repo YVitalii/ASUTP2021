@@ -13,7 +13,9 @@ router.all("/:id/*", (req, res, next) => {
     console.dir(req.params);
   }
   req.dev = req.entity.devicesManager.getDevice(req.params.id);
-
+  if (!req.dev) {
+    res.send(`Device ${req.params.id} not defined !!`);
+  }
   next();
 });
 

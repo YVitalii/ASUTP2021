@@ -22,11 +22,16 @@ module.exports = class ClassStepParallel extends ClassStepGeneral {
       trace ? log("i", ln, `All steps finished`) : null;
     }
   } // async start()
+
   async stopAll() {
+    let trace = 1,
+      ln = this.ln + "stopAll()::";
     for (let i = 0; i < this.tasks.length; i++) {
       const element = this.tasks[i];
       if (element.state._id == "going") {
+        trace ? log("i", ln, `Stoping::`, element.ln) : null;
         await element.stop();
+        trace ? log("i", ln, `Was stoped::`, element.ln) : null;
       }
     }
   }

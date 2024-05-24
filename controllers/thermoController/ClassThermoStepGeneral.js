@@ -51,7 +51,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
     this.tT = parseInt(props.regs.tT) + this.device.getAddT();
 
     // для ідентифікації поточного приладу додаємо в повідомлення його id
-    this.ln = this.device.id + "::";
+    this.ln = this.device.id + "::" + props.ln + "::";
 
     // поточна температура
     this.t = null;
@@ -59,13 +59,13 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
     // --------- temperature limits --------
     this.errTmin =
       props.regs.errTmin ||
-      (props.regs.errTmin == 0 && !isNaN(props.regs.errTmin))
-        ? props.regs.errTmin
+      (props.regs.errTmin == 0 && !isNaN(parseInt(props.regs.errTmin)))
+        ? parseInt(props.regs.errTmin)
         : -50;
     this.errTmax =
       props.regs.errTmax ||
-      (props.regs.errTmax == 0 && !isNaN(props.regs.errTmax))
-        ? props.regs.errTmax
+      (props.regs.errTmax == 0 && !isNaN(parseInt(props.regs.errTmax)))
+        ? parseInt(props.regs.errTmax)
         : 50;
 
     // --------- regulation  --------
@@ -76,14 +76,13 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
         : function () {
             this.logger(
               "e",
-              this.ln +
-                `constructor()::Error: regMode=${props.regs.regMode} was setted "pid"`
+              `constructor()::Error: regMode=${props.regs.regMode} was setted "pid"`
             );
             return "pid";
           }.bind(this)();
-    this.o = props.regs.o || props.regs.o == 0 ? props.regs.o : 2;
-    this.ti = props.regs.ti || props.regs.ti == 0 ? props.regs.ti : 0;
-    this.td = props.regs.td || props.regs.td == 0 ? props.regs.td : 0;
+    this.o = props.regs.o || props.regs.o == 0 ? parseInt(props.regs.o) : 2;
+    this.ti = props.regs.ti || props.regs.ti == 0 ? parseInt(props.regs.ti) : 0;
+    this.td = props.regs.td || props.regs.td == 0 ? parseInt(props.regs.td) : 0;
 
     // Функція отримання поточної температури
     this.getT = async () => {
@@ -116,7 +115,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
    */
   async testProcess() {
     let trace = 0,
-      ln = "ClassThermoStepGeneral()::testProcess::";
+      ln = "testProcess::";
 
     trace ? this.logger("i", ln + `Started`) : null;
     // якщо процесс в стані: очікування, зупинки, помилки, кінця - виходимо

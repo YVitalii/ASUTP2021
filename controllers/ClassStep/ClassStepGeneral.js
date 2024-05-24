@@ -104,26 +104,31 @@ class ClassStep {
 
   async start() {
     let trace = 1,
-      ln = this.ln + "start()::";
-    this.logger("w", this.ln + "Received command  'Start'");
+      ln = "start()::";
+    this.logger("w", ln + "Received command  'Start'");
+    // стан виконання
+    this.state._id = "going";
+    // скидаємо стан кроку
+    this.state.startTime = new Date();
+    this.state.duration = "0"; // тривалість виконання кроку в вигляді "ГГ:ХХ:СС"
+    this.err = null; // зберігає опис помилки
+    this.currentDuration = 0; // тривалість виконання кроку в секундах
     //  початкові налаштування
     try {
       await this.beforeStart();
-      this.logger("i", this.ln + "beforeStart()::Completed.");
+      this.logger("i", ln + "beforeStart()::Completed.");
     } catch (error) {
       this.error(error);
       return;
     }
-    // стан виконання
-    this.state._id = "going";
-    this.state.startTime = new Date();
+
     let msg = this.state.startTime.toLocaleString();
     this.state.note = {
       ua: `Початок о ${msg}`,
       en: `Started at ${msg}`,
       ru: `Старт в ${msg}`,
     };
-    this.logger("w", this.ln + this.state.note.ua);
+    this.logger("w", ln + this.state.note.ua);
 
     this.setChanged();
 
@@ -151,10 +156,12 @@ class ClassStep {
   }
 
   stop(msg) {
+    let ln = "stop()::";
     if (this.state._id != "going") {
       this.logger(
         "e",
-        `Received command stop() but step has state= ${this.state._id}. Command ignored!`
+        ln +
+          `Received command stop() but step has state= ${this.state._id}. Command ignored!`
       );
       return;
     }
@@ -168,7 +175,7 @@ class ClassStep {
             en: `Step was stoped! Duration: ${duration}`,
             ru: `Шаг остановлен! Длительность: ${duration}`,
           };
-    this.logger("w", "Received command stop()::" + msg.en);
+    this.logger("w", ln + "Received command stop()::" + msg.en);
     this.state._id = "stoped";
     this.state.note = msg;
     this.setChanged();
@@ -186,10 +193,12 @@ class ClassStep {
   }
 
   finish(msg = {}) {
+    let ln = "finish()::";
     if (this.state._id != "going") {
       this.logger(
         "e",
-        `Received command finish() but step has state= ${this.state._id}. Command ignored!`
+        ln +
+          `Received command finish() but step has state= ${this.state._id}. Command ignored!`
       );
       return;
     }
@@ -204,7 +213,7 @@ class ClassStep {
             ru: `Шаг успешно завершен! Длительность: ${duration}`,
           };
 
-    this.logger("i", "Received command finish()::" + msg.en);
+    this.logger("i", ln + "Received command finish()::" + msg.en);
     this.state._id = "finished";
     this.state.note = msg;
     this.setChanged();
@@ -230,24 +239,24 @@ class ClassStep {
 
   testState() {
     let trace = 0,
-      ln = this.ln + "testState()::";
+      ln = "testState()::";
     trace ? log("", ln, `this.state._id=`, this.state._id) : null;
     this.duration();
     // якщо крок завершено повертаємо Успіх
     if (this.state._id == "finished") {
-      trace ? log("", ln, `Finished!!`) : null;
+      trace ? log("", ln + `Finished!!`) : null;
       return 1;
     }
 
     // якщо крок завершено повертаємо Успіх
     if (this.state._id == "stoped") {
-      trace ? log("", ln, `Stoped!!`) : null;
+      trace ? log("", ln + `Stoped!!`) : null;
       return 1;
     }
 
     // якщо виникла помилка кидаємо помилку
     if (this.state._id == "error") {
-      trace ? log("e", ln, `Error!!`) : null;
+      trace ? log("e", ln + `Error!!`) : null;
       //this.afterAll();
       return 1;
       //throw new Error(this.err.ua);
@@ -263,6 +272,9 @@ class ClassStep {
     res.comment = this.comment;
     return res;
   }
+  /**
+   * додає часову відмітку останньої зміни стану
+   */
   setChanged() {
     this.state.changed = new Date();
   }

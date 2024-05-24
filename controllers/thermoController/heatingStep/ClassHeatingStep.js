@@ -23,20 +23,20 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     //         ru: `Нагрев`,
     // };
     props.id = "heating";
-    props.ln = props.ln ? props.ln : props.id + "::";
-    let trace = 0,
+    props.ln = props.ln ? props.ln : props.id;
+    let trace = 1,
       ln = props.id + "::constructor()::";
-    if (trace) {
-      log("i", ln, `props=`);
-      console.dir(props);
-    }
+    // if (trace) {
+    //   log("i", ln, `props=`);
+    //   console.dir(props);
+    // }
     super(props);
 
     ln = this.ln + "constructor()::";
-    if (trace) {
-      log("i", ln, `after super() this=`);
-      console.dir(this);
-    }
+    // if (trace) {
+    //   log("i", ln, `after super() this=`);
+    //   console.dir(this);
+    // }
 
     // ---- час нагрівання ---------
     this.H = props.regs.H ? props.regs.H : 0;
@@ -53,7 +53,8 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     // так як при Н!=0 поточна цільова температура з часом постійно змінюється
     // то запамятовуємо її в окремій змінній, для того щоб контролювати момент завершення кроку
     this.goal_tT = this.tT;
-
+    // тип процессу охолодження/нагрівання
+    this.cooling = false;
     // цільовий коридор температури знизу, потрібен для визначення точки фінішу
     this.goalErrTmin = this.errTmin;
 
@@ -66,12 +67,23 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     this.errTmin = this.H == 0 ? 0 : this.errTmin * 2;
 
     // -- верхню межу температури піднімаємо
+    trace
+      ? log(
+          "i",
+          ln,
+          `Before:this.tT=${this.tT};this.errTmax=${this.errTmax};this.goal_tT=${this.goal_tT};`
+        )
+      : null;
     this.errTmax = this.tT + this.errTmax - this.goal_tT;
-
+    trace
+      ? log(
+          "i",
+          ln,
+          `After:this.tT=${this.tT};this.errTmax=${this.errTmax};this.goal_tT=${this.goal_tT};`
+        )
+      : null;
     // ---- поточна цільова температура Функція що вираховує current tT -----
     this.curr_tT;
-    // на 2024-04-09 не працює лінійна інтерполяція завдання
-    //  TODO Зробити контроль поточної цільової температури при Н != 0 Поки: милиця
 
     // Назва кроку
     let tT = `${this.goal_tT}°C`;
@@ -86,8 +98,7 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
       en: `->${tT}`,
       ru: `->${tT}`,
     };
-    // --------------------------------
-    this.ln = `${this.id}(goal tT=${this.tT};H=${this.H}min)::`;
+
     // цільова точка завдання
     this.stepPoints.push({
       dTime: this.H != 0 ? this.H : undefined,
@@ -95,7 +106,8 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
       valMin: this.errTmin,
       valMax: this.errTmax,
     });
-
+    // --------------------------------
+    this.ln += `(goal tT=${this.tT}(${this.errTmin}/+${this.errTmax});H=${this.H})::`;
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this);
@@ -103,6 +115,8 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
   } // constructor
 
   async start() {
+    let trace = 1,
+      ln = "start()::";
     // визначаємо коєфіцієнти для функції зміни цільової температури
     // для розр. коефіцієнтів, визначаємо поточну температуру
     if (this.t == null) {
@@ -118,7 +132,6 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
       y1 = this.t,
       x2 = x1 + this.H * 60 * 1000,
       y2 = this.goal_tT;
-
     this.curr_tT = new ClassLinearFunction({ x1, y1, x2, y2 });
     this.logger(
       "i",
@@ -130,8 +143,19 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     );
     this.logger(
       "i",
-      `errTmin=${this.errTmin}C;errTmax=${this.errTmax}C;H=${this.H}min;errH=${this.errH}min;Y=${this.Y}min;`
+      `errTmin=${this.errTmin}C;errTmax=${this.errTmax}C;H=${this.H};errH=${this.errH};Y=${this.Y};`
     );
+    // визначаємо тип процессу нагрівання/охолодження
+    let tmp = this.goal_tT + (this.errTmax ? this.errTmax * 2 : 10);
+    let msg = `this.t=${this.t}; goal_tT = (this.goal_tT + this.errTmax ? this.errTmax * 2 : 10) = ${tmp}`;
+    if (this.t > tmp) {
+      this.cooling = true;
+      this.logger("i", ln + `Cooling: ${msg}`);
+    } else {
+      this.cooling = false;
+      this.logger("i", ln + `Heating: ${msg}`);
+    }
+
     this.testProcess();
 
     await super.start();
@@ -151,6 +175,7 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
 
       // поточна цільова температура
       this.tT = parseInt(this.curr_tT.get(now));
+
       // щоб при перевищенні часу нагрівання, температура не виходила за межі цільвої - обмежуємо
       this.tT = this.tT > this.goal_tT ? this.goal_tT : this.tT;
 
@@ -159,21 +184,37 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
         trace ? log("i", ln, `testProcess stoped`) : null;
         return;
       }
-      trace
-        ? this.logger(
-            "",
-            `current tT=${this.tT}; current t=${this.t}; duration = ${this.state.duration}`
-          )
-        : null;
 
-      // перевіряємо поточну температура на вхід в зону витримки
       let temp = `t=${this.t}*C;`;
       let dur = this.state.duration;
-      if (this.t > this.goal_tT + this.goalErrTmin * 0.8) {
+      // повідомлення в консоль про поточний стан процесу
+      this.logger(
+        "",
+        `current tT=${this.tT}; current ${temp}; duration = ${dur}`
+      );
+
+      // нагрівання, перевіряємо поточну температура на вхід в зону витримки знизу
+      if (!this.cooling && this.t > this.goal_tT + this.goalErrTmin * 0.8) {
+        let limT = `(tT+0.8*errTmin=${this.goal_tT}+${this.goalErrTmin}*0.8=${
+          this.goal_tT + this.goalErrTmin * 0.8
+        })::`;
         let msg = {
-          ua: `Нагрівання успішно завершено: ${temp}< (tT - 0.8*errTmin). Тривалість:  ${dur}`,
-          en: `Heating finished: ${temp}< (tT - 0.8*errTmin). Duration: ${dur}`,
-          ru: `Нагрев завершен: ${temp}< (tT - 0.8*errTmin). Длительность: ${dur}`,
+          ua: `Нагрівання успішно завершено: ${temp} > ${limT}. Тривалість:  ${dur}`,
+          en: `Heating finished: ${temp} > ${limT}. Duration: ${dur}`,
+          ru: `Нагрев завершен: ${temp} > ${limT}. Длительность: ${dur}`,
+        };
+        this.logger("w", msg.en);
+        this.finish(msg);
+      }
+      // охолодження перевіряємо поточну температура на вхід в зону витримки зверху
+      if (this.cooling && this.t < this.goal_tT + this.errTmax * 0.8) {
+        let limT = `(tT+0.8*errTmax=${this.goal_tT}+${this.errTmax}*0.8=${
+          this.goal_tT + this.errTmax * 0.8
+        })::`;
+        let msg = {
+          ua: `Охолодження завершено: ${temp} < ${limT} Тривалість:  ${dur}`,
+          en: `Cooling finished: ${temp} < ${limT}. Duration: ${dur}`,
+          ru: `Охлаждение завершено: ${temp} < ${limT}. Длительность: ${dur}`,
         };
         this.logger("w", msg.en);
         this.finish(msg);

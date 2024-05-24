@@ -137,7 +137,9 @@ module.exports = class ClassLoggerManager {
     let ln = this.ln + `start(${fileName})::`;
     trace ? log("i", ln, `Started`) : null;
     await this.stop();
-    trace ? log("i", ln, `Before writing was stoped`) : null;
+    trace
+      ? log("i", ln, `Current records "${this.fileName}" was stoped.`)
+      : null;
     // ------------ імя файлу не вказано, або це тимчасовий файл -------------
     if (fileName === "" || fileName == this.tmpLogFileName) {
       fileName = this.tmpLogFileName;
@@ -381,12 +383,14 @@ module.exports = class ClassLoggerManager {
       }
     }
     res.sort();
+    res.reverse();
     if (trace) {
       log("i", ln, `res=`);
       console.dir(res);
     }
     return res;
   }
+
   async deleteFile(fileName) {
     if (fileName == this.fileName) {
       return {

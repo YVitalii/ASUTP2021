@@ -5,6 +5,7 @@ const log = require("../../tools/log");
 const clone = require("clone");
 const ClassStepsSerial = require("../../controllers/ClassStep/ClassStepsSerial");
 const normalizePath = require("path").normalize;
+const dummy = require("../../tools/dummy.js").dummyPromise;
 
 class ClassProcessManager {
   constructor(props = {}) {
@@ -130,12 +131,16 @@ class ClassProcessManager {
 
     //копіюємо поточний список завдань
     this.listSteps = clone(this.tasksManager.list);
+
+    // трасувальник отриманого списку завдань
     trace = 0;
     if (trace) {
       log("i", ln, `this.listSteps=`);
       console.dir(this.listSteps);
     }
     trace = 1;
+    //скидаємо поточне імя лог-файлу
+    this.currLogFileName = undefined;
     // очищуємо програму
     let program = [];
     // створюємо кроки
@@ -336,6 +341,10 @@ class ClassProcessManager {
     if (isNaN(stepN)) {
       throw new Error("Invalid step number: " + stepN);
     }
+    while (!this.program.state || !this.program.state._id) {
+      await dummy(1000);
+    }
+
     if (this.program.state._id == "going") {
       let err = {
         ua: `Програма вже "${this.program.header.ua}" виконується!`,
@@ -369,7 +378,14 @@ class ClassProcessManager {
   }
 
   stop() {
-    this.program.stop();
+    console.log("--------------- stop() --------------------");
+    // let ln = this.ln + "stop()::";
+    // trace ? log("i", ln, `Started!`) : null;
+    if (this.program.state && this.program.state._id == "going") {
+      this.program.stop();
+      return;
+    }
+
     // for (let i = stepN; i < this.program.length; i++) {
     //   const element = this.program[i];
     // }

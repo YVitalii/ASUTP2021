@@ -24,6 +24,12 @@ router.post("/start", async function (req, res, next) {
 });
 
 router.post("/stop", function (req, res, next) {
+  let trace = 1,
+    ln = `post("${req.originalUrl}")::`;
+  if (trace) {
+    log("w", ln, `Recived command stop`);
+    console.dir(req.body);
+  }
   let data = { ua: `Ok`, en: `Ok`, ru: `Ok` };
   req.entity.processManager.stop();
   res.json(data);

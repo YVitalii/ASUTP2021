@@ -12,6 +12,10 @@ package-lock.json
 
 # testing
 /coverage
+*.log
+*.pnt
+*.tsk
+
 
 # production
 /build
@@ -29,6 +33,4 @@ yarn-error.log*
 package-lock.json*
 conf_iface.js*
 ./tools/events/*
-*/*.log
-*/*.pnt
-*/*.tsk
+

@@ -19,27 +19,31 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     // };
     // props.ln = props.ln ? props.ln : "ClassHoldingStep::";
     props.id = props.id ? props.id : "holding";
-    props.ln = props.ln ? props.ln : props.id + "::";
+    props.ln = props.ln ? props.ln : props.id;
     let trace = 0,
-      ln = props.id + "::constructor()::";
+      ln = props.id + "::constructor():: beforeSuper()::";
     if (trace) {
       log("i", ln, `props=`);
       console.dir(props);
     }
     super(props);
-    this.ln = this.device.header.en + "::" + this.ln;
-    ln = this.ln + "constructor()::";
+
     if (trace) {
       log("i", ln, `after super() this=`);
       console.dir(this);
     }
+    //this.ln = this.device.header.en + "::" + this.ln + "::";
+    ln = this.ln + "constructor()::";
 
-    // ---- час нагрівання (для програмування приладу), так як це нова програма ---------
+    // ---- час нагрівання (для програмування приладу),
+    // =0 так як це витримка і піч вже розігріта
+
     this.H = 0;
 
-    // --- час витримки
+    // --- час витримки, хв
 
     this.Y = props.regs.Y ? parseInt(props.regs.Y) : 0;
+
     if (isNaN(this.Y)) {
       this.Y = 0;
       log(
@@ -63,8 +67,17 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
       ru: `= ${tT}`,
     };
 
-    // --------------------------------
-    this.ln = `${this.id}(tT=${this.tT}); Y=${this.Y}::`;
+    // -------
+    // помилка часу витримки = 15 хв, щоб всі зони встигли закінчити витримку
+    // інакше перша зона в якої закінчилась витримка вимкне нагрівання та почне охолоджуватись
+    // щоб в прилади записалось потрібне значення, додаємо його до завдання
+
+    this.errY = 15;
+    this.Y += this.errY;
+    // заголовок для логування
+    this.ln += `tT=${this.tT}(${this.errTmin}/+${this.errTmax}); Y=${
+      this.Y - this.errY
+    }+${this.errY}::`;
 
     if (trace) {
       log("i", ln, `this=`);
@@ -82,7 +95,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
   } //start()
 
   async testProcess() {
-    let trace = 0,
+    let trace = 1,
       ln = "testProcess()::";
     let now = new Date().getTime();
 
@@ -92,7 +105,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     }
     if (this.t != null) {
       let info = `t=${this.t}*C; ${this.state.duration}`;
-      if (this.Y != 0 && this.currentDuration > this.Y * 60) {
+      if (this.Y != 0 && this.currentDuration > (this.Y - this.errY) * 60) {
         let msg = {
           ua: `Витримка завершена: ${info}`,
           en: `Holding finished: ${info}`,

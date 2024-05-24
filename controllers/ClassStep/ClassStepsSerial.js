@@ -44,8 +44,12 @@ class ClassSerialSteps extends ClassStepGeneral {
   } // async start
 
   async stop() {
+    let trace = 1,
+      ln = this.ln + "stop()::";
     if (this.curTask.item.state._id == "going") {
+      trace ? log("i", ln, `Stoping::`, this.curTask.item.ln) : null;
       await this.curTask.item.stop();
+      trace ? log("i", ln, `Was stoped::`, this.curTask.item.ln) : null;
     }
     super.stop();
   } //async stop ()
