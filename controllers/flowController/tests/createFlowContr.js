@@ -1,17 +1,20 @@
 // browser-sync start --server --browser "Chrome" --files "stylesheets/*.css, *.html"
-
-const Device = require("../../../devices/WAD-MIO-MAXPro-645/manager");
-const iface = require("../../../conf_iface");
+const emulate = 1; // 1- використовувати емулятор для Device
+const Device = emulate
+  ? require("../../../devices/WAD-MIO-MAXPro-645/emulator.js")
+  : require("../../../devices/WAD-MIO-MAXPro-645/manager.js");
+const iface = require("../../../conf_iface.js");
 const FlowController = require("../classFlowController.js");
 const save = require("fs").writeFile;
 let homeDir = require("path").normalize(__dirname + "/index.html");
-const log = require("../../../tools/log");
+const log = require("../../../tools/log.js");
 let trace = 1,
   ln = "flowController/test/createFlowControler::";
 trace ? log("i", ln, `Sterted`) : null;
 const dev = new Device(iface.w2, 71);
 
 let value = 0;
+// configuring flow controller
 let props = {};
 props.id = "N2";
 props.shortName = { ua: "N2", en: "N2", ru: "N2" };
