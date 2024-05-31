@@ -1,31 +1,32 @@
 const log = require("../../tools/log");
 const { dummyPromise } = require("../../tools/dummy.js");
 const test = require("../../config.js").test;
+const clone = require("clone");
+const ClassDeviceRegGeneral = require("./ClassDeviceRegGeneral.js");
+const pug = require("pug");
 
 module.exports = class ClassDeviceManagerGeneral {
   /**
    * Конструктор
    * @param {Object} props - додаткові налаштування конкретного приладу
-   * @param {Object} props.iface - об'єкт до якого підключено цей прилад
+   * @param {Object} props.iface - об'єкт інтерфейсу до якого підключено цей прилад, повинен мати функцію send()
+   * @param {Integer} props.id - ідентифікатор приладу в deviceManager
    * @param {Integer} props.addr - адреса приладу в iface
    * @param {Integer} props.driver - драйвер приладу
-   * @param {Integer} props.id - ідентифікатор приладу в deviceManager
    * @param {Number} props.header={ua,en..} - назва приладу
+   * @param {Number} props.comment={ua,en..} - назва приладу
    */
+
   constructor(props) {
-    this.ln = props.ln ? props.ln : "ClassDeviceManagerGeneral::";
     let trace = 1,
-      ln = this.ln + "constructor::";
+      ln = "constructor::";
+
     // ----------- id -------------
     if (!props.id) {
       throw new Error(ln + `"id" of the device must be defined!`);
     }
     this.id = props.id;
-    // ----------- id -------------
-    if (!props.addr) {
-      throw new Error(ln + `"addr" of the device must be defined!`);
-    }
-    this.addr = props.addr;
+
     // ----------- iface -------------
     if (!props.iface && typeof props.iface.send == "function") {
       throw new Error(
@@ -34,6 +35,19 @@ module.exports = class ClassDeviceManagerGeneral {
       );
     }
     this.iface = props.iface;
+
+    // ----------- addr -------------
+    if (!props.addr || isNaN(parseInt(props.addr))) {
+      throw new Error(
+        ln + `"addr=${props.addr}" of the device must be defined!`
+      );
+    }
+    this.addr = parseInt(props.addr);
+
+    // settings for tracing
+    this.ln = `${this.id}(${this.addr})::`;
+    ln = this.ln + ln;
+
     // ----------- driver -------------
     if (!props.driver && typeof props.driver.getRegPromise == "function") {
       throw new Error(
@@ -42,46 +56,98 @@ module.exports = class ClassDeviceManagerGeneral {
       );
     }
     this.driver = props.driver;
-    //
-    // опис регістрів приладу має бути
+    this.header =
+      props.header && props.header.en
+        ? props.header
+        : {
+            ua: `undefined(${this.addr})`,
+            en: `undefined(${this.addr})`,
+            ru: `undefined(${this.addr})`,
+          };
+
+    // опис регістрів приладу кожний регістр - сутність типу ClassDeviceRegGeneral
     this.regs = props.regs ? props.regs : {};
-    // назва приладу для відображення
-    if (!props.header || !props.header.en) {
-      throw new Error(ln + `"header.en" for the device must be defined!`);
-    }
-    this.header = props.header;
+
     // ----------- періоди затримки -------------
     this.period = {};
     this.period.if = {
-      //s
+      //seconds
       portNotOpened: test ? 1 : 5,
-      timeOut: test ? 1 : 5,
+      timeOut: test ? 2 : 5,
       error: test ? 1 : 10,
-      deviceBusy: test ? 1 : 5,
+      deviceBusy: test ? 1 : 2,
     };
     // поточне значення
     this.period.value = this.period.if.portNotOpened;
-    // лічильник помилок
+
+    // -------- лічильник помилок -----------
     this.errorCounter = {
       value: 0, //поточне значення
-      max: 10, //максимальне значення
+      max: test ? 3 : 10, //максимальне значення
     };
-    // ознака відсутності звязку з приладом, щоб не посилати
-    this.offLine = true;
+    // ознака відсутності звязку з приладом
+    this.offLine = false;
   } // constructor
 
+  async start(regs = {}) {
+    let trace = 1,
+      ln = this.ln + `start()::`;
+    trace ? log("w", ln, "Started") : null;
+  }
+
+  async stop(regs = {}) {
+    let trace = 1,
+      ln = this.ln + `stop()::`;
+    trace ? log("w", ln, "Started") : null;
+  }
+
   /**
-   * Повертає список поточного стану всіх регістрів приладів
+   * Додає регістр до regs
+   * @param {Object | Array } reg - налаштування потрібні для створення екземпляру ClassDeviceRegGeneral
    */
-  getState() {
-    return this.regs;
+  addRegister(reg) {
+    if (!reg) {
+      throw new Error("reg = undefined");
+    }
+    if (Array.isArray(reg)) {
+      for (let i = 0; i < reg.length; i++) {
+        this.addRegister(reg[i]);
+      }
+      return;
+    }
+    let trace = 0,
+      ln = this.ln + `addRegister(${reg.id})::`;
+    if (!this.driver.has(reg.id)) {
+      throw new Error(
+        ln + `reg.id="${reg.id}" not defined in the device driver`
+      );
+    }
+    let newReg = new ClassDeviceRegGeneral(reg);
+    this.regs[newReg.id] = newReg;
+    if (trace) {
+      log("i", ln, `Was added the newReg=`);
+      console.dir(newReg);
+    }
+  }
+
+  /**
+   * Повертає список поточного стану всіх регістрів
+   */
+  getAllRegs() {
+    let res = {};
+    for (const key in this.regs) {
+      if (Object.hasOwnProperty.call(this.regs, key)) {
+        res[key] = this.regs[key].getAll();
+      }
+    }
+    return res;
   }
 
   /**
    * Очікує поки порт не відкриється
    */
   async testPortOpened() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "testPortOpened()::";
     let errors = 10;
     while (!this.iface.isOpened) {
@@ -100,16 +166,28 @@ module.exports = class ClassDeviceManagerGeneral {
     return 1;
   }
 
+  /** Повертає повний опис регістру */
+  getRegForHtml(regName) {
+    let trace = 1,
+      ln = this.ln + `getRegForHtml${regName}::`;
+    let reg = this.regs[regName];
+    if (!regName || !reg) {
+      throw new Error(ln + "regName not finded!");
+    }
+    return reg.getAll();
+  }
+
   /**
    * Виконує запит по фізичному інтерфейсу, якщо інтерфейс ще не відкритий
    * - очікує його відкриття, посилає запит → встановлює прапорець this.busy →
-   * після  відповіді/помилки
+   * після  відповіді/помилки → скидає прапорець this.busy → якщо timeout
+   * → встановлює прапорець this.offLine
    * @param {async function} funcItem - функція яку потрібно виконати
    * @param {*} params - параметри що передаються до функції funcItem(params)
    * @returns
    */
   async iteration(funcItem, params) {
-    let trace = 1,
+    let trace = 0,
       ln =
         this.ln +
         `iteration(${funcItem.name},${params.regName}${
@@ -157,12 +235,13 @@ module.exports = class ClassDeviceManagerGeneral {
           console.dir(error);
         }
         //log("e", ln, "err=", error.messages.en);
-        let period = this.period.if.timeOut;
+        let period = this.period.if.timeOut * (this.offLine ? 2 : 1);
         // лічимо помилки
-        this.errorCounter.value += 1;
-        if (this.errorCounter.value >= this.errorCounter.max) {
+        if (!this.offLine) this.errorCounter.value += 1;
+        if (this.errorCounter.value > this.errorCounter.max) {
           this.errorCounter.value = this.errorCounter.max;
           this.offLine = true;
+          log("w", ln + "Device offline!");
         }
 
         log(
@@ -178,10 +257,10 @@ module.exports = class ClassDeviceManagerGeneral {
     this.errorCounter.value = 0;
     this.offLine = false;
     trace ? log("i", ln + "Iteration completed") : null;
-    resolve(res);
+    return res;
   } //async iteration
 
-  /** Функція записує 1 параметр
+  /** Функція записує 1 регістр в фізичний прилад
    * @param {String} regName - назва регістру, така як визначена в this.driver
    * @param {Number} value - значення регістру
    */
@@ -189,7 +268,11 @@ module.exports = class ClassDeviceManagerGeneral {
     let trace = 1,
       ln = this.ln + `setRegister(${regName}=${value})::`;
     trace ? log("i", ln, `Started`) : null;
-
+    let reg = this.regs[regName];
+    // перевіряємо імя регустру
+    if (!reg) {
+      throw new Error(ln + "regs[regName] is undefined!");
+    }
     let res;
     // даємо запит на запис
     res = await this.iteration(this.driver.setRegPromise, {
@@ -200,22 +283,62 @@ module.exports = class ClassDeviceManagerGeneral {
     });
     // оновлюємо дані в state
     trace ? log("i", ln, `res=`, res) : null;
+    reg.value = res.value;
+    return `${regName}=${res.value}; `;
+  } //async setRegister(regName, value)
 
+  /** Функція повертає значення 1 регістра якщо ще не застарів - то з regs, інакше з приладу
+   * @param {String} regName - назва регістру, така як визначена в this.driver
+   * @param {Number} value - значення регістру
+   */
+  async getRegister(regName) {
+    let trace = 0,
+      ln = this.ln + `getRegister("${regName}")::`;
+    trace ? log("i", ln, `Started`) : null;
+    let reg = this.regs[regName];
+    // перевіряємо імя регустру
+    if (!reg) {
+      throw new Error(ln + `regs[${regName}] is undefined!`);
+    }
     if (trace) {
       log("i", ln, `reg=`);
       console.dir(reg);
     }
-    return `${regName}=${reg.value}; `;
+    // перевіряємо чи актуальні дані
+    if (reg.isActual()) {
+      // повертаємо актуальні дані
+      trace
+        ? log("i", ln, `${regName} = ${reg.value}`, " - from memory")
+        : null;
+      return reg.value;
+    }
+    // поточне значення застаріло - даємо запит на запис
+    let res = await this.iteration(this.driver.getRegPromise, {
+      iface: this.iface,
+      id: this.addr,
+      regName: regName,
+    });
+    // оновлюємо дані в state
+    trace ? log("i", ln, `res=`, res) : null;
+    reg.value = res[0].value;
+    return reg.value;
   } //async setRegister(regName, value)
 
   /**
-   * Оновлює дані в this.regs[regName]
-   * @param {*} regName - назва регістру як в this.regs
-   * @param {Object} res -  об'єкт, що містить поля {value,timestamp}
+   * Повертає html з компактним поданням пристрою
+   * @param {Oblject} req - об'єкт запиту html
+   * @returns
    */
-  #refreshRegister(regName, res = {}) {
-    let reg = this.regs[regName];
-    reg.value = res.value;
-    reg.timestamp = res.timestamp;
+  getCompactHtml(req) {
+    return pug.render(`p ${this.ln}getCompactHtml(): Not defined yet`);
   }
-};
+
+  /**
+   * Повертає html з розширеним поданням пристрою
+   * @param {Oblject} req - об'єкт запиту html
+   * @returns
+   */
+  getFullHtml(req) {
+    return this.getCompactHtml(req);
+  }
+}; // class

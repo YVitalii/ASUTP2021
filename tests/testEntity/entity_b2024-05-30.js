@@ -41,10 +41,10 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 // --- менеджери
 const TRP08 = require("../../devices/trp08/manager.js");
 // --- створюємо та реєструємо прилад №1
-// let dev1 = new TRP08({ iface: ifaceW2, addr: 1, id: "trp08n2", addT: 0 });
+// let dev1 = new TRP08(ifaceW2, 1, { id: "trp08n1", addT: 0 });
 // entity.devicesManager.addDevice(dev1.id, dev1);
 // --- створюємо та реєструємо прилад №2
-let dev2 = new TRP08({ iface: ifaceW2, addr: 2, id: "trp08n2", addT: 0 });
+let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });
 entity.devicesManager.addDevice(dev2.id, dev2);
 
 // --------------  налаштування менеджера термічного процесу ----------------------

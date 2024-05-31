@@ -12,18 +12,24 @@ router.all("/:id/*", (req, res, next) => {
     log("i", ln, `req.params=`);
     console.dir(req.params);
   }
-  req.dev = req.entity.devicesManager.getDevice(req.params.id);
-  if (!req.dev) {
-    res.send(`Device ${req.params.id} not defined !!`);
+  req.device = req.entity.devicesManager.getDevice(req.params.id);
+  if (!req.device) {
+    res.json({ err: `Device ${req.params.id} not defined !!`, data: null });
+    return;
   }
   next();
 });
 
 router.post("/:id/getState", (req, res, next) => {
-  let trace = 0,
+  let trace = 1,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
   trace ? log("i", ln, `Started`) : null;
-  let data = req.dev.getState();
+
+  let data = req.device.getState();
+  if (trace) {
+    log("i", ln, `data=`);
+    console.dir(data);
+  }
   res.json(data);
 });
 
@@ -40,7 +46,7 @@ router.post("/:id/getRegs", async (req, res, next) => {
   //   log("i", ln, `req.query=`);
   //   console.dir(req.query);
   // }
-  let dev = req.entity.devicesManager.getDevice(req.params.id);
+  let dev = req.device;
 
   let data = await dev.getParams(req.body.regsList);
 

@@ -7,7 +7,6 @@ const pug = require("pug");
 // const path = require("path");
 const ClassDeviceManagerGeneral = require("../classDeviceGeneral/ClassDeviceManagerGeneral.js");
 const { dummyPromise } = require("../../tools/dummy.js");
-const path = require("path");
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор ТРП-08
@@ -146,11 +145,6 @@ class Manager extends ClassDeviceManagerGeneral {
     this.addRegister({
       id: "state",
       obsolescence: period.middle, //період за який дані застаріють
-      comment: {
-        ua: `Стан приладу`,
-        en: `Device state`,
-        ru: `Состояние прибора`,
-      },
     });
     this.regs.state.states = {
       1: { ua: `Зупинка`, en: `Stoping`, ru: `Остановка` },
@@ -174,14 +168,43 @@ class Manager extends ClassDeviceManagerGeneral {
       },
     };
 
+    // for (let key in this.state) {
+    //   let d = device.getRegDescription(key);
+    //   let regs = this.state;
+    //   regs[key].header = d.header ? d.header : { ua: ``, en: ``, ru: `` };
+    //   d.type = d.type ? d.type : undefined;
+    //   switch (d.type) {
+    //     case "integer":
+    //       regs[key].type = "text";
+    //       break;
+    //     case "clock":
+    //       regs[key].type = "timer";
+    //       break;
+    //     default:
+    //       regs[key].type = "text";
+    //       break;
+    //   } //switch (d.type)
+    // } //for(let key in regs){
+
+    // setTimeout(async () => {
+    //   // 2025-03-29 зчитування всіх параметрів прибрав, так як дуже довго запускається
+    //   // сервер при тестуванні, читаємо налаштування за зовнішнім запитом
+    //   // #TODO хоча можна считувати по 1 регістру кожні 5 сек
+    //   // let req = "state; T; timer; regMode; tT; H; Y; o; ti; td; u";
+    //   // log("i", this.ln + ":: First reading parameters from device: " + req);
+    //   // await this.getParams(req);
+
+    //   // при ініціалізації об'єкту зупиняємо прилад так як він міг бути в стані Пуск
+    //   await this.stop();
+    //   //log("i", this.ln, "Command 'Stop' done!");
+    // }, 5000);
+
     log("w", `${this.ln}:: ===>  Device was created. `);
     trace = 0;
     if (trace) {
       log("i", ln, `this.regs=`);
       console.dir(this.regs);
     }
-
-    this.testOffline();
   } //constructor
 
   /** Використовується зовнішнім кодом
@@ -191,6 +214,34 @@ class Manager extends ClassDeviceManagerGeneral {
   getAddT() {
     return this.addT;
   }
+
+  // /** Функція записує 1 параметр */
+  // async setRegister(regName, value) {
+  //   let trace = 0,
+  //     ln = this.ln + `setRegister(${regName}=${value})::`;
+  //   trace ? log("i", ln, `Started`) : null;
+  //   let reg = this.state[regName];
+  //   // даємо запит на запис
+  //   let res,
+  //     resString = "";
+
+  //   res = await this.iteration(device.setRegPromise, {
+  //     iface: this.iface,
+  //     id: this.addr,
+  //     regName: regName,
+  //     value: value,
+  //   });
+  //   // оновлюємо дані в state
+  //   trace ? log("i", ln, `res=`, res) : null;
+  //   reg.value = res.value;
+  //   reg.timestamp = res.timestamp;
+  //   resString += `${regName}=${res.value}; `;
+  //   if (trace) {
+  //     log("i", ln, `reg=`);
+  //     console.dir(reg);
+  //   }
+  //   return resString;
+  // } //async setRegister(regName, value)
 
   /** Функція записує налаштування в прилад
    * @param {Object} params - об'єкт з даними: {tT:50; o:10,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
@@ -301,7 +352,7 @@ class Manager extends ClassDeviceManagerGeneral {
    *  потім в ClassDeviceManagerGeneral перейменував на getRegs( ), так зрозуміліше
    */
   getState() {
-    return this.regs.state.getAll();
+    return this.getRegs();
   }
 
   async stop() {
@@ -398,16 +449,9 @@ class Manager extends ClassDeviceManagerGeneral {
     return response;
   }
 
-  testOffline() {
-    if (this.offline) {
-      this.regs.state.value = undefined;
-    }
-    setTimeout(() => {
-      this.testOffline();
-    }, 15 * 1000);
-  }
-
-  getCompactHtml(params = { baseUrl: "/", prefix: "" }) {
+  getCompactHtml(req) {
+    let trace = 1,
+      ln = this.ln + ` getCompactHtml(${this.id})::`;
     params.prefix =
       params.prefix != ""
         ? params.prefix
@@ -415,48 +459,29 @@ class Manager extends ClassDeviceManagerGeneral {
 
     let html = "";
     let regs = this.regs;
-    html = pug.renderFile(path.resolve(__dirname + "/views/compactTrp.pug"), {
-      device: this,
+    trace ? log("i", ln, `__dirname=`, __dirname) : null;
+    // html = pug.renderFile(path.resolve(__dirname + "/views/compactTrp.pug"), {
+    //   device: this,
 
-      tT: getRegForHtml(regs.tT),
-      T: getRegForHtml(regs.T),
-      state: getRegForHtml(regs.state),
-      header: this.header,
-      lang: params.lang,
-      prefix: params.prefix,
-      baseUrl: params.baseUrl,
-      period: regs.T.obsolescense,
-    });
+    //   tT: getRegForHtml(regs.tT),
+    //   T: getRegForHtml(regs.T),
+    //   state: getRegForHtml(regs.state),
+    //   header: this.header,
+    //   lang: params.lang,
+    //   prefix: params.prefix,
+    //   baseUrl: params.baseUrl,
+    //   period: regs.T.obsolescense,
+    // });
     return html;
   }
-
-  // getCompactHtml(req) {
-  //   params.prefix =
-  //     params.prefix != ""
-  //       ? params.prefix
-  //       : "id" + new Date().getTime().toString().slice(-5) + "_";
-
-  //   let html = "";
-  //   let regs = this.regs;
-  //   html = pug.renderFile(
-  //     req.info.homeDir + "/devices/trp08/views/compactTrp.pug",
-  //     {
-  //       device: this,
-  //       tT: getRegForHtml(regs.tT),
-  //       T: getRegForHtml(regs.T),
-  //       state: getRegForHtml(regs.state),
-  //       header: this.header,
-  //       lang: params.lang,
-  //       prefix: params.prefix,
-  //       baseUrl: params.baseUrl,
-  //       period: regs.T.obsolescense,
-  //     }
-  //   );
-  //   return html;
-  // }
 }
 function getRegForHtml(reg) {
-  let res = reg.getAll();
+  let res = {
+    id: reg.id,
+    header: reg.header,
+    value: reg.value ? reg.value : "???",
+    type: reg.type,
+  };
   if (res.id == "state") {
     res.states = reg.states;
   }

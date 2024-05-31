@@ -2,7 +2,7 @@
 -var _lang = lang ? lang : "ua"
 -var _period = period ? parseInt(period) : 1000; 
 
-//- pre #{"device.state="+JSON.stringify(device.state)}
+pre #{"header="+JSON.stringify(header)}
 
 
 div.col
@@ -13,10 +13,10 @@ div.col
     div.row
       div.col
         div.h5.fst-italic.text-center(id=_id+T.id) !{T.value}
-        div.fs-6.fst-italic.text-center !{T.header[_lang]}
+        div.fs-6.fst-italic.text-center !{T.comment[_lang]}
       div.col
         div.h5.fst-italic.text-center(id=_id+tT.id) !{tT.value}
-        div.fs-6.fst-italic.text-center !{tT.header[_lang]}
+        div.fs-6.fst-italic.text-center !{tT.comment[_lang]}
 
 script.
   {
@@ -47,32 +47,32 @@ script.
     }
   }
 
-  el.getState = async function() {
+  el.setState = function(value) {
     //debugger;
-    let trace = 0, key="state",
+    let trace = 1, key="state",
       ln =
         `${this.prefix}::getState::` + new Date().toLocaleTimeString() + ":: ";
-    let response, res,  err=false;
-    try {
-      response = await fetch(this.homeUrl + "/getState", {
-      method: "POST",
-      headers: { "Content-type": "application/json;charset=utf-8" },
-      body: JSON.stringify({}),
-    }); //fetch
-      if (response.ok) {
-        // запит поточних значень
-        res = await response.json();
-      }
-    } catch (error) {
-      console.error(ln+error.message);
-      err=true;
-    };
-    // трасувальник
-  if (trace) {
-    let msg = "";
-    console.log(ln + "res=");
-    console.dir(res);
-  }
+  //-   let response, res,  err=false;
+  //-   try {
+  //-     response = await fetch(this.homeUrl + "/getState", {
+  //-     method: "POST",
+  //-     headers: { "Content-type": "application/json;charset=utf-8" },
+  //-     body: JSON.stringify({}),
+  //-   }); //fetch
+  //-     if (response.ok) {
+  //-       // запит поточних значень
+  //-       res = await response.json();
+  //-     }
+  //-   } catch (error) {
+  //-     console.error(ln+error.message);
+  //-     err=true;
+  //-   };
+  //-   // трасувальник
+  //- if (trace) {
+  //-   let msg = "";
+  //-   console.log(ln + "res=");
+  //-   console.dir(res);
+  //- }
   // опис зовнішнього вигляду стану приладу
   el.stateClasses = {
     stop: ["bg-secondary", "text-light"],
@@ -80,8 +80,9 @@ script.
     warning: ["bg-warning", "text-dark"],
     error: ["bg-danger", "text-light"],
   };
-    // обробка зміни стану приладу Пуск / Стоп / Помилка
-  let value = (res && res.value) ? parseInt(res.value) : undefined;
+  //debugger;
+  // обробка зміни стану приладу Пуск / Стоп / Помилка
+  value = (value) ? parseInt(value) : undefined;
     if (! value || isNaN(value)) {
       value = 13; // немає зв'язку
     }
@@ -136,13 +137,13 @@ script.
     }
 
 
-    // плануємо наступний запит
-  setTimeout(() => {
-    this.getState();
-  }, 6000);
+  //-   // плануємо наступний запит
+  //- setTimeout(() => {
+  //-   this.getState();
+  //- }, 6000);
   }//el.getState = async function() {
 
-    el.getState();
+    //el.getState();
 
   el.getRegs = async function () {
     let trace = 0,
@@ -165,10 +166,12 @@ script.
       console.error(ln+error.message);
       err=true;
     };  // трасувальник
+    //- debugger;
   if (trace) {
     let msg = "";
     for (let key in res) {
       if (res.hasOwnProperty(key)) {
+        debugger
         msg += `${res[key].id}=${res[key].value}; `;
       }
     }
@@ -179,13 +182,9 @@ script.
   // обробка отриманих значень
 
   for (let key in this.regs) {
-
-    if (key == "state") { continue }
-
-    let value = (res && res[key] && res[key].value) ? parseInt(res[key].value) : undefined;
-
-    this.regs[key].container.innerText =
-      (value && ! isNaN(value)) ? value : "???";
+    let value = (res && res[key]) ? parseInt(res[key]) : undefined;
+    if (key == "state") { this.setState(value); continue };
+    this.regs[key].container.innerText = (value && ! isNaN(value)) ? value : "???";
   } //for (key in el.regs) ;
 
   // плануємо наступний запит
