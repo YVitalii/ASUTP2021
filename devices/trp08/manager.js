@@ -22,6 +22,15 @@ class Manager extends ClassDeviceManagerGeneral {
 
   constructor(props = {}) {
     props.driver = driver;
+    // назва приладу для відображення
+    props.header =
+      props.header && props.header.ua
+        ? props.header
+        : {
+            ua: `ТРП-08-[${this.addr}]`,
+            en: `TRP-08-[${this.addr}]`,
+            ru: `ТРП-08-[${this.addr}]`,
+          };
     super(props);
     let trace = 1,
       ln = this.ln + `constructor::`;
@@ -31,15 +40,6 @@ class Manager extends ClassDeviceManagerGeneral {
     if (this.addr < 1 || this.addr > 32) {
       throw new Error("id виходить з дозволеного діапазону адрес:" + this.addr);
     }
-    // назва приладу для відображення
-    this.header =
-      props.header && props.header.ua
-        ? props.header
-        : {
-            ua: `ТРП-08-[${this.addr}]`,
-            en: `TRP-08-[${this.addr}]`,
-            ru: `ТРП-08-[${this.addr}]`,
-          };
 
     // добавка температури, потрібно враховувати вручну при формуванні завдання
     // наприклад верхня зона +5С, середня +3С, нижня + 0С,
@@ -50,7 +50,7 @@ class Manager extends ClassDeviceManagerGeneral {
     let period = { high: 10, middle: 20, low: 60 };
     let dC = { ua: `°C`, en: `°C`, ru: `°C` };
     let dM = { ua: `хв`, en: `minutes`, ru: `минуты` };
-    // поточні налаштування приладу поки null
+    // поточні налаштування приладу
     this.addRegister([
       {
         id: "T",
@@ -61,7 +61,7 @@ class Manager extends ClassDeviceManagerGeneral {
           en: `Current temperature`,
           ru: `Текущая температура`,
         },
-        obsolescence: period.high, //мс, період за який дані застаріють
+        obsolescence: period.high, //с, період за який дані застаріють
         type: "number",
         min: 0,
         max: 1500,

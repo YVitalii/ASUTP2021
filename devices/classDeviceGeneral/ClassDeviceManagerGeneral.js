@@ -366,7 +366,7 @@ module.exports = class ClassDeviceManagerGeneral {
     return `${regName}=${res.value}; `;
   } //async setRegister(regName, value)
 
-  /** Функція повертає значення 1 регістра якщо ще не застарів - то з regs, інакше з приладу
+  /** Функція повертає значення 1 регістра якщо ще не застарів - то поточне значення з regs, інакше з приладу
    * @param {String} regName - назва регістру, така як визначена в this.driver
    * @param {Number} value - значення регістру
    */
