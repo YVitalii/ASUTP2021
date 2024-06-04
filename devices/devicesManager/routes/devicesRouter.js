@@ -33,8 +33,8 @@ router.post("/:id/getState", (req, res, next) => {
   res.json(data);
 });
 
-router.post("/:id/getRegs", async (req, res, next) => {
-  let trace = 0,
+router.post("/:id/getRegs", (req, res, next) => {
+  let trace = 1,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
   req.params.baseUrl = req.baseUrl;
   let startTime = new Date();
@@ -42,31 +42,13 @@ router.post("/:id/getRegs", async (req, res, next) => {
     log("i", ln, `req.body.regsList=`);
     console.dir(req.body.regsList);
   }
-  // if (trace) {
-  //   log("i", ln, `req.query=`);
-  //   console.dir(req.query);
-  // }
   let dev = req.device;
-
-  let data = await dev.getParams(req.body.regsList);
-
+  let data = dev.getRegsValues(req.body.regsList);
   if (trace) {
-    let logText = "";
-    for (let key in data) {
-      if (data.hasOwnProperty(key)) {
-        logText += `${data[key].id} = ${data[key].value};`;
-      }
-    }
-    let duration = new Date(new Date().getTime() - startTime.getTime())
-      .toISOString()
-      .slice(17, -2);
-    logText = logText + ` duration = ${duration} sek`;
-    log("i", ln, `response:: data=${logText}`);
-    //console.dir(data);
+    log("", ln, `data=`);
+    console.dir(data);
   }
-
   res.json(data);
-  // send(req.params.id + "::getRegs()::");
 });
 /* main page  */
 router.get("/", function (req, res, next) {

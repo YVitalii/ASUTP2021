@@ -4,6 +4,7 @@ const driver = require("../../trp08/driver");
 const dummy = require("../../../tools/dummy").dummyPromise;
 let trace = 1,
   ln = __filename + "::";
+const log = require("../../../tools/log");
 let props = {
   id: "trp08",
   iface,
@@ -41,7 +42,7 @@ devMan.addRegister({
 
 if (trace) {
   console.log(ln + `devMan.getRegs()=`);
-  console.dir(devMan.getRegs());
+  console.dir(devMan.getRegsValues());
 }
 if (trace) {
   console.log("i", ln, `devMan.getFullHtml()=`);
@@ -58,4 +59,7 @@ let test = async () => {
   }
 };
 
+setInterval(() => {
+  log("i", `getRegsValues("tT;T;")=`, devMan.getRegsValues("tT;T;"));
+}, 5 * 1000);
 test();

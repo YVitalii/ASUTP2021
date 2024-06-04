@@ -131,15 +131,94 @@ module.exports = class ClassDeviceManagerGeneral {
   }
 
   /**
-   * Повертає список поточного стану всіх регістрів
+   * Перетворює список регістрів в масив
+   * @param {Array | String } regsList - масив з id регістрів або рядок з сепаратором ";"
+   * @returns {Araay}
    */
-  getAllRegs() {
-    let res = {};
-    for (const key in this.regs) {
-      if (Object.hasOwnProperty.call(this.regs, key)) {
-        res[key] = this.regs[key].getAll();
+  parseRegsList(regsList) {
+    let trace = 0,
+      ln = this.ln + `parseRegsList()::`;
+
+    if (!Array.isArray(regsList)) {
+      if (typeof regsList === "string") {
+        regsList = regsList.split(";");
+      } else {
+        throw new Error(ln + `Uncompatible argument regsList=${regsList}`);
       }
     }
+    if (trace) {
+      log("i", ln, `regsList=`);
+      console.dir(regsList);
+    }
+    // перевіряємо валідність назв регістрів
+    let res = [];
+    for (let i = 0; i < regsList.length; i++) {
+      let key = regsList[i].trim();
+      trace ? log("i", ln, `key=`, key) : null;
+      if (key === "") {
+        trace ? log("i", ln, `Passed`) : null;
+        continue;
+      }
+      if (this.regs[key]) {
+        res.push(key);
+        trace ? log("i", ln, `Pushed`) : null;
+      } else {
+        console.error(ln + `regName=${key} not defined!`);
+      }
+    }
+    trace ? log("i", ln, `res=`, res) : null;
+    return res;
+  }
+
+  /**
+   * Повертає список поточного стану регістрів для браузера в скороченій формі
+   * @param {Array | String} regsList - список id регістрів, масив або рядок з сепаратором ";"
+   * @returns {Object} - {regName:this.regs[regName].value,..} наприклад {offLine:true,T:50,H:10,..}
+   */
+  getRegsValues(regsList = undefined) {
+    let trace = 0,
+      ln = this.ln + `getRegsValues()::`;
+    let res = {};
+    // якщо не вказано перелік регістрів - повертаємо всі
+    if (regsList == undefined) {
+      // якщо перелік регістрів не вказано - повертаємо всі
+      for (const key in this.regs) {
+        if (Object.hasOwnProperty.call(this.regs, key)) {
+          res[key] = this.regs[key].value;
+        }
+      }
+    } else {
+      // вибираємо значення згідно переліку
+      regsList = this.parseRegsList(regsList);
+      for (let i = 0; i < regsList.length; i++) {
+        const element = regsList[i];
+        res[element] = this.regs[element].value;
+      }
+    }
+
+    // перевіряємо актуальність значень і, за потреби, оновлюємо
+    for (const key in res) {
+      if (Object.hasOwnProperty.call(res, key)) {
+        key;
+
+        if (this.regs[key].isActual()) {
+          continue;
+        }
+        if (!this.offLine) {
+          trace
+            ? log(
+                "i",
+                ln,
+                `key=`,
+                key,
+                ":: Was requested the current value from device."
+              )
+            : null;
+          this.getRegister(key);
+        }
+      }
+    }
+    res.offLine = this.offLine;
     return res;
   }
 

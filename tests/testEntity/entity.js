@@ -76,11 +76,10 @@ logger.addReg({
       ln = entity.ln + `getValue(tT)::`;
     let res = await entity.devicesManager.getDevice("trp08n2").getParams("tT");
     if (trace) {
-      console.log(ln + `res=`);
-      console.dir(res);
+      console.log(ln + `res.tT=`);
+      console.dir(res.tT);
     }
-
-    return res.tT.value;
+    return res.tT;
   },
 }); //logger.addReg(
 

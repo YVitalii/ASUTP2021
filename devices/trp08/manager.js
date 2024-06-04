@@ -268,7 +268,7 @@ class Manager extends ClassDeviceManagerGeneral {
 
   async start(regs = {}) {
     let trace = 1;
-    let ln = this.ln + `start(${JSON.stringify(regs)})::`;
+    let ln = this.ln + `start()::`;
     trace ? log("w", ln, "Started") : null;
     regs = this.parseRegs(regs);
 

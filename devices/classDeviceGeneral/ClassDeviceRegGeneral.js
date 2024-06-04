@@ -48,7 +48,7 @@ module.exports = class ClassDeviceRegGeneral {
     this.readonly = props.readonly;
 
     // поточне значення
-    this._value = undefined;
+    this._value = null;
     // дата останнього оновлення - 10 хв тому
     this.timestamp = new Date().getTime() - 10 * 60 * 1000;
   } // constructor
