@@ -21,7 +21,8 @@ router.all("/:id/*", (req, res, next) => {
 });
 
 router.post("/:id/getState", (req, res, next) => {
-  let trace = 1,
+  // Можливо шлях застарів, так як state є не у всіх приладах
+  let trace = 0,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
   trace ? log("i", ln, `Started`) : null;
 
@@ -34,7 +35,7 @@ router.post("/:id/getState", (req, res, next) => {
 });
 
 router.post("/:id/getRegs", (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
   req.params.baseUrl = req.baseUrl;
   let startTime = new Date();

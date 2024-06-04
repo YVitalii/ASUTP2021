@@ -6,7 +6,7 @@ const log = require("../../tools/log.js");
 const pug = require("pug");
 // const path = require("path");
 const ClassDeviceManagerGeneral = require("../classDeviceGeneral/ClassDeviceManagerGeneral.js");
-const { dummyPromise } = require("../../tools/dummy.js");
+
 const path = require("path");
 
 /** @class

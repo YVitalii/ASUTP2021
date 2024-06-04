@@ -1,11 +1,10 @@
 /**
  * Класс, що керує роботою блоку вводу-виводу WAD-MIO-MAXPro-645
  */
-const driver = require("./driver.js"); //драйвер приладу
+const device = require("./driver.js"); //драйвер приладу
 const log = require("../../tools/log.js");
-const pug = require("pug");
-const ClassDeviceManagerGeneral = require("../classDeviceGeneral/ClassDeviceManagerGeneral.js");
-
+const trySomeTimes = require("../../tools/trySomeTimes.js");
+const { response } = require("express");
 function toPercent(val = 0) {
   val -= 4; //зміщення на 4 мА вниз
   return (100 * val) / 16;
@@ -15,71 +14,35 @@ function fromPercent(val = 0) {
   return (val / 100) * 16 + 4;
 }
 
-class MaxPRO_645 extends ClassDeviceManagerGeneral {
+class MaxPRO_645 {
   /**
    * @param {Object} iface - об'єкт інтерфейсу RS485 до якого підключено цей прилад
    * @param {Integer} id - адреса приладу в iface
    * @param {Object} props - об'єкт з налаштуваннями
    * */
-  constructor(props) {
-    props.driver = driver;
-    // назва приладу для відображення
-    props.header =
-      props.header && props.header.ua
-        ? props.header
-        : {
-            ua: `MaxPro645-[${this.addr}]`,
-            en: `MaxPro645-[${this.addr}]`,
-            ru: `MaxPro645-[${this.addr}]`,
-          };
-    super(props);
-    let trace = 1,
-      ln = this.ln + `constructor::`;
-
-    // періоди опитування
+  constructor(iface = null, id = null, props = null) {
+    this.ln = "MaxPro645_Manager(id=" + id + ")::";
+    let ln = this.ln + "constructor()::";
+    // -------- id  ---------------
+    if (!id) {
+      let err = ln + "Має бути вказана адреса приладу";
+      log("e", err);
+      throw new Error(err);
+    }
+    this.id = id;
+    // ----- iface --------------------------------
+    if (!iface) {
+      let err = ln + "Має бути вказаний інтерфейс для зв`язку з приладом";
+      log("e", err);
+      throw new Error(err);
+    }
+    this.iface = iface;
+    this.state = {};
     // потрібно придбати параметр period так як менеджер приладу не володіє інформацією
     // як часто змінюються його регістри, це має знати процесс-менеджер.
     // Наприклад перевірку на   відкриття дверей можна робити 1 раз/ 10 сек, так як це рідка подія
-    // в той же час КВ Двері відкриті потрібно опитувати не рідше 1 разу/сек, особливо
+    // в той же час КВ Двері відкриті птрібно опитувати не рідше 1 разу/сек, особливо
     //  в процесі переміщення дверей
-    let period = { high: 10, middle: 30, low: 60 };
-    let percent = { ua: `%`, en: `%`, ru: `%` };
-    // ------------ AI -------------------------
-    this.addRegister({
-      id: "AI",
-      units: percent,
-      header: { ua: `AI`, en: `AI`, ru: `AI` },
-      comment: {
-        ua: `Аналоговий вхід`,
-        en: `Analog input`,
-        ru: `Аналоговый вход`,
-      },
-      obsolescence: period.high, //с, період за який дані застаріють
-      type: "number",
-      min: 0,
-      max: 100,
-      readonly: true,
-    });
-
-    // ------------ AO -------------------------
-    this.addRegister({
-      id: "AO",
-      units: percent,
-      header: { ua: `Вихід`, en: `Output`, ru: `Выход` },
-      comment: {
-        ua: `Аналоговий вихід`,
-        en: `Analog output`,
-        ru: `Аналоговый выход`,
-      },
-      obsolescence: period.high, //с, період за який дані застаріють
-      type: "number",
-      min: 0,
-      max: 100,
-      readonly: true,
-    });
-
-    this.state = {};
-
     this.state.AI = {
       // аналоговий вхід
       value: 0,
