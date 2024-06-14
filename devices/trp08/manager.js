@@ -21,19 +21,24 @@ class Manager extends ClassDeviceManagerGeneral {
    */
 
   constructor(props = {}) {
+    let trace = 1,
+      ln = `trp08_Manager::constructor::`;
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
     props.driver = driver;
     // назва приладу для відображення
     props.header =
       props.header && props.header.ua
         ? props.header
         : {
-            ua: `ТРП-08-[${this.addr}]`,
-            en: `TRP-08-[${this.addr}]`,
-            ru: `ТРП-08-[${this.addr}]`,
+            ua: `ТРП-08-[${props.addr}]`,
+            en: `TRP-08-[${props.addr}]`,
+            ru: `ТРП-08-[${props.addr}]`,
           };
     super(props);
-    let trace = 1,
-      ln = this.ln + `constructor::`;
+    ln = this.ln + `constructor::`;
     // this.trace = 0; // дозвіл трасування
     // this.ln = `managerTRP08(addr=${addr}):`; // заголовок трасування
 

@@ -23,6 +23,10 @@ module.exports = class ClassDeviceManagerGeneral {
 
     // ----------- id -------------
     if (!props.id) {
+      if (trace) {
+        log("i", ln, `props=`);
+        console.dir(props);
+      }
       throw new Error(ln + `"id" of the device must be defined!`);
     }
     this.id = props.id;

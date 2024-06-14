@@ -6,7 +6,7 @@ const log = require("../../../tools/log.js"); // логер
 const Manager = require("../manager_v2.js");
 let ln = __filename + "::";
 
-let device1 = new Manager({ iface, addr: 2, id: "trp08_1", addT: 5 });
+let device1 = new Manager({ iface, addr: 1, id: "trp08_1", addT: 5 });
 
 module.exports = device1;
 
