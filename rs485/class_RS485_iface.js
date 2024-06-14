@@ -64,7 +64,7 @@ class IfaceRS485 {
     // налаштування логера
     this.ln = `class_RS485_iface(${path})::`;
     let ln = this.ln + "constructor()::";
-    let trace = 1;
+    let trace = 0;
 
     this.timeoutBetweenCalls = props.timeoutBetweenCalls
       ? props.timeoutBetweenCalls
@@ -123,8 +123,7 @@ class IfaceRS485 {
     // ---------------- Запускаємо цикл опитування ---------
     this.iterate();
     if (trace) {
-      log("i", ln, `this.id=`);
-      console.dir(this.id);
+      log("i", ln, `id=`, this.id);
     }
   } // constructor
 

@@ -27,7 +27,12 @@ let trace = 0,
           let ip = element.address;
           trace ? log("i", ln, `family= ${element.family}; ip=${ip}`) : null;
           if (element.family == "IPv4") {
-            log("w", `Server ip= ` + ip);
+            log(
+              "w",
+              `------------------- Server ip= ` +
+                ip +
+                "---------------------------------"
+            );
             ifaces.ipAddr = ip;
             // break;
           }

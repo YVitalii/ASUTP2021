@@ -121,6 +121,12 @@ module.exports = class ClassDeviceManagerGeneral {
     }
     let trace = 0,
       ln = this.ln + `addRegister(${reg.id})::`;
+    trace ? log("i", ln, `Started`) : null;
+    if (this.regs[reg.id] != undefined) {
+      throw new Error(
+        ln + `Dublicate reg.id="${reg.id}"! This id already was defined!`
+      );
+    }
     if (!this.driver.has(reg.id)) {
       throw new Error(
         ln + `reg.id="${reg.id}" not defined in the device driver`
@@ -348,7 +354,7 @@ module.exports = class ClassDeviceManagerGeneral {
    * @param {Number} value - значення регістру
    */
   async setRegister(regName, value) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setRegister(${regName}=${value})::`;
     trace ? log("i", ln, `Started`) : null;
     let reg = this.regs[regName];

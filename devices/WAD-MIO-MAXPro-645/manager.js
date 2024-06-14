@@ -28,9 +28,9 @@ class MaxPRO_645 extends ClassDeviceManagerGeneral {
       props.header && props.header.ua
         ? props.header
         : {
-            ua: `MaxPro645-[${this.addr}]`,
-            en: `MaxPro645-[${this.addr}]`,
-            ru: `MaxPro645-[${this.addr}]`,
+            ua: `MaxPro645-[${props.addr}]`,
+            en: `MaxPro645-[${props.addr}]`,
+            ru: `MaxPro645-[${props.addr}]`,
           };
     super(props);
     let trace = 1,
@@ -97,7 +97,7 @@ class MaxPRO_645 extends ClassDeviceManagerGeneral {
 
     // ------------ DO -------------------------
     this.addRegister({
-      id: "DI",
+      id: "DO",
       units: percent,
       header: { ua: `DO`, en: `DO`, ru: `DO` },
       comment: {
@@ -281,11 +281,11 @@ class MaxPRO_645 extends ClassDeviceManagerGeneral {
     try {
       let reg = await this.getRegister("AI");
       trace ? log("i", ln, `reg=`, reg) : null;
-      let val = reg.AI.value;
+      let val = reg;
       trace ? log("i", ln, `val=`, val) : null;
-      this.state.AI.source = reg.AI;
-      this.state.AI.timeStamp = new Date();
-      this.state.AI.value = val;
+      this.regs.AI.source = reg.AI;
+      this.regs.AI.timeStamp = new Date();
+      this.regs.AI.value = val;
       return val;
     } catch (error) {
       if (trace) {
@@ -315,12 +315,12 @@ class MaxPRO_645 extends ClassDeviceManagerGeneral {
     try {
       let reg = await this.getRegister("AO");
       trace ? log("i", ln, `reg=`, reg) : null;
-      let val = reg.AO.value;
+      // let val = reg.AO.value;
 
-      trace ? log("i", ln, `val=`, val) : null;
-      this.state.AO.timeStamp = new Date();
-      this.state.AO.value = val;
-      return val;
+      // trace ? log("i", ln, `val=`, val) : null;
+      // this.regs.AO.timeStamp = new Date();
+      // this.regs.AO.value = val;
+      return reg;
     } catch (error) {
       log("e", ln, error);
       //throw error;
@@ -371,14 +371,18 @@ class MaxPRO_645 extends ClassDeviceManagerGeneral {
     }
   }
 
+  /**
+   * Читає та повертає стан digital input
+   * @returns
+   */
   async getDI() {
-    let trace = 0,
-      ln = this.ln + "getDI(" + ")::";
+    let trace = 1,
+      ln = this.ln + "getDI()::";
     trace ? log(ln, `Started`) : null;
     try {
-      let reg = await this.getParams("DI");
+      let reg = await this.getRegister("DI");
       trace ? log("i", ln, `reg=`, reg) : null;
-      return reg.DI.value ? 1 : 0;
+      return reg ? 1 : 0;
     } catch (error) {
       log("e", ln, "Error:", error);
       console.dir(error);
@@ -397,9 +401,9 @@ class MaxPRO_645 extends ClassDeviceManagerGeneral {
       ln = this.ln + "getDO(" + ")::";
     trace ? log(ln, `Started`) : null;
     try {
-      let reg = await this.getParams("DO");
+      let reg = await this.getRegister("DO");
       trace ? log("i", ln, `reg=`, reg) : null;
-      return reg.DO.value ? 1 : 0;
+      return reg ? 1 : 0;
     } catch (error) {
       log("e", ln, "Error:", error);
       console.dir(error);
@@ -413,14 +417,12 @@ class MaxPRO_645 extends ClassDeviceManagerGeneral {
     value = value ? 1 : 0;
 
     let trace = 0,
-      ln = this.ln + "setDO(" + Number(value) + ")::";
+      ln = this.ln + "setDO(" + value + ")::";
     trace ? log(ln, `Started`) : null;
 
     try {
-      let reg = await this.setParams({ DO: Number(value) });
-      trace ? log("i", ln, `reg=`, reg) : null;
-      this.state.DO.value = value; // запамятовуэмо встановлене значення регістру
-      return value; // в відповіді тільки кількість байт, value - немає, тому підставляємо з запиту
+      let reg = await this.setRegister("DO", Number(value));
+      return reg; // в відповіді тільки кількість байт, value - немає, тому підставляємо з запиту
     } catch (error) {
       log("e", ln, "Error:", error);
       console.dir(error);

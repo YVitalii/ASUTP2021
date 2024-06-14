@@ -1,18 +1,9 @@
 const log = require("../../../tools/log.js"); // логер
 let trace = 1,
-  ln = "testManager.js::";
+  ln = __filename + "::";
 const dummy = require("../../../tools/dummy.js").dummyPromise;
-const Manager = require("../manager.js");
-const iface = require("../../../conf_iface.js").w2;
+const dev = require("./t_createDev.js");
 
-const id = 71; // номер приладу
-
-let dev = new Manager(iface, id);
-
-if (trace) {
-  log("i", ln, `dev=`);
-  console.dir(dev);
-}
 let SP = 0; // поточне завдання
 let dOut = 0; // стан числового виходу 1 - замкнуто 0 - розімкнуто
 
@@ -27,25 +18,26 @@ let next = async () => {
     val = await dev.getAO();
     log("i", "getAO()=", val);
 
-    // SP = SP > 100 ? 0 : SP + 10;
-    // await dev.setAO(SP);
-    // log("w", "setAO(", SP, ")");
+    SP = SP > 100 ? 0 : SP + 10;
+    await dev.setAO(SP);
+    log("w", "setAO(", SP, ")");
 
-    // // -------------- test DI () ---------
-    // val = await dev.getDI();
-    // log("i", "getDI()=", val);
+    // -------------- test DI () ---------
+    val = await dev.getDI();
+    log("i", "getDI()=", val);
 
-    // // ----- test DO ----------------------------------------------------------------
-    // dOut = await dev.getDO();
-    // log("i", "getDO()=", dOut);
+    // ----- test DO ----------------------------------------------------------------
+    dOut = await dev.getDO();
+    log("i", "getDO()=", dOut);
 
-    // dOut = !dOut;
-    // log("w", "setDO(", +dOut, ")");
-    // await dev.setDO(+dOut);
+    dOut = !dOut;
+    log("w", "setDO(", +dOut, ")");
+    await dev.setDO(+dOut);
 
     console.log("--------- End cycle ----------------");
   } catch (error) {
-    log("e", ln, error);
+    log("e", ln);
+    console.dir(error);
   }
   setTimeout(() => {
     next();
