@@ -1,0 +1,30 @@
+const iface = require("../../../conf_iface.js").w4;
+const log = require("../../../tools/log.js"); // логер
+
+let id = 2;
+const driver = require("../driver.js");
+
+let test = async () => {
+  driver.getReg(iface, id, "TBlock", (err, data) => {
+    log("---> in getReg \n", data);
+  });
+  driver.getReg(iface, id, "Kn", (err, data) => {
+    log("---> in getReg \n", data);
+  });
+  driver.getReg(iface, id, "Kc", (err, data) => {
+    log("---> in getReg \n", data);
+  });
+  // driver.getReg(iface, id, "EnableSamplimg", (err, data) => {
+  //     log("---> in setReg \n", data);
+  // });
+  // driver.setReg(iface, id, "EnableSamplimg", 0, (err, data) => {
+  //     log("---> in setReg \n", data);
+  // });
+  // driver.setReg(iface, id, "ReinitCalc", 0, (err, data) => {
+  //     log("---> in setReg \n", data);
+  // });
+  // driver.getReg(iface, id, "ReinitCalc", (err, data) => {
+  //     log("---> in setReg \n", data);
+  // });
+};
+setInterval(test, 3000);

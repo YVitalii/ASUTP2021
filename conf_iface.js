@@ -44,7 +44,7 @@ let trace = 0,
 }
 
 let comId;
-
+// -------------  2 wire RS485 ------------------------
 if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
@@ -53,13 +53,29 @@ if (platform != "win32") {
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");
-
+let portId = "w2",
+  portHeader = `${portId}(${comId})`;
 // module.exports.path = comName;
 ifaces.w2 = new Iface(comName, {
   baudRate: 2400,
   timeoutBetweenCalls: 100,
-  id: comId,
-  header: { ua: `${comId}`, en: `${comId}`, ru: `${comId}` },
+  id: "w2",
+  header: { ua: portHeader, en: portHeader, ru: portHeader },
+});
+
+// -- чотирьох провідна лінія ------------------
+if (platform != "win32") {
+  comName = "/dev/ttyUSB1";
+} else {
+  comName = "COM4";
+}
+(portId = "w4"), (portHeader = `${portId}(${comId})`);
+// module.exports.path = comName;
+ifaces.w4 = new Iface(comName, {
+  baudRate: 2400,
+  timeoutBetweenCalls: 100,
+  id: "w4",
+  header: { ua: portHeader, en: portHeader, ru: portHeader },
 });
 
 if (trace) {
@@ -69,12 +85,10 @@ if (trace) {
 
 module.exports = ifaces;
 
-// -- чотирьох провідна лінія ------------------
-// if (platform != "win32") {
-//   comName = "/dev/ttyUSB1";
-// } else {
-//   comName = "COM4";
-// }
+if (!module.parent) {
+  console.dir("----------- ifaces =  ---------------");
+  console.dir(ifaces, { depth: 2 });
+}
 
 // module.exports.w4 = new Iface(comName, {
 //   baudRate: 2400,

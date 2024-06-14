@@ -32,7 +32,7 @@
                 timestamp:},...],
                 )
 */
-const WAD_MIO = require("../../rs485/RS485_v200.js");
+// const WAD_MIO = require("../../rs485/RS485_v200.js");
 const log = require("../../tools/log");
 const parseBuf = require("../../tools/parseBuf.js");
 
@@ -80,83 +80,84 @@ regs.set(
 ); ///regs.set("TBlock")
 
 regs.set(
-    "Kn", // - азотний потенціал
-    {
-      addr: 0x0028,
-      _get: function () {
-        return {
-          data: {
-            FC: 3,
-            addr: this.addr,
-            data: 2,
-            note: `Зчитування азотного потенціалу [0x0028]`,
-          },
-          err: null,
-        };
-      },
-      get_: (buf) => {
-        let note = "Азотний потенціал";
-        console.log(buf);
-        let data = buf.readUInt16BE() * 0.01;
-        let err = null;
-        return {
-          data: { value: data, note: note },
-          err: err,
-        };
-      },
-      _set: function (data) {
-        return {
-          data: null,
-          err: "_Set: Регістр 0x0028 [Kn] - тільки для читання",
-        };
-      },
-      set_: function (buf) {
-        //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-        return this._set();
-      },
-    }
-  ); ///regs.set("Kn")
+  "Kn", // - азотний потенціал
+  {
+    addr: 0x0028,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування азотного потенціалу [0x0028]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Азотний потенціал";
+      console.log(buf);
+      let data = buf.readUInt16BE() * 0.01;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0028 [Kn] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Kn")
 
-  regs.set(
-    "Kc", // - вуглецевий потенціал
-    {
-      addr: 0x0048,
-      _get: function () {
-        return {
-          data: {
-            FC: 3,
-            addr: this.addr,
-            data: 2,
-            note: `Зчитування вуглецевого потенціалу [0x0048]`,
-          },
-          err: null,
-        };
-      },
-      get_: (buf) => {
-        let note = "Вуглецевий потенціал";
-        console.log(buf);
-        let data = buf.readUInt16BE() * 0.01;
-        let err = null;
-        return {
-          data: { value: data, note: note },
-          err: err,
-        };
-      },
-      _set: function (data) {
-        return {
-          data: null,
-          err: "_Set: Регістр 0x0048 [Kc] - тільки для читання",
-        };
-      },
-      set_: function (buf) {
-        //т.к. ответ будет эхо запроса, то возвращаем в дата Value
-        return this._set();
-      },
-    }
-  ); ///regs.set("Kc")
+regs.set(
+  "Kc", // - вуглецевий потенціал
+  {
+    addr: 0x0048,
+    _get: function () {
+      return {
+        data: {
+          FC: 3,
+          addr: this.addr,
+          data: 2,
+          note: `Зчитування вуглецевого потенціалу [0x0048]`,
+        },
+        err: null,
+      };
+    },
+    get_: (buf) => {
+      let note = "Вуглецевий потенціал";
+      console.log(buf);
+      let data = buf.readUInt16BE() * 0.01;
+      let err = null;
+      return {
+        data: { value: data, note: note },
+        err: err,
+      };
+    },
+    _set: function (data) {
+      return {
+        data: null,
+        err: "_Set: Регістр 0x0048 [Kc] - тільки для читання",
+      };
+    },
+    set_: function (buf) {
+      //т.к. ответ будет эхо запроса, то возвращаем в дата Value
+      return this._set();
+    },
+  }
+); ///regs.set("Kc")
 
-regs.set("AI", { // - аналоговий вхід
-  addr: 0x400B,
+regs.set("AI", {
+  // - аналоговий вхід
+  addr: 0x400b,
   _get: function () {
     return {
       data: {
@@ -170,7 +171,7 @@ regs.set("AI", { // - аналоговий вхід
   },
   get_: (buf) => {
     let note = "Поточне значення аналогового входу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
+    let data = (16 / 0xffff) * buf.readUInt16BE(0) + 4;
     let err = null;
     if (!data) {
       err =
@@ -195,7 +196,8 @@ regs.set("AI", { // - аналоговий вхід
   },
 }); ///regs.set("AI")
 
-regs.set("DI", { // - дискретний вхід
+regs.set("DI", {
+  // - дискретний вхід
   addr: 0x4012,
   _get: function () {
     return {
@@ -236,7 +238,7 @@ regs.set("DI", { // - дискретний вхід
 }); ///regs.set("DI"
 
 regs.set("AO", {
-  addr: 0x400F,
+  addr: 0x400f,
   _get: function () {
     return {
       data: {
@@ -250,7 +252,7 @@ regs.set("AO", {
   },
   get_: (buf) => {
     let note = "Поточне значення аналогового виходу.";
-    let data = 16/0xffff*buf.readUInt16BE(0)+4;
+    let data = (16 / 0xffff) * buf.readUInt16BE(0) + 4;
     let err = null;
     if (!data) {
       err =
@@ -267,7 +269,7 @@ regs.set("AO", {
     newValue = parseInt(newValue);
     let buf1 = Buffer.from([0x00, 0x01, 0x02]);
     let buf2 = Buffer.allocUnsafe(2);
-    buf2.writeUInt16BE(parseInt(0xffff*newValue/100), 0);
+    buf2.writeUInt16BE(parseInt((0xffff * newValue) / 100), 0);
     let totalLength = buf1.length + buf2.length;
     let val = Buffer.concat([buf1, buf2], totalLength);
     let err = null;
@@ -495,7 +497,13 @@ function setReg(iface, id, regName, value, cb) {
   // и возвращает такой же объект как и getReg
   let trace = 0;
   let modul =
-    "H2Smart.setReg(id=" + id + ":regName=" + regName + ":value=" + value + "):";
+    "H2Smart.setReg(id=" +
+    id +
+    ":regName=" +
+    regName +
+    ":value=" +
+    value +
+    "):";
   regName = regName.trim();
   if (has(regName)) {
     let reg = regs.get(regName); //получаем описание регистра
