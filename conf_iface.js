@@ -16,6 +16,10 @@ let trace = 0,
   }
   for (const key in interfaces) {
     if (Object.hasOwnProperty.call(interfaces, key)) {
+      if (key != "Ethernet" && key != "eth0") {
+        trace ? log("i", ln, `Skip: key=`, key) : null;
+        continue;
+      }
       const interface = interfaces[key];
       for (let i = 0; i < interface.length; i++) {
         const element = interface[i];
@@ -25,6 +29,7 @@ let trace = 0,
           if (element.family == "IPv4") {
             log("w", `Server ip= ` + ip);
             ifaces.ipAddr = ip;
+            // break;
           }
         }
       }
@@ -39,7 +44,7 @@ if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
 } else {
-  comId = comName = "COM3";
+  comId = comName = "COM4";
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");
