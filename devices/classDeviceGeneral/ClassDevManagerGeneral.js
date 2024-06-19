@@ -1,8 +1,7 @@
-const log = require("../../tools/log");
+const log = require("../../tools/log.js");
 const { dummyPromise } = require("../../tools/dummy.js");
 const test = require("../../config.js").test;
-const clone = require("clone");
-const ClassDeviceRegGeneral = require("./ClassDeviceRegGeneral.js");
+const ClassDeviceRegGeneral = require("./ClassDevManagerRegGeneral.js");
 const pug = require("pug");
 
 module.exports = class ClassDeviceManagerGeneral {
