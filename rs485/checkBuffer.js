@@ -3,7 +3,7 @@ const parseBuf = require("../tools/parseBuf.js");
 
 // функції для перетворення та розрахунку CRC
 let { getCRC, testCRC } = require("../tools/CRC.js");
-
+let gLn = __filename + "::";
 // логер
 
 const log = require("../tools/log.js");
@@ -138,6 +138,13 @@ function checkBuffer(task) {
   }
 
   function createError(errCode, task) {
+    let trace = 1,
+      ln = gLn + `createError()::`;
+    trace ? log("i", ln, `errCode=`, errCode) : null;
+    if (trace) {
+      log("i", ln, `task=`);
+      console.dir(task);
+    }
     let d =
       "checkError(req=" +
       parseBuf(task.req) +

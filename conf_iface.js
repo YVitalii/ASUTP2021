@@ -44,7 +44,7 @@ let trace = 0,
 }
 
 let comId;
-// -------------  2 wire RS485 ------------------------
+// -------------  w2 two wire RS485 ------------------------
 if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
@@ -58,22 +58,24 @@ let portId = "w2",
 // module.exports.path = comName;
 ifaces.w2 = new Iface(comName, {
   baudRate: 2400,
-  timeoutBetweenCalls: 100,
+  timeoutBetweenCalls: 200,
   id: "w2",
   header: { ua: portHeader, en: portHeader, ru: portHeader },
 });
 
-// -- чотирьох провідна лінія ------------------
+// -- w4 чотирьох провідна лінія ------------------
 if (platform != "win32") {
   comName = "/dev/ttyUSB1";
+  comId = comName.split("/")[2];
 } else {
   comName = "COM4";
 }
-(portId = "w4"), (portHeader = `${portId}(${comId})`);
+portId = "w4";
+portHeader = `${portId}(${comId})`;
 // module.exports.path = comName;
 ifaces.w4 = new Iface(comName, {
-  baudRate: 2400,
-  timeoutBetweenCalls: 100,
+  baudRate: 9600,
+  timeoutBetweenCalls: 200,
   id: "w4",
   header: { ua: portHeader, en: portHeader, ru: portHeader },
 });
