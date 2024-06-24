@@ -75,9 +75,14 @@ crontab -e
 
 2024-06-24  Використовуємо Node v18.x
 
-curl -sL https://deb.nodesource.com/setup_15.x | sudo -E bash -   # регистрируем репозиторий с новыми версиями node.js
-sudo apt install -y nodejs   # устанавливаем Node.js
-node -v # проверяем работу
+Установка див.нижче розділ:  # встановлюємо node 
+	Виконав згідно рекомендацій: https://github.com/nodesource/distributions , 
+	розділ Installation Instructions. Все виконав по-кроково. Встановив версію 18 LTS (NODE_MAJOR=18)
+
+# застаріло
+	curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -   # регистрируем репозиторий с новыми версиями node.js
+	sudo apt install -y nodejs   # устанавливаем Node.js
+	node -v # проверяем работу
 
 2024-06-14 Raspberry Алюпол СШАМ-7.12.7
 	якщо потрібно оновити node, але виникла помилка (випадок: після оновлення до версії 18.х, запит 'node -v' видавав V14.x, 
@@ -86,6 +91,43 @@ node -v # проверяем работу
 	Тому видаляв по рекомендаціям: https://stackoverflow.com/questions/32426601/how-can-i-completely-uninstall-nodejs-npm-and-node-in-ubuntu/41057802#41057802
 	Після цього встановив по рекомендаціям: https://github.com/nodesource/distributions
 	Все працює Ок
+# --------------- 2024-06-24 оновлення версії node ----------------------------
+# видаляємо node
+sudo apt-get remove nodejs npm node
+sudo apt-get purge nodejs
+sudo apt autoremove
+
+# вручну видаляємо залишки
+sudo rm -rf /usr/local/bin/npm 
+sudo rm -rf /usr/local/share/man/man1/node* 
+sudo rm -rf /usr/local/lib/dtrace/node.d 
+sudo rm -rf ~/.npm 
+sudo rm -rf ~/.node-gyp 
+sudo rm -rf /opt/local/bin/node 
+sudo rm -rf opt/local/include/node 
+sudo rm -rf /opt/local/lib/node_modules  
+sudo rm -rf /usr/local/lib/node*
+sudo rm -rf /usr/local/include/node*
+sudo rm -rf /usr/local/bin/node*
+sudo rm -rf /home/pi/.config/nvm/versions/node
+
+# перевіряємо чи видалилось, всі команди видають пустий рядокwhich node
+which node
+which nodejs
+which npm
+
+# встановлюємо node
+
+sudo apt-get install -y curl
+curl -fsSL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
+sudo bash nodesource_setup.sh
+sudo apt-get install -y nodejs
+
+# перевіряємо 
+node -v
+
+# --------------- end 2024-06-24 ----------------------------
+
 	
 // ------------------------------------------------------------------------------------------------------
 // ----------- расшарить диск для  Windows ---- ---------------------------------------------------------
