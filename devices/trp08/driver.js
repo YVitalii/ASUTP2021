@@ -47,12 +47,12 @@
 // ----- стандартні позначення, щоб міняти в одному місці  -------
 let degC = "\u00b0C"; // °C - позначення градуса
 
-const { dummyPromise } = require("../../tools/dummy.js");
+
 const log = require("../../tools/log.js");
 //log.setName("TRP08.js");
 const ln = "driver.js::";
 const timeout = 2000; //таймаут запроса
-var buzy = false; // ознака активного процесу запису / читання
+
 //var values=[];// хранит текущие значения  регистров, номер элемента массива = адрес прибора в сети RS485 (id)
 
 function fromBCD(buf) {
