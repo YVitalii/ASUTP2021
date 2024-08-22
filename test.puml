@@ -1,0 +1,9 @@
+@startuml
+
+!include classStepGeneral.puml
+class "ClassDriver" as classDriver {
+    device: - 1236
+}  
+ClassGeneral <|-- ClassDriver
+
+@enduml

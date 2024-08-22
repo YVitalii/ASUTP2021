@@ -1,0 +1,10 @@
+
+
+class "ClassDriverRegisterGeneral" as ClassDriverRegisterGeneral {
+    -- constructor --
+    +id:String - 
+    +addr:Number|String - 
+    header
+}
+
+ClassDriverRegisterGeneral ==|> ClassGeneral

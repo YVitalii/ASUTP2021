@@ -4,6 +4,7 @@ module.exports = class ClassGeneral {
   constructor(props) {
     let trace = 1,
       ln = "constructor::";
+
     // ----------- id -------------
     if (!props.id) {
       if (trace) {
@@ -15,18 +16,17 @@ module.exports = class ClassGeneral {
     this.id = props.id;
 
     // ----------- header -------------
-    let h = `${props.id}::`;
+    let h = `${props.id}`;
     this.header =
       props.header && props.header.en ? props.header : { ua: h, en: h, ru: h };
 
     // ----------- comment -------------
-
     this.comment =
-      props.comment && props.comment.en ? props.comment : this.header;
+      props.comment && props.comment.en
+        ? props.comment
+        : { ua: ``, en: ``, ru: `` };
 
     // ----------- ln -------------
-
-    this.ln = props.ln ? props.ln : { ua: h, en: h, ru: h };
-    this.ln += "::";
+    this.ln = props.ln ? props.ln : this.id + "::";
   }
 };

@@ -1,0 +1,13 @@
+@startuml ClassDriverGeneral
+
+
+class "ClassDriverGeneral" as ClassDriverGeneral {
+    
+}  
+ClassGeneral <|-- ClassDriverGeneral
+
+!include ../../classGeneral.puml
+!include ./ClassDriverRegisterGeneral.puml
+
+
+@enduml

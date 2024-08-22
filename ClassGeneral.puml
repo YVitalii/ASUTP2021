@@ -1,0 +1,19 @@
+@startuml 
+
+!startsub partClassGeneral
+
+class "ClassGeneral" {
+	---- constructor(props:Object) ----
+	+id: String - Ідентифікатор об'єкту
+	+header: Object = {ua:id, en:id, ru:id} - основний опис об'экту виводиться як назва
+	+comment: Object = { ua: ``, en: ``, ru: `` }; - детальний опис об'экту виводиться як примітка
+	+ln: String = id + "::" - заголовок для логування
+	---- this ----
+	+id 
+	+header
+	+comment
+	+ln
+}
+!endsub
+
+@enduml
