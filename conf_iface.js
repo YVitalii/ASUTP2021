@@ -49,7 +49,7 @@ if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
 } else {
-  comId = comName = "COM4";
+  comId = comName = "COM3";
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");
@@ -63,22 +63,22 @@ ifaces.w2 = new Iface(comName, {
   header: { ua: portHeader, en: portHeader, ru: portHeader },
 });
 
-// -- w4 чотирьох провідна лінія ------------------
-if (platform != "win32") {
-  comName = "/dev/ttyUSB1";
-  comId = comName.split("/")[2];
-} else {
-  comName = "COM4";
-}
-portId = "w4";
-portHeader = `${portId}(${comId})`;
-// module.exports.path = comName;
-ifaces.w4 = new Iface(comName, {
-  baudRate: 9600,
-  timeoutBetweenCalls: 200,
-  id: "w4",
-  header: { ua: portHeader, en: portHeader, ru: portHeader },
-});
+// // -- w4 чотирьох провідна лінія ------------------
+// if (platform != "win32") {
+//   comName = "/dev/ttyUSB1";
+//   comId = comName.split("/")[2];
+// } else {
+//   comName = "COM4";
+// }
+// portId = "w4";
+// portHeader = `${portId}(${comId})`;
+// // module.exports.path = comName;
+// ifaces.w4 = new Iface(comName, {
+//   baudRate: 9600,
+//   timeoutBetweenCalls: 200,
+//   id: "w4",
+//   header: { ua: portHeader, en: portHeader, ru: portHeader },
+// });
 
 if (trace) {
   log("i", ln, `ifaces=`);

@@ -1,0 +1,16 @@
+@startuml class_RS485_iface
+
+class "class_RS485_iface" as class_RS485_iface {
+    -- constructor --
+    +path: String - port name like COM3
+    +props.id: String
+    +props.baudRate: Integer 
+    +props.timeoutBetweenCalls=300: Integer - ms, pause between iteration
+    +props.header
+
+}
+ClassGeneral --|> class_RS485_iface 
+!include ../ClassGeneral.puml
+
+
+@enduml

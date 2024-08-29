@@ -2,12 +2,21 @@
 
 
 class "ClassDriverGeneral" as ClassDriverGeneral {
-    
+    -- constructor --
+    +timeout=1000: Number - ms період очікування відповіді від приладу 
+    -- this.properties --
+    +regs: Map - список регістрів
+
+    -- this.methods --
+    +addRegister(ClassDriverRegisterGeneral) - додає новий регістр до переліку регістрів
+    +has(regName) - перевіряє наявність regName в списку зареєстрованих регістрів
+
 }  
-ClassGeneral <|-- ClassDriverGeneral
 
-!include ../../classGeneral.puml
+ClassGeneral --|> ClassDriverGeneral
+ClassDriverRegisterGeneral --* ClassDriverGeneral
+
+!include ../../ClassGeneral.puml
 !include ./ClassDriverRegisterGeneral.puml
-
 
 @enduml

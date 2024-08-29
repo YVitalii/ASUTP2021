@@ -5,6 +5,7 @@
  * тому для виправлення цього положення була розроблена оновлена версія iface на базі класу
  * кожний інтерфейс буде обєктом зі своїми налаштуваннями
  */
+const ClassGeneral = require("../ClassGeneral");
 
 const SerialPort = require("serialport");
 const pug = require("pug");
@@ -20,7 +21,7 @@ const parseBuf = require("../tools/parseBuf.js");
 // завантаження логера
 const log = require("../tools/log.js");
 const dummy = require("../tools/dummy.js").dummyPromise;
-class IfaceRS485 {
+class IfaceRS485 extends ClassGeneral {
   /**
    * @param {String} path - шлях до порту в системі, наприклад '/dev/ttyUSB0' або 'COM3'
    * @param {Object} props - налаштування порту, повний опис https://serialport.io/docs/9.x.x/api-stream#openoptions
@@ -28,6 +29,7 @@ class IfaceRS485 {
    * @param {Number} props.timeoutBetweenCalls=300 - мс, пауза між запитами, у випадку якщо котрийсь з приладів не закінчив передачу - будуть помилки
    */
   constructor(path, props, timeout = 300) {
+    super(props);
     if (!path) {
       let err = {
         ua: `Не вказаний порт`,
@@ -45,9 +47,6 @@ class IfaceRS485 {
       };
       throw new Error(err);
     }
-
-    this.id = props.id;
-    this.header = props.header;
     this.stateMessages = {
       disconnected: {
         ua: `${this.id}. Не приєднано`,
@@ -62,7 +61,6 @@ class IfaceRS485 {
     };
     this.comment = this.stateMessages.disconnected;
     // налаштування логера
-    this.ln = `class_RS485_iface(${path})::`;
     let ln = this.ln + "constructor()::";
     let trace = 0;
 
@@ -185,11 +183,11 @@ class IfaceRS485 {
   /**
    * функція формує та ставить запит в чергу
    * @typedef {Object} req - запит RS485
-   * @property {Number} id - адреса пристрою в мережі [1..254]
-   * @property {Number} FC - функція, наразі реалізовано FC=[3,6,10]
-   * @property {Number} addr - адрес початкового регістру
-   * @property {Number | Buffer } data - дані для передачі
-   * @property {Number} timeout - час очікування відповіді
+   * @property {Number} req.id - адреса пристрою в мережі [1..254]
+   * @property {Number} req.FC - функція, наразі реалізовано FC=[3,6,10]
+   * @property {Number} req.addr - адрес початкового регістру
+   * @property {Number | Buffer } req.data - дані для передачі
+   * @property {Number} req.timeout - час очікування відповіді
    * @return {callback} (err,data) = >
    * @typedef {Object} data - отримані дані
    */

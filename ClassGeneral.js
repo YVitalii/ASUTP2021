@@ -1,16 +1,16 @@
-/** загальні елементи для всых класів */
-
+/** загальні елементи для всіх класів */
+// const log = require("./tools/log");
 module.exports = class ClassGeneral {
   constructor(props) {
-    let trace = 1,
-      ln = "constructor::";
+    // let trace = 1,
+    //   ln = "constructor::";
 
     // ----------- id -------------
-    if (!props.id) {
-      if (trace) {
-        log("i", ln, `props=`);
-        console.dir(props);
-      }
+    if (props.id === undefined) {
+      // if (trace) {
+      //   log("i", ln, `props=`);
+      //   console.dir(props);
+      // }
       throw new Error(ln + `"id" of the component must be defined!`);
     }
     this.id = props.id;

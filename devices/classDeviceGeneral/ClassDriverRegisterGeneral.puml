@@ -1,10 +1,22 @@
 
 
 class "ClassDriverRegisterGeneral" as ClassDriverRegisterGeneral {
-    -- constructor --
-    +id:String - 
-    +addr:Number|String - 
-    header
+    -- constructor -- 
+    +addr:Number|String - адреса регістру в приладі
+    +units: Object - { ua: ``, en: ``, ru: `` } - одиниці вимірювання
+    +note: String - примітки до опису регістру
+    +_get(arg): sync function - перед-обробка 
+    +get_(arg): sync function - пост-обробка 
+    +_set(arg): sync function - перед-обробка 
+    +set_(arg): sync function - пост-обробка 
+    -- this  --
+    +addr
+    +units
+    +_get(arg)
+    +get_(arg)
+    +_set(arg)
+    +set_(arg)
+    
 }
 
-ClassDriverRegisterGeneral ==|> ClassGeneral
+ClassGeneral ==|> ClassDriverRegisterGeneral  

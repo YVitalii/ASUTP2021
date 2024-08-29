@@ -32,6 +32,9 @@ module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
     this.units =
       props.units && props.units.en ? props.units : { ua: ``, en: ``, ru: `` };
 
+    // -------- note - примітки до опису регістру ------------
+    this.note = props.note ? props.note : ``;
+
     // ----  _get() ----------
     this._get = testFunction(props._get);
 
