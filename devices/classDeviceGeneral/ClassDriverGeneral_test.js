@@ -230,7 +230,7 @@ describe("Testing ClassDriverGeneral", () => {
         }
       });
     }); //describe('setRegPromise()'
-    describe("getRegsDescription", () => {
+    describe("printRegsDescription", () => {
       it("", () => {
         driver.printRegsDescription();
       });

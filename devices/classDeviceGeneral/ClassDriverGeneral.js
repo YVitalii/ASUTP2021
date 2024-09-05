@@ -260,7 +260,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
 
   printRegsDescription() {
     let table = [],
-      headers = ["id", "addr", "units.en", "note", "header.en", "comment.en"];
+      headers = ["id", "addr", "units.en", "header.en", "comment.en"];
     for (let key of this.regs.keys()) {
       let line = this.getRegInfo(key, headers);
       if (line) {

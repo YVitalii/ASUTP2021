@@ -3,14 +3,17 @@
 
 class "ClassDriverGeneral" as ClassDriverGeneral {
     -- constructor --
-    +timeout=1000: Number - ms період очікування відповіді від приладу 
+    +**timeout**=1000: Number - ms період очікування відповіді від приладу 
     -- this.properties --
-    +regs: Map - список регістрів
-
+    +**regs**: Map - список регістрів
     -- this.methods --
-    +addRegister(ClassDriverRegisterGeneral) - додає новий регістр до переліку регістрів
-    +has(regName) - перевіряє наявність regName в списку зареєстрованих регістрів
-
+    +**addRegister**(instance of ClassDriverRegisterGeneral) - додає новий регістр до переліку регістрів
+    +**has(regName)** - перевіряє наявність regName в списку зареєстрованих регістрів
+    +**getReg(iface,addr,regName,cb(err,data))** - отримує дані з приладу по інтерфейсу iface
+    +**setReg(iface,addr,regName,value,cb(err,data))** - записує дані в прилад по інтерфейсу iface
+    +**getRegPromise({iface,addr,regName})** return Error | data - промісифікований варіант getReg
+    +**setRegPromise({iface,addr,regName,value})** return Error | data- промісифікований варіант setReg
+    +**printRegsDescription()** - друкує в консоль перелік регістрів
 }  
 
 ClassGeneral --|> ClassDriverGeneral
