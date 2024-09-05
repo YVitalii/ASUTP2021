@@ -1,5 +1,6 @@
 /** типовий регістр драйвера  */
 const ClassGeneral = require("../../ClassGeneral");
+const log = require("../../tools/log");
 /**
  *  Функція перевіряє аргумент на undefined та повертає помилку або argument
  *
@@ -11,17 +12,33 @@ function test(item, errMessage = "An error was happened!") {
   }
   return item;
 }
-
+/**
+ *
+ * @param {*} func
+ * @returns func =  if func is a function |  {err:null,data:arg} - if func === undefined
+ */
 function testFunction(func) {
   if (typeof func === "function") {
     return func;
   }
-  return function (arg) {
-    return this.id;
+  log("w", this.ln + `testFunction(${func})::func must be a Function`);
+  return function (arg = {}) {
+    return { err: null, data: arg };
   };
 }
 
 module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
+  /**
+   *
+   * @param {*} props
+   * @param {String|Number} props.addr - адреса регістра в приладі
+   * @param {Object} props.units - { ua: ``, en: ``, ru: ``} одиниці виміру
+   * @param {String} props.note - примітки до опису регістру (наприлад:"Вхід DI1")
+   * @param {Function} props._get(arg={}) = {err:null,data:arg} - читання перед-обробка, data - набір даних для iface.send(data)
+   * @param {Function} props.get_(arg={}) = {err:null,data:arg} - читання пост-обробка, data - інтерпретація відповіді iface.send(data)
+   * @param {Function} props._get(arg={}) = {err:null,data:arg} - запис перед-обробка, data - набір даних для iface.send(data)
+   * @param {Function} props.get_(arg={}) = {err:null,data:arg} - запис пост-обробка, data - інтерпретація відповіді iface.send(data)
+   */
   constructor(props) {
     super(props);
 
