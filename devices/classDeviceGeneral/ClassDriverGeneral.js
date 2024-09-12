@@ -53,6 +53,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
    * @param {Object} args
    * @param {Object} args.iface - instance of iface (must has method send())
    * @param {String} args.regName - valid regName
+   * @param {String} args.addr - valid address device in rs485
    * @returns {instance of DriverRegGeneral | Error} - this.regs.get(regName) / Error()
    */
   testRequest(args) {
@@ -67,11 +68,15 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     }
     let iface = args.iface;
     let regName = args.regName;
+    let addr = parseInt(args.addr);
     if (!(typeof iface === "object" && typeof iface.send === "function")) {
       throw new Error(ln + `iface.send must be an async function!`);
     }
     if (!this.has(regName)) {
       throw new Error(ln + `regName=${regName} not defined!`);
+    }
+    if (!isNaN(addr) && !(addr >= 0 && addr < 255)) {
+      throw new Error(ln + `Wrong addr=${addr}!`);
     }
     return this.regs.get(regName);
   }
@@ -92,7 +97,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     //   console.dir(this);
     // }
 
-    let reg = this.testRequest({ iface, regName }); // посилання на регістр
+    let reg = this.testRequest({ iface, regName, addr }); // посилання на регістр
     // обєкт запиту
     let { err, data } = reg._get();
     if (err) {
@@ -125,13 +130,13 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
   } //getReg(iface, addr, regName, cb)
 
   /** Промісифікована функція getReg() - див. її опис
-   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,addr,regName}
+   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,id,regName}
    * @returns {Ppomise}
    */
   getRegPromise(props = undefined) {
     let environ = this;
     return new Promise(function (resolve, reject) {
-      let trace = 0,
+      let trace = 1,
         ln = environ.ln + `getRegPromise`;
       if (trace) {
         log("i", ln, `::environ=`);
@@ -145,7 +150,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
 
       // call function
 
-      environ.getReg(props.iface, props.addr, props.regName, (err, data) => {
+      environ.getReg(props.iface, props.id, props.regName, (err, data) => {
         if (err) {
           if (trace) {
             log("i", ln, `err=`);
@@ -182,7 +187,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     }
     let beforeSet = reg._set(value);
     if (beforeSet.err != null) {
-      cd(beforeSet.err, null);
+      cb(beforeSet.err, null);
     }
 
     let req = beforeSet.data;

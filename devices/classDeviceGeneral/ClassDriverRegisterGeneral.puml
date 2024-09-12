@@ -9,7 +9,7 @@ class "ClassDriverRegisterGeneral" as ClassDriverRegisterGeneral {
     +_get(arg={}): sync function; returns {err,data} - перед-обробка, data={} - набір даних для iface.send(data)   
     +get_(arg={}): sync function; returns {err,data={value,[note]}} - пост-обробка, data={} - інтерпретація відповіді iface.send(data)
     +_set(arg={value}): returns {err,data}: sync function - перед-обробка, data={} - набір даних для iface.send(data)
-    +set_(arg={value}): returns {err,data}: sync function - пост-обробка , data={value} - інтерпретація відповіді iface.send(data)
+    +set_(arg={value}): returns {err,data}: sync function - пост-обробка , data={value,[note]} - інтерпретація відповіді iface.send(data)
     -- this  --
     +addr
     +units

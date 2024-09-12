@@ -1,74 +1,40 @@
+/** тестування роботи драйвера з фізичним приладом */
 const driver = require("./driverFromClass");
 const assert = require("assert");
-//const iface = require("../../conf_iface").w2;
+let iface;
+iface = require("../../conf_iface").w2;
+const addr = 1; // адреса приладу в інтерфейсі rs485
+const dummy = require("../../tools/dummy").dummyPromise;
 
-// let test = [
-//   {
-//     id: "state",
-//     _get: [
-//       {
-//         arg: 0,
-//         ret: { FC: 3, addr: 0, data: 1 },
-//       },
-//     ],
-//     get_: [
-//       { arg: new Buffer.from([0, 23]), ret: { err: null, data:{value: 23} } },
-//       { arg: new Buffer.from([0, 16]), ret: { data:{value: null}  } },
-//     ],
-//     _set:[
-//       {arg: 0,ret:{data:{value:null}}},
-//       {arg:17,ret:{data:{value:null}}},
-//     ]
-//   },
-// ];
+describe("test rs485 communication", function () {
+  //console.log("this.timeout=");
+  //   console.dir(this.timeout);
+  this.timeout(10000);
+  before(async function () {
+    let ln = "before()::";
+    // вимикаємо лічильник часу виконання, інакше отримаємо помилку
+    this.timeout(12000);
+    console.log(ln + "Started");
+    // очікуємо доки звільниться порт
+    await dummy(2000);
+    console.log(ln + "Pause complited. iface.isOpened=" + iface.isOpened);
+    while (!iface.isOpened) {
+      await dummy(3000);
+      console.log(ln + "Waiting. iface.isOpened=" + iface.isOpened);
+    }
+    console.log(ln + "==== connection established ======");
+    //this.timeout(2000);
+    //this.timeout(2000);
+    return 1;
+  });
 
-describe("driverFromClass internal testing ", () => {
-  describe("Import driver", () => {
-    it('driver.id="trp08"', () => {
-      assert.equal(driver.id, "trp08");
-      assert.equal(driver.header.en, "TRP-08-TP");
-      assert.equal(driver.timeout, 2000);
-    });
+  it("read State", async () => {
+    //this.timeout(5000);
+    //console.dir(this);
+    let res = await driver.getRegPromise({ iface, id: addr, regName: "state" });
+    console.log("res=");
+    console.dir(res);
+    //done();
+    return 1;
   });
-  describe("Register testing", () => {
-    // ---------- state -----------
-    describe(" state", () => {
-      let reg = driver.regs.get("state"),
-        addr = reg.addr;
-      it("address", () => {
-        assert.equal(reg.addr, 0);
-      });
-      it("_get()", () => {
-        assert.deepEqual(
-          reg._get(),
-          { err: null, data: { FC: 3, addr, data: 1 } },
-          "_get error"
-        );
-      });
-      it("get_()", () => {
-        let res = reg.get_(new Buffer.from([0, 23]));
-        assert.equal(res.data.value, 23, "error value");
-        res = reg.get_(new Buffer.from([0, 25]));
-        assert.notEqual(res.err, null, "Bed arg: err == null");
-        assert.equal(res.data.value, null, "Bed arg: data != null");
-      });
-      it("_set()", () => {
-        let res = reg._set(17);
-        assert.deepEqual(res, {
-          data: { FC: 6, addr, data: 17 },
-          err: null,
-        });
-        res = reg._set(1);
-        assert.deepEqual(res, { data: { FC: 6, addr, data: 1 }, err: null });
-        res = reg._set(12);
-        assert.notEqual(res.err, null, "Bed arg: err == null");
-        assert.equal(res.data.value, null, "Bed arg: data != null");
-      });
-      it("set_()", () => {
-        let res = reg.set_(new Buffer.from([0, 17]));
-        assert.equal(res.err, null, "err != null");
-        assert.equal(res.data.value, 17, "data.value != 17");
-      });
-    }); //describe(" state"
-  });
-}); //describe("driverFromClass testing"
+});

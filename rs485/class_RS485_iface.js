@@ -193,7 +193,7 @@ class IfaceRS485 extends ClassGeneral {
    */
   send(req, cb) {
     // налаштування трасувальника
-    let trace = 0,
+    let trace = 1,
       ln =
         this.ln +
         `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
