@@ -132,7 +132,7 @@ describe("Testing ClassDriverGeneral", () => {
         try {
           let res = await driver.getRegPromise({
             iface,
-            id: 1,
+            devAddr: 1,
             regName: regProps.id,
           });
           // console.log(`res=`);
@@ -201,7 +201,7 @@ describe("Testing ClassDriverGeneral", () => {
     });
 
     describe("setRegPromise()", () => {
-      let props = { iface, addr: 5, regName: regProps.id, value: 77 };
+      let props = { iface, devAddr: 5, regName: regProps.id, value: 77 };
       it("Should be error if received not valid props= undefined or {}", async () => {
         try {
           await driver.setRegPromise();

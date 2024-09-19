@@ -138,7 +138,7 @@ function checkBuffer(task) {
   }
 
   function createError(errCode, task) {
-    let trace = 1,
+    let trace = 0,
       ln = gLn + `createError()::`;
     trace ? log("i", ln, `errCode=`, errCode) : null;
     if (trace) {

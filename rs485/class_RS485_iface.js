@@ -193,14 +193,33 @@ class IfaceRS485 extends ClassGeneral {
    */
   send(req, cb) {
     // налаштування трасувальника
-    let trace = 1,
+    let trace = 0,
       ln =
         this.ln +
         `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
           req.data
         )})::`;
-    trace ? log(ln, `Started!`) : null;
-
+    //trace ? log(ln, `Started!`) : null;
+    if (
+      typeof req.id === "undefined" ||
+      isNaN(parseInt(req.id)) ||
+      req.id < 0 ||
+      req.id > 255
+    ) {
+      process.nextTick(() => {
+        let msg = `rs485: req.id == ${req.id}`;
+        let messages = {
+          ua: `Помилкова адреса ${msg}`,
+          en: `Wrong addres in ${msg}`,
+          ru: `Ошибка адреса ${msg}`,
+        };
+        let err = new Error(messages.en);
+        err.messages = messages;
+        cb(new Error(err), null);
+        return;
+      });
+      return;
+    }
     // // якщо порт ще не відкрито, повертаємо помилку
     // if (!this.isOpen) {
     //   let err = {

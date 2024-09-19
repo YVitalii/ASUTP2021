@@ -130,13 +130,13 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
   } //getReg(iface, addr, regName, cb)
 
   /** Промісифікована функція getReg() - див. її опис
-   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,id,regName}
-   * @returns {Ppomise}
+   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,devAddr,regName}
+   * @returns {Ppomise} {regName,value,note,detail:{duration,request,response,afterSet}}
    */
   getRegPromise(props = undefined) {
     let environ = this;
     return new Promise(function (resolve, reject) {
-      let trace = 1,
+      let trace = 0,
         ln = environ.ln + `getRegPromise`;
       if (trace) {
         log("i", ln, `::environ=`);
@@ -145,12 +145,12 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
       if (!props) {
         reject(new Error(ln + "props must be defined!"));
       }
-      ln += `(iface=${props.iface.id};id=${props.id};regName=${props.regName})::`;
+      ln += `(iface=${props.iface.id};devAddr=${props.devAddr};regName=${props.regName})::`;
       trace ? log("i", ln, `Started`) : null;
 
       // call function
 
-      environ.getReg(props.iface, props.id, props.regName, (err, data) => {
+      environ.getReg(props.iface, props.devAddr, props.regName, (err, data) => {
         if (err) {
           if (trace) {
             log("i", ln, `err=`);
@@ -220,8 +220,8 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
   } // setReg(
 
   /** Промісифікована функція setReg() - див. її опис
-   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,id,regName,value}
-   * @returns {Ppomise}
+   * @prop {Object} props - об'єкт з даними, для setReg {iface,devAddr,regName,value}
+   * @returns {Ppomise}  {regName,value,note,detail:{duration,request,response,afterSet}}
    */
   setRegPromise(props) {
     let environ = this;
@@ -231,11 +231,11 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
       if (!props) {
         reject(new Error(ln + "props must be defined!"));
       }
-      ln += `(iface=${props.iface.id};id=${props.id};regName=${props.regName})::`;
+      ln += `(iface=${props.iface.id};devAddr=${props.devAddr};regName=${props.regName})::`;
       trace ? log("i", ln, `Started`) : null;
       environ.setReg(
         props.iface,
-        props.addr,
+        props.devAddr,
         props.regName,
         props.value,
         (err, data) => {
