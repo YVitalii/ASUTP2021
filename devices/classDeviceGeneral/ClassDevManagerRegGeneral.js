@@ -1,54 +1,51 @@
 const clone = require("clone");
+const ClassGeneral = require("../../ClassGeneral");
+const types = new Set(["text", "number", "timer", "boolean"]);
 
-module.exports = class ClassDeviceRegGeneral {
+module.exports = class ClassDevManagerRegGeneral extends ClassGeneral {
   /**
-   *
+   * @constructor
    * @param {Object} props
-   * @param {String} props.id - id регістру в драйвері
-   * @param {Object} props.header - {ua:,en:,..} - Короткий опис регістру
-   * @param {Object} props.comment  - {ua:,en:,..} - Розширений  опис регістру
    * @param {String} props.units - одиниці виміру
-   * @param {} props.type="text" - тип значення регістру для побудови HTML
-   * @param {} props.obsolescence=30, сек, період за який дані застаріють
-   * @param {} props.
+   * @param {String} props.type="text" - тип значення регістру (для побудови HTML)
+   * @param {Number} props.obsolescence=30, сек, період за який дані застаріють
+   * @param {Number} props.min - тільки для type= "number" | "timer"
+   * @param {Number} props.max - тільки для type= "number" | "timer"
+   * @param {} props.driverRegName - назва регістру в драйвері (наприклад в драйвері:"DI1", а в менеджері "doorOpened")
    */
   constructor(props) {
-    // id регістру в драйвері
-    if (!props.id) {
-      throw new Error(ln + `"id" for the device must be defined!`);
-    }
-    this.id = props.id;
+    super(props);
 
-    // назва регістру для відображення в заголовку
-    this.header =
-      props.header && props.header.en
-        ? props.header
-        : { ua: `${this.id}`, en: `${this.id}`, ru: `${this.id}` };
-
-    // додатковий опис регістру
-    this.comment =
-      props.comment && props.comment.en
-        ? props.comment
-        : { ua: ``, en: ``, ru: `` };
     // одиниці виміру
     this.units =
       props.units && props.units.en ? props.units : { ua: ``, en: ``, ru: `` };
-    // тип значення регістру для побудови HTML
+
+    // тип значення регістру для побудови в HTML
     this.type = props.type ? props.type : "text";
+    if (!types.has(this.type)) {
+      throw new Error(`Invalid type of register! this.type=${this.type}`);
+    }
+
     // для регістрів з типами number
     if (this.type == "number" || this.type == "timer") {
       this.min = props.min;
       this.max = props.max;
     }
+
+    // назва регістру в драйвері
+
+    this.driverRegName = props.driverRegName ? props.driverRegName : this.id;
+
     // період за який дані застаріють
     let p = parseInt(props.obsolescence);
     this.obsolescence = isNaN(p) ? 30 : p;
 
     // тільки для читання
-    this.readonly = props.readonly;
+    this.readonly = props.readonly ? true : false;
 
-    // поточне значення
+    // поточне значення,внутрішнє → з підкресленням бо в нас визначені get & set
     this._value = null;
+
     // дата останнього оновлення - 10 хв тому
     this.timestamp = new Date().getTime() - 10 * 60 * 1000;
   } // constructor
@@ -56,6 +53,7 @@ module.exports = class ClassDeviceRegGeneral {
   get value() {
     return this._value;
   }
+
   set value(val) {
     if (this.min != undefined) {
       if (val < this.min)

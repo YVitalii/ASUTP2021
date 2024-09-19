@@ -17,7 +17,7 @@ class "ClassDriverGeneral" as ClassDriverGeneral {
 }  
 
 ClassGeneral --|> ClassDriverGeneral
-ClassDriverRegisterGeneral --* ClassDriverGeneral
+ClassDriverRegisterGeneral o--o ClassDriverGeneral
 
 !include ../../ClassGeneral.puml
 !include ./ClassDriverRegisterGeneral.puml

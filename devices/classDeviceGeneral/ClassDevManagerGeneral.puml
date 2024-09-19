@@ -1,0 +1,31 @@
+@startuml ClassDevManagerGeneral
+
+class "ClassDevManagerGeneral" {
+    ---- constructor(props:Object) ----
+    +**iface**: (instance of ClassIface) - інтерфейс
+    +**addr**: {String | Number | Object} - адреса приладу в iface в зрозумілому для нього форматі 
+    ---- this ----
+    +**regs**: {Object} - список регістрів приладу
+    +**period**:{Object} - об'єкт часових проміжків
+    +**period.if**: {Object} - стандартні затримки; значення в сек. ; залежить від config.test
+    +**period.if.portNotOpened**: = 1|5 {Number} - очікування, якщо порт не відкритий
+    +**period.if.timeOut**: = 2|5 {Number} - очікування, якщо timeout = прилад не відповів
+    +**period.if.error**: = 1|10 {Number} - очікування, якщо timeout прилад не відповів
+    +**period.if.deviceBusy**: = 1|2 {Number} - очікування, якщо прилад зайнятий (виконується попередня команда)
+    +**period.value**: = = this.period.if.portNotOpened; - поточний період очікування
+    +**errorCounter**:{value} - 
+
+    +**start()**:{} - команда Старт
+    +**stop()**:{} - команда Стоп
+    +**addRegister()**:{instance of ClassDevManagerRegGeneral} - реєструє регістр в списку регістрів this.regs
+    +**()**:{} - 
+    +**()**:{} - 
+
+}
+
+!include ./ClassDevManagerRegGeneral.puml
+!include ../../ClassGeneral.puml
+
+ClassDevManagerGeneral <|== ClassGeneral
+ClassDevManagerRegGeneral o--o ClassDevManagerGeneral
+@enduml

@@ -2,8 +2,8 @@
 // const log = require("./tools/log");
 module.exports = class ClassGeneral {
   constructor(props) {
-    // let trace = 1,
-    //   ln = "constructor::";
+    let trace = 1,
+      ln = "ClassGeneral::constructor::";
 
     // ----------- id -------------
     if (props.id === undefined) {

@@ -5,7 +5,7 @@ const driver = require("./driver.js");
 const log = require("../../tools/log.js");
 const pug = require("pug");
 // const path = require("path");
-const ClassDeviceManagerGeneral = require("../classDeviceGeneral/ClassDeviceManagerGeneral.js");
+const ClassDeviceManagerGeneral = require("../classDeviceGeneral/ClassDevManagerGeneral.js");
 
 const path = require("path");
 

@@ -1,34 +1,26 @@
+/** Модуль експортує батьківський клас що містить загальні властивості + методи для всіх менеджерів приладів */
+
 const log = require("../../tools/log.js");
 const { dummyPromise } = require("../../tools/dummy.js");
 const test = require("../../config.js").test;
 const ClassDeviceRegGeneral = require("./ClassDevManagerRegGeneral.js");
+const ClassGeneral = require("../../ClassGeneral.js");
 const pug = require("pug");
 
-module.exports = class ClassDeviceManagerGeneral {
+module.exports = class ClassDevManagerGeneral extends ClassGeneral {
   /**
    * Конструктор
    * @param {Object} props - додаткові налаштування конкретного приладу
    * @param {Object} props.iface - об'єкт інтерфейсу до якого підключено цей прилад, повинен мати функцію send()
-   * @param {Integer} props.id - ідентифікатор приладу в deviceManager
    * @param {Integer} props.addr - адреса приладу в iface
    * @param {Integer} props.driver - драйвер приладу
-   * @param {Number} props.header={ua,en..} - назва приладу
-   * @param {Number} props.comment={ua,en..} - назва приладу
    */
 
   constructor(props) {
+    super(props);
+
     let trace = 1,
       ln = "constructor::";
-
-    // ----------- id -------------
-    if (!props.id) {
-      if (trace) {
-        log("i", ln, `props=`);
-        console.dir(props);
-      }
-      throw new Error(ln + `"id" of the device must be defined!`);
-    }
-    this.id = props.id;
 
     // ----------- iface -------------
     if (!props.iface && typeof props.iface.send == "function") {
@@ -40,15 +32,17 @@ module.exports = class ClassDeviceManagerGeneral {
     this.iface = props.iface;
 
     // ----------- addr -------------
-    if (!props.addr || isNaN(parseInt(props.addr))) {
+    if (typeof props.addr == "undefined" || props.addr == null) {
       throw new Error(
-        ln + `"addr=${props.addr}" of the device must be defined!`
+        ln +
+          `Address of the device must be defined! but: addr="${props.addr}" !`
       );
     }
-    this.addr = parseInt(props.addr);
 
     // settings for tracing
-    this.ln = `${this.id}(${this.addr})::`;
+    let addr = "" + this.addr;
+    addr = addr.length > 10 ? ".." + addr.slice(-10) : addr;
+    this.ln += `[${this.addr}]::`;
     ln = this.ln + ln;
 
     // ----------- driver -------------
@@ -59,16 +53,8 @@ module.exports = class ClassDeviceManagerGeneral {
       );
     }
     this.driver = props.driver;
-    this.header =
-      props.header && props.header.en
-        ? props.header
-        : {
-            ua: `undefined(${this.addr})`,
-            en: `undefined(${this.addr})`,
-            ru: `undefined(${this.addr})`,
-          };
 
-    // опис регістрів приладу кожний регістр - сутність типу ClassDeviceRegGeneral
+    // опис регістрів приладу кожний регістр - сутність типу ClassDevManagerRegGeneral
     this.regs = props.regs ? props.regs : {};
 
     // ----------- періоди затримки -------------
@@ -84,20 +70,37 @@ module.exports = class ClassDeviceManagerGeneral {
     this.period.value = this.period.if.portNotOpened;
 
     // -------- лічильник помилок -----------
+    /**
+     * @property лічильник помилок
+     * @prop {Number} value - поточне значення лічильника
+     * @prop {Number} max - максимальне значення лічильника
+     */
     this.errorCounter = {
       value: 0, //поточне значення
       max: test ? 3 : 10, //максимальне значення
     };
-    // ознака відсутності звязку з приладом
+
+    /** ознака відсутності звязку з приладом */
     this.offLine = false;
   } // constructor
 
+  /**
+   * Функція запуску приладу.
+   * @param {*} regs
+   */
   async start(regs = {}) {
     let trace = 1,
       ln = this.ln + `start()::`;
     trace ? log("w", ln, "Started") : null;
   }
 
+  /**
+   * Функція зупинки приладу.
+   *
+   * @async
+   * @param {{}} [regs={}]
+   * @returns {Promise}
+   */
   async stop(regs = {}) {
     let trace = 1,
       ln = this.ln + `stop()::`;
@@ -106,7 +109,7 @@ module.exports = class ClassDeviceManagerGeneral {
 
   /**
    * Додає регістр до regs
-   * @param {Object | Array } reg - налаштування потрібні для створення екземпляру ClassDeviceRegGeneral
+   * @param {Object | Array of Objects} reg - налаштування потрібні для створення екземпляру ClassDeviceRegGeneral
    */
   addRegister(reg) {
     if (!reg) {
@@ -118,19 +121,23 @@ module.exports = class ClassDeviceManagerGeneral {
       }
       return;
     }
+
     let trace = 0,
       ln = this.ln + `addRegister(${reg.id})::`;
     trace ? log("i", ln, `Started`) : null;
+
     if (this.regs[reg.id] != undefined) {
       throw new Error(
         ln + `Dublicate reg.id="${reg.id}"! This id already was defined!`
       );
     }
+
     if (!this.driver.has(reg.id)) {
       throw new Error(
         ln + `reg.id="${reg.id}" not defined in the device driver`
       );
     }
+
     let newReg = new ClassDeviceRegGeneral(reg);
     this.regs[newReg.id] = newReg;
     if (trace) {
@@ -142,7 +149,7 @@ module.exports = class ClassDeviceManagerGeneral {
   /**
    * Перетворює список регістрів в масив
    * @param {Array | String } regsList - масив з id регістрів або рядок з сепаратором ";"
-   * @returns {Araay}
+   * @returns {Array}
    */
   parseRegsList(regsList) {
     let trace = 0,
