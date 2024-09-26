@@ -1,5 +1,7 @@
 const ClassDriverGeneral = require("./ClassDriverGeneral");
 const assert = require("assert");
+const { expect } = require("chai");
+const ClassDriverRegisterGeneral = require("./ClassDriverRegisterGeneral");
 const props = { id: "driverTrp08" };
 
 // ------------ функції для імітатора iface -----------
@@ -45,28 +47,46 @@ describe("Testing ClassDriverGeneral", () => {
   //   console.dir(driver);
 
   // ------ addRegister ---------------
-  describe("addRegister()", () => {
-    it("should be Error, if props not have field 'addr'", function () {
-      assert.throws(() => {
-        driver.addRegister({ id: "state" });
-      }, Error);
+  describe("ClassDriverGeneral:addRegister()", function () {
+    let driver;
+
+    beforeEach(function () {
+      driver = new ClassDriverGeneral({ id: "driver" });
     });
 
-    it("add new register", () => {
-      let reg = driver.addRegister(regProps);
-      assert.equal(reg.addr, regProps.addr);
-      assert.equal(reg.id, regProps.id);
-    });
+    describe("addRegister", function () {
+      it("should add a single register", function () {
+        const props = { ...regProps, id: "reg1" };
+        const reg = driver.addRegister(props);
+        expect(reg).to.be.instanceOf(ClassDriverRegisterGeneral);
+        expect(driver.has("reg1")).to.be.true;
+      });
 
-    it("should be Error, if add dublicate of register", function () {
-      assert.throws(() => {
-        driver.addRegister(regProps);
-      }, Error);
+      it("should add multiple registers from an array", function () {
+        const propsArray = [
+          { ...regProps, id: "reg1" },
+          { ...regProps, id: "reg2" },
+        ];
+        const regs = driver.addRegister(propsArray);
+        expect(regs).to.be.an("array").that.has.lengthOf(2);
+        expect(driver.has("reg1")).to.be.true;
+        expect(driver.has("reg2")).to.be.true;
+      });
+
+      it("should throw an error if register with the same id already exists", function () {
+        const props = { ...regProps, id: "reg1" };
+        driver.addRegister(props);
+        expect(() => driver.addRegister(props)).to.throw(
+          Error,
+          'Register reg1 alredy was declared! Try different "id".'
+        );
+      });
     });
-  }); //describe("addRegister()"
+  });
 
   // ---- has ------
   describe("has()", () => {
+    driver.addRegister(regProps);
     it("if register is present in regs return True", () => {
       assert.ok(driver.has(regProps.id));
     });

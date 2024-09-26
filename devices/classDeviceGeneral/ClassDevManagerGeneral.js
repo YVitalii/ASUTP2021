@@ -23,7 +23,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       ln = "constructor::";
 
     // ----------- iface -------------
-    if (!props.iface && typeof props.iface.send == "function") {
+    if (!props.iface || typeof props.iface.send != "function") {
       throw new Error(
         ln +
           `"iface" for the device must be defined and must has the function "send"!`
@@ -38,7 +38,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
           `Address of the device must be defined! but: addr="${props.addr}" !`
       );
     }
-
+    this.addr = props.addr;
     // settings for tracing
     let addr = "" + this.addr;
     addr = addr.length > 10 ? ".." + addr.slice(-10) : addr;
@@ -46,7 +46,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     ln = this.ln + ln;
 
     // ----------- driver -------------
-    if (!props.driver && typeof props.driver.getRegPromise == "function") {
+    if (!props.driver || typeof props.driver.getRegPromise != "function") {
       throw new Error(
         ln +
           `"driver" for the device must be defined and must has the function "getRegPromise"!`
@@ -89,9 +89,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @param {*} regs
    */
   async start(regs = {}) {
-    let trace = 1,
-      ln = this.ln + `start()::`;
-    trace ? log("w", ln, "Started") : null;
+    log("w", "start()::", "Not defined yet");
   }
 
   /**
@@ -102,9 +100,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @returns {Promise}
    */
   async stop(regs = {}) {
-    let trace = 1,
-      ln = this.ln + `stop()::`;
-    trace ? log("w", ln, "Started") : null;
+    log("w", "stop()::", "Not defined yet");
   }
 
   /**
@@ -281,6 +277,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @param {*} params - параметри що передаються до функції funcItem(params)
    * @returns
    */
+
   async iteration(funcItem, params) {
     let trace = 0,
       ln =
@@ -324,6 +321,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         // все пройшло успішно
         ok = true;
       } catch (error) {
+        let trace = 0;
         // трапилась помилка
         if (trace) {
           log("i", ln, `error=`);
@@ -334,24 +332,33 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         // лічимо помилки
         if (!this.offLine) this.errorCounter.value += 1;
         if (this.errorCounter.value > this.errorCounter.max) {
+          // з приладом немає зв'язку
           this.errorCounter.value = this.errorCounter.max;
           this.offLine = true;
           log("w", ln + "Device offline!");
         }
 
-        log(
-          "",
-          ln +
-            `errCounter=${this.errorCounter.value}.Try again.. ${i} after ${period}s`
-        );
+        trace
+          ? log(
+              "",
+              ln +
+                `errCounter=${this.errorCounter.value}.Try again.. ${i} after ${period}s`
+            )
+          : null;
         i++;
+        // очікуємо період
         await dummyPromise(period * 1000);
       }
     } while (!ok);
+    // знімаємо ознаку зайнятості
     this.busy = false;
+    // скидаємо лічильник помилок
     this.errorCounter.value = 0;
+    // скидаємо ознаку, що прилад відсутній в мережі
     this.offLine = false;
+    //якщо трасуваання - виводимо результат в лог
     trace ? log("i", ln + "Iteration completed") : null;
+    // повертаємо результат
     return res;
   } //async iteration
 
@@ -364,7 +371,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       ln = this.ln + `setRegister(${regName}=${value})::`;
     trace ? log("i", ln, `Started`) : null;
     let reg = this.regs[regName];
-    // перевіряємо імя регустру
+    // перевіряємо імя регістру
     if (!reg) {
       throw new Error(ln + "regs[regName] is undefined!");
     }
@@ -391,7 +398,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       ln = this.ln + `getRegister("${regName}")::`;
     trace ? log("i", ln, `Started`) : null;
     let reg = this.regs[regName];
-    // перевіряємо імя регустру
+    // перевіряємо імя регістру
     if (!reg) {
       throw new Error(ln + `regs[${regName}] is undefined!`);
     }

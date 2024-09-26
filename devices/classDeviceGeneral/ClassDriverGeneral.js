@@ -6,7 +6,6 @@ const log = require("../../tools/log");
 
 const ClassGeneral = require("../../ClassGeneral");
 const ClassDriverRegisterGeneral = require("./ClassDriverRegisterGeneral");
-const { setRegPromise } = require("../trp08/driver");
 
 module.exports = class ClassDriverGeneral extends ClassGeneral {
   constructor(props) {
@@ -34,11 +33,22 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
   addRegister(props) {
     let ln = this.ln + `addRegister(${props.id})` + "::",
       trace = 0;
+    // якщо props - масив, то додаємо кожен елемент масиву
+    if (Array.isArray(props)) {
+      let arr = [];
+      for (let i = 0; i < props.length; i++) {
+        // рекурсивно додаємо кожен елемент масиву
+        let res = this.addRegister(props[i]);
+        // реєструємо результат
+        arr.push(res);
+      }
+      return arr;
+    }
+    if (trace) {
+      log("i", ln, `reg=`);
+      console.dir(reg);
+    }
     let reg = new ClassDriverRegisterGeneral(props);
-    // if (trace) {
-    //   log("i", ln, `reg=`);
-    //   console.dir(reg);
-    // }
     if (this.has(reg.id)) {
       throw new Error(
         `Register ${reg.id} alredy was declared! Try different "id".`
@@ -47,6 +57,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     this.regs.set(reg.id, reg);
     return reg;
   }
+
   /**
    * Функція перевіряє корректність запитів до getReg та setReg
    * Наразі це:  iface та regName

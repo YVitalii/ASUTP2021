@@ -1,7 +1,13 @@
-const assert = require("assert");
-const ClassRegGeneral = require("./ClassDevManagerRegGeneral.js");
-const { expect } = require("chai");
+/**
+ * @file ClassDevManagerRegGeneral_test.js
+ * Писав Я вручну, нову версію тестів робив Copilot
+ */
 
+const assert = require("assert");
+const ClassRegGeneral = require("../ClassDevManagerRegGeneral.js");
+//const expect = require("chai").expect;
+// import except from "chai";
+const chai = require("chai");
 describe("testing ClassDevManagerRegGeneral", () => {
   let props = {
     id: "testRegister",
@@ -72,25 +78,25 @@ describe("testing ClassDevManagerRegGeneral", () => {
   describe("obsolescense", () => {
     it("should set obsolescence to 30 if props.obsolescence is not a number", () => {
       const props = { obsolescence: "not a number" };
-      const instance = new ClassDevManagerRegGeneral(props);
+      const instance = new ClassRegGeneral(props);
       expect(instance.obsolescence).to.equal(30);
     });
 
     it("should set obsolescence to the provided number if props.obsolescence is a number", () => {
       const props = { obsolescence: "45" };
-      const instance = new ClassDevManagerRegGeneral(props);
+      const instance = new ClassRegGeneral(props);
       expect(instance.obsolescence).to.equal(45);
     });
 
     it("should set obsolescence to 30 if props.obsolescence is undefined", () => {
       const props = {};
-      const instance = new ClassDevManagerRegGeneral(props);
+      const instance = new ClassRegGeneral(props);
       expect(instance.obsolescence).to.equal(30);
     });
 
     it("should set obsolescence to 30 if props.obsolescence is null", () => {
       const props = { obsolescence: null };
-      const instance = new ClassDevManagerRegGeneral(props);
+      const instance = new ClassRegGeneral(props);
       expect(instance.obsolescence).to.equal(30);
     });
   });

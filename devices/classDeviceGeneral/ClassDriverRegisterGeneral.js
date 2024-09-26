@@ -21,7 +21,7 @@ function testFunction(func) {
   if (typeof func === "function") {
     return func;
   }
-  log("w", this.ln + `testFunction(${func})::func must be a Function`);
+  log("w", this.ln + `testFunction(${func.name})::func must be a Function`);
   return function (arg = {}) {
     return { err: null, data: arg };
   };
@@ -53,15 +53,24 @@ module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
     this.note = props.note ? props.note : ``;
 
     // ----  _get() ----------
-    this._get = testFunction(props._get);
+    this._get = this.testFunction(props._get);
 
     // ----  get_() ----------
-    this.get_ = testFunction(props.get_);
+    this.get_ = this.testFunction(props.get_);
 
     // ----  _set() ----------
-    this._set = testFunction(props._set);
+    this._set = this.testFunction(props._set);
 
     // ----  set_() ----------
-    this.set_ = testFunction(props.set_);
+    this.set_ = this.testFunction(props.set_);
   } //constructor
+  testFunction(func) {
+    if (typeof func === "function") {
+      return func;
+    }
+    log("w", this.ln + `testFunction(${func})::func must be a Function`);
+    return function (arg = {}) {
+      return { err: null, data: arg };
+    };
+  }
 };
