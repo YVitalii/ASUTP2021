@@ -10,7 +10,7 @@ const degC = { ua: `°C`, en: `°C`, ru: `°C` };
 
 // ---------- general functions ----------
 
-_getFC3 = function (env) {
+let _getFC3 = function (env) {
   //console.dir(this);
   return {
     data: {
