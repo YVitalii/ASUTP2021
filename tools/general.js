@@ -38,6 +38,9 @@ class ClassLinearFunction {
   get(x) {
     return this.k * x + this.a;
   }
+  f(x) {
+    return this.get;
+  }
 }
 
 module.exports.getDateString = getDateString;
