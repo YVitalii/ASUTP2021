@@ -5,7 +5,7 @@
  * тому для виправлення цього положення була розроблена оновлена версія iface на базі класу
  * кожний інтерфейс буде обєктом зі своїми налаштуваннями
  */
-const ClassGeneral = require("../ClassGeneral");
+const ClassGeneral = require("../../ClassGeneral.js");
 
 const SerialPort = require("serialport");
 const pug = require("pug");
@@ -13,14 +13,14 @@ const pug = require("pug");
 const checkBuffer = require("./checkBuffer.js");
 
 // функції для перетворення та розрахунку CRC
-let { toTetrad, getCRC } = require("../tools/CRC.js");
+let { toTetrad, getCRC } = require("../../tools/CRC.js");
 
 // функція для форматування виводу буфера в консоль
-const parseBuf = require("../tools/parseBuf.js");
+const parseBuf = require("../../tools/parseBuf.js");
 
 // завантаження логера
-const log = require("../tools/log.js");
-const dummy = require("../tools/dummy.js").dummyPromise;
+const log = require("../../tools/log.js");
+const dummy = require("../../tools/dummy.js").dummyPromise;
 class IfaceRS485 extends ClassGeneral {
   /**
    * @param {String} path - шлях до порту в системі, наприклад '/dev/ttyUSB0' або 'COM3'

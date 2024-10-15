@@ -1,12 +1,12 @@
 // функція для форматування виводу буфера в консоль
-const parseBuf = require("../tools/parseBuf.js");
+const parseBuf = require("../../tools/parseBuf.js");
 
 // функції для перетворення та розрахунку CRC
-let { getCRC, testCRC } = require("../tools/CRC.js");
+let { getCRC, testCRC } = require("../../tools/CRC.js");
 let gLn = __filename + "::";
 // логер
 
-const log = require("../tools/log.js");
+const log = require("../../tools/log.js");
 // --------------------------------
 // описание ошибок RS485
 var errors = [];
