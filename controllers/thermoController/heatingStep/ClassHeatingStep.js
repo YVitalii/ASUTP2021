@@ -24,7 +24,7 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     // };
     props.id = "heating";
     props.ln = props.ln ? props.ln : props.id;
-    let trace = 1,
+    let trace = 0,
       ln = props.id + "::constructor()::";
     // if (trace) {
     //   log("i", ln, `props=`);

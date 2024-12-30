@@ -346,9 +346,11 @@ module.exports = class ClassLoggerManager {
    *  "05.04.2024, 13:44:36\t195\t199\n"
    */
   getRegsValue() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getRegsValue()";
-    return this.lastDataLine;
+    let res = this.lastDataLine;
+    trace ? log("i", ln, `res=`, res) : null;
+    return res;
   } //getRegsValue()
 
   async getFile(fileName = "", fileExt = "") {
