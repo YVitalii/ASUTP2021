@@ -16,6 +16,11 @@ let trace = 0,
   }
   for (const key in interfaces) {
     if (Object.hasOwnProperty.call(interfaces, key)) {
+      if (key != "Ethernet" && key != "eth0") {
+        trace ? log("i", ln, `key = ${key} skiped!`) : null;
+        continue;
+      }
+      trace ? log("i", ln, `Compatable: key=`, key) : null;
       const interface = interfaces[key];
       for (let i = 0; i < interface.length; i++) {
         const element = interface[i];
@@ -51,7 +56,7 @@ ifaces.w2 = new Iface(comName, {
   id: comId,
   header: { ua: `${comId}`, en: `${comId}`, ru: `${comId}` },
 });
-
+trace = 0;
 if (trace) {
   log("i", ln, `ifaces=`);
   console.dir(ifaces);

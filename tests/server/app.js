@@ -1,5 +1,6 @@
 /** Тестовий сервер для швидкого тестування HTML-компонентів
- *  запуск npm start
+ *  запуск npm start з теки ./tests/server
+ *
  */
 
 var createError = require("http-errors");
@@ -65,7 +66,7 @@ app.use(function (req, res, next) {
 /** Щоб пришвидшити вхід,
  * Додає до запиту: user та entity */
 app.use("*", (req, res, next) => {
-  let trace = 0,
+  let trace = 1,
     ln = 'Find user "admin":: ';
   trace ? log("i", ln, `Started`) : null;
   // ----- додаємо користувача --------
@@ -99,7 +100,7 @@ app.use("*", addInfoToReq);
 
 app.use("*", (req, res, next) => {
   req.entity = entity;
-  let trace = 0,
+  let trace = 1,
     ln = req.originalUrl + "::";
   trace ? log("i", ln, `entity.id=`, entity.id) : null;
   next();
