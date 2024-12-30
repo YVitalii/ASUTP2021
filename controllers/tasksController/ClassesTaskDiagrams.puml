@@ -1,6 +1,6 @@
 @startuml ClassTasks
 
-!include  
+ 
 
 class "ClassRegister" as register { 
     +id : String; // ідентифікатор регістру

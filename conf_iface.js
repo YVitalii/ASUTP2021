@@ -17,10 +17,9 @@ let trace = 0,
   for (const key in interfaces) {
     if (Object.hasOwnProperty.call(interfaces, key)) {
       if (key != "Ethernet" && key != "eth0") {
-        trace ? log("i", ln, `key = ${key} skiped!`) : null;
+        trace ? log("i", ln, `Skip: key=`, key) : null;
         continue;
       }
-      trace ? log("i", ln, `Compatable: key=`, key) : null;
       const interface = interfaces[key];
       for (let i = 0; i < interface.length; i++) {
         const element = interface[i];
@@ -28,8 +27,14 @@ let trace = 0,
           let ip = element.address;
           trace ? log("i", ln, `family= ${element.family}; ip=${ip}`) : null;
           if (element.family == "IPv4") {
-            log("w", `Server ip= ` + ip);
+            log(
+              "w",
+              `------------------- Server ip= ` +
+                ip +
+                "---------------------------------"
+            );
             ifaces.ipAddr = ip;
+            // break;
           }
         }
       }
@@ -39,7 +44,7 @@ let trace = 0,
 }
 
 let comId;
-
+// -------------  w2 two wire RS485 ------------------------
 if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
@@ -48,15 +53,33 @@ if (platform != "win32") {
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");
-
+let portId = "w2",
+  portHeader = `${portId}(${comId})`;
 // module.exports.path = comName;
 ifaces.w2 = new Iface(comName, {
   baudRate: 2400,
-  timeoutBetweenCalls: 100,
-  id: comId,
-  header: { ua: `${comId}`, en: `${comId}`, ru: `${comId}` },
+  timeoutBetweenCalls: 200,
+  id: "w2",
+  header: { ua: portHeader, en: portHeader, ru: portHeader },
 });
-trace = 0;
+
+// // -- w4 чотирьох провідна лінія ------------------
+// if (platform != "win32") {
+//   comName = "/dev/ttyUSB1";
+//   comId = comName.split("/")[2];
+// } else {
+//   comName = "COM4";
+// }
+// portId = "w4";
+// portHeader = `${portId}(${comId})`;
+// // module.exports.path = comName;
+// ifaces.w4 = new Iface(comName, {
+//   baudRate: 9600,
+//   timeoutBetweenCalls: 200,
+//   id: "w4",
+//   header: { ua: portHeader, en: portHeader, ru: portHeader },
+// });
+
 if (trace) {
   log("i", ln, `ifaces=`);
   console.dir(ifaces);
@@ -64,12 +87,10 @@ if (trace) {
 
 module.exports = ifaces;
 
-// -- чотирьох провідна лінія ------------------
-// if (platform != "win32") {
-//   comName = "/dev/ttyUSB1";
-// } else {
-//   comName = "COM4";
-// }
+if (!module.parent) {
+  console.dir("----------- ifaces =  ---------------");
+  console.dir(ifaces, { depth: 2 });
+}
 
 // module.exports.w4 = new Iface(comName, {
 //   baudRate: 2400,

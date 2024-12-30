@@ -48,14 +48,16 @@ const N2 = function() {
   return 0
 }
 
+
 // ініціалізація параметрів контролера  
 N2.props ={};
 
 //- завдання (уставка) SP (set point) в %
 N2.props.SP={
   updateValue: function (value) {
-    document.getElementById("N2_SP_range").value = value;
-    document.getElementById("N2_SP_value").innerHTML = parseInt(value);
+
+    document.getElementById("N2_SP_range").value = isFinite(value) ? value : 0;
+    document.getElementById("N2_SP_value").innerHTML = isFinite(value) ? parseInt(value) : "???";
     N2.props.SP.value=value;
     return value
     }, 
@@ -64,8 +66,8 @@ N2.props.SP={
   //- поточне значення PV (process value) в %
 N2.props.PV={
   updateValue: function (value) {
-    document.getElementById("N2_PV_slider").value = value;
-    document.getElementById("N2_PV_value").innerHTML = value.toFixed(1);
+    document.getElementById("N2_PV_slider").value = isFinite(value) ? value : 0;
+    document.getElementById("N2_PV_value").innerHTML = isFinite(value) ? value.toFixed(1): "???";
     N2.props.PV.value=value;
     return value
     }, 
@@ -75,8 +77,9 @@ N2.props.PV={
 //- поточне значення в м3/год
 N2.props.flow={
   updateValue: function (value) {
-    console.log("---> flow.updateValue("+value+")")
-    document.getElementById("N2_flow_value").innerHTML = value.toFixed(2);
+
+    //console.log("---> flow.updateValue("+value+")")
+    document.getElementById("N2_flow_value").innerHTML = isFinite(value) ? value.toFixed(2) : "???";
     N2.props.flow.value=value;
     return value;
     }, 
@@ -85,14 +88,22 @@ N2.props.flow={
 
 //- поточний стан контролера
 N2.props.state={
-  updateValue: function (obj={}) { // функція, що оновлює дані на сторінці
-    let trace=1, ln = 'N2.props.state::'
+  updateValue: function (obj=undefined) { // функція, що оновлює дані на сторінці
+    let trace=0, ln = 'N2.props.state('+obj+')::'
     trace ? console.log(ln+"Started"):null;
     N2.props.state.value=obj;
-
-    if (obj.locked) { document.getElementById("N2_SP_range").enabled = obj.locked; }
     let el = document.getElementById("N2_state_note");
     let style=el.style;
+
+    // якщо undefined - ставимо стан помилки та виходимо 
+    if ( typeof(obj) == "undefined" ) {
+      N2.setErrorNote(el);
+      return
+      }
+
+    if (obj.locked) { document.getElementById("N2_SP_range").enabled = obj.locked; }
+    // змінюємо напис
+    el.innerHTML=obj.note.ua
     switch (obj.note.code){
       case 'working':
         style.color = "darkgreen"
@@ -108,8 +119,8 @@ N2.props.state={
         style.color = "red"
         break;
     }
-    if (obj.note.ua) {
-      el.innerHTML=obj.note.ua}
+
+
 
     return obj.note.ua
     }, //updateValue
@@ -118,13 +129,18 @@ N2.props.state={
 
 //- поточний стан контролера
 N2.props.pressure={
-  updateValue: function (obj={}) {
-    let trace=1, ln = 'N2.props.pressure::'
+  updateValue: function (obj=undefined) {
+    let trace=0, ln = 'N2.props.pressure::'
     trace ? console.log(ln+"Started"):null;
     N2.props.pressure.value=obj;
+
     let el = document.getElementById("N2_pressure_note");
-    if (obj.note.ua) {
-      el.innerHTML=obj.note.ua}
+    // якщо undefined - ставимо стан помилки та виходимо 
+    if ( typeof(obj) == "undefined" ) {
+      N2.setErrorNote(el);
+      return
+      }
+    el.innerHTML=obj.note.ua;
     let style=el.style;
     switch (obj.note.code) {
       case "normal":
@@ -149,6 +165,34 @@ N2.props.pressure={
 
 }
 
+N2.setErrorNote= (el) => {
+  // вписує знаки ??? в innerHTML елементу el
+  // змінює колір тексту на червоний
+  el.innerHTML = "???";
+  el.style.color = "red";
+}
+
+N2.setRegs= (data) => {
+  let trace=0, ln="N2.setRegs()->";
+  // функція перебирає регістри в відповіді та змінює поля
+    for (let prop in  data ) {
+      if( data.hasOwnProperty( prop ) ) {
+        trace ? console.log(ln+'data['+ prop + "]="+data[prop]):null;
+        if (N2.props[prop]) {
+          let result= N2.props[prop].updateValue(data[prop]);
+          trace ? console.log(ln+'N2.props'+"."+ prop + " = " +result):null;
+        } else {
+          trace ? console.log(ln+'N2.props'+"."+ prop + " Not found"):null;
+        }
+  } }
+  return true 
+}
+
+N2.errorRegs = () => {
+  // функція встановлює стан помилки звязку
+  let data = {PV:undefined,SP:undefined, state:undefined, pressure:undefined, flow:undefined} 
+    N2.setRegs(data);
+}
 
 // об'єкт запиту на сервер
 N2.xhrt = new XMLHttpRequest(); 
@@ -156,45 +200,51 @@ N2.xhrt = new XMLHttpRequest();
 N2.xhrt.onload = () => {
   let trace=1;
   let ln=`N2.xhrt.onload::`;
-  trace ? console.log(ln,"Data received: res=",N2.xhrt.responseText):null;
+  //trace ? console.log(ln,"Data received: res=",N2.xhrt.responseText):null;
   // плануємо наступний запуск через 2 сек
   setTimeout( () => {N2.getRegs();},2000);
   trace=0;
   let res;
   try {
     res=JSON.parse( N2.xhrt.responseText);
-    trace ? console.log(ln,"Data parsed: res=",res):null;
+
+    if ( typeof(res) == "string" ) {
+      trace ? console.log(ln,"Error:: Data must be an Object but 'res' is string::",res.slice(0,10)):null;
+      throw new Error("Response must be an object")
+
+    }
+    trace ? console.log(ln,"Data parsed: res.data=",res.data):null;
 
   } catch {
-    console.log(ln,"Error::",N2.xhrt.responseText);
+    console.log(ln,"Error::",N2.xhrt.responseText.slice(0,20));
+    // встановлюємо стан помилки
+    N2.errorRegs()
     return
+
   };
 
   if (! res.err) {
-  for (let prop in  res.data ) {
-    if( res.data.hasOwnProperty( prop ) ) {
-      trace ? console.log(ln+'res.data['+ prop + "]="+res.data[prop]):null;
-      if (N2.props[prop]) {
-        let result= N2.props[prop].updateValue(res.data[prop]);
-        trace ? console.log(ln+'N2.props'+"."+ prop + " = " +result):null;
-      } else {
-        trace ? console.log(ln+'N2.props'+"."+ prop + " Not found"):null;
-      }
-  } } }
+    // оновлюємо компоненти
+    N2.setRegs(res.data)
+  }
 
 
 };
 
 N2.xhrt.onerror = function(){
-  let xhrT=N2.xhrT
-  console.log(ln+"Error POST from /realtimes :"+ xhrT.err + '::' + xhrT.statusText)
+  let ln="N2.xhrT.onerror::"
+  let xhrT=N2.xhrt
+  console.log(ln + "Error: Connection down !!!" );
+  N2.errorRegs();
   setTimeout( () => {N2.getRegs();},5000);
+
 } //  xhrT.onerror
 
 //- запит на отримання даних з сервера
 
 N2.getRegs= () => {
-  let url = new URL(document.baseURI + `N2/getRegs`);
+  //- 2023-11-14 тут помилка при запитах зі сторінки контролерів, буде шлях  /controllers/controllers
+  let url = new URL(document.baseURI + `/controllers/N2/getRegs`);
   url.searchParams.set("regs","SP;PV;flow;state;pressure");
 
   N2.xhrt.open("POST",url);
@@ -202,15 +252,13 @@ N2.getRegs= () => {
   //console.log("Request [ "+url+" ]was sended");
 }
 
-//- N2.getAll_url =  //- запит на отримання вcього комплекту даних
-//- N2.setSP_url = "/N2/setSP"; // запит на зміну SP
+//  перший запит  
 setTimeout( () => {N2.getRegs();},3000);
+
 //  обробники подій зміни завдання SP
 document.getElementById("N2_SP_range").onchange=function (event) {
 let value = event.target.value;
-//N2.props.SP.updateValue(value);
-
-let url = new URL(document.baseURI + `N2/setRegs`);
+let url = new URL(document.baseURI + `/controllers/N2/setRegs`);
   url.searchParams.set("regs",JSON.stringify({SP:value}));
 console.log("N2_onchange::",url);
 N2.xhrt.open("POST",url);
