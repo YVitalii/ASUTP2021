@@ -1,1 +1,1 @@
-[{"id":"description","name":"prg01","note":"Опис програми №3"},{"id":"taskThermal","tT":"65","wT":0,"errTmin":-5,"errTmax":5,"H":0,"errH":0,"Y":1,"regMode":"pos","o":"-1"},{"id":"taskThermal","tT":"40","wT":"0","errTmin":"0","errTmax":"0","H":0,"errH":0,"Y":1,"regMode":"pos","o":"-1"}]
+[{"id":"description","name":"prg01","note":"Опис програми №3"},{"id":"taskThermal","tT":"500","wT":0,"errTmin":-5,"errTmax":5,"H":120,"errH":0,"Y":60,"regMode":"pos","o":"-1"},{"id":"taskThermal","tT":"600","wT":"0","errTmin":"0","errTmax":"0","H":0,"errH":0,"Y":20,"regMode":"pos","o":"-1"}]
