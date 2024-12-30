@@ -1,0 +1,268 @@
+<style>
+.flowController-container {
+    width: 100%; /* Width of the outside container */
+    margin-left: 10px;
+
+
+}
+
+/* The slider itself */
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 90%; /* Full-width */
+    height: 15px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider:disabled {
+    opacity: 0.2;
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #4CAF50; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}</style><div class="flowController-container"><h4> Нітроген (N2)</h4><input class="slider" type="range" min="0" max="100" value="0" id="N2_SP_range"/><progress class="slider" value="0" max="100" id="N2_PV_slider"></progress></div><div class="flowController-container"><table width="90%"><tr><td width="25%"> <b>PV =&nbsp;<span id="N2_PV_value"> 0</span><span>&nbsp;%</span></b></td><td width="25%"> <b>SP =&nbsp;<span id="N2_SP_value">0</span><span>&nbsp;%</span></b></td><td> <b>Flow =&nbsp;<span id="N2_flow_value">0.00</span><span>&nbsp;м3/год</span></b></td></tr><tr><td colspan="2"><i>Стан:&nbsp;</i><span id="N2_state_note" style="font-weight:bold">Невизначено</span></td><td><i>Тиск:&nbsp;</i><span id="N2_pressure_note" style="font-weight:bold">Невизначено</span></td></tr></table></div><script>//- функція простору імен для нашого контролера
+const N2 = function() {
+  return 0
+}
+
+
+// ініціалізація параметрів контролера  
+N2.props ={};
+
+//- завдання (уставка) SP (set point) в %
+N2.props.SP={
+  updateValue: function (value) {
+
+    document.getElementById("N2_SP_range").value = isFinite(value) ? value : 0;
+    document.getElementById("N2_SP_value").innerHTML = isFinite(value) ? parseInt(value) : "???";
+    N2.props.SP.value=value;
+    return value
+    }, 
+  value: 0,
+}
+  //- поточне значення PV (process value) в %
+N2.props.PV={
+  updateValue: function (value) {
+    document.getElementById("N2_PV_slider").value = isFinite(value) ? value : 0;
+    document.getElementById("N2_PV_value").innerHTML = isFinite(value) ? value.toFixed(1): "???";
+    N2.props.PV.value=value;
+    return value
+    }, 
+  value: 0,
+}
+
+//- поточне значення в м3/год
+N2.props.flow={
+  updateValue: function (value) {
+
+    //console.log("---> flow.updateValue("+value+")")
+    document.getElementById("N2_flow_value").innerHTML = isFinite(value) ? value.toFixed(2) : "???";
+    N2.props.flow.value=value;
+    return value;
+    }, 
+  value: 0,
+}
+
+//- поточний стан контролера
+N2.props.state={
+  updateValue: function (obj=undefined) { // функція, що оновлює дані на сторінці
+    let trace=0, ln = 'N2.props.state('+obj+')::'
+    trace ? console.log(ln+"Started"):null;
+    N2.props.state.value=obj;
+    let el = document.getElementById("N2_state_note");
+    let style=el.style;
+
+    // якщо undefined - ставимо стан помилки та виходимо 
+    if ( typeof(obj) == "undefined" ) {
+      N2.setErrorNote(el);
+      return
+      }
+
+    if (obj.locked) { document.getElementById("N2_SP_range").enabled = obj.locked; }
+    // змінюємо напис
+    el.innerHTML=obj.note.ua
+    switch (obj.note.code){
+      case 'working':
+        style.color = "darkgreen"
+        break;
+      case 'transition':
+        style.color="orange";
+        break;
+      case 'waiting' :
+        style.color = "grey"
+        break;
+      case 'lowFlow':
+      case "highFlow":
+        style.color = "red"
+        break;
+    }
+
+
+
+    return obj.note.ua
+    }, //updateValue
+  value: {}, // поточне значення
+}
+
+//- поточний стан контролера
+N2.props.pressure={
+  updateValue: function (obj=undefined) {
+    let trace=0, ln = 'N2.props.pressure::'
+    trace ? console.log(ln+"Started"):null;
+    N2.props.pressure.value=obj;
+
+    let el = document.getElementById("N2_pressure_note");
+    // якщо undefined - ставимо стан помилки та виходимо 
+    if ( typeof(obj) == "undefined" ) {
+      N2.setErrorNote(el);
+      return
+      }
+    el.innerHTML=obj.note.ua;
+    let style=el.style;
+    switch (obj.note.code) {
+      case "normal":
+        style.color='darkgreen';
+        break;
+      case "warning":
+      case "notdefined":
+        style.color='orange';
+        break;
+      case 'alarm':
+      case 'high':
+        style.color='red';
+        break;
+      default:
+        style.color='grey';
+    }
+    trace ? console.log(ln+"Style=",style):null;
+
+    return obj.note.ua
+    }, //updateValue
+  value: {},
+
+}
+
+N2.setErrorNote= (el) => {
+  // вписує знаки ??? в innerHTML елементу el
+  // змінює колір тексту на червоний
+  el.innerHTML = "???";
+  el.style.color = "red";
+}
+
+N2.setRegs= (data) => {
+  let trace=0, ln="N2.setRegs()->";
+  // функція перебирає регістри в відповіді та змінює поля
+    for (let prop in  data ) {
+      if( data.hasOwnProperty( prop ) ) {
+        trace ? console.log(ln+'data['+ prop + "]="+data[prop]):null;
+        if (N2.props[prop]) {
+          let result= N2.props[prop].updateValue(data[prop]);
+          trace ? console.log(ln+'N2.props'+"."+ prop + " = " +result):null;
+        } else {
+          trace ? console.log(ln+'N2.props'+"."+ prop + " Not found"):null;
+        }
+  } }
+  return true 
+}
+
+N2.errorRegs = () => {
+  // функція встановлює стан помилки звязку
+  let data = {PV:undefined,SP:undefined, state:undefined, pressure:undefined, flow:undefined} 
+    N2.setRegs(data);
+}
+
+// об'єкт запиту на сервер
+N2.xhrt = new XMLHttpRequest(); 
+
+N2.xhrt.onload = () => {
+  let trace=1;
+  let ln=`N2.xhrt.onload::`;
+  //trace ? console.log(ln,"Data received: res=",N2.xhrt.responseText):null;
+  // плануємо наступний запуск через 2 сек
+  setTimeout( () => {N2.getRegs();},2000);
+  trace=0;
+  let res;
+  try {
+    res=JSON.parse( N2.xhrt.responseText);
+
+    if ( typeof(res) == "string" ) {
+      trace ? console.log(ln,"Error:: Data must be an Object but 'res' is string::",res.slice(0,10)):null;
+      throw new Error("Response must be an object")
+
+    }
+    trace ? console.log(ln,"Data parsed: res.data=",res.data):null;
+
+  } catch {
+    console.log(ln,"Error::",N2.xhrt.responseText.slice(0,20));
+    // встановлюємо стан помилки
+    N2.errorRegs()
+    return
+
+  };
+
+  if (! res.err) {
+    // оновлюємо компоненти
+    N2.setRegs(res.data)
+  }
+
+
+};
+
+N2.xhrt.onerror = function(){
+  let ln="N2.xhrT.onerror::"
+  let xhrT=N2.xhrt
+  console.log(ln + "Error: Connection down !!!" );
+  N2.errorRegs();
+  setTimeout( () => {N2.getRegs();},5000);
+
+} //  xhrT.onerror
+
+//- запит на отримання даних з сервера
+
+N2.getRegs= () => {
+  //- 2023-11-14 тут помилка при запитах зі сторінки контролерів, буде шлях  /controllers/controllers
+  let url = new URL(document.baseURI + `/controllers/N2/getRegs`);
+  url.searchParams.set("regs","SP;PV;flow;state;pressure");
+
+  N2.xhrt.open("POST",url);
+  N2.xhrt.send();
+  //console.log("Request [ "+url+" ]was sended");
+}
+
+//  перший запит  
+setTimeout( () => {N2.getRegs();},3000);
+
+//  обробники подій зміни завдання SP
+document.getElementById("N2_SP_range").onchange=function (event) {
+let value = event.target.value;
+let url = new URL(document.baseURI + `/controllers/N2/setRegs`);
+  url.searchParams.set("regs",JSON.stringify({SP:value}));
+console.log("N2_onchange::",url);
+N2.xhrt.open("POST",url);
+N2.xhrt.send();
+setTimeout(() => {N2.getRegs();},500);
+//N2.props.PV.updateValue(value); // для тестування
+} //document.getElementById("N2_SP_range").onchange</script>
