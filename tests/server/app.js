@@ -66,7 +66,7 @@ app.use(function (req, res, next) {
 /** Щоб пришвидшити вхід,
  * Додає до запиту: user та entity */
 app.use("*", (req, res, next) => {
-  let trace = 1,
+  let trace = 0,
     ln = 'Find user "admin":: ';
   trace ? log("i", ln, `Started`) : null;
   // ----- додаємо користувача --------
@@ -100,7 +100,7 @@ app.use("*", addInfoToReq);
 
 app.use("*", (req, res, next) => {
   req.entity = entity;
-  let trace = 1,
+  let trace = 0,
     ln = req.originalUrl + "::";
   trace ? log("i", ln, `entity.id=`, entity.id) : null;
   next();

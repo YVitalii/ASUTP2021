@@ -49,7 +49,7 @@ if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
 } else {
-  comId = comName = "COM4";
+  comId = comName = "COM3";
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");

@@ -248,7 +248,7 @@ class Manager {
           res = await func(params);
           ok = true;
         } catch (error) {
-          log("", ln, "err=", error.messages.en);
+          log("i", ln, "err=", error.messages.en);
           if (error.code != 13) {
             ok = true;
             this.busy = false;
