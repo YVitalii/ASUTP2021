@@ -117,8 +117,21 @@ class IfaceRS485 {
         this.transactionFinish(this.task);
       }
     });
-    this.isOpened = false;
+
+    // ----------- ставимо обробник помилок ----------------
+    this.serial.on("error", (err) => {
+      let trace = 1,
+        ln = this.ln + 'serial.on("error")::';
+      log("e", ln, `Error: ${err.message}`);
+      transactionFinish(this.task);
+      if (!this.isOpen()) {
+        log("e", ln, `Port not opened! Try to open it!`);
+        this.openPort();
+      }
+    });
+
     // --------- запускаємо спроби відкрити порт  ----------
+    this.isOpened = false;
     this.openPort();
     // ---------------- Запускаємо цикл опитування ---------
     this.iterate();
