@@ -1,5 +1,6 @@
 /** Тестовий сервер для швидкого тестування HTML-компонентів
- *  запуск npm start
+ *  запуск npm start з теки ./tests/server
+ *
  */
 
 var createError = require("http-errors");

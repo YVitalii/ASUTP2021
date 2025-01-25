@@ -197,6 +197,113 @@ class Manager extends ClassDeviceManagerGeneral {
     return this.addT;
   }
 
+  getState() {
+    return this.state.state;
+  }
+
+  /**
+   *
+   * @param {async function} func - функція яку потрібно виконати
+   * @param {*} params - параметри функції
+   * @returns
+   */
+  async iteration(func, params) {
+    return new Promise(async (resolve, reject) => {
+      let trace = 0,
+        ln =
+          this.ln +
+          `iteration(${func.name},${params.regName}${
+            params.value || params.value === 0 ? "=" + params.value : ""
+          })::`;
+      trace ? log("i", ln, `Started`) : null;
+      // очікуємо закінчення попередньої операції
+      let i = 0; // лічильник повторів
+      while (!this.iface.isOpened || this.busy) {
+        let msg = this.iface.isOpened ? "" : "Port not opened.";
+        msg += this.busy ? `Device ${this.header.ua} are busy.` : "";
+        msg += `Trying N:${i}. Waiting: ${this.period}s`;
+        log("", ln, msg);
+        i++;
+        await dummyPromise(this.period * 1000);
+      }
+      // даємо запит на запис
+      let res,
+        resString = "";
+      this.busy = true;
+      i = 0;
+      let ok = false;
+      do {
+        try {
+          if (!this.iface.isOpened) {
+            let err = new Error();
+            err.code = 13;
+            err.messages = { en: ln + "Port not opened!" };
+            throw err;
+          }
+          res = await func(params);
+          ok = true;
+        } catch (error) {
+          log("i", ln, "err=", error.messages.en);
+          if (error.code != 13) {
+            ok = true;
+            this.busy = false;
+            reject(new Error(error.messages.en));
+          }
+          // лічимо помилки
+          this.errorCounter.value += 1;
+          if (this.errorCounter.value >= this.errorCounter.max) {
+            this.errorCounter.value = this.errorCounter.max;
+            this.offLine = true;
+            this.period = 10;
+            this.state.state.value = undefined;
+          }
+
+          log(
+            "",
+            ln +
+              `errCounter=${this.errorCounter.value}.Try again.. ${i} after ${this.period}s`
+          );
+          i++;
+          await dummyPromise(this.period * 1000);
+        }
+      } while (!ok);
+      this.busy = false;
+      this.errorCounter.value = 0;
+      this.offLine = false;
+      this.period = 3;
+      trace ? log("i", ln + "Completed") : null;
+      resolve(res);
+    });
+  } //async iteration
+
+  /** Функція записує 1 параметр */
+  async setRegister(regName, value) {
+    let trace = 0,
+      ln = this.ln + `setRegister(${regName}=${value})::`;
+    trace ? log("i", ln, `Started`) : null;
+    let reg = this.state[regName];
+    // даємо запит на запис
+    let res,
+      resString = "";
+
+    res = await this.iteration(device.setRegPromise, {
+      iface: this.iface,
+      id: this.addr,
+      regName: regName,
+      value: value,
+    });
+    // оновлюємо дані в state
+    trace ? log("i", ln, `res=`, res) : null;
+    reg.value = res.value;
+    reg.timestamp = res.timestamp;
+    resString += `${regName}=${res.value}; `;
+    if (trace) {
+      log("i", ln, `reg=`);
+      console.dir(reg);
+    }
+    return resString;
+  } //async setRegister(regName, value)
+
   /** Функція записує налаштування в прилад
    * @param {Object} params - об'єкт з даними: {tT:50; o:10,..} які відповідають переліку регістрів в драйвері (запустити в консолі driver.js)
    */
