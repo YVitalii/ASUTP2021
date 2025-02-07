@@ -1,0 +1,23 @@
+
+
+class "ClassDriverRegisterGeneral" as ClassDriverRegisterGeneral {
+    
+    -- constructor  --
+    +addr:Number|String - адреса регістру в приладі
+    +units: Object - { ua: ``, en: ``, ru: `` } - одиниці вимірювання
+    +note: String - примітки до опису регістру (наприлад:"Вхід DI1")
+    +_get(arg={}): sync function; returns {err,data} - перед-обробка, data={} - набір даних для iface.send(data)   
+    +get_(arg={}): sync function; returns {err,data={value,[note]}} - пост-обробка, data={} - інтерпретація відповіді iface.send(data)
+    +_set(arg={value}): returns {err,data}: sync function - перед-обробка, data={} - набір даних для iface.send(data)
+    +set_(arg={value}): returns {err,data}: sync function - пост-обробка , data={value,[note]} - інтерпретація відповіді iface.send(data)
+    -- this  --
+    +addr
+    +units
+    +_get(arg) returns 
+    +get_(arg)
+    +_set(arg)
+    +set_(arg)
+    
+}
+
+ClassGeneral ==|> ClassDriverRegisterGeneral  

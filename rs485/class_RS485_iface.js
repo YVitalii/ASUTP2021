@@ -64,7 +64,7 @@ class IfaceRS485 {
     // налаштування логера
     this.ln = `class_RS485_iface(${path})::`;
     let ln = this.ln + "constructor()::";
-    let trace = 1;
+    let trace = 0;
 
     this.timeoutBetweenCalls = props.timeoutBetweenCalls
       ? props.timeoutBetweenCalls
@@ -120,12 +120,12 @@ class IfaceRS485 {
 
     // ----------- ставимо обробник помилок ----------------
     this.serial.on("error", (err) => {
-      let trace = 1,
+      let trace = 0,
         ln = this.ln + 'serial.on("error")::';
       log("e", ln, `Error: ${err.message}`);
       transactionFinish(this.task);
       if (!this.isOpen()) {
-        log("e", ln, `Port not opened! Try to open it!`);
+        trace ? log("e", ln, `Port not opened! Try to open it!`) : null;
         this.openPort();
       }
     });
@@ -146,14 +146,14 @@ class IfaceRS485 {
   }
 
   async openPortPromise(serial) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "openPortPromise(serial)::";
     return new Promise(function (resolve, reject) {
       if (serial.isOpen) {
         log("i", ln, `Порт вже відкрито! `);
         resolve(true);
       }
-      log("i", ln + "Try to open port!");
+      trace ? log("i", ln + "Try to open port!") : null;
       serial.open((err) => {
         if (err) {
           log("e", ln + err.message);
@@ -170,7 +170,7 @@ class IfaceRS485 {
   // функція callback для serial.open,
   // створена для перезапуску самої себе до моменту успішного відкриття порту
   async openPort() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "openPort()::";
     //this.isOpened = this.serial.isOpen;
     while (!this.isOpened) {
@@ -190,7 +190,7 @@ class IfaceRS485 {
       }
       this.isOpened = false;
       this.comment = this.stateMessages.disconnected;
-      log("i", ln + "Will waiting 3 s !");
+      trace ? log("i", ln + "Will waiting 3 s !") : null;
       await dummy(3000);
     } //while
     //this.isOpened = true;

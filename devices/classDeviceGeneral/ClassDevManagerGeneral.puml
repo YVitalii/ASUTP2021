@@ -1,0 +1,26 @@
+@startuml
+
+class ClassDevManagerGeneral {
+    - iface
+    - addr
+    - driver
+    - regs
+    - period
+    - errorCounter
+    - offLine
+    - ln
+
+    + constructor(props)
+}
+
+ClassDevManagerGeneral : +constructor(props)
+ClassDevManagerGeneral : -iface
+ClassDevManagerGeneral : -addr
+ClassDevManagerGeneral : -driver
+ClassDevManagerGeneral : -regs
+ClassDevManagerGeneral : -period
+ClassDevManagerGeneral : -errorCounter
+ClassDevManagerGeneral : -offLine
+ClassDevManagerGeneral : -ln
+
+@enduml
