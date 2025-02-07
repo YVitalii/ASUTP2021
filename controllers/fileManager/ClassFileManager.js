@@ -174,16 +174,23 @@ class ClassFileManager {
     let trace = 0,
       ln = this.ln + `writeFile(${fName})::`;
     trace ? log("i", ln, `data=`, data) : null;
-    if (fName == undefined) {
-      return Promise.reject(ln + "File name not defined!");
+
+    if (fName == undefined || typeof fName != "string") {
+      return Promise.reject(ln + "File name not defined or not string!");
     }
+    // Видаляємо всі недопустимі символи (Windows) + приховані символи (\n, \r, \t, \0)
+    fName = fName.replace(/[<>:"\/\\|?*\n\r\t\0]+/g, "_");
+    // Обрізаємо пробіли на початку і в кінці
+    fName = fName.trim();
+    // Обмежуємо довжину (≤255 символів)
+    fName = fName.substring(0, 255);
     if (data == undefined || data == "") {
       return Promise.reject(ln + "Data not defined!");
     }
+
     if (typeof data != "string") {
       data = JSON.stringify(data);
     }
-
     let res = await fsPromises.writeFile(pathJoin(this.homeDir, fName), data);
     this.readFileList();
     log("w", ln + "File created.");
