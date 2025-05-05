@@ -13,7 +13,7 @@ setInterval(() => {
 function test() {
   iface.send(req, (err, data) => {
     if (err) {
-      console.log(err);
+      console.log(err.message);
     }
     if (data) {
       console.log("Data addr 0x01:[" + parseBuf(data) + "]");
