@@ -21,13 +21,17 @@ const parseBuf = require("../tools/parseBuf.js");
 // завантаження логера
 const log = require("../tools/log.js");
 const dummy = require("../tools/dummy.js").dummyPromise;
+let gTest = 1;
+// --------------- Інтерфейс RS485 ------------------
 class IfaceRS485 extends ClassGeneral {
   /**
    * @param {String} path - шлях до порту в системі, наприклад '/dev/ttyUSB0' або 'COM3'
    * @param {Object} props - налаштування порту, повний опис https://serialport.io/docs/9.x.x/api-stream#openoptions
    * @param {Number} props.baudRate -  швидкість, бод
    * @param {Number} props.timeoutBetweenCalls=300 - мс, пауза між запитами, у випадку якщо котрийсь з приладів не закінчив передачу - будуть помилки
+   * @param {Number} props.timeOutErrorsCounterMax=25 - максимальна кількість помилок таймауту, після чого порт закривається та відкривається знову
    */
+
   constructor(path, props, timeout = 300) {
     super(props);
     if (!path) {
@@ -47,6 +51,7 @@ class IfaceRS485 extends ClassGeneral {
       };
       throw new Error(err);
     }
+
     this.stateMessages = {
       disconnected: {
         ua: `${this.id}. Не приєднано`,
@@ -67,6 +72,7 @@ class IfaceRS485 extends ClassGeneral {
     this.timeoutBetweenCalls = props.timeoutBetweenCalls
       ? props.timeoutBetweenCalls
       : 300;
+
     // черга запитів
     this.queue = [];
 
@@ -115,6 +121,22 @@ class IfaceRS485 extends ClassGeneral {
         this.transactionFinish(this.task);
       }
     });
+    // --------------- обробка неочікуваних помилок порту -------
+    this.serial.on("error", (err) => {
+      log("e", "this.serial.on.error=", err);
+      this.closePort();
+    });
+
+    // --------------- обробка помилок порту ------------------
+    // рахуємо, що якщо в нас більше ніж props.errorsCounterMax помилок timeout
+    // підряд то ймовірне зависання порту: його потрібно перевідкрити
+    this.timeOutErrorsCounterMax = props.timeOutErrorsCounterMax
+      ? props.timeOutErrorsCounterMax
+      : gTest
+      ? 5
+      : 25;
+    this.timeOutErrorsCounter = 0; // лічильник помилок
+
     this.isOpened = false;
     // --------- запускаємо спроби відкрити порт  ----------
     this.openPort();
@@ -268,6 +290,7 @@ class IfaceRS485 extends ClassGeneral {
     trace ? log("i", ln, `Task created: msg=`, msg) : null;
     // ставимо запит в чергу
     this.queue.push(msg);
+    trace ? log("i", ln, `this.queue.length=`, this.queue.length) : null;
   } // send
 
   /**
@@ -360,8 +383,28 @@ class IfaceRS485 extends ClassGeneral {
     let err = checkBuffer(task);
     if (err) {
       trace ? log("e", ln, `err=`, err) : null;
-      //викликаємо наступну ітерацію
-      this.iterate();
+      // якщо таймаут - збільшуємо лічильник помилок
+      if (err.code == 13) {
+        this.timeOutErrorsCounter++;
+        trace
+          ? log(
+              "w",
+              ln,
+              `Timeout error! timeOutErrorsCounter=${this.timeOutErrorsCounter}`
+            )
+          : null;
+        if (this.timeOutErrorsCounter > this.timeOutErrorsCounterMax) {
+          // якщо помилок більше ніж максимальна кількість - закриваємо порт
+          log("e", ln, `We have ${this.timeOutErrorsCounter} timeout errors.`);
+          this.timeOutErrorsCounter = 0; // обнуляємо лічильник помилок
+          this.closePort(); // закриваємо порт
+        } else {
+          this.iterate(); // викликаємо наступну ітерацію
+        }
+      } else {
+        this.iterate(); // викликаємо наступну ітерацію
+      }
+
       // помилку ModBus виявлено
       task.cb(err, null);
       return;
@@ -376,11 +419,33 @@ class IfaceRS485 extends ClassGeneral {
           )}; duration=${duration} s`
         )
       : null;
+    // посилка успішна, отже інтерфейс працює
+    this.timeOutErrorsCounter = 0; // обнуляємо лічильник помилок
     // відсилаємо дані
     task.cb(null, task.data);
     //викликаємо наступну ітерацію
     this.iterate();
   }
+
+  closePort() {
+    let ln = this.ln + "closePort()::";
+
+    this.serial.close((err) => {
+      if (err) {
+        log("e", ln, `Error closing port: ${err.message}`);
+      } else {
+        log("i", ln, `Port closed!`);
+      }
+      this.isOpened = false;
+      this.comment = this.stateMessages.disconnected;
+      //викликаємо наступну ітерацію
+      setTimeout(() => {
+        log("i", ln + "Start iteration");
+        this.iterate(); // чекаємо 2с перед наступною ітерацією
+      }, 3000);
+    });
+  }
+
   getHtmlCompact(req) {
     let html = "";
     html = pug.renderFile(req.locals.homeDir + "/rs485/views/compact.pug", {

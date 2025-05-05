@@ -7,16 +7,19 @@ let iface = require("../../conf_iface.js").w2;
 let req = { id: 1, FC: 3, addr: 0x1, data: 0x1, timeout: 1500 };
 
 setInterval(() => {
+  // console.log("test::setInterval 1000ms");
   test();
 }, 3000);
 
 function test() {
+  ln = "test::";
   iface.send(req, (err, data) => {
     if (err) {
-      console.log(err);
+      console.log(ln + "Error: " + err.message);
+      // console.log(err);
     }
     if (data) {
-      console.log("Data addr 0x01:[" + parseBuf(data) + "]");
+      console.log(ln + "Data addr 0x01:[" + parseBuf(data) + "]");
     }
   }); //addTask
 } //test
