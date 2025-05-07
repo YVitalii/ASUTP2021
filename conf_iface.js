@@ -2,46 +2,73 @@ let comName = "";
 let platform = process.platform;
 let ifaces = {};
 const log = require("./tools/log.js");
-let trace = 0,
+let trace = 1,
   ln = __filename + "::";
 
-{
-  /// ----------- server ip-address ----------------
-  const networkInterfaces = require("os").networkInterfaces;
-  let ln = "Get my IP::";
-  let interfaces = networkInterfaces();
-  if (trace) {
-    log("i", ln, `interfaces=`);
-    console.dir(interfaces);
-  }
-  for (const key in interfaces) {
-    if (Object.hasOwnProperty.call(interfaces, key)) {
-      if (key != "Ethernet" && key != "eth0") {
-        trace ? log("i", ln, `Skip: key=`, key) : null;
-        continue;
-      }
-      const interface = interfaces[key];
-      for (let i = 0; i < interface.length; i++) {
-        const element = interface[i];
-        if (!element.internal) {
-          let ip = element.address;
-          trace ? log("i", ln, `family= ${element.family}; ip=${ip}`) : null;
-          if (element.family == "IPv4") {
-            log(
-              "w",
-              `------------------- Server ip= ` +
-                ip +
-                "---------------------------------"
-            );
-            ifaces.ipAddr = ip;
-            // break;
-          }
-        }
+// -------------- get my IP address ------------------
+const os = require("os");
+
+function getPublicIpAddress() {
+  const interfaces = os.networkInterfaces();
+
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Пропускаємо внутрішні та IPv6 адреси
+      if (iface.family === "IPv4" && !iface.internal) {
+        return iface.address;
       }
     }
   }
-  //module.exports.ipAddr = "192.168.1.147"; // IP адреса в локальній мережі
+
+  return "IP-адресу не знайдено";
 }
+
+ifaces.ipAddr = getPublicIpAddress();
+console.log(`Поточна публічна IP-адреса сервера: ${ifaces.ipAddr}`);
+
+// Для локального тестування виведемо також усі мережеві інтерфейси:
+// console.log("\nУсі мережеві інтерфейси:");
+// console.log(os.networkInterfaces());
+// log("i", "------------------------------------------");
+// trace = 0;
+// {
+//   /// ----------- server ip-address ----------------
+//   const networkInterfaces = require("os").networkInterfaces;
+//   let ln = "Get my IP::";
+//   let interfaces = networkInterfaces();
+//   if (trace) {
+//     log("i", ln, `interfaces=`);
+//     console.dir(interfaces);
+//   }
+//   for (const key in interfaces) {
+//     if (Object.hasOwnProperty.call(interfaces, key)) {
+//       if (key != "Ethernet" && key != "eth0") {
+//         trace ? log("i", ln, `Skip: key=`, key) : null;
+//         continue;
+//       }
+//       const interface = interfaces[key];
+//       for (let i = 0; i < interface.length; i++) {
+//         const element = interface[i];
+//         if (!element.internal) {
+//           let ip = element.address;
+//           trace ? log("i", ln, `family= ${element.family}; ip=${ip}`) : null;
+//           if (element.family == "IPv4") {
+//             log(
+//               "w",
+//               ln,
+//               `------------------- Server ip= ` +
+//                 ip +
+//                 "---------------------------------"
+//             );
+//             ifaces.ipAddr = ip;
+//             // break;
+//           }
+//         }
+//       }
+//     }
+//   }
+//   //module.exports.ipAddr = "192.168.1.147"; // IP адреса в локальній мережі
+// }
 
 let comId;
 // -------------  w2 two wire RS485 ------------------------
