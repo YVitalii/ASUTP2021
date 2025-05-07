@@ -4,7 +4,14 @@
 //-     margin: 18mm 5mm 5mm 5mm;
 //-     border: 1px solid;
 //-     }
-
+style.
+  @media print{
+    @page { 
+      size: A4 landscape; 
+      margin: 5mm 5mm 5mm 5mm;
+      //- border: 1px solid;
+      }
+  }
 
 diw.row.h-100#bodyRow
   div.col-2.h-100#fileManagerContainer
@@ -27,6 +34,7 @@ diw.row.h-100#bodyRow
       div.col-3
         div  
           span.h6 Назва програми: 
+          br
           span#tasksName
         div
           span.h6 Початок:  
@@ -41,9 +49,9 @@ diw.row.h-100#bodyRow
       div.col-12
         include ./loggerCompact.pug
     div.row.d-none#reportSignature
-      div.col-4.text-center !{'Підпис: ________ / ____________________ /'}
-      div.col-4.text-center !{'Підпис: ________ / ____________________ /'}
-      div.col-4.text-center !{'Дата: __________________ '}
+      div.col-4.text-center !{'Підпис терміста: ______________'}
+      div.col-4.text-center !{'Підпис майстра зміни: __________________'}
+      div.col-4.text-center !{'Підпис ВТК: __________________ '}
 
 
 

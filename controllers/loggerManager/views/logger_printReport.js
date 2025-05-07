@@ -4,8 +4,8 @@ window.addEventListener("beforeprint", async (event) => {
   header.style.display = "none";
   fileManager.container.style.display = "none";
   bodyRow.classList.remove("h-100");
-  bodyRow.style.height = "175mm";
-  bodyRow.style.width = "280mm";
+  bodyRow.style.height = "170mm";
+  bodyRow.style.width = "280"; //"280mm";
   chartColumn.classList.remove("col-10");
   chartColumn.classList.add("col-12");
   reportHeader.classList.remove("d-none");
