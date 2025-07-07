@@ -45,6 +45,10 @@ class ClassProcessManager {
     }
     this.devicesManager = props.devicesManager;
 
+    // ---------- afterAll() -----------
+    //  функція, що виконується після завершення програми
+    this.afterAll = props.afterAll ? props.afterAll : undefined;
+
     // поточна програма
     this.program = {};
     // программа
@@ -131,6 +135,7 @@ class ClassProcessManager {
 
     //копіюємо поточний список завдань
     this.listSteps = clone(this.tasksManager.list);
+    //
 
     // трасувальник отриманого списку завдань
     trace = 0;
@@ -164,19 +169,24 @@ class ClassProcessManager {
       tasks: program[0],
     });
 
-    // --- по завершенню програми потрібно зупинити всі прилади
+    // --- по завершенню програми потрібно або зупинити всі прилади,
+    // або виконати специфічні дії, що записані
+    // в entity.js→process.afterAll()
     this.program.afterAll = async () => {
       let trace = 1,
         ln = this.ln + "afterAll()::";
       trace ? log("i", ln, `Started`) : null;
-
-      try {
-        await this.devicesManager.stopAll();
-        trace ? log("i", ln, `All devices was stoped!`) : null;
-      } catch (error) {
-        log("e", ln + error.message);
+      // якщо є функція afterAll - викликаємо її
+      if (this.afterAll && typeof this.afterAll == "function") {
+        try {
+          await this.afterAll();
+          trace ? log("i", ln, `External afterAll() function executed`) : null;
+        } catch (error) {
+          log("e", ln + error.message);
+        }
       }
-      // зупиняємо запис лог-файлу через 10 хв по закінченню програми
+
+      // зупиняємо запис лог-файлу через 15 хв по закінченню програми
       // якщо стан будь-який а не finished, то продовжуємо запис
 
       if (this.program.state._id == "finished") {
@@ -184,7 +194,7 @@ class ClassProcessManager {
         trace ? log("i", ln, `Stop writing log file`) : null;
         setTimeout(() => {
           this.loggerManager.start();
-        }, 10 * 60 * 1000);
+        }, 15 * 60 * 1000);
       }
     }; //this.program.afterAll
     // this.setTaskPoints(program[0]);

@@ -2,7 +2,7 @@ let comName = "";
 let platform = process.platform;
 let ifaces = {};
 const log = require("./tools/log.js");
-let trace = 1,
+let trace = 0,
   ln = __filename + "::";
 
 // -------------- get my IP address ------------------

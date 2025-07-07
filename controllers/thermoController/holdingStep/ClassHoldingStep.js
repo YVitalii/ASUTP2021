@@ -72,7 +72,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     // інакше перша зона в якої закінчилась витримка вимкне нагрівання та почне охолоджуватись
     // щоб в прилади записалось потрібне значення, додаємо його до завдання
 
-    this.errY = 15;
+    this.errY = this.Y==0 ? 0 : 15; // при витримці Y=0, врахування помилки не потрібно
     this.Y += this.errY;
     // заголовок для логування
     this.ln += `tT=${this.tT}(${this.errTmin}/+${this.errTmax}); Y=${

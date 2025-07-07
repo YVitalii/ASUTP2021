@@ -9,17 +9,19 @@ let test = () => {
     console.dir(processManager);
   }
   processManager.setProgram();
+  trace = 1;
   if (trace) {
     log("i", ln, `processManager.listSteps=`);
     console.dir(processManager.listSteps);
   }
+  trace = 0;
   if (trace) {
     log("i", ln, `processManager.program=`);
     console.dir(processManager.program, { depth: 4 });
   }
   //processManager.startProgram(1);
 };
-//setTimeout(() => test(), 3000);
+setTimeout(() => test(), 3000);
 
 startStopLog = async () => {
   await processManager.start();

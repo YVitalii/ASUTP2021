@@ -122,11 +122,24 @@ logger.addReg({
 //     return await entity.devicesManager.getDevice("trp08n2").getT();
 //   },
 // });
+entity.processManager.afterAll = async function () {
+  // функція, що викликається після завершення всієї програми
+  let trace = 1,
+    ln = entity.ln + `afterAll()::`;
+  if (trace) {
+    console.log(ln + `entity.id=${entity.id}`);
+    console.dir(this, { depth: 1, colors: true });
+  }
+  this.devicesManager.getDevice("trp08n1").setParams({ tT: 0, H: 0, Y: 0 });
+  // ---- запускаємо менеджер процесів
+};
 
 module.exports = entity;
 
 // --------- для контролю створеного об'єкту ------------
+trace = 1;
 if (trace) {
-  console.log(gln + `entity.devicesManager=`);
-  console.dir(entity.devicesManager, { depth: 3 });
+  console.log(gln + `entity.processManager=`);
+  // console.dir(entity.processManager, { depth: 2, colors: true });
+  entity.processManager.afterAll();
 }
