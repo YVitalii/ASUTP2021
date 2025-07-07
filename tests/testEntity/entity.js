@@ -125,12 +125,15 @@ logger.addReg({
 entity.processManager.afterAll = async function () {
   // функція, що викликається після завершення всієї програми
   let trace = 1,
-    ln = entity.ln + `afterAll()::`;
+    ln = entity.ln + `processManager.afterAll()::`;
   if (trace) {
     console.log(ln + `entity.id=${entity.id}`);
-    console.dir(this, { depth: 1, colors: true });
+    //console.dir(this, { depth: 1, colors: true });
   }
-  this.devicesManager.getDevice("trp08n1").setParams({ tT: 0, H: 0, Y: 0 });
+  let dev = this.devicesManager.getDevice("trp08n1");
+  // для того щоб спрацювала лампа "Кінець циклу", потрібно запрограмувати прилад на 1хв. витримки
+
+  dev.start({ tT: 20, H: 0, Y: 1 });
   // ---- запускаємо менеджер процесів
 };
 

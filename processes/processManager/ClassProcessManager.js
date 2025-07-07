@@ -190,11 +190,18 @@ class ClassProcessManager {
       // якщо стан будь-який а не finished, то продовжуємо запис
 
       if (this.program.state._id == "finished") {
+        let time = 15; // 15 хв
         this.currLogFileName = undefined;
-        trace ? log("i", ln, `Stop writing log file`) : null;
+        trace
+          ? log(
+              "i",
+              ln,
+              `Scheduled stoping write log file after ${time} minutes`
+            )
+          : null;
         setTimeout(() => {
           this.loggerManager.start();
-        }, 15 * 60 * 1000);
+        }, time * 60 * 1000);
       }
     }; //this.program.afterAll
     // this.setTaskPoints(program[0]);

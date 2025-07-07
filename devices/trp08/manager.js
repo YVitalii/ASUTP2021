@@ -367,9 +367,9 @@ class Manager {
       props.regMode = 1; //pid
       // точність для ti, td = 0,01 в програмі, а в приладі ціле число
       props.ti = regs.ti ? parseInt(regs.ti * 100) : 0;
-      props.ti > max ? max : props.ti;
+      props.ti = props.ti > max ? max : props.ti;
       props.td = regs.td ? parseInt(regs.td * 100) : 0;
-      props.td > max ? max : props.td;
+      props.td = props.td > max ? max : props.td;
       // точність для о = 0,1 в програмі, а в приладі ціле число
       props.o = regs.o ? parseInt(regs.o * 10) : 0;
     } else {
