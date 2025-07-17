@@ -1,5 +1,8 @@
 @startuml ClassDevManagerGeneral
 
+!include ../../ClassGeneral.puml
+!include ./ClassDevManagerRegGeneral.puml
+
 class "ClassDevManagerGeneral" {
     ---- constructor(props:Object) ----
     +**iface**: (instance of ClassIface) - інтерфейс
@@ -23,8 +26,6 @@ class "ClassDevManagerGeneral" {
 
 }
 
-!include ./ClassDevManagerRegGeneral.puml
-!include ../../ClassGeneral.puml
 
 ClassDevManagerGeneral <|== ClassGeneral
 ClassDevManagerRegGeneral o--o ClassDevManagerGeneral
