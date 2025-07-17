@@ -100,7 +100,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
    * @return cb {callback} (err,data), де data = Array [{regName, value, note, detail:{request,response,afterGet}},...]
    */
   getReg(iface, addr, regName, cb) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `getReg(${iface.id},${addr},${regName})::`;
     trace ? log("i", ln, `Started`) : null;
     // if (trace) {

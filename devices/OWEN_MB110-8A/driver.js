@@ -47,7 +47,7 @@ const toNumber = function (data, env) {
   if (Buffer.isBuffer(data)) {
     trace ? log("i", ln, `Data is buffer!::` + typeof data) : null;
 
-    value = data.readUInt32LE(0);
+    value = data.readUInt16BE(0);
   } else {
     value = parseInt(data);
   }
