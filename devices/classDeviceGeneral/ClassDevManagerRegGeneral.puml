@@ -5,14 +5,14 @@ class "ClassDevManagerRegGeneral" {
 	---- constructor(props:Object) ----
   
     +**units** ={ ua: ``, en: ``, ru: `` } - одиниці вимірювання 
-    + **type** ="text" : {String} - перелік можливих типів регістрів (поки описані в цьому модулі ) 
+    + **type** ="text" : {String} - ["text", "number", "timer", "boolean"] перелік можливих типів регістрів (поки описані в цьому модулі ) 
     + **min** : {Number} - 
     + **max** : {Number} - 
     +**readonly** : {Boolean} - ознака "тільки для читання"
     +**obsolescence** : {Number} - сек, період застарівання даних
 
 	---- this ----
-    +**type**
+    +**type** 
     +**value**
     +**timestamp**
     +**units**

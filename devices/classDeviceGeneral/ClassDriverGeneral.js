@@ -141,18 +141,22 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
   } //getReg(iface, addr, regName, cb)
 
   /** Промісифікована функція getReg() - див. її опис
-   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції {iface,devAddr,regName}
-   * @returns {Ppomise} {regName,value,note,detail:{duration,request,response,afterSet}}
+   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції props={iface,devAddr,regName}
+   * @returns {Ppomise} [{regName,value,note,detail:{duration,request,response,afterSet}},...] array of objects
    */
   getRegPromise(props = undefined) {
     let environ = this;
+    // console.log("-------------getRegPromise -----------this=");
+    // console.dir(this);
+    // console.log("props=");
+    // console.dir(props);
     return new Promise(function (resolve, reject) {
-      let trace = 0,
+      let trace = 1,
         ln = environ.ln + `getRegPromise`;
-      if (trace) {
-        log("i", ln, `::environ=`);
-        console.dir(environ);
-      }
+      // if (trace) {
+      //   log("i", ln, `::environ=`);
+      //   console.dir(environ);
+      // }
       if (!props) {
         reject(new Error(ln + "props must be defined!"));
       }

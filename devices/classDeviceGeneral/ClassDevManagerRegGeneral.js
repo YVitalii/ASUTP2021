@@ -7,11 +7,11 @@ module.exports = class ClassDevManagerRegGeneral extends ClassGeneral {
    * @constructor
    * @param {Object} props
    * @param {String} props.units - одиниці виміру
-   * @param {String} props.type="text" - тип значення регістру (для побудови HTML)
+   * @param {String} props.type="text" - тип значення регістру (для побудови HTML) Можливі значення: ["text", "number", "timer", "boolean"]
    * @param {Number} props.obsolescence=30, сек, період за який дані застаріють
    * @param {Number} props.min - тільки для type= "number" | "timer"
    * @param {Number} props.max - тільки для type= "number" | "timer"
-   * @param {} props.driverRegName - назва регістру в драйвері (наприклад в драйвері:"DI1", а в менеджері "doorOpened")
+   * @param {String} props.driverRegName - назва регістру в драйвері (наприклад в драйвері:"DI1", а в менеджері "doorOpened")
    */
   constructor(props) {
     super(props);

@@ -1,0 +1,47 @@
+//  supervisor   --no-restart-on exit ./tests/test_ManagerClass.js
+
+const ManagerClass = require("../ManagerClass.js");
+
+const iface = require("../../../conf_iface.js").w2; //interfaces
+const log = require("../../../tools/log.js"); // логер
+const dummy = require("../../../tools/dummy.js").dummyPromise;
+let ln = __filename;
+
+let props = {
+  iface,
+  addr: 36,
+  id: "MB110-8A",
+  comment: {
+    ua: `Вимірювач 8 канальний`,
+    en: `8-channel meter`,
+    ru: `Измеритель 8-канальный`,
+  },
+};
+
+let dev = new ManagerClass(props);
+// let templReg = {
+//   id: "T1",
+//   comment: {
+//     ua: `Температура вхід 1`,
+//     en: `Temperature of input 1`,
+//     ru: `Температура вход 1`,
+//   },
+//   units: units.degC,
+//   type: "number",
+//   min: -20,
+//   max: 1200,
+//   readonly: true,
+//   obsolescense: 10,
+//   driverRegName: "I1",
+// };
+// dev.addRegister(templReg);
+
+console.dir(dev);
+
+(async () => {
+  while (true) {
+    let res = await dev.getRegister("T1");
+    console.dir(res);
+    await dummy(2000);
+  }
+})();

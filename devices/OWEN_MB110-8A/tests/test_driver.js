@@ -12,11 +12,23 @@ const props = { iface, devAddr: 16, regName: "" };
 
 (async () => {
   do {
+    let trace = 0,
+      ln = `async()::`;
     let res = "";
-    for (let i = 1; i < 3; i++) {
-      props.regName = `T${i}`;
-      let t = await driver.getRegPromise(props);
-      res += `${props.regName}=${t.toFixed(1)}; `;
+    for (let i = 1; i < 5; i++) {
+      props.regName = `I${i}`;
+      try {
+        let response = await driver.getRegPromise(props);
+
+        if (trace) {
+          log("i", ln, `response=`);
+          console.dir(response);
+        }
+        let t = response[0].value;
+        res += `${props.regName}=${t.toFixed(1)}; `;
+      } catch (error) {
+        res += `${props.regName}=[${error.ua}]; `;
+      }
     }
     log("", res);
     await dummy(2000);

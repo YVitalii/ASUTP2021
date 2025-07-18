@@ -39,10 +39,10 @@ let readOnly = function (env) {
  * @throws {Error} - Throws an error if the data cannot be converted to a valid number.
  */
 const toNumber = function (data, env) {
-  let trace = 1,
+  let trace = 0,
     ln = env.ln + `toNumber():id=${env.id}::`;
   trace ? log("i", ln, `data=${data}`) : null;
-  console.dir(data);
+  // console.dir(data);
   let value;
   if (Buffer.isBuffer(data)) {
     trace ? log("i", ln, `Data is buffer!::` + typeof data) : null;
@@ -60,8 +60,12 @@ const toNumber = function (data, env) {
 
 // ---------- driver creation ------------
 let driver = new ClassDriverGeneral({
-  id: "MB110-8A",
-  header: { ua: `MB110-8A`, en: `MB110-8A`, ru: `MB110-8A` },
+  id: "MB110-8A_driver",
+  header: {
+    ua: `MB110-8A_driver`,
+    en: `MB110-8A_driver`,
+    ru: `MB110-8A_driver`,
+  },
   comment: {
     ua: `Модуль аналового вводу`,
     en: `Analog Input Module`,
@@ -70,10 +74,97 @@ let driver = new ClassDriverGeneral({
   timeout: 2000,
 });
 
+function getNote(code) {
+  let res;
+  switch (code) {
+    case 0:
+      res = {
+        ua: `Значення помилкове`,
+        en: `Value is false`,
+        ru: `Значение ошибочное`,
+      };
+      break;
+    case 6:
+      res = {
+        ua: `Дані не готові`,
+        en: `Data isn't ready`,
+        ru: `Данные не готовы`,
+      };
+      break;
+    case 7:
+      res = {
+        ua: `Датчик відключений`,
+        en: `Sensor unconnected`,
+        ru: `Датчик не подключен`,
+      };
+      break;
+    case 8:
+      res = {
+        ua: `Велика температура вільних кінців термопари`,
+        en: `High temperature of the free ends of the thermocouple`,
+        ru: `Высокая температура свободных концов термопары`,
+      };
+      break;
+    case 9:
+      res = {
+        ua: `Мала температура вільних кінців термопари`,
+        en: `Low temperature of the free ends of the thermocouple`,
+        ru: `Низкая температура свободных концов термопары`,
+      };
+      break;
+    case 10:
+      res = {
+        ua: `Виміряне значення занадто велике`,
+        en: `The measured value is too high.`,
+        ru: `Измеренное значение слишком велико`,
+      };
+      break;
+    case 11:
+      res = {
+        ua: `Виміряне значення занадто мале`,
+        en: `The measured value is too low.`,
+        ru: `Измеренное значение слишком маленькое`,
+      };
+      break;
+    case 12:
+      res = {
+        ua: `Коротке замикання датчика`,
+        en: `Sensor short circuit`,
+        ru: `Короткое замыкание датчика`,
+      };
+      break;
+    case 13:
+      res = { ua: `Обрив датчика`, en: `Sensor break`, ru: `Обрыв датчика` };
+      break;
+    case 14:
+      res = {
+        ua: `Відсутність зв'язку з АЦП `,
+        en: `No communication with ADC`,
+        ru: `Обрыв связи с АЦП`,
+      };
+      break;
+    case 16:
+      res = {
+        ua: `Некоректний калібрувальний коефіцієнт `,
+        en: `Incorrect calibration factor`,
+        ru: `Не корректный калибровочный коефициент`,
+      };
+      break;
+    default:
+      res = {
+        ua: `Невизначена помилка`,
+        en: `Undefined error`,
+        ru: `Неизвестная ошибка`,
+      };
+      break;
+  }
+  return res;
+}
+
 // регістри зі значеннями аналогових входів
 for (let i = 1; i < 9; i++) {
   driver.addRegister({
-    id: `T${i}`,
+    id: `I${i}`,
     addr: 0x0001 + 6 * (i - 1),
     header: { ua: `Вхід${i}`, en: `Input${i}`, ru: `Вход${i}` },
     note: `Value${i}`,
@@ -82,8 +173,25 @@ for (let i = 1; i < 9; i++) {
       return _getFC3(this);
     },
     get_: function (arg) {
+      let trace = 0,
+        ln = `get_::`;
+      if (trace) {
+        log("i", ln, `arg=`);
+        console.dir(arg);
+      }
+      let note, err;
+      // якщо 3 байт не 0,
+      if (arg[2] > 0) {
+        //то помилка
+        err = getNote(arg[3]);
+        // console.log(err);
+      } else {
+        // все Ок
+        err = null;
+        note = this.note + ":Ok";
+      }
       let data = toNumber(arg, this) / 10;
-      return { value: data, note: this.note };
+      return { err, data: { value: data, note } };
     },
     _set: function (arg) {
       readOnly(this);

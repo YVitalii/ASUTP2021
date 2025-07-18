@@ -1,26 +1,55 @@
 @startuml
+skinparam classAttributeIconSize 0
 
-class ClassDevManagerGeneral {
-    - iface
-    - addr
-    - driver
-    - regs
-    - period
-    - errorCounter
-    - offLine
-    - ln
+!include ../../ClassGeneral.puml
+!include ./ClassDevManagerRegGeneral.puml
 
-    + constructor(props)
+class ClassDevManagerGeneral extends ClassGeneral {
+  ' --- Приватні властивості ---
+  -iface: Object
+  -addr: Integer
+  -driver: Object
+  -regs: Object - Об'єкт, що містить екземпляри ClassDeviceRegGeneral
+  -period: Object
+  -errorCounter: Object
+  -offLine: boolean
+  -busy: boolean
+
+
+' --- Конструктор ---
+  +ClassDevManagerGeneral(props: Object) <<constructor>>
+  ' --- Асинхронні методи ---
+  +start(regs: Object): Promise<void>
+  +stop(regs: Object): Promise<void>
+  +testPortOpened(): Promise<Integer>
+  +iteration(funcItem: Function, params: Object): Promise<any>
+  +setRegister(regName: String, value: Number): Promise<String>
+  +getRegister(regName: String): Promise<any>
+
+  ' --- Звичайні методи ---
+  +addRegister(reg: Object | Array): void
+  +parseRegsList(regsList: Array | String): Array
+  +getRegsValues(regsList: Array | String): Object
+  +getRegForHtml(regName: String): Object
+  +getCompactHtml(req: Object): String
+  +getFullHtml(req: Object): String
 }
 
-ClassDevManagerGeneral : +constructor(props)
-ClassDevManagerGeneral : -iface
-ClassDevManagerGeneral : -addr
-ClassDevManagerGeneral : -driver
-ClassDevManagerGeneral : -regs
-ClassDevManagerGeneral : -period
-ClassDevManagerGeneral : -errorCounter
-ClassDevManagerGeneral : -offLine
-ClassDevManagerGeneral : -ln
+note right of ClassDevManagerGeneral::ClassDevManagerGeneral
+  **Параметри конструктора props:**
+  * **iface**: Object - об'єкт інтерфейсу з функцією send()
+  * **addr**: Integer - адреса приладу в iface
+  * **driver**: Object - драйвер приладу з функцією getRegPromise()
+  * **period**: Object
+    * **if**: Object
+      * **portNotOpened**: Integer - затримка, якщо порт не відкрито (сек)
+      * **timeOut**: Integer - затримка, якщо прилад не відповідає (сек)
+      * **error**: Integer - затримка при помилці (сек)
+      * **deviceBusy**: Integer - затримка, якщо прилад зайнятий (сек)
+end note
+
+
+
+ClassDevManagerGeneral "1" -- "*" ClassDevManagerRegGeneral : "створює"
 
 @enduml

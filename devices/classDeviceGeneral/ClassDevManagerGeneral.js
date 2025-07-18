@@ -2,7 +2,7 @@
 
 const log = require("../../tools/log.js");
 const { dummyPromise } = require("../../tools/dummy.js");
-const test = require("../../config.js").test;
+let test = require("../../config.js").test;
 const ClassDeviceRegGeneral = require("./ClassDevManagerRegGeneral.js");
 const ClassGeneral = require("../../ClassGeneral.js");
 const pug = require("pug");
@@ -13,7 +13,12 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @param {Object} props - додаткові налаштування конкретного приладу
    * @param {Object} props.iface - об'єкт інтерфейсу до якого підключено цей прилад, повинен мати функцію send()
    * @param {Integer} props.addr - адреса приладу в iface
-   * @param {Integer} props.driver - драйвер приладу
+   * @param {Object} props.driver - драйвер приладу
+   * @param {Object} props.period.if - визначає затримки між запитами для різних ситуацій
+   * @param {Integer} props.period.if.portNotOpened=5 - якщо порт не відкрито
+   * @param {Integer} props.period.if.timeOut=5 - якщо прилад не відповідає
+   * @param {Integer} props.period.if.error=10 - помилка
+   * @param {Integer} props.period.if.deviceBusy=2 - прилад зайнятий
    */
 
   constructor(props) {
@@ -55,16 +60,23 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     this.driver = props.driver;
 
     // опис регістрів приладу кожний регістр - сутність типу ClassDevManagerRegGeneral
-    this.regs = props.regs ? props.regs : {};
+    this.regs = {};
 
     // ----------- періоди затримки -------------
     this.period = {};
+    // якщо режим тестування, зменшуємо тайминги в 2 рази = 1/2=0,5
+    let k = test ? 0.5 : 1;
+    let p = {};
+    if (props.period && props.period.if) {
+      p = props.period.if;
+    }
+
     this.period.if = {
       //seconds
-      portNotOpened: test ? 1 : 5,
-      timeOut: test ? 2 : 5,
-      error: test ? 1 : 10,
-      deviceBusy: test ? 1 : 2,
+      portNotOpened: k * (p.portNotOpened ? p.portNotOpened : 5),
+      timeOut: p.timeOut ? p.timeOut : 2,
+      error: k * (p.error ? p.error : 10),
+      deviceBusy: k * (p.deviceBusy ? p.deviceBusy : 2),
     };
     // поточне значення
     this.period.value = this.period.if.portNotOpened;
@@ -117,10 +129,13 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       }
       return;
     }
-
     let trace = 0,
       ln = this.ln + `addRegister(${reg.id})::`;
     trace ? log("i", ln, `Started`) : null;
+    if (trace) {
+      log("i", ln, `reg=`);
+      console.dir(reg);
+    }
 
     if (this.regs[reg.id] != undefined) {
       throw new Error(
@@ -129,9 +144,11 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     }
 
     if (!this.driver.has(reg.id)) {
-      throw new Error(
-        ln + `reg.id="${reg.id}" not defined in the device driver`
-      );
+      if (!this.driver.has(reg.driverRegName)) {
+        throw new Error(
+          ln + `reg.id="${reg.id}" not defined in the device driver`
+        );
+      }
     }
 
     let newReg = new ClassDeviceRegGeneral(reg);
@@ -143,9 +160,9 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
   }
 
   /**
-   * Перетворює список регістрів в масив
-   * @param {Array | String } regsList - масив з id регістрів або рядок з сепаратором ";"
-   * @returns {Array}
+   * Перетворює список регістрів в масив та перевіряє наявність таких регістрів в менеджері
+   * @param {Array | String } regsList - масив з id регістрів або рядок з сепаратором ";" Наприклад: ["T1","T2","WrongRegName"] or "T1;T2;WrongRegName"
+   * @returns {Array} ["T1","T2"]
    */
   parseRegsList(regsList) {
     let trace = 0,
@@ -226,6 +243,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
                 ":: Was requested the current value from device."
               )
             : null;
+          // ставимо в чергу запит на зчитування поточного значення регістра
           this.getRegister(key);
         }
       }
@@ -279,13 +297,13 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    */
 
   async iteration(funcItem, params) {
-    let trace = 0,
+    let trace = 1,
       ln =
         this.ln +
         `iteration(${funcItem.name},${params.regName}${
           params.value || params.value === 0 ? "=" + params.value : ""
         })::`;
-    trace ? log("i", ln, `Started`) : null;
+    trace ? log("i", ln, `Started. Wait port opening`) : null;
     // очікуємо відкриття порту, якщо він ще не відкритий
     await this.testPortOpened();
     // очікуємо, якщо наразі виконується поточний запит
@@ -301,6 +319,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       i++;
       await dummyPromise(period * 1000);
     }
+    trace ? log("i", ln, `Device not busy. Start transaction.`) : null;
 
     // встановлюємо ознаку транзакції
     this.busy = true;
@@ -321,7 +340,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         // все пройшло успішно
         ok = true;
       } catch (error) {
-        let trace = 0;
+        let trace = 1;
         // трапилась помилка
         if (trace) {
           log("i", ln, `error=`);
@@ -380,7 +399,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     res = await this.iteration(this.driver.setRegPromise, {
       iface: this.iface,
       id: this.addr,
-      regName: regName,
+      regName: reg.driverRegName,
       value: value,
     });
     // оновлюємо дані в state
@@ -394,7 +413,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @param {Number} value - значення регістру
    */
   async getRegister(regName) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `getRegister("${regName}")::`;
     trace ? log("i", ln, `Started`) : null;
     let reg = this.regs[regName];
@@ -414,12 +433,15 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         : null;
       return reg.value;
     }
-    // поточне значення застаріло - даємо запит на запис
-    let res = await this.iteration(this.driver.getRegPromise, {
-      iface: this.iface,
-      id: this.addr,
-      regName: regName,
-    });
+    // поточне значення застаріло - даємо запит на читання
+    let res = await this.iteration(
+      this.driver.getRegPromise.bind(this.driver),
+      {
+        iface: this.iface,
+        devAddr: this.addr,
+        regName: reg.driverRegName,
+      }
+    );
     // оновлюємо дані в state
     trace ? log("i", ln, `res=`, res) : null;
     reg.value = res[0].value;
@@ -441,6 +463,6 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @returns
    */
   getFullHtml(req) {
-    return this.getCompactHtml(req);
+    return pug.render(`p ${this.ln}getFullHtml(): Not defined yet`);
   }
 }; // class
