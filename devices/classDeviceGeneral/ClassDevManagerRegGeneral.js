@@ -1,6 +1,8 @@
 const clone = require("clone");
 const ClassGeneral = require("../../ClassGeneral");
+const { Dir } = require("fs");
 const types = new Set(["text", "number", "timer", "boolean"]);
+const log = require("../../tools/log");
 
 module.exports = class ClassDevManagerRegGeneral extends ClassGeneral {
   /**
@@ -14,8 +16,14 @@ module.exports = class ClassDevManagerRegGeneral extends ClassGeneral {
    * @param {String} props.driverRegName - назва регістру в драйвері (наприклад в драйвері:"DI1", а в менеджері "doorOpened")
    */
   constructor(props) {
+    let trace = 0,
+      ln = `ClassSevManagerRegGeneral::constructor()::`;
+    if (trace) {
+      log("i", ln, `Started with props=`);
+      console.dir(props);
+    }
     super(props);
-
+    ln = this.ln + `ClassSevManagerRegGeneral::constructor()::`;
     // одиниці виміру
     this.units =
       props.units && props.units.en ? props.units : { ua: ``, en: ``, ru: `` };
@@ -35,7 +43,7 @@ module.exports = class ClassDevManagerRegGeneral extends ClassGeneral {
     // назва регістру в драйвері
 
     this.driverRegName = props.driverRegName ? props.driverRegName : this.id;
-
+    trace ? log("i", ln, `props.obsolescence=`, props.obsolescence) : null;
     // період за який дані застаріють
     let p = parseInt(props.obsolescence);
     this.obsolescence = isNaN(p) ? 30 : p;
@@ -48,6 +56,10 @@ module.exports = class ClassDevManagerRegGeneral extends ClassGeneral {
 
     // дата останнього оновлення - 10 хв тому
     this.timestamp = new Date().getTime() - 10 * 60 * 1000;
+    if (trace) {
+      log("i", ln, `this=`);
+      console.dir(this);
+    }
   } // constructor
 
   get value() {

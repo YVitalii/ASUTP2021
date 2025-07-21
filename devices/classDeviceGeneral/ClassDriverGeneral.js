@@ -100,7 +100,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
    * @return cb {callback} (err,data), де data = Array [{regName, value, note, detail:{request,response,afterGet}},...]
    */
   getReg(iface, addr, regName, cb) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `getReg(${iface.id},${addr},${regName})::`;
     trace ? log("i", ln, `Started`) : null;
     // if (trace) {
@@ -151,7 +151,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     // console.log("props=");
     // console.dir(props);
     return new Promise(function (resolve, reject) {
-      let trace = 1,
+      let trace = 0,
         ln = environ.ln + `getRegPromise`;
       // if (trace) {
       //   log("i", ln, `::environ=`);

@@ -179,18 +179,20 @@ for (let i = 1; i < 9; i++) {
         log("i", ln, `arg=`);
         console.dir(arg);
       }
-      let note, err;
+      let note,
+        data,
+        err = null;
       // якщо 3 байт не 0,
       if (arg[2] > 0) {
         //то помилка
-        err = getNote(arg[3]);
+        note = this.note + ":" + getNote(arg[3]);
+        data = null;
         // console.log(err);
       } else {
         // все Ок
-        err = null;
+        data = toNumber(arg, this) / 10;
         note = this.note + ":Ok";
       }
-      let data = toNumber(arg, this) / 10;
       return { err, data: { value: data, note } };
     },
     _set: function (arg) {

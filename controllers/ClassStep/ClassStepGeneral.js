@@ -1,7 +1,7 @@
 const log = require("../../tools/log.js");
 const dummy = require("../../tools/dummy.js").dummyPromise;
 
-/** Загальний клас кроку програми, соновна логіка та влаштування */
+/** Загальний клас кроку програми, оcновна логіка та влаштування */
 class ClassStep {
   /**
    *

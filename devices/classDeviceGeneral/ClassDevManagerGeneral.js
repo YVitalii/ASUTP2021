@@ -297,7 +297,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    */
 
   async iteration(funcItem, params) {
-    let trace = 1,
+    let trace = 0,
       ln =
         this.ln +
         `iteration(${funcItem.name},${params.regName}${
@@ -396,7 +396,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     }
     let res;
     // даємо запит на запис
-    res = await this.iteration(this.driver.setRegPromise, {
+    res = await this.iteration(this.driver.setRegPromise.bind(this.driver), {
       iface: this.iface,
       id: this.addr,
       regName: reg.driverRegName,
@@ -413,7 +413,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @param {Number} value - значення регістру
    */
   async getRegister(regName) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `getRegister("${regName}")::`;
     trace ? log("i", ln, `Started`) : null;
     let reg = this.regs[regName];

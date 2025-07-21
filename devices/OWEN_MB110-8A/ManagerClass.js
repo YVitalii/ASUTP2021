@@ -8,6 +8,7 @@ driver.printRegsDescription();
 class ClassManager extends ClassDevManagerGeneral {
   constructor(props = {}) {
     props.driver = driver;
+    props.ln = `MB1110-8A-Manager[${props.addr}]::`;
     super(props);
     for (let i = 1; i < 9; i++) {
       this.addRegister({
@@ -22,7 +23,7 @@ class ClassManager extends ClassDevManagerGeneral {
         min: -20,
         max: 1200,
         readonly: true,
-        obsolescense: 10,
+        obsolescence: 10,
         driverRegName: `I${i}`,
       }); // addRegister
     }

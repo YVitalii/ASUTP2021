@@ -9,7 +9,7 @@ let ln = __filename;
 
 let props = {
   iface,
-  addr: 36,
+  addr: 16,
   id: "MB110-8A",
   comment: {
     ua: `Вимірювач 8 канальний`,
@@ -36,12 +36,29 @@ let dev = new ManagerClass(props);
 // };
 // dev.addRegister(templReg);
 
-console.dir(dev);
+//console.dir(dev);
 
 (async () => {
+  let line = "";
   while (true) {
-    let res = await dev.getRegister("T1");
-    console.dir(res);
+    line = new Date().toTimeString().substring(0, 8) + "-> ";
+    // let res2 = await dev.driver.getRegPromise({
+    //   iface: dev.iface,
+    //   devAddr: 16,
+    //   regName: `I${i}`,
+    // });
+    // console.log("====== res2=");
+    // console.dir(res2);
+
+    for (let i = 1; i < 6; i++) {
+      let regName = `T${i}`;
+      let res = await dev.getRegister(regName);
+      //console.dir(res);
+      line += regName + "=" + res + "°C; ";
+    }
+
+    console.log(line);
+
     await dummy(2000);
   }
 })();
