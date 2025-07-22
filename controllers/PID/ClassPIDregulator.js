@@ -25,13 +25,15 @@ class PID extends ClassGeneral {
    * @param {number} [params.outputRange.max=100] - The maximum output value.
    * @param {number} [params.kp=0] - The proportional gain.
    * @param {number} [params.ki=0] - The integral gain.
+   * @param {number} params.kiError=0 - величина помилки PV, при якій інтегральна складова не рахується
    * @param {number} [params.kd=0] - The derivative gain.
    * @param {number} [params.setPoint=0] - The desired set point.
-   * @param {number} [params.error=0] - The current error.
-   * @param {number} [params.errorPrev=0] - The previous error.
-   * @param {number} [params.errorSum=0] - The sum of errors for integral calculation.
-   * @param {number} [params.output=0] - The output value.
+   * @param {number} [params.period=1000] - ms, period between calculation
+   * @param {async Function} params.getPV - функція для отримання поточного Process Value
+   * @param {async Function} params.setOutput - функція для встановлення поточної потужності
+   *
    */
+
   constructor(params = {}) {
     super(params);
     this.manual = false; //
@@ -69,10 +71,10 @@ class PID extends ClassGeneral {
     this._ki = params.ki ? params.ki : 0;
     this._kd = params.kd ? params.kd : 0;
     this._setPoint = 0;
-    this._error = 0 ? params.error : 0;
-    this._errorPrev = 0 ? params.errorPrev : 0;
-    this._errorSum = 0 ? params.errorSum : 0;
-    this._output = 0 ? params.output : 0;
+    this._error = 0;
+    this._errorPrev = 0;
+    this._errorSum = 0;
+    this._output = 0;
     // величина помилки, при якій інтегральна складова не враховується
     this.kiError = this.normalizeInput.get(params.kiError ? params.kiError : 0);
   }
