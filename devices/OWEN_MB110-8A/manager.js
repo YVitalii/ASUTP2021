@@ -3,7 +3,7 @@ const driver = require("./driver.js");
 const log = require("../../tools/log.js");
 const pug = require("pug");
 const { dummyPromise } = require("../../tools/dummy.js");
-const units = require("../../config").units;
+const units = require("../../config.js").units;
 driver.printRegsDescription();
 class ClassManager extends ClassDevManagerGeneral {
   constructor(props = {}) {
@@ -27,7 +27,8 @@ class ClassManager extends ClassDevManagerGeneral {
         driverRegName: `I${i}`,
       }); // addRegister
     }
-  }
+    log("w", this.ln, ` ==> Device was created`);
+  } // constructor
 }
 
 module.exports = ClassManager;

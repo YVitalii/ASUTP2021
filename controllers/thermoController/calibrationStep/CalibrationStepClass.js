@@ -1,4 +1,4 @@
-const ClassStepGeneral = require("../ClassStep/ClassStepGeneral");
+const ClassStepGeneral = require("../../ClassStep/ClassStepGeneral");
 
 class StabilisationStepClass extends ClassStepGeneral {
   constructor(props = {}) {

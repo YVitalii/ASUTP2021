@@ -67,13 +67,19 @@ class ClassTaskHeating {
 
 class ClassTaskHolding {
     +regs.Y : ClassReg_timer; //витримка 
+    ---
+    this.errY = this.Y==0 ? 0 : 15;
 } 
 
 
+class ClassQuickHeating {
+    +regs.Y : ClassReg_timer; //витримка 
+} 
 
 ClassTaskGeneral <|--  ClassTaskThermal
 ClassTaskThermal  <|--  ClassTaskHeating
-ClassTaskHeating  <|-- ClassTaskHolding
+ClassTaskThermal  <|-- ClassTaskHolding
+ClassTaskThermal  <|-- ClassQuickHeating
 
 ' -------------  Nitriding Process --------------------------------
 class ClassTaskNitriding {

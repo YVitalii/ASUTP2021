@@ -1,0 +1,43 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+class ClassTaskThermal {
+    - devices: Array
+    - firstWave: Object
+    + constructor(props: Object)
+    + addDevice(device: Object)
+    + getRegForHtml(): Object
+    + getStep(regs: Object): ClassStepsSerial
+
+    ---
+
+    + regs.**tT** (ClassReg_number) -  Цільова температура
+    + regs.**wT** {Object} - Закінчення швидкого нагрівання (0=вимкн)
+    + regs.**errTmin** {ClassReg_number} - Макс. відх. вниз (0=вимкн)
+    + regs.**errTmax** {ClassReg_number} - Макс. відх. вверх (0=вимкн)
+    + regs.**H** {ClassReg_timer} - Час нагрівання (0= макс.швидко)
+    + regs.**errH** {ClassReg_timer} : Помилка часу нагрівання (0=вимкн)
+    + regs.**Y** {ClassReg_timer} : Час витримки (0=вимкн)
+}
+
+' ClassTaskGeneral <|-- ClassTaskThermal
+
+' ClassTaskThermal *-- ClassReg_number : regs.tT 
+' ClassTaskThermal *-- ClassReg_number : regs.wT
+' ClassTaskThermal *-- ClassReg_number : regs.errTmin
+' ClassTaskThermal *-- ClassReg_number : regs.errTmax
+' ClassTaskThermal *-- ClassReg_timer : regs.H
+' ClassTaskThermal *-- ClassReg_timer : regs.errH
+' ClassTaskThermal *-- ClassReg_timer : regs.Y
+' ClassTaskThermal *-- ClassReg_select : regs.regMode
+
+' ClassReg_select *-- ClassReg_regsList : pos
+' ClassReg_select *-- ClassControllerPID : pid
+
+' ClassTaskThermal ..> ClassQuickHeatingStep : uses
+' ClassTaskThermal ..> ClassHeatingStep : uses
+' ClassTaskThermal ..> ClassHoldingStep : uses
+' ClassTaskThermal ..> ClassStepsSerial : creates
+' ClassTaskThermal ..> ClassStepsParallel : creates
+
+@enduml

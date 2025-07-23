@@ -7,6 +7,7 @@ class ClassStep {
    *
    * @param {*} props
    * @property {String} props.id= - ідентифікатор кроку
+   * @property {Number} props.checkTime=2000 - час перевірки стану кроку, мс
    * @property {Object} props.header={ua,en,ru} - тут зберігається заголовок кроку
    * @property {Object} props.comment={} - тут зберігається опис кроку
    * @property {async function} props.beforeStart={} - функція, що викликається перед початком кроку
@@ -14,7 +15,7 @@ class ClassStep {
    */
   constructor(props = {}) {
     let trace = 0;
-
+    this.checkTime = props.checkTime ? props.checkTime : 2000; // час перевірки стану кроку, мс
     //тут зберігаються основні налаштування
     //this.regs = {};
     this.id = props.id
@@ -136,7 +137,7 @@ class ClassStep {
       let test = this.testState();
       while (!test) {
         //log("test=", test);
-        await dummy(2000);
+        await dummy(this.checkTime);
         test = this.testState();
       }
       try {

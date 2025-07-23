@@ -28,7 +28,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
    * @property {Number} props.firstWave - параметри пошуку першої хвилі перерегулювання
    * @property {Number} props.firstWave.period=30 - сек, період між запитами поточної температури
    * @property {Number} props.firstWave.points=10 - кільк. точок для визначення середньої похідної
-   * @property {Number} props.firstWave.dT=0.1 - якщл середня похідна менше ніж dT, рахується що стабілізація наступила
+   * @property {Number} props.firstWave.dT=0.1 - якщо середня похідна менше ніж dT, рахується що стабілізація наступила
    */
 
   constructor(props = {}) {
@@ -155,7 +155,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
       max: 24 * 60 - 1, // input time має максимум 23:59, за потреби довше - дублювати кроки
     }); //this.regs.H
 
-    // час нагрівання, хв
+    // помилка часу нагрівання, хв
     this.regs.errH = new ClassReg_timer({
       id: "errH",
       value: props.errH ? props.errH : 0,
@@ -170,7 +170,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
         ru: `0 = выкл.`,
       },
       min: 0,
-      max: 90, // 90 хв думаю буде достатньои
+      max: 90, // 90 хв думаю буде достатньо
     }); //this.regs.H
 
     // час утримання, хв
