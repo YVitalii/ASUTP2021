@@ -340,28 +340,28 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         // все пройшло успішно
         ok = true;
       } catch (error) {
-        let trace = 1;
+        let trace = 0;
         // трапилась помилка
         if (trace) {
-          log("i", ln, `error=`);
+          log("w", ln, `error=`);
           console.dir(error);
         }
         //log("e", ln, "err=", error.messages.en);
         let period = this.period.if.timeOut * (this.offLine ? 2 : 1);
         // лічимо помилки
         if (!this.offLine) this.errorCounter.value += 1;
-        if (this.errorCounter.value > this.errorCounter.max) {
+        if (this.errorCounter.value >= this.errorCounter.max) {
           // з приладом немає зв'язку
           this.errorCounter.value = this.errorCounter.max;
           this.offLine = true;
-          log("w", ln + "Device offline!");
+          log("e", ln + "Device offline!");
         }
 
         trace
           ? log(
               "",
               ln +
-                `errCounter=${this.errorCounter.value}.Try again.. ${i} after ${period}s`
+                `errCounter=${this.errorCounter.value}. offLine=${this.offLine}. Try again.. ${i} after ${period}s`
             )
           : null;
         i++;
@@ -410,7 +410,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
 
   /** Функція повертає значення 1 регістра якщо ще не застарів - то поточне значення з regs, інакше з приладу
    * @param {String} regName - назва регістру, така як визначена в this.driver
-   * @param {Number} value - значення регістру
+   * @param {Number} value - значення регістру або null, якщо актуальних даних немає
    */
   async getRegister(regName) {
     let trace = 0,
@@ -424,6 +424,12 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     if (trace) {
       log("i", ln, `reg=`);
       console.dir(reg);
+    }
+    // якщо прилад відсутній в мережі
+    if (this.offLine) {
+      // якщо прилад відсутній в мережі
+      trace ? log("i", ln, `Device is offline!`) : null;
+      return null;
     }
     // перевіряємо чи актуальні дані
     if (reg.isActual()) {

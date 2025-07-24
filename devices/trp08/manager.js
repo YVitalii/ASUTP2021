@@ -259,6 +259,7 @@ class Manager {
           if (this.errorCounter.value >= this.errorCounter.max) {
             this.errorCounter.value = this.errorCounter.max;
             this.offLine = true;
+            log("e", ln + "Device offline!");
             this.period = 10;
             this.state.state.value = undefined;
           }
@@ -488,10 +489,10 @@ class Manager {
       // робимо посилання на state[item] для скорочення наступного коду
       let currReg = this.state[item];
 
-      // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх
+      // перевіряємо чи є в нас свіжі дані,  якщо є або прилад не в мережі  - відразу повертаємо їх
       if (
-        start.getTime() - currReg.timestamp.getTime() <
-        currReg.obsolescense
+        start.getTime() - currReg.timestamp.getTime() < currReg.obsolescense ||
+        this.offLine
       ) {
         resString += `${item}=[${currReg.value}]; `;
         response[item] = currReg;

@@ -4,11 +4,11 @@ const log = require("../../tools/log.js");
 const pug = require("pug");
 const { dummyPromise } = require("../../tools/dummy.js");
 const units = require("../../config.js").units;
-driver.printRegsDescription();
+// driver.printRegsDescription();
 class ClassManager extends ClassDevManagerGeneral {
   constructor(props = {}) {
     props.driver = driver;
-    props.ln = `MB1110-8A-Manager[${props.addr}]::`;
+    props.ln = `MB1110-8A-Manager`;
     super(props);
     for (let i = 1; i < 9; i++) {
       this.addRegister({
@@ -29,6 +29,15 @@ class ClassManager extends ClassDevManagerGeneral {
     }
     log("w", this.ln, ` ==> Device was created`);
   } // constructor
+  getCompactHtml() {
+    return "<h1>OWEN MB110-8A</h1> Compact form";
+  }
 }
 
 module.exports = ClassManager;
+
+if (!module.parent) {
+  // якщо запущено як окремий модуль
+  let entity = new ClassManager({ id: "MB110-8A" });
+  console.dir(entity);
+}

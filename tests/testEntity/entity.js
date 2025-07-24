@@ -1,5 +1,6 @@
 // ----------- приклад опису сутності ----------------
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
+const dummy = require("../../tools/dummy").dummyPromise;
 
 let trace = 0,
   gln = __filename + "::";
@@ -47,6 +48,7 @@ entity.devicesManager.addDevice(dev1.id, dev1);
 let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });
 entity.devicesManager.addDevice(dev2.id, dev2);
 const MB110 = require("../../devices/OWEN_MB110-8A/manager.js");
+const { dummyPromise } = require("../../tools/dummy.js");
 // --- створюємо та реєструємо прилад №3 -  калібратор
 let dev3 = new MB110({ iface: ifaceW2, addr: 16, id: "mb110", addT: 0 });
 entity.devicesManager.addDevice(dev3.id, dev3);
@@ -131,9 +133,17 @@ for (let i = 0; i < 9; i++) {
         .getRegister(`T${i}`);
     },
   };
-
+  if (i === 0) {
+    reg.getValue = async () => {
+      return await entity.devicesManager.getDevice("trp08n2").getT();
+    };
+  }
   logger.addReg(reg);
 } // for
+
+console.log("logger=");
+console.dir(logger);
+
 // logger.addReg({
 //   id: "T0",
 //   units,
@@ -173,20 +183,21 @@ for (let i = 0; i < 9; i++) {
 //   },
 // });
 
-// entity.processManager.afterAll = async function () {
-//   // функція, що викликається після завершення всієї програми
-//   let trace = 1,
-//     ln = entity.ln + `processManager.afterAll()::`;
-//   if (trace) {
-//     console.log(ln + `entity.id=${entity.id}`);
-//     //console.dir(this, { depth: 1, colors: true });
-//   }
-//   let dev = this.devicesManager.getDevice("trp08n1");
-//   // для того щоб спрацювала лампа "Кінець циклу", потрібно запрограмувати прилад на 1хв. витримки
+entity.processManager.afterAll = async function () {
+  // функція, що викликається після завершення всієї програми
+  let trace = 1,
+    ln = entity.ln + `processManager.afterAll()::`;
+  if (trace) {
+    console.log(ln + `entity.id=${entity.id}`);
+    //console.dir(this, { depth: 1, colors: true });
+  }
+  //let dev = this.devicesManager.getDevice("trp08n1");
+  // для того щоб спрацювала лампа "Кінець циклу", потрібно запрограмувати прилад на 1хв. витримки
 
-//   dev.start({ tT: 20, H: 0, Y: 1 });
-//   // ---- запускаємо менеджер процесів
-// };
+  //dev.start({ tT: 20, H: 0, Y: 1 });
+  return;
+  // ---- запускаємо менеджер процесів
+};
 
 module.exports = entity;
 
@@ -196,4 +207,23 @@ if (trace) {
   console.log(gln + `entity.processManager=`);
   // console.dir(entity.processManager, { depth: 2, colors: true });
   entity.processManager.afterAll();
+}
+
+if (!module.parent) {
+  (async () => {
+    await dummy(5000);
+    let regs = entity.loggerManager.regs;
+    while (true) {
+      regs["T0"].getValue().then((res) => {
+        console.log("T0=", res);
+      });
+      regs["T1"].getValue().then((res) => {
+        console.log("T1=", res);
+      });
+      regs["T2"].getValue().then((res) => {
+        console.log("T2=", res);
+      });
+      await dummy(4000);
+    } // while
+  })();
 }
