@@ -29,8 +29,15 @@ class ClassManager extends ClassDevManagerGeneral {
     }
     log("w", this.ln, ` ==> Device was created`);
   } // constructor
-  getCompactHtml() {
-    return "<h1>OWEN MB110-8A</h1> Compact form";
+  getCompactHtml(props) {
+    let html = pug.renderFile(__dirname + "/views/main.pug", {
+      device: this,
+      prefix: props?.prefix || "",
+    });
+    return html;
+  }
+  getFullHtml() {
+    return this.getCompactHtml();
   }
 }
 

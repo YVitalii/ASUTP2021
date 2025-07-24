@@ -42,77 +42,82 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 // --- менеджери
 const TRP08 = require("../../devices/trp08/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
-let dev1 = new TRP08(ifaceW2, 1, { id: "trp08furnace", addT: 0 });
-entity.devicesManager.addDevice(dev1.id, dev1);
-// --- створюємо та реєструємо прилад №2 -  центр камери
-let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });
-entity.devicesManager.addDevice(dev2.id, dev2);
+// let dev1 = new TRP08(ifaceW2, 1, { id: "trp08furnace", addT: 0 });
+// entity.devicesManager.addDevice(dev1.id, dev1);
+// // --- створюємо та реєструємо прилад №2 -  центр камери
+// let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });
+// entity.devicesManager.addDevice(dev2.id, dev2);
+
+// --- створюємо та реєструємо прилад №3 -  MB110-8A
 const MB110 = require("../../devices/OWEN_MB110-8A/manager.js");
-const { dummyPromise } = require("../../tools/dummy.js");
-// --- створюємо та реєструємо прилад №3 -  калібратор
 let dev3 = new MB110({ iface: ifaceW2, addr: 16, id: "mb110", addT: 0 });
 entity.devicesManager.addDevice(dev3.id, dev3);
 
 // --------------  налаштування менеджера термічного процесу ----------------------
 let taskThermal = entity.tasksManager.getTask("taskThermal");
 // додаємо прилади, що беруть участь в процесі
-taskThermal.addDevice(dev1);
+dev3.getT = async function () {
+  await entity.devicesManager.getDevice("mb110").getRegister(`T1`);
+};
+console.log("dev3=", dev3.id);
+console.dir(dev3);
+taskThermal.addDevice(dev3);
 // taskThermal.addDevice(dev2);
 
 // --------------  налаштування менеджера логування процесу ----------------------
 var logger = entity.loggerManager;
 let units = { ua: `°C`, en: `°C`, ru: `°C` };
 // ---- додаємо регістр для логування + його опис
-logger.addReg({
-  id: "tT",
-  units,
-  header: {
-    ua: `Завдання`,
-    en: `Task`,
-    ru: `Задание`,
-  },
-  comment: {
-    ua: `Цільова температура`,
-    en: `Target temperature`,
-    ru: `Заданная температура`,
-  },
-  getValue: async () => {
-    // повинна повертати числове значення регістру
-    let trace = 0,
-      ln = entity.ln + `getValue(tT)::`;
-    let res = await entity.devicesManager
-      .getDevice("trp08furnace")
-      .getParams("tT");
-    if (trace) {
-      console.log(ln + `res.tT=`);
-      console.dir(res.tT);
-    }
-    return res.tT;
-  },
-}); //logger.addReg(
+// logger.addReg({
+//   id: "tT",
+//   units,
+//   header: {
+//     ua: `Завдання`,
+//     en: `Task`,
+//     ru: `Задание`,
+//   },
+//   comment: {
+//     ua: `Цільова температура`,
+//     en: `Target temperature`,
+//     ru: `Заданная температура`,
+//   },
+//   getValue: async () => {
+//     // повинна повертати числове значення регістру
+//     let trace = 0,
+//       ln = entity.ln + `getValue(tT)::`;
+//     let res = await entity.devicesManager
+//       .getDevice("trp08furnace")
+//       .getParams("tT");
+//     if (trace) {
+//       console.log(ln + `res.tT=`);
+//       console.dir(res.tT);
+//     }
+//     return res.tT;
+//   },
+// }); //logger.addReg(
+
+// // ---- додаємо регістр для логування + його опис
+// logger.addReg({
+//   id: "Tf",
+//   units,
+//   header: {
+//     ua: `Tf`,
+//     en: `Tf`,
+//     ru: `Tf`,
+//   },
+//   comment: {
+//     ua: `Поточна температура в печі`,
+//     en: `Current temperature in furnace`,
+//     ru: `Текущая температура в печи`,
+//   },
+//   getValue: async () => {
+//     // повинна повертати числове значення регістру
+//     return await entity.devicesManager.getDevice("trp08furnace").getT();
+//   },
+// }); //logger.addReg(
 
 // ---- додаємо регістр для логування + його опис
-logger.addReg({
-  id: "Tf",
-  units,
-  header: {
-    ua: `Tf`,
-    en: `Tf`,
-    ru: `Tf`,
-  },
-  comment: {
-    ua: `Поточна температура в печі`,
-    en: `Current temperature in furnace`,
-    ru: `Текущая температура в печи`,
-  },
-  getValue: async () => {
-    // повинна повертати числове значення регістру
-    return await entity.devicesManager.getDevice("trp08furnace").getT();
-  },
-}); //logger.addReg(
-
-// ---- додаємо регістр для логування + його опис
-for (let i = 0; i < 9; i++) {
+for (let i = 1; i < 9; i++) {
   let reg = {
     id: `T${i}`,
     units,
@@ -141,8 +146,8 @@ for (let i = 0; i < 9; i++) {
   logger.addReg(reg);
 } // for
 
-console.log("logger=");
-console.dir(logger);
+// console.log("logger=");
+// console.dir(logger);
 
 // logger.addReg({
 //   id: "T0",

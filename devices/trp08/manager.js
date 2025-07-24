@@ -262,6 +262,7 @@ class Manager {
             log("e", ln + "Device offline!");
             this.period = 10;
             this.state.state.value = undefined;
+            return { value: null, note: "Device offline!" };
           }
 
           log(
@@ -498,7 +499,7 @@ class Manager {
         response[item] = currReg;
         continue;
       }
-
+      trace = 1;
       // робимо запит в прилад по інтерфейсу
       let res = await this.iteration(device.getRegPromise, {
         iface: this.iface,

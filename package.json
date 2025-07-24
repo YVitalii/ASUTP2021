@@ -3,10 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build:vue": "vite build",
+    "dev:vue": "vite",
     "start": "supervisor --no-restart-on error  --watch ./routes,./,./views,./entyties/* ./bin/www",
     "jsdoc": "jsdoc --configure ./config_jsdoc.js --recurse"
   },
   "dependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
     "bcrypt": "^5.0.1",
     "clone": "^2.1.2",
     "colors": "^1.4.0",
@@ -24,6 +27,8 @@
     "passport-local": "^1.0.0",
     "pug": "^3.0.2",
     "serialport": "^9.0.6",
-    "supervisor": "^0.12.0"
+    "supervisor": "^0.12.0",
+    "vite": "^6.3.5",
+    "vue": "^3.5.18"
   }
 }

@@ -228,7 +228,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     // перевіряємо актуальність значень і, за потреби, оновлюємо
     for (const key in res) {
       if (Object.hasOwnProperty.call(res, key)) {
-        key;
+        // key;
 
         if (this.regs[key].isActual()) {
           continue;
@@ -355,6 +355,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
           this.errorCounter.value = this.errorCounter.max;
           this.offLine = true;
           log("e", ln + "Device offline!");
+          return { value: null, note: "Device offline!" };
         }
 
         trace
@@ -408,6 +409,13 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     return `${regName}=${res.value}; `;
   } //async setRegister(regName, value)
 
+  async getParams(params) {
+    return this.getRegsValues(params);
+  }
+
+  getAddT() {
+    return 0;
+  }
   /** Функція повертає значення 1 регістра якщо ще не застарів - то поточне значення з regs, інакше з приладу
    * @param {String} regName - назва регістру, така як визначена в this.driver
    * @param {Number} value - значення регістру або null, якщо актуальних даних немає

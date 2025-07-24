@@ -28,7 +28,7 @@ router.post("/:id/getState", (req, res, next) => {
 });
 
 router.post("/:id/getRegs", async (req, res, next) => {
-  let trace = 0,
+  let trace = 1,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
   req.params.baseUrl = req.baseUrl;
   let startTime = new Date();
@@ -41,6 +41,9 @@ router.post("/:id/getRegs", async (req, res, next) => {
   //   console.dir(req.query);
   // }
   let dev = req.entity.devicesManager.getDevice(req.params.id);
+  if (!dev) {
+    res.send(`Device ${req.params.id} not defined !!`);
+  }
 
   let data = await dev.getParams(req.body.regsList);
 
