@@ -29,4 +29,12 @@ module.exports = class ClassGeneral {
     // ----------- ln -------------
     this.ln = props.ln ? props.ln : this.id + "::";
   }
+  getAll() {
+    return {
+      id: this.id,
+      header: this.header,
+      comment: this.comment,
+      ln: this.ln,
+    };
+  }
 };

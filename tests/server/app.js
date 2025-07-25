@@ -41,7 +41,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.resolve("../../public"))); //path.join(__dirname, "public")));
-
+app.use(express.static(path.resolve("../../dist/vue-apps")));
 // Отключение кэширования. ист.
 // https://coderoad.ru/22632593/%D0%9A%D0%B0%D0%BA-%D0%BE%D1%82%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C-%D0%BA%D1%8D%D1%88%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%B2%D0%B5%D0%B1-%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%86-%D0%B2-ExpressJS-NodeJS
 // app.use(nocache());

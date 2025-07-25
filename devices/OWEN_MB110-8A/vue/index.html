@@ -8,10 +8,161 @@
     <title>Document</title>
   </head>
   <body>
+    <script>
+      let dev = {
+        id: "mb110",
+        header: { ua: "MB110-8A", en: "MB110-8A", ru: "MB110-8A" },
+        comment: {
+          ua: "Блок вводу 8 аналогових сигналів",
+          en: "8 analog signal input block",
+          ru: "Блок ввода 8 аналоговых сигналов",
+        },
+        ln: "MB110-8A-Manager[16]::",
+        baseUrl: "/entity/Calibrator_9points/devicesManager/mb110/getState",
+        regs: {
+          T1: {
+            id: "T1",
+            header: { ua: "T1", en: "T1", ru: "T1" },
+            comment: {
+              ua: "Температура вхід 1",
+              en: "Temperature of input 1",
+              ru: "Температура вход 1",
+            },
+            type: "number",
+            value: 11.5,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+          T2: {
+            id: "T2",
+            header: { ua: "T2", en: "T2", ru: "T2" },
+            comment: {
+              ua: "Температура вхід 2",
+              en: "Temperature of input 2",
+              ru: "Температура вход 2",
+            },
+            type: "number",
+            value: 22.5,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+          T3: {
+            id: "T3",
+            header: { ua: "T3", en: "T3", ru: "T3" },
+            comment: {
+              ua: "Температура вхід 3",
+              en: "Temperature of input 3",
+              ru: "Температура вход 3",
+            },
+            type: "number",
+            value: 33.5,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+          T4: {
+            id: "T4",
+            header: { ua: "T4", en: "T4", ru: "T4" },
+            comment: {
+              ua: "Температура вхід 4",
+              en: "Temperature of input 4",
+              ru: "Температура вход 4",
+            },
+            type: "number",
+            value: null,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+          T5: {
+            id: "T5",
+            header: { ua: "T5", en: "T5", ru: "T5" },
+            comment: {
+              ua: "Температура вхід 5",
+              en: "Temperature of input 5",
+              ru: "Температура вход 5",
+            },
+            type: "number",
+            value: null,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+          T6: {
+            id: "T6",
+            header: { ua: "T6", en: "T6", ru: "T6" },
+            comment: {
+              ua: "Температура вхід 6",
+              en: "Temperature of input 6",
+              ru: "Температура вход 6",
+            },
+            type: "number",
+            value: null,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+          T7: {
+            id: "T7",
+            header: { ua: "T7", en: "T7", ru: "T7" },
+            comment: {
+              ua: "Температура вхід 7",
+              en: "Temperature of input 7",
+              ru: "Температура вход 7",
+            },
+            type: "number",
+            value: null,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+          T8: {
+            id: "T8",
+            header: { ua: "T8", en: "T8", ru: "T8" },
+            comment: {
+              ua: "Температура вхід 8",
+              en: "Temperature of input 8",
+              ru: "Температура вход 8",
+            },
+            type: "number",
+            value: null,
+            timestamp: 1753446812718,
+            units: { ua: "°C", en: "°C", ru: "°C" },
+            obsolescence: 10,
+            readonly: true,
+            min: -20,
+            max: 1200,
+          },
+        },
+      }; //dev;
+      window.devices = { items: { mb110: dev } };
+    </script>
     <h1>Hello, Vue App!</h1>
-    <div id="mb110_1">
+    <div id="mb110" class="MB110A8">
       <!-- Тут буде рендеритися ваш Vue додаток -->
-      vue
     </div>
     <script src="/bootstrap/bootstrap.min.js"></script>
     <script type="module" src="main.js"></script>

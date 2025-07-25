@@ -1,10 +1,20 @@
--var _id= prefix+device.id+"_"
+-var _id=device.id;
 //- шаблон для компоненту MB110-8A
-div.container.MB1108A(id="mb110_1")
-  p Vue Container
+p Vue Container
+
+pre #{JSON.stringify(res)}
+
+div.container.MB110A8(id=_id)
+
 
 script.
   if (!window.devices) {
   console.error("window.devices is not defined!");
   }
+  let item=JSON.parse('!{JSON.stringify(res)}');
+  console.dir(item);
+  window.devices.items[item.id]=item;
 
+script(src="/device_mb110/device_mb110.js")
+<link rel="stylesheet" href="/device_mb110/assets/device_mb110.css">
+//- link (src="/devices/OWEN_MB110-8A/vue/asserts/main.js")

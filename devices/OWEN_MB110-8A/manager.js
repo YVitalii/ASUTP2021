@@ -8,7 +8,7 @@ const units = require("../../config.js").units;
 class ClassManager extends ClassDevManagerGeneral {
   constructor(props = {}) {
     props.driver = driver;
-    props.ln = `MB1110-8A-Manager`;
+    props.ln = `MB110-8A-Manager`;
     super(props);
     for (let i = 1; i < 9; i++) {
       this.addRegister({
@@ -30,12 +30,35 @@ class ClassManager extends ClassDevManagerGeneral {
     log("w", this.ln, ` ==> Device was created`);
   } // constructor
   getCompactHtml(props) {
+    let trace = 0,
+      ln = this.ln + `getCompactHtml::`;
+    if (trace) {
+      log("i", ln, `props=`);
+      console.dir(props);
+    }
+
+    let res = this.getAll();
+    res.baseUrl = props.baseUrl + this.id;
+    res.regs = this.getRegsForHtml();
+    // console.dir(res, { depth: 3 });
     let html = pug.renderFile(__dirname + "/views/main.pug", {
       device: this,
       prefix: props?.prefix || "",
+      res,
     });
+
     return html;
   }
+  getRegsForHtml(props) {
+    let regs = {};
+    for (const key in this.regs) {
+      if (Object.prototype.hasOwnProperty.call(this.regs, key)) {
+        regs[key] = this.regs[key].getAll();
+      }
+    } // for
+    return regs;
+  }
+
   getFullHtml() {
     return this.getCompactHtml();
   }
@@ -45,6 +68,16 @@ module.exports = ClassManager;
 
 if (!module.parent) {
   // якщо запущено як окремий модуль
-  let entity = new ClassManager({ id: "MB110-8A" });
-  console.dir(entity);
+  let w2 = require("../../conf_iface.js").w2;
+  let entity = new ClassManager({ iface: w2, id: "MB110-8A", addr: 16 });
+  // console.dir(entity, { depth: 2 });
+  console.dir(entity.getCompactHtml({ baseUrl: "/devices/OWEN_MB110-8A/" }));
+  async function read() {
+    let res = await entity.getParams("T1;T2;T3;T4;T5;T6;T7;T8");
+    console.dir(res);
+    setTimeout(read, 2000);
+  }
+
+  //read();
+  //console.log(entity.getFullHtml());
 }

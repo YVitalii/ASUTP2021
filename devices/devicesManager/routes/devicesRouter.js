@@ -5,7 +5,7 @@ const resolvePath = require("path").resolve;
 const log = require("../../../tools/log.js");
 
 router.all("/:id/*", (req, res, next) => {
-  let trace = 0,
+  let trace = 1,
     ln = `router.all("/:id/")::${req.originalUrl}::`;
   req.params.baseUrl = req.baseUrl;
   if (trace) {
@@ -20,8 +20,8 @@ router.all("/:id/*", (req, res, next) => {
 });
 
 router.post("/:id/getState", (req, res, next) => {
-  let trace = 0,
-    ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
+  let trace = 1,
+    ln = `router.post("/:id/getState")::${req.originalUrl}::`;
   trace ? log("i", ln, `Started`) : null;
   let data = req.dev.getState();
   res.json(data);
@@ -30,6 +30,7 @@ router.post("/:id/getState", (req, res, next) => {
 router.post("/:id/getRegs", async (req, res, next) => {
   let trace = 1,
     ln = `router.post("/:id/getRegs")::${req.originalUrl}::`;
+  trace ? log("i", ln, `Started`) : null;
   req.params.baseUrl = req.baseUrl;
   let startTime = new Date();
   if (trace) {

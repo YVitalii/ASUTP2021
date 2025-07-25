@@ -1,10 +1,31 @@
 // src/main.js
 import { createApp } from "vue";
 import App from "./app.vue"; // Імпортуємо наш кореневий компонент
+const containerClass = "MB110A8";
+const containers = document.querySelectorAll(`.${containerClass}`); // Знаходимо всі елементи з класом "MB110A8"
+if (containers.length === 0) {
+  console.error(`Контейнери з класом "${containerClass}" не знайдено.`);
+}
 
-const app = createApp(App);
+containers.forEach((container) => {
+  // Отримуємо унікальний id поточного контейнера
+  const containerId = container.id;
 
-// Монтуємо додаток до елемента з id="vue-app" (або будь-якого іншого ID, який ти вибереш на своїй HTML-сторінці)
-app.mount("#mb110_1"); // Змінити на ID елемента, де ти хочеш монтувати Vue додаток
+  if (containerId) {
+    // Створюємо новий екземпляр застосунку Vue для кожного контейнера
+    const app = createApp(App, {
+      // Передаємо id як властивість (props) до кореневого компонента
+      containerId: containerId,
+    });
+
+    // Монтуємо застосунок до знайденого DOM-елемента
+    app.mount(container);
+    console.log(`Застосунок Vue змонтовано до #${containerId}`);
+  } else {
+    console.error(
+      `Знайдено контейнер без id. Vue застосунок не буде змонтовано.`
+    );
+  }
+});
 
 console.log("Vue додаток запущено!");

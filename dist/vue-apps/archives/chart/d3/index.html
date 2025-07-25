@@ -1,0 +1,180 @@
+ <!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>d3 - design</title>
+    <link rel="stylesheet" href="/stylesheets/myStyle.css">
+    <script type="text/javascript" src="./d3/d3.js">    </script>
+    <script type="text/javascript" src="./js/config.js">    </script>
+    <script type="text/javascript" src="./js/getOperativeValues.js">    </script>
+    <script type="text/javascript" src="./js/drawChart.js">    </script>
+    <script src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
+	 <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js"></script>
+
+  </head>
+  <body>
+    <div class="box">
+        <div class="row header">
+          <h3>График </h3>
+        </div>
+        <div class="row content" id ="myChart"  >
+          <!--  график -->
+        </div>
+        <div class="row footer">
+          <button id='saveButton'>Export my D3 visualization to PNG</button>
+          <p><b>footer</b> (fixed height)</p>
+        </div>
+  </div>
+
+  <script type="text/javascript">
+  // Set-up the export button
+        d3.select('#saveButton').on('click', function(){
+        var svgString = getSVGString(chart.svg.node());
+        svgString2Image( svgString, chart.width, chart.height, 'png', save ); // passes Blob and filesize String to the callback
+        console.log(svgString);
+        function save( dataBlob, filesize ){
+          saveAs( dataBlob, 'D3 vis exported to PNG.png' ); // FileSaver.js function
+        }
+
+        });
+
+
+        function getSVGString( svgNode ) {
+          // -------- возвращает SVG в виде строки --------------------
+          let trace=1, logH="getSVGString"
+        	svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+        	var cssStyleText = getCSSStyles( svgNode );
+        	appendCSS( cssStyleText, svgNode );
+
+        	var serializer = new XMLSerializer();
+        	var svgString = serializer.serializeToString(svgNode);
+        	svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
+        	svgString = svgString.replace(/NS\d+:href/g, 'xlink:href'); // Safari NS namespace fix
+          trace ? console.log(logH+svgString) : null;
+        	return svgString;
+
+        	function getCSSStyles( parentElement ) {
+        		var selectorTextArr = [];
+
+        		// Add Parent element Id and Classes to the list
+        		selectorTextArr.push( '#'+parentElement.id );
+        		for (var c = 0; c < parentElement.classList.length; c++)
+        				if ( !contains('.'+parentElement.classList[c], selectorTextArr) )
+        					selectorTextArr.push( '.'+parentElement.classList[c] );
+
+        		// Add Children element Ids and Classes to the list
+        		var nodes = parentElement.getElementsByTagName("*");
+        		for (var i = 0; i < nodes.length; i++) {
+        			var id = nodes[i].id;
+        			if ( !contains('#'+id, selectorTextArr) )
+        				selectorTextArr.push( '#'+id );
+
+        			var classes = nodes[i].classList;
+        			for (var c = 0; c < classes.length; c++)
+        				if ( !contains('.'+classes[c], selectorTextArr) )
+        					selectorTextArr.push( '.'+classes[c] );
+        		}
+
+        		// Extract CSS Rules
+        		var extractedCSSText = "";
+        		for (var i = 0; i < document.styleSheets.length; i++) {
+        			var s = document.styleSheets[i];
+
+        			try {
+        			    if(!s.cssRules) continue;
+        			} catch( e ) {
+        		    		if(e.name !== 'SecurityError') throw e; // for Firefox
+        		    		continue;
+        		    	}
+
+        			var cssRules = s.cssRules;
+        			for (var r = 0; r < cssRules.length; r++) {
+        				if ( contains( cssRules[r].selectorText, selectorTextArr ) )
+        					extractedCSSText += cssRules[r].cssText;
+        			}
+        		}
+
+
+        		return extractedCSSText;
+
+        		function contains(str,arr) {
+        			return arr.indexOf( str ) === -1 ? false : true;
+        		}
+
+        	}
+
+        	function appendCSS( cssText, element ) {
+        		var styleElement = document.createElement("style");
+        		styleElement.setAttribute("type","text/css");
+        		styleElement.innerHTML = cssText;
+        		var refNode = element.hasChildNodes() ? element.children[0] : null;
+        		element.insertBefore( styleElement, refNode );
+        	}
+        }
+        function svgString2Image( svgString, width, height, format, callback ) {
+          	var format = format ? format : 'png';
+
+          	var imgsrc = 'data:image/svg+xml;base64,'+ btoa( unescape( encodeURIComponent( svgString ) ) ); // Convert SVG string to data URL
+
+          	var canvas = document.createElement("canvas");
+          	var context = canvas.getContext("2d");
+
+          	canvas.width = width;
+          	canvas.height = height;
+
+          	var image = new Image();
+          	image.onload = function() {
+          		context.clearRect ( 0, 0, width, height );
+          		context.drawImage(image, 0, 0, width, height);
+
+          		canvas.toBlob( function(blob) {
+          			var filesize = Math.round( blob.length/1024 ) + ' KB';
+          			if ( callback ) callback( blob, filesize );
+          		});
+
+
+          	};
+
+          	image.src = imgsrc;
+          }
+  </script>
+
+  <script type="text/javascript">
+  var now=new Date();
+  //var task=undefined;
+  var task=[ // задание
+     {time:now,y:0,dYmin:null,dYmax:+15}
+    ,{time:new Date(now.getTime()+30*60*1000-1000),y:550,dYmin:null,dYmax:+15}
+    ,{time:new Date(now.getTime()+30*60*1000),y:550,dYmin:-15,dYmax:+1}
+    ,{time:new Date(now.getTime()+60*60*1000-1000),y:500,dYmin:-15,dYmax:+1}
+    ,{time:new Date(now.getTime()+60*60*1000),y:500,dYmin:-10,dYmax:+10}
+    ,{time:new Date(now.getTime()+120*60*1000-1000),y:800,dYmin:-10,dYmax:+10}
+    ,{time:new Date(now.getTime()+120*60*1000),y:800,dYmin:-20,dYmax:+20}
+    ,{time:new Date(now.getTime()+170*60*1000-1000),y:800,dYmin:-20,dYmax:+20}
+    ,{time:new Date(now.getTime()+170*60*1000),y:800,dYmin:-10,dYmax:+10}
+  ]; //var task
+  var chartConfig ={
+      "y" :{max:1000,min:0}// диапазон значений по оси Y
+      //"y2" :{max:-100,min:100}// диапазон значений по оси Y
+     //,"task":task // задание, если есть
+     , "task":null // URL адрес файла с заданиями
+     ,"dataURL":"/logs/2019-10-14.log" // URL адрес файла с данными
+   }//config
+  var chart= new Chart("#myChart",chartConfig);
+  var timerCurrentData=setInterval(function () {chart.addData(currentValues)}.bind(this), config.operativeValues.timeout);
+ /*  // запускаем периодическиий опрос сервера данных
+  var timerGetCurrentValues;
+  setTimeout(()=>{
+    timerGetCurrentValues=setInterval(getCurrentValues,1000);
+  },3000);
+
+  function getCurrentValues(){
+    // функция получает данные с сервера и передает их своим слушателям
+    let url="http://localhost:4000/values"
+
+
+  }
+  //v  */
+  </script>
+  </body>
+</html>

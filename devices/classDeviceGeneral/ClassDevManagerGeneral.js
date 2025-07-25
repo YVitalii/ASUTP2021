@@ -24,7 +24,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
   constructor(props) {
     super(props);
 
-    let trace = 1,
+    let trace = 0,
       ln = "constructor::";
 
     // ----------- iface -------------
