@@ -1,5 +1,5 @@
 <template>
- <h3 :title="title" class="text-center border rounded"> {{ value }} </h3>    
+ <h6 :title="title" class="text-center border rounded"> {{ value }} </h6>    
 </template>
 
 
@@ -17,7 +17,7 @@ const props=defineProps({
   },
 });
 const value = ref(props.value);
-const title = ref(props.title);
+const title = props.title;
 watch(() => props.value, (newValue) => {
     if (newValue === undefined || newValue === null) {
         newValue = '?';

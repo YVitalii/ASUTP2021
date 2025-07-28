@@ -9,6 +9,7 @@ class ClassManager extends ClassDevManagerGeneral {
   constructor(props = {}) {
     props.driver = driver;
     props.ln = `MB110-8A-Manager`;
+    props.header = { ua: `MB110-8A`, en: `MB110-8A`, ru: `MB110-8A` };
     super(props);
     for (let i = 1; i < 9; i++) {
       this.addRegister({
@@ -38,7 +39,7 @@ class ClassManager extends ClassDevManagerGeneral {
     }
 
     let res = this.getAll();
-    res.baseUrl = props.baseUrl + this.id;
+    res.baseUrl = props.baseUrl + this.id + "/getRegs";
     res.regs = this.getRegsForHtml();
     // console.dir(res, { depth: 3 });
     let html = pug.renderFile(__dirname + "/views/main.pug", {

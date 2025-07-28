@@ -311,15 +311,18 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     let i = 0,
       period = this.period.if.deviceBusy; // лічильник повторів, період між запитами
     while (this.busy) {
-      log(
-        "",
-        ln,
-        `Device ${this.header.ua} are busy.Trying N:${i}. Waiting: ${period}s`
-      );
+      trace
+        ? log(
+            "",
+            ln,
+            `Device ${this.header.ua} are busy.Trying N:${i}. Waiting: ${period}s`
+          )
+        : null;
+
       i++;
       await dummyPromise(period * 1000);
     }
-    trace ? log("i", ln, `Device not busy. Start transaction.`) : null;
+    trace ? log("", ln, `Device not busy. Start transaction.`) : null;
 
     // встановлюємо ознаку транзакції
     this.busy = true;
@@ -340,7 +343,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         // все пройшло успішно
         ok = true;
       } catch (error) {
-        let trace = 0;
+        let trace = 1;
         // трапилась помилка
         if (trace) {
           log("w", ln, `error=`);
@@ -355,7 +358,9 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
           this.errorCounter.value = this.errorCounter.max;
           this.offLine = true;
           log("e", ln + "Device offline!");
-          return { value: null, note: "Device offline!" };
+          // знімаємо ознаку зайнятості
+          this.busy = false;
+          return [{ value: null, note: "Device offline!" }];
         }
 
         trace
@@ -416,6 +421,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
   getAddT() {
     return 0;
   }
+
   /** Функція повертає значення 1 регістра якщо ще не застарів - то поточне значення з regs, інакше з приладу
    * @param {String} regName - назва регістру, така як визначена в this.driver
    * @param {Number} value - значення регістру або null, якщо актуальних даних немає
@@ -437,6 +443,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     if (this.offLine) {
       // якщо прилад відсутній в мережі
       trace ? log("i", ln, `Device is offline!`) : null;
+      reg.value = null;
       return null;
     }
     // перевіряємо чи актуальні дані
@@ -458,7 +465,10 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     );
     // оновлюємо дані в state
     trace ? log("i", ln, `res=`, res) : null;
-    reg.value = res[0].value;
+    if (res[0] && res[0].value != undefined) {
+      reg.value = res[0].value;
+    }
+
     return reg.value;
   } //async setRegister(regName, value)
 

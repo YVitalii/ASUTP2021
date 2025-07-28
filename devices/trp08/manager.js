@@ -499,7 +499,7 @@ class Manager {
         response[item] = currReg;
         continue;
       }
-      trace = 1;
+      trace = 0;
       // робимо запит в прилад по інтерфейсу
       let res = await this.iteration(device.getRegPromise, {
         iface: this.iface,
