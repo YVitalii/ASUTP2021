@@ -214,7 +214,7 @@ class Manager {
    */
   async iteration(func, params) {
     return new Promise(async (resolve, reject) => {
-      let trace = 0,
+      let trace = 1,
         ln =
           this.ln +
           `iteration(${func.name},${params.regName}${
@@ -259,8 +259,11 @@ class Manager {
           if (this.errorCounter.value >= this.errorCounter.max) {
             this.errorCounter.value = this.errorCounter.max;
             this.offLine = true;
+            log("e", ln + "Device offline!");
             this.period = 10;
             this.state.state.value = undefined;
+            this.busy = false;
+            return { value: null, note: "Device offline!" };
           }
 
           log(
@@ -418,7 +421,7 @@ class Manager {
     try {
       await this.setParams({ state: 1 });
       this.state.T.obsolescense = 10 * 1000; // збільшуємо період оновлення даних до 30 с
-      log("w", ln, "Device Stoped.");
+      log("w", ln, "Stoped.");
       return 1;
     } catch (error) {
       log("e", ln, "Error:", error.message);
@@ -488,16 +491,16 @@ class Manager {
       // робимо посилання на state[item] для скорочення наступного коду
       let currReg = this.state[item];
 
-      // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх
+      // перевіряємо чи є в нас свіжі дані,  якщо є або прилад не в мережі  - відразу повертаємо їх
       if (
-        start.getTime() - currReg.timestamp.getTime() <
-        currReg.obsolescense
+        start.getTime() - currReg.timestamp.getTime() < currReg.obsolescense ||
+        this.offLine
       ) {
         resString += `${item}=[${currReg.value}]; `;
         response[item] = currReg;
         continue;
       }
-
+      trace = 0;
       // робимо запит в прилад по інтерфейсу
       let res = await this.iteration(device.getRegPromise, {
         iface: this.iface,
@@ -649,7 +652,12 @@ function getRegForHtml(reg) {
 module.exports = Manager;
 
 if (!module.parent) {
-  let w2 = require("../../conf_iface.js");
   let device = new Manager({}, 1);
-  console.dir(device);
+  (async function () {
+    await device.setParams({ tT: 500 });
+    await device.start();
+    await device.stop();
+    await device.getT();
+    await device.getParams();
+  })();
 }

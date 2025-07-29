@@ -121,7 +121,7 @@ class ClassProcessManager {
     //  тому робимо копію списку завдань та парсимо кроки тут.
     //  TODO Перенести в процесМенеджер список доступних кроків з tasksManager
     // в tasksManager брати список звідси
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + " setProgram()::";
     if (this.program.state && this.program.state._id == "going") {
       // -------- програма на виконанні, неможливо її змінити --------
@@ -138,7 +138,7 @@ class ClassProcessManager {
     //
 
     // трасувальник отриманого списку завдань
-    trace = 0;
+    trace = 1;
     if (trace) {
       log("i", ln, `this.listSteps=`);
       console.dir(this.listSteps);
@@ -348,6 +348,14 @@ class ClassProcessManager {
         fileName + this.loggerManager._fileExtensions.logger
       )
     );
+    trace
+      ? log(
+          "i",
+          ln,
+          `New log file created: fileName=`,
+          fileName + this.loggerManager._fileExtensions.logger
+        )
+      : null;
     return fileName;
   }
 

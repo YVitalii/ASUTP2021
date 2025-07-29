@@ -1,7 +1,7 @@
 // ----------- приклад опису сутності ----------------
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
 const dummy = require("../../tools/dummy").dummyPromise;
-
+const log = require("../../tools/log.js");
 let trace = 0,
   gln = __filename + "::";
 
@@ -40,7 +40,7 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 
 // ----------------------------- прилади -----------------
 // --- менеджери
-const TRP08 = require("../../devices/trp08/manager.js");
+const TRP08 = require("../../devices/trp08/manager_2025-07-29.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
 let dev1 = new TRP08(ifaceW2, 1, { id: "trp08furnace", addT: 0 });
 entity.devicesManager.addDevice(dev1.id, dev1);
@@ -210,15 +210,14 @@ for (let i = 1; i < 9; i++) {
 entity.processManager.afterAll = async function () {
   // функція, що викликається після завершення всієї програми
   let trace = 1,
-    ln = entity.ln + `processManager.afterAll()::`;
+    ln = entity.ln + `afterAll()::`;
   if (trace) {
-    console.log(ln + `entity.id=${entity.id}`);
+    log("w", ln + `entity.id=${entity.id}. Started`);
     //console.dir(this, { depth: 1, colors: true });
   }
   let dev = this.devicesManager.getDevice("trp08furnace");
-  // для того щоб спрацювала лампа "Кінець циклу", потрібно запрограмувати прилад на 1хв. витримки
 
-  dev.start({ tT: 20, H: 0, Y: 1 });
+  await dev.start({ tT: 20, H: 0, Y: 1, o: 2 });
   return;
   // ---- запускаємо менеджер процесів
 };

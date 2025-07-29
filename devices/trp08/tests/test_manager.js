@@ -17,7 +17,7 @@ async function getT() {
 
 async function getState() {
   let t = device1.getState();
-  log("", ln + `iteration :${i}; state= ${t}`);
+  log("", ln + `iteration :${i}; state= `, t.states[t.value].ua);
   i++;
   setTimeout(() => getState(), 2000);
 }
@@ -28,9 +28,13 @@ async function test() {
   // await device1.getParams("tT;o;H;Y;ti;td");
   // await device1.setParams({ tT: 70, o: 10, H: 1, Y: 10, ti: 0, td: 0 });
   await device1.start({
-    beforeStart: () => {},
+    beforeStart: async () => {
+      log("w", ln + `beforeStart()::`);
+    },
     afterAll: () => {},
     tT: 55,
+    H: 0,
+    Y: 2,
     t: 0,
     errTmin: 0,
     errTmax: 15,
@@ -44,7 +48,8 @@ async function test() {
   });
   setTimeout(async () => {
     getT();
-  }, 2000);
+    getState();
+  }, 5000);
   // await device1.getParams("tT;o;H;Y;ti;td");
   setTimeout(() => {
     device1.stop();
@@ -52,7 +57,6 @@ async function test() {
 }
 
 setTimeout(() => {
-  getState();
   test();
 }, 5000);
 
