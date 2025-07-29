@@ -229,7 +229,7 @@ trace = 1;
 if (trace) {
   console.log(gln + `entity.processManager=`);
   // console.dir(entity.processManager, { depth: 2, colors: true });
-  entity.processManager.afterAll();
+  // entity.processManager.afterAll();
 }
 
 if (!module.parent) {
