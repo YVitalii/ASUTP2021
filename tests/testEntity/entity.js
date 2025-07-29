@@ -215,10 +215,10 @@ entity.processManager.afterAll = async function () {
     console.log(ln + `entity.id=${entity.id}`);
     //console.dir(this, { depth: 1, colors: true });
   }
-  //let dev = this.devicesManager.getDevice("trp08n1");
+  let dev = this.devicesManager.getDevice("trp08furnace");
   // для того щоб спрацювала лампа "Кінець циклу", потрібно запрограмувати прилад на 1хв. витримки
 
-  //dev.start({ tT: 20, H: 0, Y: 1 });
+  dev.start({ tT: 20, H: 0, Y: 1 });
   return;
   // ---- запускаємо менеджер процесів
 };
