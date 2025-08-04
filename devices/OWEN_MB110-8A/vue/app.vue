@@ -15,17 +15,17 @@
       <div class="col">
         <Temperature :value="count[3]" :title="device.regs.T3.comment[lang]"></Temperature>
       </div>
+      <div class="col"><Temperature :value="count[4]" :title="device.regs.T4.comment[lang]"></Temperature></div>
     </div> 
     <div class="row">
-      <div class="col"><Temperature :value="count[4]" :title="device.regs.T4.comment[lang]"></Temperature></div>
+      
       <div class="col"><Temperature :value="count[5]" :title="device.regs.T5.comment[lang]"></Temperature></div>
       <div class="col"><Temperature :value="count[6]" :title="device.regs.T6.comment[lang]"></Temperature></div>
-    </div>
-    <div class="row">
       <div class="col"><Temperature :value="count[7]" :title="device.regs.T7.comment[lang]"></Temperature></div>
       <div class="col"><Temperature :value="count[8]" :title="device.regs.T8.comment[lang]"></Temperature></div>
-      <!-- <div class="col"><Temperature :value="count[9]" :title="device.regs.T6.comment[lang]"></Temperature></div> -->
+      
     </div>
+
    </div>
    <!-- <p>{{url}}</p> -->
 </template>
@@ -34,7 +34,7 @@
 let lang= 'ua'; // Мова, яку ви хочете використовувати
 import { ref,  onMounted } from 'vue';
 import Temperature from './Temperature.vue';
-
+const CHANELS=8;
 
 // Оголошуємо, що компонент приймає властивість containerId
 const props = defineProps({
@@ -43,17 +43,20 @@ const props = defineProps({
     required: true, // Вказуємо, що ця властивість обов'язкова
   }
 });
+
 let trace=0, ln=`mb110a8::vue.app::`;
+
 const id= props.containerId;
 const device= window.devices.items[id];
-const errorFetchCounter=0, errMax=5;
+
+let errorFetchCounter=0, errMax=5;
 if (trace) { console.log(ln+`device=`); console.dir(device); } 
 
 const header=device.header.ua;
 const url = device.baseUrl;
 
 let data=[{offLine:true,title:"Device offline!"}];
-for (let i = 1; i < 8; i++) {
+for (let i = 1; i <= CHANELS; i++) {
   let id=`T${i}`;
   let reg = device.regs[id] ;
   data.push(reg.value);
@@ -61,6 +64,7 @@ for (let i = 1; i < 8; i++) {
 
 
 const count = ref(data);
+trace=1;
 if (trace) { console.log(ln+`count=`); console.dir(count); } 
 
 const fetchData = async () => {
@@ -78,7 +82,7 @@ const fetchData = async () => {
     if (trace) { console.log(ln+`jsonData=`); console.dir(jsonData); } 
     count.value[0].offLine = jsonData[`offLine`]; // 
     // Оновлюємо дані
-    for (let i = 1; i < 8; i++) {
+    for (let i = 1; i <= CHANELS; i++) {
       count.value[i]=jsonData[`T${i}`];
       
     }

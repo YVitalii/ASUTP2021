@@ -22,7 +22,9 @@ watch(() => props.value, (newValue) => {
     if (newValue === undefined || newValue === null) {
         newValue = '?';
     } else {
+        let income=newValue;
         newValue= parseFloat(newValue).toFixed(1)
+        console.log(`Temperature.vue::newValue(${income}):: ${title}=${newValue}`);
     };
     value.value = newValue;
 },{ immediate: true });

@@ -5,7 +5,7 @@
   "scripts": {
     "build:vue": "vite build",
     "dev:vue": "vite",
-    "dev:vue:mb110-8a": "cross-env VITE_APP_ROOT=./devices/OWEN_MB110-8A/vue vite",
+    "npm start dev:vue:mb110-8a": "cross-env VITE_APP_ROOT=./devices/OWEN_MB110-8A/vue vite",
     "start": "supervisor --no-restart-on error  --watch ./routes,./,./views,./entyties/* ./bin/www",
     "jsdoc": "jsdoc --configure ./config_jsdoc.js --recurse"
   },
