@@ -50,7 +50,7 @@ class Chart {
       "#4daf4a",
       "#984ea3",
       "#ff7f00",
-      "#ffff33",
+      "#137aceff",
       "#a65628",
       "#f781bf",
       "#999999",
@@ -706,7 +706,8 @@ class Chart {
               return this.xScale(d.time);
             })
             .y((d) => {
-              return this.yScale(d[colName] < 0 ? 0 : d[colName]);
+              return this.yScale(d[colName]); // до 2025-08-04 було:'d[colName] < 0 ? 0 : d[colName]', але для значень < 0 всі лінії графіка йдуть по осі Х,
+              // тому при калібровці термопар не видно відємних різниць температури, тому прибрав обнулення.
             })
         );
     } //for (var i = 1; i < columns.length; i++)

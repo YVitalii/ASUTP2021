@@ -252,7 +252,8 @@ class Manager {
           if (error.code != 13) {
             ok = true;
             this.busy = false;
-            reject(new Error(error.messages.en));
+            log("e", ln, "Error:", JSON.stringify(error)); //
+            //reject(new Error(error.messages.en));
           }
           // лічимо помилки
           this.errorCounter.value += 1;
@@ -261,6 +262,14 @@ class Manager {
             this.offLine = true;
             this.period = 10;
             this.state.state.value = undefined;
+            this.busy = false;
+            log(
+              "e",
+              ln +
+                "Device is offLine! ErrorCounter=" +
+                this.errorCounter.value +
+                ". Please check connection!"
+            );
           }
 
           log(
