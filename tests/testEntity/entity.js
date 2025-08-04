@@ -40,7 +40,7 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 
 // ----------------------------- прилади -----------------
 // --- менеджери
-const TRP08 = require("../../devices/trp08/manager_2025-07-29.js");
+const TRP08 = require("../../devices/trp08/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
 let dev1 = new TRP08(ifaceW2, 1, { id: "trp08furnace", addT: 0 });
 entity.devicesManager.addDevice(dev1.id, dev1);
