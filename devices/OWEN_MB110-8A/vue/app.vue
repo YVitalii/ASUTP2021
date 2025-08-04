@@ -21,6 +21,11 @@
       <div class="col"><Temperature :value="count[5]" :title="device.regs.T5.comment[lang]"></Temperature></div>
       <div class="col"><Temperature :value="count[6]" :title="device.regs.T6.comment[lang]"></Temperature></div>
     </div>
+    <div class="row">
+      <div class="col"><Temperature :value="count[7]" :title="device.regs.T7.comment[lang]"></Temperature></div>
+      <div class="col"><Temperature :value="count[8]" :title="device.regs.T8.comment[lang]"></Temperature></div>
+      <!-- <div class="col"><Temperature :value="count[9]" :title="device.regs.T6.comment[lang]"></Temperature></div> -->
+    </div>
    </div>
    <!-- <p>{{url}}</p> -->
 </template>

@@ -224,7 +224,7 @@ module.exports = class ClassLoggerManager {
    * @returns Promise
    */
   async writeLine() {
-    let trace = 1,
+    let trace = 0,
       ln =
         this.ln + `writeLine(${this.fileName + this._fileExtensions.logger})::`;
     // якщо режим не "started" - виходимо
@@ -240,6 +240,7 @@ module.exports = class ClassLoggerManager {
 
     // опитуємо датчики + формуємо рядок для запису
     let line = getCurrTimeString();
+
     for (let i = 0; i < this.regsId.length; i++) {
       let regName = this.regsId[i];
       let reg = this.regs[regName];
@@ -266,6 +267,7 @@ module.exports = class ClassLoggerManager {
       this.fileName + this._fileExtensions.logger,
       line
     );
+    trace = 1;
     trace ? log("", ln, `Was appended line=`, line) : null;
 
     // плануємо наступний запуск
