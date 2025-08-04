@@ -204,7 +204,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    * @param {Array | String} regsList - список id регістрів, масив або рядок з сепаратором ";"
    * @returns {Object} - {regName:this.regs[regName].value,..} наприклад {offLine:true,T:50,H:10,..}
    */
-  getRegsValues(regsList = undefined) {
+  async getRegsValues(regsList = undefined) {
     let trace = 0,
       ln = this.ln + `getRegsValues()::`;
     let res = {};
@@ -244,8 +244,8 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
               )
             : null;
           // ставимо в чергу запит на зчитування поточного значення регістра
-          this.getRegister(key);
-        }
+          await this.getRegister(key);
+        } // if (!this.offLine)
       }
     }
     res.offLine = this.offLine;

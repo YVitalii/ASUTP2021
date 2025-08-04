@@ -71,12 +71,13 @@ console.log(`Поточна публічна IP-адреса сервера: ${i
 // }
 
 let comId;
+
 // -------------  w2 two wire RS485 ------------------------
 if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
 } else {
-  comId = comName = "COM3";
+  comId = comName = "COM14";
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");

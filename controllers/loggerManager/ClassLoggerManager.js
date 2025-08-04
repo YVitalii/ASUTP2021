@@ -206,7 +206,7 @@ module.exports = class ClassLoggerManager {
 
   async stop() {
     let trace = 0,
-      ln = this.ln + "stop()";
+      ln = this.ln + "stop()::";
     trace ? log("i", ln, `Started this.state.id=${this.state.id}`) : null;
     if (this.state.id == this._states.going.id) {
       this.state = this._states.stoping;
@@ -224,7 +224,7 @@ module.exports = class ClassLoggerManager {
    * @returns Promise
    */
   async writeLine() {
-    let trace = 0,
+    let trace = 1,
       ln =
         this.ln + `writeLine(${this.fileName + this._fileExtensions.logger})::`;
     // якщо режим не "started" - виходимо
@@ -243,12 +243,22 @@ module.exports = class ClassLoggerManager {
     for (let i = 0; i < this.regsId.length; i++) {
       let regName = this.regsId[i];
       let reg = this.regs[regName];
-      let val = await reg.getValue();
-      trace ? log("i", ln, `${reg.id}.getValue()=`, val) : null;
-      val = val === undefined || val === null || isNaN(val) ? -5 : val;
-      reg.value = val;
+      let val = null;
+      try {
+        val = await reg.getValue();
+        trace ? log("i", ln, `${reg.id}.getValue()=`, val) : null;
+        val = val === undefined || val === null || isNaN(val) ? -5 : val;
+        reg.value = val;
+      } catch (error) {
+        reg.value = -5;
+        log("e", ln, `Error in reg.getValue() for:`, error);
+        if (trace) {
+          log("i", ln, `reg=`);
+          console.dir(reg);
+        }
+      }
       line += `\t${val}`;
-    }
+    } // for (let i = 0; i < this.regsId.length; i++) {
     line += "\n";
     this.lastDataLine = line;
 
