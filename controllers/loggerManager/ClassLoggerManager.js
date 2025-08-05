@@ -248,16 +248,16 @@ module.exports = class ClassLoggerManager {
       try {
         val = await reg.getValue();
         trace ? log("i", ln, `${reg.id}.getValue()=`, val) : null;
-        val = val === undefined || val === null || isNaN(val) ? -5 : val;
-        reg.value = val;
       } catch (error) {
-        reg.value = -5;
+        val = null;
         log("e", ln, `Error in reg.getValue() for:`, error);
         if (trace) {
           log("i", ln, `reg=`);
           console.dir(reg);
         }
       }
+      val = val === undefined || val === null || isNaN(val) ? null : val;
+      reg.value = val; // зберігаємо значення в регістрі
       line += `\t${val}`;
     } // for (let i = 0; i < this.regsId.length; i++) {
     line += "\n";

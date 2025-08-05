@@ -135,7 +135,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
    * Перевірка стану процесу
    */
   async testProcess() {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "testProcess()::";
     trace ? this.logger("", `testProcess()::Started`) : null;
     if (!(await super.testProcess())) {

@@ -193,19 +193,24 @@ class Chart {
     let obj = {};
     for (var i = 1; i < data.columns.length; i++) {
       //берем с 1, т.к. 0 - время
+      let key = data.columns[i];
       // перебираем все заголовки в таблице данных
-      if (d[data.columns[i]]) {
-        // если ключ=заголовку во входных данных имеется
+      if (d[key] || d[key] === 0) {
+        // якщо ключ існує є у вхідних даних
         // определяем временную метку
         if (i == 1) {
           // в первой итерации берем timestamp у первого элемента, как общий для всех
           obj[data.columns[0]] = new Date(d[data.columns[0]]); //d[data.columns[0]]=d['time'];
         }
         // запамятовуємо значення для ключа
-        let val = d[data.columns[i]];
-        obj[data.columns[i]] = val;
+        let val = d[key];
+        obj[key] = val;
         this.adjustYscale(val, true);
-      } // if ( d[data.columns[i]] )
+      } else {
+        // if ( d[data.columns[i]] )
+        console.error(`Not found key=${key} in d=`);
+        console.dir(d);
+      }
     } //for
     //если после обработки входящих данных нет отметки времени: т.е. объект -пустой - выход
     if (!obj.time) {
@@ -468,13 +473,13 @@ class Chart {
   // -----------------------  appendLine() ----------------------
   appendLine() {
     // дорисовывает линии графиков до новой точки
-    let trace = 0;
+    let trace = 1;
     let logCaption = "appendLine:";
     // рисуем линии по полученным данным
     let lastData = this.data[this.data.length - 2];
     let newData = this.data[this.data.length - 1];
     // якщо даних ще немає - вихід
-    if (lastData == undefined) {
+    if (lastData == undefined || newData === null || newData === undefined) {
       return;
     }
     trace
@@ -485,10 +490,31 @@ class Chart {
       : null;
     for (var i = 1; i < this.data.columns.length; i++) {
       let key = this.data.columns[i];
+      let lN = logCaption + `[${key}]::`;
+      let yStart = lastData[key],
+        yEnd = +newData[key]; // значення попередньої точки
+      trace ? console.log(lN + "yStart=" + yStart + ";yEnd=" + yEnd) : null;
+      if (
+        yStart === undefined ||
+        yEnd === undefined ||
+        yStart === null ||
+        yEnd === null ||
+        isNaN(yStart) ||
+        isNaN(yEnd)
+      ) {
+        // якщо значення не визначено - вихід
+        console.error(lN + "yStart or yEnd is undefined. Exit");
+        console.log(lN + "yStart=" + yStart + ";yEnd=" + yEnd);
+        console.log(lN + "lastData=");
+        console.dir(lastData);
+        console.log(lN + "newData=");
+        console.dir(newData);
+        continue; // next iteration
+      }
       let path = d3.path();
-      path.moveTo(this.xScale(lastData.time), this.yScale(+lastData[key]));
-      path.lineTo(this.xScale(newData.time), this.yScale(+newData[key]));
-      trace ? console.log(logCaption + "path=" + path.toString()) : null;
+      path.moveTo(this.xScale(lastData.time), this.yScale(yStart));
+      path.lineTo(this.xScale(newData.time), this.yScale(yEnd));
+      // trace ? console.log(logCaption + "path=" + path.toString()) : null;
       this.svg
         .append("path")
         .attr("fill", "none")
