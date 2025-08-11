@@ -2,6 +2,13 @@
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
 const dummy = require("../../tools/dummy.js").dummyPromise;
 const log = require("../../tools/log.js");
+const CalibratorClass = require("../../controllers/thermocoupleCalibrator/CorrectValueClass.js");
+
+let calibrator = new CalibratorClass(
+  "../testEntity/MB110_CalibrationFile.json",
+  "T0"
+);
+
 let trace = 0,
   gln = __filename + "::";
 
@@ -9,21 +16,21 @@ let trace = 0,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
 let props = {
-  id: "Calibrator_9points",
+  id: "CalibratedMeter_9points",
   homeDir: __dirname,
 };
 
 // -- коротке імя печі
 props.shortName = {
-  ua: "Калібратор 9 точок",
-  en: "Calibrator_9points",
+  ua: "Вимірювач 9 точок",
+  en: "Meter for  9points",
   ru: "Калибратор 9 точек",
 };
 
 // -- повне імя печі, якщо не вказано  props.fullName = props.shortName
 props.fullName = {
-  ua: "Калібратор 9 точок",
-  en: "Calibrator_9points",
+  ua: "Калібрований вимірювач на 9 точок",
+  en: "Calibrated meter for  9points",
   ru: "Калибратор 9 точек",
 };
 
@@ -135,26 +142,33 @@ logger.addReg({
 // ---- додаємо регістр для логування + його опис
 for (let i = 1; i < 9; i++) {
   let reg = {
-    id: `dT${i}`,
+    id: `T${i}`,
     units,
     header: {
-      ua: `dT${i}`,
-      en: `dT${i}`,
-      ru: `dT${i}`,
+      ua: `T${i}`,
+      en: `T${i}`,
+      ru: `T${i}`,
     },
     comment: {
-      ua: `Поточна різниця (T0-T${i})x10`,
-      en: `Current difference temperature (T0-T${i})x10`,
-      ru: `Текущая разница температур (T0-T${i})x10`,
+      ua: `Поточна температура T${i}`,
+      en: `Current temperature T${i}`,
+      ru: `Текущая температура T${i}`,
     },
     getValue: async () => {
+      let trace = 1,
+        ln = gln + `getValue(T${i})::`;
+      // trace ? console.log(ln + `Started`) : null;
       let res = await entity.devicesManager
         .getDevice("mb110")
         .getRegister(`T${i}`);
-      let baseT = await entity.devicesManager.getDevice("trp08n2").getT();
-      // повинна повертати числове значення регістру
-      baseT - res;
-      return ((baseT - res) * 10).toFixed(0); // повертаємо з точністю до цілого
+      // console.log(ln + `res=${res}`);
+      let correctedValue = calibrator.calibrate(`dT${i}`, res).toFixed(1);
+      trace
+        ? console.log(
+            ln + `ReadedValue=${res}; correctedValue=${correctedValue}`
+          )
+        : null;
+      return correctedValue; // повертаємо з точністю до цілого
     },
   };
   if (i === 0) {

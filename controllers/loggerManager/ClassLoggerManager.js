@@ -250,7 +250,7 @@ module.exports = class ClassLoggerManager {
         trace ? log("i", ln, `${reg.id}.getValue()=`, val) : null;
       } catch (error) {
         val = null;
-        log("e", ln, `Error in reg.getValue() for:`, error);
+        log("e", ln, `Error in reg.getValue() for ${regName}:`, error);
         if (trace) {
           log("i", ln, `reg=`);
           console.dir(reg);
