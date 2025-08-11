@@ -2,13 +2,6 @@
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
 const dummy = require("../../tools/dummy").dummyPromise;
 const log = require("../../tools/log.js");
-const CalibratorClass = require("../../controllers/thermocoupleCalibrator/CorrectValueClass.js");
-
-let calibrator = new CalibratorClass(
-  "../testEntity/MB110_CalibrationFile.json",
-  "T0"
-);
-
 let trace = 0,
   gln = __filename + "::";
 
@@ -16,21 +9,21 @@ let trace = 0,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
 let props = {
-  id: "CalibratedMeter_9points",
+  id: "Calibrator_9points",
   homeDir: __dirname,
 };
 
 // -- коротке імя печі
 props.shortName = {
-  ua: "Вимірювач 9 точок",
-  en: "Meter for  9points",
+  ua: "Калібратор 9 точок",
+  en: "Calibrator_9points",
   ru: "Калибратор 9 точек",
 };
 
 // -- повне імя печі, якщо не вказано  props.fullName = props.shortName
 props.fullName = {
-  ua: "Калібрований вимірювач на 9 точок",
-  en: "Calibrated meter for  9points",
+  ua: "Калібратор 9 точок",
+  en: "Calibrator_9points",
   ru: "Калибратор 9 точек",
 };
 
@@ -142,12 +135,12 @@ logger.addReg({
 // ---- додаємо регістр для логування + його опис
 for (let i = 1; i < 9; i++) {
   let reg = {
-    id: `T${i}`,
+    id: `dT${i}`,
     units,
     header: {
-      ua: `T${i}`,
-      en: `T${i}`,
-      ru: `T${i}`,
+      ua: `dT${i}`,
+      en: `dT${i}`,
+      ru: `dT${i}`,
     },
     comment: {
       ua: `Поточна різниця (T0-T${i})x10`,
@@ -158,8 +151,10 @@ for (let i = 1; i < 9; i++) {
       let res = await entity.devicesManager
         .getDevice("mb110")
         .getRegister(`T${i}`);
-      let correctedValue = calibrator(`T${i}`, res);
-      return correctedValue.toFixed(1); // повертаємо з точністю до цілого
+      let baseT = await entity.devicesManager.getDevice("trp08n2").getT();
+      // повинна повертати числове значення регістру
+      baseT - res;
+      return ((baseT - res) * 10).toFixed(0); // повертаємо з точністю до цілого
     },
   };
   if (i === 0) {

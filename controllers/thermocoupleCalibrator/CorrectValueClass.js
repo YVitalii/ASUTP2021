@@ -1,12 +1,13 @@
 const { resolve } = require("path");
 const dummy = require("../../tools/dummy.js").dummyPromise;
 const { open, existSync } = require("node:fs/promises");
+const log = require("../../tools/log");
 
 const LinearFunction = require("../../tools/general.js").ClassLinearFunction;
 
 class CorrectValue {
   constructor(fileWithCalibrationTable, baseReg) {
-    this.ln = `CorrectValue(${fileWithCalibrationTable})::`;
+    this.ln = `CorrectorValues(${fileWithCalibrationTable})::`;
     this.fileName = resolve(fileWithCalibrationTable);
     if (baseReg === undefined) {
       throw new Error("baseReg must be defined!!! But baseReg=${baseReg}");
@@ -18,33 +19,38 @@ class CorrectValue {
     this.init();
   }
   async init() {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `init()::`;
     let file;
     try {
       file = await open(this.fileName, "r");
-
-      this.calibrationTable = JSON.parse(await file.readFile());
+      let data = await file.readFile();
+      trace ? console.log(ln + `Was readed from file data=[${data}]`) : null;
+      this.calibrationTable = JSON.parse(data);
       if (!this.calibrationTable === undefined) {
         throw new Error(
           `Base point [${this.baseReg}] not found in calibration file.`
         );
       }
       this.ready = true;
+      file.close();
+      log("i", ln, "Calibration file was successfully loaded");
     } catch (error) {
       this.ready = false;
-      console.log(ln + `errorCounter=${this.errorCounter}:`);
-      console.error(error);
+      console.log(
+        ln + `errorCounter=${this.errorCounter}: error = ${error.message}`
+      );
+      // console.error(error);
       this.errorCounter--;
       if (this.errorCounter === 0) {
         console.error(ln + error.message + "::Correction disabled!");
+        log("e", ln, error.message, "::Correction disabled!");
         return;
       }
       setTimeout(() => {
         this.init();
       }, 2000);
     } finally {
-      file.close();
     }
   } // init()
 

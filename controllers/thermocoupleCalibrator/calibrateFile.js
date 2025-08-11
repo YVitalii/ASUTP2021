@@ -62,11 +62,17 @@ async function go() {
       let regName = `dT${i - 3}`;
       const el = parseFloat(arr[i]);
       let t = arr[3] - parseFloat(el) / 10;
-      trace ? console.log(ln + `regName=${regName};el=${el}; t=${t}`) : null;
+
       let calibratedT = calibrator.calibrate(regName, t);
-      res += "\t" + (arr[3] - calibratedT).toFixed(1);
+      res += "\t" + calibratedT.toFixed(1);
       let calibrated_dT = parseFloat(arr[3]) - calibratedT;
       res += "\t" + calibrated_dT.toFixed(1);
+      trace
+        ? console.log(
+            ln +
+              `regName=${regName};el=${el}; calibratedT=${calibratedT}; calibrated_dT=${calibrated_dT}; `
+          )
+        : null;
     }
     outFile.write(res + "\n");
   } //for await

@@ -121,7 +121,7 @@ class ClassProcessManager {
     //  тому робимо копію списку завдань та парсимо кроки тут.
     //  TODO Перенести в процесМенеджер список доступних кроків з tasksManager
     // в tasksManager брати список звідси
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + " setProgram()::";
     if (this.program.state && this.program.state._id == "going") {
       // -------- програма на виконанні, неможливо її змінити --------
@@ -138,12 +138,12 @@ class ClassProcessManager {
     //
 
     // трасувальник отриманого списку завдань
-    trace = 1;
+    trace = 0;
     if (trace) {
       log("i", ln, `this.listSteps=`);
       console.dir(this.listSteps);
     }
-    trace = 1;
+    trace = 0;
     //скидаємо поточне імя лог-файлу
     this.currLogFileName = undefined;
     // очищуємо програму
@@ -297,7 +297,7 @@ class ClassProcessManager {
    * @returns
    */
   getFullHtml(req) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "getFullHtml()::";
 
     let lang = req.user.lang ? req.user.lang : "ua";
