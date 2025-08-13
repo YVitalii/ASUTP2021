@@ -44,6 +44,14 @@ async function writeCalibrationFile(args = {}, toFile = "") {
 if (require.main === module) {
   let homeDir = "./loggerManager/";
   let arr = {
+    21: {
+      fName: homeDir + "2025-08-11_13-43.log",
+      timelaps: { start: "2025-08-11; 13:44:00", end: "2025-08-11; 13:59:00" },
+    },
+    80: {
+      fName: homeDir + "2025-08-11_14-05.log",
+      timelaps: { start: "2025-08-11; 15:30:00", end: "2025-08-11; 16:10:00" },
+    },
     100: {
       fName: homeDir + "2025-08-06_10-32.log",
       timelaps: { start: "2025-08-06; 10:45:00", end: "2025-08-06; 11:05:00" },
