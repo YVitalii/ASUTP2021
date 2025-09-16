@@ -7,9 +7,11 @@ let trace = 1,
 // *** НОВИЙ КОД: Визначення кореневої директорії для розробки ***
 // `process.env.VITE_APP_ROOT` - це змінна оточення, яку ми будемо встановлювати
 // Якщо змінна не встановлена, за замовчуванням буде корінь всього проєкту або 'devices/mb110/vue'
+
 trace
   ? console.log(ln, `process.env.VITE_APP_ROOT=${process.env.VITE_APP_ROOT}`)
   : null;
+
 const CURRENT_VUE_APP_ROOT = process.env.VITE_APP_ROOT
   ? path.resolve(__dirname, process.env.VITE_APP_ROOT)
   : path.resolve(__dirname, "./"); // Дефолтний корінь - поточна директорія
@@ -17,6 +19,11 @@ const vueEntryPoints = {
   device_mb110: path.resolve(
     __dirname,
     "./devices/OWEN_MB110-8A/vue",
+    "main.js"
+  ),
+  UserConfirmationStep: path.resolve(
+    __dirname,
+    "./controllers/UserConfirmationStep/vue",
     "main.js"
   ),
 };

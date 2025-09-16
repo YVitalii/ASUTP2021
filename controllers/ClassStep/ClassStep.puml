@@ -2,6 +2,8 @@
 
 class "ClassStepGeneral" as classStepGeneral {
 	---- constructor(props) ----
+	+id = props.header ? props.header : "id_" + new Date().getTime().toString().slice(-6)
+	+this.checkTime = props.checkTime ? props.checkTime : 2000; // час перевірки стану кроку, мс
 	+header = props.header : Object {ua,en,ru} // назва кроку 
 	+comment = {ua,en,..} : Опис кроку
 	+beforeStart() : async Function // асинхронна функція для виконання перед початком кроку (підготовка)
@@ -9,23 +11,23 @@ class "ClassStepGeneral" as classStepGeneral {
 	+ln = String // опис для логування
 	
 	---- this ----
-	+ currentDuration : Number -  тривалість кроку в сек
+	+currentDuration : Number -  тривалість кроку в сек
 	+state : Object; // стан кроку 
 	+state._id ="waiting" String // id стану ["waiting","going","finished","stoped","error"]
 	+state.note: String Опис стану
 	+state.startTime = undefined|ObjectDate // старт кроку
 	+state.duration = "0" : String // тривалість кроку e вигляді "ГГ:ХХ:СС"
 	+state.changed = undefined|ObjectDate // відмітка про час останньої зміни стану кроку
-	-regs = {}: Object; // тут зберігаються налаштування
-	-err=null/{ua,en,..};  // опис помилки 
-
-	+testState()  // повертає 1=true коли все нормально та 0=false при помилці 
-	-logger(level,msg) // логер + автоматично додає відмітку часу та this.ln до повідомлення
-	+start(): async Function // основна функція, що кожні 2 сек \n перевіряє стан процесу і завершується  resolve / reject
+	+regs = {}: Object; // тут зберігаються налаштування
+	+err=null/{ua,en,..};  // опис помилки 
+	+getState() = {...this.state} + id + header + comment // повертає поточний стан кроку
+	+testState()  // коли все нормально то повертає 1=true, при помилці 0=false 
+	+logger(level,msg) // логер + автоматично додає відмітку часу та this.ln до повідомлення
+	+start(): async Function // основна функція, що кожні this.checkTime сек \n перевіряє стан процесу і завершується  resolve / reject
 	+stop(msg) // примусова зупинка процесу
-	-finish(msg) // успішне завершення процесу
-	-error(msg) // завершення по помилці
-	duration() // вираховує поточну тривалість кроку
+	+finish(msg) // успішне завершення процесу
+	+error(msg) // завершення по помилці
+	-duration() // вираховує поточну тривалість кроку
 	
 }
 

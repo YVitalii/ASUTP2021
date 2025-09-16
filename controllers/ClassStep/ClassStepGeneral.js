@@ -266,6 +266,11 @@ class ClassStep {
     return 0;
   }
 
+  /**
+   *
+   * @returns {this.state}
+   */
+
   getState() {
     let res = { ...this.state };
     res.id = this.id;

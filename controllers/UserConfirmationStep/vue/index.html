@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/bootstrap/bootstrap.min.css" />
+    <script src="/bootstrap/bootstrap.bundle.min.js"></script>
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      let step = {
+        state: {
+          _id: "waiting",
+          note: { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` },
+          startTime: undefined,
+          duration: "0",
+          changed: undefined,
+        },
+        id: "id_14:23:18",
+        header: {
+          ua: `Підтвердження користувача`,
+          en: `User confirmation`,
+          ru: ``,
+        },
+        comment: {
+          ua: `Перевірте стан печі та встановіть всі прапорці`,
+          en: `Check the Furnace and set all checkboxes`,
+          ru: ``,
+        },
+      };
+      let steps = [];
+      for (let i = 0; i < 3; i++) {
+        const newStep = { ...step };
+        newStep.id = `step-${i}`;
+        steps[i] = newStep;
+      }
+      console.log("steps=");
+      console.dir(steps);
+
+      window.programManager = { steps };
+    </script>
+    <h1>Development of [UserConfirmationStep]</h1>
+    <div id="programSteps" class="programStepsClass">
+      <!-- Тут буде рендеритися ваш Vue додаток -->
+    </div>
+    <script src="/bootstrap/bootstrap.min.js"></script>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
