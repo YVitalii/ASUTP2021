@@ -436,7 +436,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       throw new Error(ln + `regs[${regName}] is undefined!`);
     }
     if (trace) {
-      log("i", ln, `reg=`);
+      log("i", ln, `Old reg=`);
       console.dir(reg);
     }
     // якщо прилад відсутній в мережі
@@ -467,6 +467,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     trace ? log("i", ln, `res=`, res) : null;
     if (res[0] && res[0].value != undefined) {
       reg.value = res[0].value;
+      reg.note = res[0].detail.afterGet.note;
     }
 
     return reg.value;

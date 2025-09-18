@@ -41,10 +41,8 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 // ----------------------------- прилади -----------------
 // --- менеджери
 const TRP08 = require("../../devices/trp08/manager.js");
-const TRM251 = require("../../devices/OWEN_TRM251/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
-// let dev1 = new TRP08(ifaceW2, 1, { id: "trp08furnace", addT: 0 });
-let dev1 = new TRM251({ iface: ifaceW2, addr: 1, id: "furnace", addT: 0 });
+let dev1 = new TRP08(ifaceW2, 1, { id: "trp08furnace", addT: 0 });
 entity.devicesManager.addDevice(dev1.id, dev1);
 // // --- створюємо та реєструємо прилад №2 -  центр камери
 let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });
@@ -60,40 +58,40 @@ let taskThermal = entity.tasksManager.getTask("taskThermal");
 // додаємо прилади, що беруть участь в процесі
 // console.log("dev3=", dev3.id);
 // console.dir(dev3);
-taskThermal.addDevice(dev2);
+taskThermal.addDevice(dev1);
 // taskThermal.addDevice(dev2);
 
 // --------------  налаштування менеджера логування процесу ----------------------
 var logger = entity.loggerManager;
 let units = { ua: `°C`, en: `°C`, ru: `°C` };
-// // ---- додаємо регістр для логування + його опис
-// logger.addReg({
-//   id: "tT",
-//   units,
-//   header: {
-//     ua: `Ціль`,
-//     en: `Goal`,
-//     ru: `Цель`,
-//   },
-//   comment: {
-//     ua: `Цільова температура`,
-//     en: `Target temperature`,
-//     ru: `Заданная температура`,
-//   },
-//   getValue: async () => {
-//     // повинна повертати числове значення регістру
-//     let trace = 0,
-//       ln = entity.ln + `getValue(tT)::`;
-//     let res = await entity.devicesManager
-//       .getDevice("trp08furnace")
-//       .getParams("tT");
-//     if (trace) {
-//       console.log(ln + `res.tT=`);
-//       console.dir(res.tT);
-//     }
-//     return res.tT.value;
-//   },
-// }); //logger.addReg(
+// ---- додаємо регістр для логування + його опис
+logger.addReg({
+  id: "tT",
+  units,
+  header: {
+    ua: `Ціль`,
+    en: `Goal`,
+    ru: `Цель`,
+  },
+  comment: {
+    ua: `Цільова температура`,
+    en: `Target temperature`,
+    ru: `Заданная температура`,
+  },
+  getValue: async () => {
+    // повинна повертати числове значення регістру
+    let trace = 0,
+      ln = entity.ln + `getValue(tT)::`;
+    let res = await entity.devicesManager
+      .getDevice("trp08furnace")
+      .getParams("tT");
+    if (trace) {
+      console.log(ln + `res.tT=`);
+      console.dir(res.tT);
+    }
+    return res.tT.value;
+  },
+}); //logger.addReg(
 
 // ---- додаємо регістр для логування + його опис
 logger.addReg({
@@ -111,7 +109,7 @@ logger.addReg({
   },
   getValue: async () => {
     // повинна повертати числове значення регістру
-    return await entity.devicesManager.getDevice("furnace").getRegister("T1");
+    return await entity.devicesManager.getDevice("trp08furnace").getT();
   },
 }); //logger.addReg(
 // ---- додаємо регістр для логування + його опис
@@ -145,16 +143,18 @@ for (let i = 1; i < 9; i++) {
       ru: `T${i}`,
     },
     comment: {
-      ua: `AI0${i}`,
-      en: `AI0${i}`,
-      ru: `AI0${i}`,
+      ua: `Поточна різниця (T0-T${i})x10`,
+      en: `Current difference temperature (T0-T${i})x10`,
+      ru: `Текущая разница температур (T0-T${i})x10`,
     },
     getValue: async () => {
       let res = await entity.devicesManager
         .getDevice("mb110")
         .getRegister(`T${i}`);
-      // let baseT = await entity.devicesManager.getDevice("trp08n2").getT();
-      return res.toFixed(1); // повертаємо результат
+      let baseT = await entity.devicesManager.getDevice("trp08n2").getT();
+      // повинна повертати числове значення регістру
+      baseT - res;
+      return ((baseT - res) * 10).toFixed(0); // повертаємо з точністю до цілого
     },
   };
   if (i === 0) {
