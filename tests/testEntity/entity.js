@@ -150,11 +150,21 @@ for (let i = 1; i < 9; i++) {
       ru: `AI0${i}`,
     },
     getValue: async () => {
-      let res = await entity.devicesManager
-        .getDevice("mb110")
-        .getRegister(`T${i}`);
+      let ln = this.id + "::getValue()::";
+      let res;
+      try {
+        res = await entity.devicesManager
+          .getDevice("mb110")
+          .getRegister(`T${i}`);
+      } catch (error) {
+        log("e", ln, error);
+        throw error;
+      }
+      if (res != null) {
+        res = res.toFixed(1);
+      }
       // let baseT = await entity.devicesManager.getDevice("trp08n2").getT();
-      return res.toFixed(1); // повертаємо результат
+      return res; // повертаємо результат
     },
   };
   if (i === 0) {
