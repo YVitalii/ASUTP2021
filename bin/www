@@ -5,7 +5,7 @@
  */
 
 var log = require("../tools/log.js");
-
+const gLn = "./bin/www::";
 var app = require("../app");
 var debug = require("debug")("asutp2021:server");
 var http = require("http");
@@ -16,6 +16,7 @@ var http = require("http");
 
 var port = normalizePort(process.env.PORT || "3000");
 app.set("port", port);
+console.log(gLn + `app.get("port")=${app.get("port")}`);
 
 /**
  * Create HTTP server.
@@ -34,11 +35,9 @@ server.on("listening", onListening);
 /**
  * Normalize a port into a number, string, or false.
  */
-
 function normalizePort(val) {
   var port = parseInt(val, 10);
-  console.log("Server=");
-  console.dir(server);
+
   if (isNaN(port)) {
     // named pipe
     return val;
@@ -84,7 +83,12 @@ function onError(error) {
 
 function onListening() {
   var addr = server.address();
+  // console.log(gLn + "onListening()()::Server=");
+  // console.dir(server.address());
   var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
   debug("Listening on " + bind);
-  log("w", `------------ server started on ${bind}  ----------------- `);
+  log(
+    "w",
+    `${gLn}------------ server started on PORT: ${bind}  ----------------- `
+  );
 }
