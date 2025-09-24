@@ -32,6 +32,6 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json*
 conf_iface.js*
-./tools/events/*
+/tools/events/*
 # local system settings. stable for system: port, entieties, ..
-./localSettings/*
+/localSettings/*
