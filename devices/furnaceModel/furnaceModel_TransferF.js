@@ -158,7 +158,7 @@ console.dir(oven);
     if (currentTime === 10) {
       oven.setPower(100);
     } else if (currentTime === 100) {
-      oven.setPower(0);
+      oven.setPower(50);
     } else if (currentTime === 200) {
       oven.setPower(0);
     }

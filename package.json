@@ -5,7 +5,8 @@
   "scripts": {
     "build:vue": "vite build",
     "dev:vue": "vite",
-    "npm start dev:vue:mb110-8a": "cross-env VITE_APP_ROOT=./devices/OWEN_MB110-8A/vue vite",
+    "test:vitest": "vitest ./src/components/atoms/checkbox_strike_test.mjs",
+    "dev:vue:mb110-8a": "cross-env VITE_APP_ROOT=./devices/OWEN_MB110-8A/vue vite",
     "dev:vue:userConfirmationStep": "cross-env VITE_APP_ROOT=./controllers/UserConfirmationStep/vue vite",
     "start": "supervisor --no-restart-on error  --watch ./routes,./,./views,./entyties/* ./bin/www",
     "jsdoc": "jsdoc --configure ./config_jsdoc.js --recurse"
@@ -32,5 +33,10 @@
     "supervisor": "^0.12.0",
     "vite": "^6.3.5",
     "vue": "^3.5.18"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^17.6.1",
+    "vitest": "^3.2.4"
   }
 }

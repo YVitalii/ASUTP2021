@@ -56,6 +56,10 @@ export default defineConfig(
           },
         },
       },
+      optimizeDeps: {
+        // Виключаємо `@vue/test-utils` з оптимізації
+        exclude: ["@vue/test-utils"],
+      },
     };
     // *** Конфігурація для режиму розробки (`vite dev`) ***
     if (command === "serve") {

@@ -24,17 +24,20 @@ class FlowControler {
    * @param {String}  props.shortName = {ua,en,ru} коротка назва "АмВ"
    * @param {String}  props.fullName =  {ua,en,ru} назва контролера, наприклад "Аміак. Великий"
    * @param {Object}  props.flowScale = {min=0,max=1} [м3/год] - градуювання регулятора витрати для розрахунку поточної витрати в м3/год
-   * @param {async Function}  props.getDevicePV() = async функція, яка має повертати поточну витрату fullfilled (прочитана витрата 0..100%) або reject якщо прочитати неможна
+   * @param {async Function}  props.getDevicePV() = async функція, яка має повертати поточну витрату (прочитана витрата 0..100%) або reject якщо прочитати неможна
    * @param {async Function}  props.setDeviceSP(val) = async функція, яка має записувати поточну витрату в прилад та повертати fulfilled(витрата 0..100%) або reject якщо записати не можна
    * @param {async Function}  props.getDevicePressure() = функція що має повертати тиск газу на вході в %, для реле (0 або 100), для аналогових 0..100%
-   * @param {Object}  props.pressureList = {alarm,warning,normal,heigh} налаштування рівней тиску газу: Number
+   * @param {Object}  props.pressureList = {alarm:0,warning:0,normal:100,heigh:120} налаштування рівней тиску газу: Number (по замовчуванню налаштування для дискретного датчика)
    * @param {Object}  props.periodSets - {working=1, waiting=1,transition=1, transitionDelay=20 } [сек]  = час періодичного опитування стану контролера та час очікування стабілізації витрати
    * @param {Number}  props.errCounter=10 - допустима кількість помилок, після якої генерується аварія
-   * @param {Array of Point}  props.calibrationTable - калібрувальна таблиця витратомірів, Point={x:%,y:m3/h}
+   * @param {async Function}  props.alarm(info={}) - функція, що викликається при аварії
+   * @param {async Function}  props.warning(info={}) - функція, що викликається при аварії
    * */
   constructor(props = null) {
     /** @private {String} ln - загальний підпис для логування */
-    this.ln = `FlowControler(${props.id ? props.id : "null"})::`;
+    this.ln = `FlowControler(${
+      props.shortName && props.shortName.ua ? props.id : "props.shortName.ua"
+    })::`;
     let ln = this.ln + "constructor()::",
       trace = 0;
 
@@ -56,7 +59,7 @@ class FlowControler {
     props.pressureList = props.pressureList ? props.pressureList : {};
     this.pressureList = {
       alarm: {
-        value: props.pressureList.alarm ? props.pressureList.alarm : 10,
+        value: props.pressureList.alarm ? props.pressureList.alarm : 0,
         note: {
           code: "alarm",
           ua: `Аварія! Немає газу`,
@@ -65,7 +68,7 @@ class FlowControler {
         },
       },
       warning: {
-        value: props.pressureList.warning ? props.pressureList.warning : 20,
+        value: props.pressureList.warning ? props.pressureList.warning : 50,
         note: {
           code: "warning",
           ua: `Низький`,
@@ -83,7 +86,7 @@ class FlowControler {
         },
       },
       high: {
-        value: props.pressureList.high ? props.pressureList.high : 110,
+        value: props.pressureList.high ? props.pressureList.high : 120,
         note: {
           code: "high",
           ua: `Високий`,
