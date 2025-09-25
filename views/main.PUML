@@ -1,0 +1,40 @@
+@startuml
+
+class "main.pug" {
+    +lang
+    +pageTitle  
+    - _lang = lang ? lang : 'ua'
+    - title = pageTitle[_lang] ? pageTitle[_lang] : 'pageTitle: not defined'
+   ** ========== <html> ========== **
+    Style: class="h-100"
+   ** ========== <head> ========== **
+    title !{_pageTitle}
+    link (rel='stylesheet', href='/stylesheets/style.css')
+    link (rel='stylesheet', href='/bootstrap/bootstrap.min.css')
+    script (src="/bootstrap/bootstrap.bundle.min.js") 
+    script include ../public/timedisplay.js
+    script var pageProps={}; const lang = "!{_lang}";
+    //- script
+    include ../controllers/elementsRender/views/myElementsRender.pug
+    script include ./js/tools.js
+ ** ========== <body> ========== **
+    body (class="h-100"  )
+        \t ===== header =====
+        \t div ( class="container-fluid h-100 d-flex flex-column" ) 
+        \t header.row #header
+        \t\t div ( class="col-2")
+          \t\t\t img (src="/img/logo_bortek.png", alt="Бортек" id="logo")
+        \t\t  div ( class="col my-auto mx-auto" )
+          \t\t\t  div ( class="h2 " id="pageTitle") !{_pageTitle}
+        \t\t   div.col-1 #connectionsContainer
+        \t\t  include ../rs485/views/compact.pug
+        \t\t  div ( class="col-1 d-flex justify-content-center align-items-center")
+            \t\t\t    div ( class="h5 text-center" id="timedisplay" )
+            \t\t\t   script include ./js/headerManager.js
+        \t ===== pageBody  ===== 
+    \t div (class="row h-100" ) 
+       \t\t div( class="col h-100")
+          \t\t\t div (id="pageBody" class="container-fluide h-100") !{body}
+}
+
+@enduml

@@ -5,4 +5,4 @@ function getDate() {
 
   document.getElementById("timedisplay").innerHTML = date.toLocaleString();
 }
-setInterval(getDate, 0);
+setInterval(getDate, 1000);

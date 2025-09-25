@@ -1,0 +1,84 @@
+doctype html
+-var _lang = lang ? lang : 'ua'
+-var _pageTitle = pageTitle[_lang] ? pageTitle[_lang] : 'pageTitle: not defined'
+html(class="h-100")
+  head
+    title !{_pageTitle}
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/bootstrap/bootstrap.min.css')
+    script(src="/bootstrap/bootstrap.bundle.min.js") 
+    script
+      include ../public/timedisplay.js
+    script.
+      var pageProps={};
+      const lang = "!{_lang}";
+    //- script
+    include ../controllers/elementsRender/views/myElementsRender.pug
+    script
+      include ./js/tools.js
+    //-   include ../tools/createReport.js
+
+  body(class="h-100"  )
+    div(class="container-fluid h-100 d-flex flex-column" ) 
+      //- header
+      //- div(class="row")#header
+      header.row#header
+        div(class="col-2")
+          img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
+        div(class="col my-auto mx-auto" )
+          div(class="h2 " id="pageTitle") !{_pageTitle}
+        div.col-1#connectionsContainer
+          include ../rs485/views/compact.pug
+        div(class="col-1 d-flex justify-content-center align-items-center")
+          div( class="h5 text-center" id="timedisplay" )
+        script
+          include ./js/headerManager.js
+      //- pageBody 
+      div(class="row h-100" )
+        div(class="col h-100")
+          div(id="pageBody" class="container-fluide h-100") !{body}
+
+      //- від footera поки відмовився
+
+      //- -var _footerContent = footerContent ? footerContent : 'footerContent : not defined'
+
+      //- div(class="row fixed-bottom")
+      //-   hr
+      //-   div(class="col my-auto mx-auto" id="footer")  
+      //-     div(class="h6" id="footerContent") Footer !{_footerContent}
+      //-   div(class="col-2 d-flex align-items-center") 
+
+
+
+    //-   //- header
+    //-   div(class="row fixed-top")
+    //-     h2 Header
+    //-     //- div(class="col-3")
+    //-     //-   img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
+    //-     //- div(class="col" id="pageTitle")
+    //-     //-   h2(class="") !{_pageTitle}
+
+    //-   //- body
+
+    //-   div(class="row h-100" style="border-style:dotted; background:blue")
+    //-     h1 Body
+
+
+    //-       //-     div(class="col h-100" id="_pageBody" ) !{body}
+    //-       //- footer
+    //-   div(class="row fixed-bottom")
+    //-     h2 Footer
+    //- //-     div(class="col") !{_footerContent}
+    //- //-     div(class="col-2")  
+    //- //-       div(id="timedisplay")
+
+
+
+    //- //- div.user-tools
+    //- //-   - if (userData) {
+    //- //-     h4 #{userData.displayName}
+    //- //-     a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Вийти
+    //- //-   - }
+    //- script(src="/bootstrap/popper.min.js")
+
+    script(src="/bootstrap/bootstrap.min.js")

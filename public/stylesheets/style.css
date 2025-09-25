@@ -24,8 +24,63 @@
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 } */
 
+/* ================================================= */
+/* 1. БАЗОВІ НАЛАШТУВАННЯ (Зняття стандартних відступів) */
+/* ================================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Важливо для Flexbox/Grid */
+}
+
+html,
+body {
+  /* 1. body: width: 100% height: 100% */
+  width: 100%;
+  height: 100%;
+}
+
+/* ================================================= */
+/* 2. FLEXBOX КОНТЕЙНЕР ДЛЯ РОЗБИВКИ */
+/* ================================================= */
+body {
+  /* Включаємо Flexbox на елементі body */
+  display: flex;
+  /* Розміщуємо елементи вертикально (хедер зверху, body знизу) */
+  flex-direction: column;
+}
+
+/* ================================================= */
+/* 3. ЗОНА HEADER */
+/* ================================================= */
+.site-header {
+  /* 2. header: width: 100% height: 10% */
+  width: 100%;
+  height: 10vh; /* Використовуємо 10% від висоти вікна (viewport height) */
+  background-color: #333;
+  color: rgb(179, 51, 51);
+  /* text-align: center; */
+  padding: 10px;
+}
+
+/* ================================================= */
+/* 4. ЗОНА PAGE BODY */
+/* ================================================= */
+
+.page-body {
+  /* 3. pageBody: займає весь вільний простір, що залишився */
+
+  /* Ключова властивість: змушує цей блок "розтягуватися", 
+       займаючи весь доступний вертикальний простір */
+  flex-grow: 1;
+
+  width: 100%;
+  background-color: #f0f0f0;
+  padding: 20px;
+}
+
 a {
-  color: #00B7FF;
+  color: #00b7ff;
 }
 /* #timedisplay {
   position: fixed;
@@ -39,7 +94,7 @@ a {
   top: 21px;
   right: 50px;
 }
-.user-tools>h4 {
+.user-tools > h4 {
   margin-top: 3px;
   margin-right: 10px;
 }
@@ -48,13 +103,13 @@ a {
   top: 22px;
   right: 50px;
 } */
-#comment>p {
+#comment > p {
   font-size: large;
   white-space: pre-line;
 }
 
 .form-group {
-  margin-bottom:1rem;
+  margin-bottom: 1rem;
 }
 .login-form {
   width: 340px;
@@ -70,11 +125,12 @@ a {
 .login-form h2 {
   margin: 0 0 15px;
 }
-.form-control, .btn {
+.form-control,
+.btn {
   min-height: 38px;
   border-radius: 2px;
 }
-.btn {        
+.btn {
   font-size: 15px;
   font-weight: bold;
 }
@@ -84,6 +140,6 @@ table img:hover {
 }
 table img {
   margin-right: 5px;
-  transition: all .3s;
+  transition: all 0.3s;
   transform-origin: 50% 50%;
 }

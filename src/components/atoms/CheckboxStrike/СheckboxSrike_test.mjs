@@ -1,14 +1,14 @@
 // src/components/CheckboxComponent.test.js
 import { describe, it, expect } from "vitest";
-import { mount } from "@vue/test-utils";
-import CheckboxComponent from "./checkbox_strike.vue";
+import { shallowMount, mount } from "@vue/test-utils";
+import CheckboxComponent from "./СheckboxSrike.vue";
 
 // Описуємо групу тестів
 describe("CheckboxComponent", () => {
   // Тест 1: Перевірка початкового стану
   it("рендерить мітку і чекбокс з правильними props", () => {
     // Монтуємо компонент з вхідними даними
-    const wrapper = mount(CheckboxComponent, {
+    const wrapper = shallowMount(CheckboxComponent, {
       props: {
         id: "test-id",
         label: "Test Label",
@@ -16,6 +16,8 @@ describe("CheckboxComponent", () => {
         required: true,
       },
     });
+    console.log(wrapper.find("input").html());
+    console.log(wrapper.find("label").html());
 
     // Знаходимо елементи і перевіряємо їх властивості
     const input = wrapper.find("input");
@@ -30,6 +32,8 @@ describe("CheckboxComponent", () => {
 
   // Тест 2: Перевірка зміни стану при кліку
   it("відправляє подію `update:modelValue` при кліку на чекбокс", async () => {
+    let ln = "test2::",
+      trace = 1;
     const wrapper = mount(CheckboxComponent, {
       props: {
         id: "test-id",
@@ -40,13 +44,25 @@ describe("CheckboxComponent", () => {
 
     // Знаходимо чекбокс і імітуємо клік
     const input = wrapper.find('input[type="checkbox"]');
-    await input.trigger("change");
+    trace ? console.log(ln + `input=${input.html()}`) : null;
+    // 1. Встановлюємо властивість 'checked' на елементі DOM (Крок 1)
+    // Ми імітуємо, що користувач поставив позначку
+    await input.setChecked(true);
+    // 2. Тригеримо подію 'change' (Крок 2)
+    // Це викликає обробник події, який відправляє подію 'update:modelValue'
+    // await input.trigger("change");
 
-    // Перевіряємо, що компонент надіслав подію
-    expect(wrapper.emitted("update:modelValue")).toBeTruthy();
-
+    // await wrapper.setProps({ modelValue: true });
     // Перевіряємо, що значення події є правильним
     const emittedEvent = wrapper.emitted("update:modelValue");
+    if (trace) {
+      console.log(ln + `emittedEvent=`);
+      console.dir(emittedEvent);
+    }
+
+    // Перевіряємо, що компонент надіслав подію
+    expect(emittedEvent).toBeTruthy();
+
     expect(emittedEvent[0][0]).toBe(true);
   });
 
