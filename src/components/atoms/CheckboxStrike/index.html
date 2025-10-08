@@ -10,11 +10,17 @@
   <body>
     <script>
       <!-- Тут буде скрипт з налаштуваннями DOM -->
+      const name = "CheckboxStrike";
+      window.myData = { lang: "ua" };
     </script>
-    <h1>Hello, Vue App!</h1>
-    <div id="mb110" class="MB110A8">
+
+    <h1 id="caption"></h1>
+    <div class="CheckboxStrike" id="chBox1">
       <!-- Тут буде рендеритися ваш Vue додаток -->
     </div>
+    <script>
+      caption.innerHTML = `${name} тестування.`;
+    </script>
     <script src="/bootstrap/bootstrap.min.js"></script>
     <script type="module" src="main.js"></script>
   </body>

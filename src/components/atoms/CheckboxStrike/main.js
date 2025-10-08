@@ -1,10 +1,10 @@
 // src/main.js
 import { createApp } from "vue";
 import App from "./app.vue"; // Імпортуємо наш кореневий компонент
-const containerClass = "MB110A8";
+const containerClass = "CheckboxStrike";
 const containers = document.querySelectorAll(`.${containerClass}`); // Знаходимо всі елементи з класом "MB110A8"
 if (containers.length === 0) {
-  console.error(`Контейнери з класом "${CheckboxStrike}" не знайдено.`);
+  console.error(`Контейнери з класом "${containerClass}" не знайдено.`);
 }
 
 containers.forEach((container) => {

@@ -16,7 +16,7 @@ const props = defineProps({
         required: true
     },
     // Додаємо властивість, яка приймає значення від v-model
-    modelValue: {
+    checked: {
         type: Boolean,
         default: false
     }
