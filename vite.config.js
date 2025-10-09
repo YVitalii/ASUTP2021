@@ -26,7 +26,7 @@ const vueEntryPoints = {
     "./controllers/UserConfirmationStep/vue",
     "main.js"
   ),
-};
+}; // vueEntryPoints
 
 if (trace) {
   console.log(ln + `vueEntryPoints=`);
@@ -37,12 +37,15 @@ export default defineConfig(
   ({ command }) => {
     const config = {
       plugins: [vue()],
+
       publicDir: path.resolve(__dirname, "public"), // Папка для статичних ресурсів
       resolve: {
         alias: {
           // Alias '@' буде вказувати на кореневу папку Vue-додатка, що розробляється
           // Або на корінь всього проєкту під час збірки
           "@": CURRENT_VUE_APP_ROOT,
+          "@components": path.resolve(__dirname, "src", "components"),
+          "@atoms": path.resolve(__dirname, "src", "components", "atoms"),
         },
       },
       server: {
