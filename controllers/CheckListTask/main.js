@@ -1,17 +1,13 @@
 // src/main.js
 import { createApp } from "vue";
-import App from "./app.vue";
 
-// Імпортуємо наш кореневий компонент
-const containerClass = "UserConfirmationStep";
-
-// Знаходимо всі елементи з класом ${containerClass}
-const containers = document.querySelectorAll(`.${containerClass}`);
+import App from "./app.vue"; // Імпортуємо наш кореневий компонент
+const containerClass = "CheckListContainer";
+const containers = document.querySelectorAll(`.${containerClass}`); // Знаходимо всі елементи з класом "MB110A8"
 if (containers.length === 0) {
   console.error(`Контейнери з класом "${containerClass}" не знайдено.`);
 }
 
-//
 containers.forEach((container) => {
   // Отримуємо унікальний id поточного контейнера
   const containerId = container.id;

@@ -3,21 +3,21 @@
 // let gLn = "checkbox_strike.vue::script::", trace = 1;
 
 // Визначаємо властивості, які компонент отримуватиме від батька
-// defineProps(["required", "id", "comment", "modelValue"]);
+// label - отримує через слот
 defineProps({
-    required: {
+    required: { // обов'язковість відмітки
         type: Boolean,
         default: false
     },
-    id: {
+    id: { // id
         type: String,
         default: ""
     },
-    comment: {
+    comment: { // спливаюча підказка
         type: String,
         default: ""
     },
-    modelValue: {
+    modelValue: { // зв'язок з батьком = стану checkbox 
         type: Boolean,
         default: false
     }

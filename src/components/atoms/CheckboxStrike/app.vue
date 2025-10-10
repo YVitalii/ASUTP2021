@@ -14,6 +14,10 @@
 
 <script setup>
 
+// Для запуску цього тесту, внести в package.json рядок:
+// "dev:vue:test": "cross-env VITE_APP_ROOT=./src/components/atoms/CheckboxStrike vite",
+// потім запустити: npm run dev:vue:test
+
 import CheckboxStrike from "./СheckboxStrike.vue";
 import { ref } from 'vue';
 
@@ -25,7 +29,6 @@ let data = ref(
     checked: false,
     required: true,
   });
-
 </script>
 
 <style scoped>
