@@ -108,6 +108,7 @@ module.exports = class ClassDevManagerRegGeneral extends ClassGeneral {
       readonly: this.readonly,
       min: this.min,
       max: this.max,
+      note: this.note ? this.note : "",
     };
     return clone(res);
   }

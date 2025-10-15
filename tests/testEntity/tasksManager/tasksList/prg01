@@ -1,1 +1,1 @@
-[{"id":"description","name":"prg01","note":"Опис програми №3"},{"id":"taskThermal","tT":"45","wT":0,"errTmin":"-15","errTmax":"15","H":0,"errH":0,"Y":1,"regMode":"pos","o":"-1"}]
+[{"id":"description","name":"prg01","note":"Опис програми №3"},{"id":"taskThermal","tT":"1000","wT":0,"errTmin":"0","errTmax":"40","H":0,"errH":0,"Y":720,"regMode":"pos","o":"-1"}]
