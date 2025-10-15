@@ -1,6 +1,13 @@
 // ----------- приклад опису сутності ----------------
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
 const dummy = require("../../tools/dummy.js").dummyPromise;
+const log = require("../../tools/log.js");
+const CalibratorClass = require("../../controllers/thermocoupleCalibrator/CorrectValueClass.js");
+
+let calibrator = new CalibratorClass(
+  "../testEntity/MB110_CalibrationFile.json",
+  "T0"
+);
 
 let trace = 0,
   gln = __filename + "::";
@@ -9,21 +16,21 @@ let trace = 0,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
 let props = {
-  id: "Calibrator_9points",
+  id: "CalibratedMeter_9points",
   homeDir: __dirname,
 };
 
 // -- коротке імя печі
 props.shortName = {
-  ua: "Калібратор 9 точок",
-  en: "Calibrator_9points",
+  ua: "Вимірювач 9 точок",
+  en: "Meter for  9points",
   ru: "Калибратор 9 точек",
 };
 
 // -- повне імя печі, якщо не вказано  props.fullName = props.shortName
 props.fullName = {
-  ua: "Калібратор 9 точок",
-  en: "Calibrator_9points",
+  ua: "Калібрований вимірювач на 9 точок",
+  en: "Calibrated meter for  9points",
   ru: "Калибратор 9 точек",
 };
 
@@ -44,7 +51,7 @@ const TRP08 = require("../../devices/trp08/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
 let dev1 = new TRP08(ifaceW2, 1, { id: "trp08furnace", addT: 0 });
 entity.devicesManager.addDevice(dev1.id, dev1);
-// --- створюємо та реєструємо прилад №2 -  центр камери
+// // --- створюємо та реєструємо прилад №2 -  центр камери
 let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });
 entity.devicesManager.addDevice(dev2.id, dev2);
 
@@ -56,6 +63,8 @@ entity.devicesManager.addDevice(dev3.id, dev3);
 // --------------  налаштування менеджера термічного процесу ----------------------
 let taskThermal = entity.tasksManager.getTask("taskThermal");
 // додаємо прилади, що беруть участь в процесі
+// console.log("dev3=", dev3.id);
+// console.dir(dev3);
 taskThermal.addDevice(dev1);
 // taskThermal.addDevice(dev2);
 
@@ -67,9 +76,9 @@ logger.addReg({
   id: "tT",
   units,
   header: {
-    ua: `Завдання`,
-    en: `Task`,
-    ru: `Задание`,
+    ua: `Ціль`,
+    en: `Goal`,
+    ru: `Цель`,
   },
   comment: {
     ua: `Цільова температура`,
@@ -87,7 +96,7 @@ logger.addReg({
       console.log(ln + `res.tT=`);
       console.dir(res.tT);
     }
-    return res.tT;
+    return res.tT.value;
   },
 }); //logger.addReg(
 
@@ -96,9 +105,9 @@ logger.addReg({
   id: "Tf",
   units,
   header: {
-    ua: `Tf`,
-    en: `Tf`,
-    ru: `Tf`,
+    ua: `Піч`,
+    en: `Furnace`,
+    ru: `Печь`,
   },
   comment: {
     ua: `Поточна температура в печі`,
@@ -110,9 +119,28 @@ logger.addReg({
     return await entity.devicesManager.getDevice("trp08furnace").getT();
   },
 }); //logger.addReg(
+// ---- додаємо регістр для логування + його опис
+logger.addReg({
+  id: "T0",
+  units,
+  header: {
+    ua: `T0`,
+    en: `T0`,
+    ru: `T0`,
+  },
+  comment: {
+    ua: `Температура в точці N0`,
+    en: `Current temperature in point N0`,
+    ru: `Текущая температура в точке N0`,
+  },
+  getValue: async () => {
+    // повинна повертати числове значення регістру
+    return await entity.devicesManager.getDevice("trp08n2").getT();
+  },
+}); //logger.addReg(
 
 // ---- додаємо регістр для логування + його опис
-for (let i = 0; i < 9; i++) {
+for (let i = 1; i < 9; i++) {
   let reg = {
     id: `T${i}`,
     units,
@@ -122,15 +150,25 @@ for (let i = 0; i < 9; i++) {
       ru: `T${i}`,
     },
     comment: {
-      ua: `Поточна температура в точці N${i}`,
-      en: `Current temperature in point N${i}`,
-      ru: `Текущая температура в точке N${i}`,
+      ua: `Поточна температура T${i}`,
+      en: `Current temperature T${i}`,
+      ru: `Текущая температура T${i}`,
     },
     getValue: async () => {
-      // повинна повертати числове значення регістру
-      return await entity.devicesManager
+      let trace = 1,
+        ln = gln + `getValue(T${i})::`;
+      // trace ? console.log(ln + `Started`) : null;
+      let res = await entity.devicesManager
         .getDevice("mb110")
         .getRegister(`T${i}`);
+      // console.log(ln + `res=${res}`);
+      let correctedValue = calibrator.calibrate(`dT${i}`, res).toFixed(1);
+      trace
+        ? console.log(
+            ln + `ReadedValue=${res}; correctedValue=${correctedValue}`
+          )
+        : null;
+      return correctedValue; // повертаємо з точністю до цілого
     },
   };
   if (i === 0) {
@@ -141,8 +179,8 @@ for (let i = 0; i < 9; i++) {
   logger.addReg(reg);
 } // for
 
-console.log("logger=");
-console.dir(logger);
+// console.log("logger=");
+// console.dir(logger);
 
 // logger.addReg({
 //   id: "T0",
@@ -186,15 +224,14 @@ console.dir(logger);
 entity.processManager.afterAll = async function () {
   // функція, що викликається після завершення всієї програми
   let trace = 1,
-    ln = entity.ln + `processManager.afterAll()::`;
+    ln = entity.ln + `afterAll()::`;
   if (trace) {
-    console.log(ln + `entity.id=${entity.id}`);
+    log("w", ln + `entity.id=${entity.id}. Started`);
     //console.dir(this, { depth: 1, colors: true });
   }
-  //let dev = this.devicesManager.getDevice("trp08n1");
-  // для того щоб спрацювала лампа "Кінець циклу", потрібно запрограмувати прилад на 1хв. витримки
+  let dev = this.devicesManager.getDevice("trp08furnace");
 
-  //dev.start({ tT: 20, H: 0, Y: 1 });
+  await dev.start({ tT: 20, H: 0, Y: 1, o: 2 });
   return;
   // ---- запускаємо менеджер процесів
 };
@@ -206,7 +243,7 @@ trace = 1;
 if (trace) {
   console.log(gln + `entity.processManager=`);
   // console.dir(entity.processManager, { depth: 2, colors: true });
-  entity.processManager.afterAll();
+  // entity.processManager.afterAll();
 }
 
 if (!module.parent) {

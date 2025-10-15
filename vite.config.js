@@ -43,9 +43,16 @@ export default defineConfig(
         alias: {
           // Alias '@' буде вказувати на кореневу папку Vue-додатка, що розробляється
           // Або на корінь всього проєкту під час збірки
-          "@": CURRENT_VUE_APP_ROOT,
+          "@": CURRENT_VUE_APP_ROOT, // Поточний Vue-додаток
+          "@root": path.resolve(__dirname), // Корінь всього проєкту
           "@components": path.resolve(__dirname, "src", "components"),
           "@atoms": path.resolve(__dirname, "src", "components", "atoms"),
+          "@molecules": path.resolve(
+            __dirname,
+            "src",
+            "components",
+            "molecules"
+          ),
         },
       },
       server: {

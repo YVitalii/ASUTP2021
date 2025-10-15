@@ -1,52 +1,119 @@
 <template>
-    <div class="task-container"
-        :title="comment + '\nПочаток:' + startTime + ' Тривалість:' + duration + '\nПримітка:' + note">
-        <div v-if="state === 'waiting'" class="svg-wrapper">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250">
-                <path
-                    d="M160 64C142.3 64 128 78.3 128 96C128 113.7 142.3 128 160 128L160 139C160 181.4 176.9 222.1 206.9 252.1L274.8 320L206.9 387.9C176.9 417.9 160 458.6 160 501L160 512C142.3 512 128 526.3 128 544C128 561.7 142.3 576 160 576L480 576C497.7 576 512 561.7 512 544C512 526.3 497.7 512 480 512L480 501C480 458.6 463.1 417.9 433.1 387.9L365.2 320L433.1 252.1C463.1 222.1 480 181.4 480 139L480 128C497.7 128 512 113.7 512 96C512 78.3 497.7 64 480 64L160 64zM416 501L416 512L224 512L224 501C224 475.5 234.1 451.1 252.1 433.1L320 365.2L387.9 433.1C405.9 451.1 416 475.5 416 501z" />
-            </svg>
-            Очікування
-        </div>
-        Тіло завдання
+
+    <div class="task-container" :class="stateClass" :id="id"
+        :title="comment + '\nПочаток: ' + startTime + ' Тривалість: ' + duration + '\nПримітка: ' + note">
+        <TaskStatesIcons :state="state" />
     </div>
+    <!-- Модальне вікно з детальною інформацією про крок -->
+    <ModalWindow v-if="showModal" @close="showModal = false" :show="showModal" :header="header"
+        :headerButtonExitActive="false">
+
+        <!-- Check List -->
+        <CheckList :table="props.regs"> </CheckList>
+
+        <div class="row justify-content-end" style="margin-top:10px;">
+
+            <div class="col-3">
+                <button class="btn btn-primary" @click="ok" :disabled="disableButtonOk">Готово</button>
+            </div>
+            <div class="col-3">
+                <button class="btn btn-warning" @click="stop">Стоп</button>
+            </div>
+        </div>
+
+    </ModalWindow>
+
 </template>
 
 <script setup>
 
-import { onMounted } from 'vue';
+//  function statesSelector(n=0){
+
+//  }
+
+
+import { ref, onMounted, computed } from 'vue';
+import TaskStatesIcons from '@root/controllers/taskState_VueGeneral/TaskStateIcon.vue';
+import ModalWindow from '@atoms/ModalWindow/ModalWindow.vue';
+import CheckList from '@molecules/CheckList/СheckList.vue';
+
+
+let showModal = ref(false);
+
+const stop = () => {
+    showModal.value = false;
+    emit('stop');
+    console.log("Stop clicked");
+
+},
+    ok = () => {
+        showModal.value = false;
+        emit('ok');
+        console.log("Ok clicked");
+    };
+
+const emit = defineEmits(['stop', 'ok']);
 
 let props = defineProps({
-    state: {
+    id: { // id кроку
+        type: String,
+        required: true,
+        default: ""
+    },
+    state: { //стан = ["waiting","going","finished","stoped","error"]
         type: String,
         required: true
     },
-    note: {
+    note: { // Примітка
         type: String,
         required: false,
         default: ""
     },
-    header: {
+    header: { // Заголовок
         type: String,
         required: true,
     },
-    comment: {
+    comment: { // Коментар
         type: String,
         required: false,
         default: ""
     },
-    startTime: {
+    startTime: { // Час початку
         type: String,
         required: false,
         default: ""
     },
-    duration: {
+    duration: { // Тривалість
         type: String,
         required: false,
         default: ""
-    }
+    },
+    regs: { // Таблиця чеклісту
+        type: Array,
+        required: false,
+        default: () => [{ id: "p-0", label: "Test", comment: "Test comment", required: true, checked: false }]
+    },
+
 });
-import ModalWindow from '@atoms/ModalWindow/ModalWindow.vue';
+
+const stateClass = computed(() => {
+    switch (props.state) {
+        case "waiting": return "state-waiting";
+        case "going":
+            showModal.value = true;
+            return "state-going";
+        case "finished": return "state-finished";
+        case "stoped": return "state-stoped";
+        case "error": return "state-error";
+        default: return "";
+    }
+})
+
+const disableButtonOk = computed(() => {
+    if (!props.regs || props.regs.length == 0) return false;
+    return props.regs.some(r => r.required && !r.checked);
+});
+
 onMounted(() => {
     console.log("UserConfirmTaskShort mounted");
     console.log("state=", props.state);
@@ -58,12 +125,53 @@ onMounted(() => {
 
 <style scoped>
 /* Контейнер SVG, який займає всю доступну висоту */
+.task-container {
+    height: 5vW;
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+}
 
+.state-waiting {
+    background-color: lightgray;
+    /* Світло-сірий фон для очікування */
+    color: #000;
+    /* Чорний текст */
+}
+
+.state-going {
+    background-color: lightgreen;
+    color: black;
+}
+
+.state-finished {
+    background-color: lightblue;
+    color: white;
+}
+
+.state-stoped {
+    background-color: darkorange;
+    color: black;
+}
+
+.state-error {
+    background-color: crimson;
+    color: white;
+}
+
+.svg-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 /* Сам SVG елемент має фіксований розмір */
 svg {
-    width: 50px;
-    height: 50px;
+    width: auto;
+    height: 100%;
+    flex-shrink: 0;
     /* `viewBox` у SVG забезпечує масштабування контенту всередині */
 }
 </style>
