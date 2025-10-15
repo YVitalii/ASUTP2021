@@ -60,6 +60,7 @@ class ClassManager extends ClassDevManagerGeneral {
 
     return html;
   }
+
   getRegsForHtml(props) {
     let regs = {};
     for (const key in this.regs) {
@@ -72,6 +73,10 @@ class ClassManager extends ClassDevManagerGeneral {
 
   getFullHtml() {
     return this.getCompactHtml();
+  }
+
+  async getT() {
+    return this.getRegister("T1");
   }
 }
 

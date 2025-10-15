@@ -251,8 +251,10 @@ class ClassTaskThermal extends ClassTaskGeneral {
     log("i", ln, `device=`, device.id);
     if (!device.getT || typeof device.getT != "function") {
       throw new Error(
-        this.ln +
-          `props.devices.getT must be async function? but typeof props.devices[${i}].getT = ${typeof device.getT}`
+        ln +
+          `props.devices.getT must be async function? but typeof props.devices[${
+            device.id
+          }].getT = ${typeof device.getT}`
       );
     }
     this.devices.push(device);
