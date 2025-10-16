@@ -303,7 +303,13 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         `iteration(${funcItem.name},${params.regName}${
           params.value || params.value === 0 ? "=" + params.value : ""
         })::`;
-    trace ? log("i", ln, `Started. Wait port opening`) : null;
+    trace
+      ? log(
+          "i",
+          ln,
+          `Started: this.busy=${this.busy}; this.offLine=${this.offLine} this.errorCounter.value=${this.errorCounter.value}\n Wait port opening. `
+        )
+      : null;
     // очікуємо відкриття порту, якщо він ще не відкритий
     await this.testPortOpened();
     // очікуємо, якщо наразі виконується поточний запит
@@ -327,6 +333,8 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     // встановлюємо ознаку транзакції
     this.busy = true;
 
+    period = this.period.if.timeOut * (this.offLine ? 5 : 1);
+
     let res,
       resString = "";
     // скидаємо лічильник
@@ -342,15 +350,16 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         res = await funcItem(params);
         // все пройшло успішно
         ok = true;
+        trace ? log("i", ln, `res=`, res) : null;
       } catch (error) {
         let trace = 1;
         // трапилась помилка
         if (trace) {
-          log("w", ln, `error=`);
-          console.dir(error);
+          // log("w", ln, `error=`);
+          log("e", ln, `error=`, error.messages.ua);
+          // console.dir(error);
         }
         //log("e", ln, "err=", error.messages.en);
-        let period = this.period.if.timeOut * (this.offLine ? 2 : 1);
         // лічимо помилки
         if (!this.offLine) this.errorCounter.value += 1;
         if (this.errorCounter.value >= this.errorCounter.max) {
@@ -360,7 +369,10 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
           log("e", ln + "Device offline!");
           // знімаємо ознаку зайнятості
           this.busy = false;
-          return [{ value: null, note: "Device offline!" }];
+          res = [{ value: null, note: "Device offline!" }];
+          //await dummyPromise(period * 1000);
+          ok = true;
+          break;
         }
 
         trace
@@ -377,12 +389,15 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     } while (!ok);
     // знімаємо ознаку зайнятості
     this.busy = false;
-    // скидаємо лічильник помилок
-    this.errorCounter.value = 0;
-    // скидаємо ознаку, що прилад відсутній в мережі
-    this.offLine = false;
-    //якщо трасуваання - виводимо результат в лог
-    trace ? log("i", ln + "Iteration completed") : null;
+    if (res[0].value != null) {
+      // скидаємо лічильник помилок
+      this.errorCounter.value = 0;
+      // скидаємо ознаку, що прилад відсутній в мережі
+      this.offLine = false;
+      //якщо трасуваання - виводимо результат в лог
+      trace ? log("i", ln + "Iteration completed") : null;
+    }
+
     // повертаємо результат
     return res;
   } //async iteration
@@ -424,7 +439,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
 
   /** Функція повертає значення 1 регістра якщо ще не застарів - то поточне значення з regs, інакше з приладу
    * @param {String} regName - назва регістру, така як визначена в this.driver
-   * @param {Number} value - значення регістру або null, якщо актуальних даних немає
+   * @return {Number} value - значення регістру або null, якщо актуальних даних немає
    */
   async getRegister(regName) {
     let trace = 0,
@@ -436,16 +451,17 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       throw new Error(ln + `regs[${regName}] is undefined!`);
     }
     if (trace) {
-      log("i", ln, `reg=`);
+      log("i", ln, `Old reg=`);
       console.dir(reg);
     }
+    // до2025-09-19 в цьому місці неможна робити перевірку - бо звязок з приладом не відновиться ніколи
     // якщо прилад відсутній в мережі
-    if (this.offLine) {
-      // якщо прилад відсутній в мережі
-      trace ? log("i", ln, `Device is offline!`) : null;
-      reg.value = null;
-      return null;
-    }
+    // if (this.offLine) {
+    //   // якщо прилад відсутній в мережі
+    //   trace ? log("i", ln, `Device is offline!`) : null;
+    //   reg.value = null;
+    //   return null;
+    // }
     // перевіряємо чи актуальні дані
     if (reg.isActual()) {
       // повертаємо актуальні дані
@@ -454,19 +470,23 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         : null;
       return reg.value;
     }
-    // поточне значення застаріло - даємо запит на читання
-    let res = await this.iteration(
-      this.driver.getRegPromise.bind(this.driver),
-      {
+    let res;
+    try {
+      // поточне значення застаріло - даємо запит на читання
+      res = await this.iteration(this.driver.getRegPromise.bind(this.driver), {
         iface: this.iface,
         devAddr: this.addr,
         regName: reg.driverRegName,
-      }
-    );
+      });
+    } catch (error) {
+      log("e", ln, error);
+      throw new Error(error.ua);
+    }
     // оновлюємо дані в state
     trace ? log("i", ln, `res=`, res) : null;
     if (res[0] && res[0].value != undefined) {
       reg.value = res[0].value;
+      reg.note = res[0].detail.afterGet.note;
     }
 
     return reg.value;
