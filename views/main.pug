@@ -1,14 +1,12 @@
 doctype html
 -var _lang = lang ? lang : 'ua'
 -var _pageTitle = pageTitle[_lang] ? pageTitle[_lang] : 'pageTitle: not defined'
-
 html(class="h-100")
   head
     title !{_pageTitle}
     link(rel='stylesheet', href='/stylesheets/style.css')
     link(rel='stylesheet', href='/bootstrap/bootstrap.min.css')
     script(src="/bootstrap/bootstrap.bundle.min.js") 
-    //- link(rel='stylesheet', href='/stylesheets/style.css')
     script
       include ../public/timedisplay.js
     script.
@@ -20,31 +18,25 @@ html(class="h-100")
       include ./js/tools.js
     //-   include ../tools/createReport.js
 
-  body 
-      pre #{JSON.stringify(pageTitle)} 
+  body(class="h-100"  )
+    div(class="container-fluid h-100 d-flex flex-column" ) 
       //- header
       //- div(class="row")#header
-      header.site-header#header
-        
-        .container.w100
-          .row.justify-content-md-center.w-100
-            div(class="col-2")
-              img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
-            div(class="col my-auto mx-auto" )
-              div(class="h2 " id="pageTitle") !{_pageTitle}
-            div.col-1#connectionsContainer
-              include ../rs485/views/compact.pug
-            div(class="col-1  align-items-center")
-              div( class="h5 text-center" id="timedisplay" )
-            script
-              include ./js/headerManager.js
+      header.row#header
+        div(class="col-2")
+          img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
+        div(class="col my-auto mx-auto" )
+          div(class="h2 " id="pageTitle") !{_pageTitle}
+        div.col-1#connectionsContainer
+          include ../rs485/views/compact.pug
+        div(class="col-1 d-flex justify-content-center align-items-center")
+          div( class="h5 text-center" id="timedisplay" )
+        script
+          include ./js/headerManager.js
       //- pageBody 
-      //- main.page-body#pageBody
-      //-   h2 Основний Вміст
-      //-   p Цей блок займає весь простір, що залишився.
-      //- script(src="/bootstrap/popper.min.js")
-      script(src="/bootstrap/bootstrap.min.js")
-             
+      div(class="row h-100" )
+        div(class="col h-100")
+          div(id="pageBody" class="container-fluide h-100") !{body}
 
       //- від footera поки відмовився
 
@@ -58,33 +50,35 @@ html(class="h-100")
 
 
 
-      //-   //- header
-      //-   div(class="row fixed-top")
-      //-     h2 Header
-      //-     //- div(class="col-3")
-      //-     //-   img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
-      //-     //- div(class="col" id="pageTitle")
-      //-     //-   h2(class="") !{_pageTitle}
+    //-   //- header
+    //-   div(class="row fixed-top")
+    //-     h2 Header
+    //-     //- div(class="col-3")
+    //-     //-   img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
+    //-     //- div(class="col" id="pageTitle")
+    //-     //-   h2(class="") !{_pageTitle}
 
-      //-   //- body
+    //-   //- body
 
-      //-   div(class="row h-100" style="border-style:dotted; background:blue")
-      //-     h1 Body
-
-
-      //-       //-     div(class="col h-100" id="_pageBody" ) !{body}
-      //-       //- footer
-      //-   div(class="row fixed-bottom")
-      //-     h2 Footer
-      //- //-     div(class="col") !{_footerContent}
-      //- //-     div(class="col-2")  
-      //- //-       div(id="timedisplay")
+    //-   div(class="row h-100" style="border-style:dotted; background:blue")
+    //-     h1 Body
 
 
+    //-       //-     div(class="col h-100" id="_pageBody" ) !{body}
+    //-       //- footer
+    //-   div(class="row fixed-bottom")
+    //-     h2 Footer
+    //- //-     div(class="col") !{_footerContent}
+    //- //-     div(class="col-2")  
+    //- //-       div(id="timedisplay")
 
-      //- //- div.user-tools
-      //- //-   - if (userData) {
-      //- //-     h4 #{userData.displayName}
-      //- //-     a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Вийти
-      //- //-   - }
-      
+
+
+    //- //- div.user-tools
+    //- //-   - if (userData) {
+    //- //-     h4 #{userData.displayName}
+    //- //-     a(id="logout" class="btn btn-outline-secondary" href="/login/logout") Вийти
+    //- //-   - }
+    //- script(src="/bootstrap/popper.min.js")
+
+    script(src="/bootstrap/bootstrap.min.js")

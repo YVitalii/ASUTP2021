@@ -29,7 +29,10 @@ props.fullName = {
 
 // -- максимальна температура в печі required {Number}
 props.maxT = 1100;
-
+if (trace) {
+  log("i", ln, `props=`);
+  console.dir(props);
+}
 // -------- створюємо та повертаємо об'єкт печі
 let entity = new classEntityFurnace(props);
 
