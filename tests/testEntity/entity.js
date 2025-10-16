@@ -236,7 +236,7 @@ entity.processManager.afterAll = async function () {
     return;
   }
   // ---- зупиняємо нагрівання
-  await dev.setOutput(0);
+  // await dev.setOutput(0);
   await dev.start({ tT: 20, H: 0, Y: 1, o: 2 });
   return;
   // ---- запускаємо менеджер процесів
