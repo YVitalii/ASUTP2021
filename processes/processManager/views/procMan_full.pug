@@ -2,11 +2,30 @@
 //- pre #{JSON.stringify(processMan.htmlProgram)} 
 -var buttonsContainer = "process_buttonsContainer"
 -var programContainer = "process_programContainer"
+-var dev = true
+-var width = dev ? "25vw" : "100%"
 
+//- 2025-10-16 Поки йде розробка ProcessManagerVue,
+//-  використовується стара версія procManFull.pug
 
+//- div.process-wrapper.process-container
+//-   //- в цьому місці бцде розташовуватися proscessManager 
+//- style.
+//-   .process-wrapper {
+//-     height: 95%;
+//-     width: !{width};
+//-     min-height: 300px;
+//-     border: 1px solid grey;
+//-     border-radius: 5px;
+//-     padding: 5px;
+//-     display: flex;
+//-     flex-direction: column;
+//-     /* Це магія Flexbox: елемент розтягується, заповнюючи простір, що залишився */
+//-     flex-grow: 1; 
+//-      overflow-y: auto; /* Дозволяє прокручувати контент, якщо він не вміщається */
 
-//- div.row(id=buttonsContainer) 
-//- div.col  
+//-   }
+  
 
 div.col.h-100.bordered.border-secondary
   div.row(id=buttonsContainer)
