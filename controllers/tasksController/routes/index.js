@@ -96,7 +96,7 @@ router.use("/fileManager", fileManagerRouter);
 router.get("/", async function (req, res, next) {
   let trace = 1,
     ln = req.tasksManager.ln + `router.get((${req.originalUrl})::`;
-  trace ? console.log("w", ln, ` GET home page. Started`) : null;
+  trace ? console.log("w", ln, ` ----> GET home page. Started`) : null;
   await dummy(1000);
   res.send(
     pug.renderFile(req.info.mainPug, {
