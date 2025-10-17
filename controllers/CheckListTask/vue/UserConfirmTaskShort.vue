@@ -4,6 +4,7 @@
         :title="comment + '\nПочаток: ' + startTime + ' Тривалість: ' + duration + '\nПримітка: ' + note">
         <TaskStatesIcons :state="state" />
     </div>
+
     <!-- Модальне вікно з детальною інформацією про крок -->
     <ModalWindow v-if="showModal" @close="showModal = false" :show="showModal" :header="header"
         :headerButtonExitActive="false">

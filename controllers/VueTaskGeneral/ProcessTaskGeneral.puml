@@ -1,0 +1,30 @@
+@startuml ProcessTaskGeneral
+
+class ProcessTaskGeneral {
+    -- file: controllers\VueTaskGeneral\ProcessTaskGeneral.puml --
+    -- template --
+    div **class="task-container row" :class="stateClass" :id="id" :title="popup"**
+
+    -- script --
+     +**id**:String
+     +**type**:String
+     +**state**:String
+     +**note**:String
+     +**duration**: "03:05:00"
+     +**startTime**: "16.10.2025, 12:30:00"
+     +**header**:String
+     +**comment**:String
+     +**regs**:Object (Array)
+     -**stateClass** // колір фону контейнеру в залежності від **state**
+     -**popup** // спливаюча підказка
+    -- Styles --
+     .task-container
+     .state-waiting
+     .state-going
+     .state-finished
+     .state-stoped
+     .state-error
+
+}
+
+@enduml

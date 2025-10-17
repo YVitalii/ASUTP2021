@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/bootstrap/bootstrap.min.css" />
+    <script src="/bootstrap/bootstrap.bundle.min.js"></script>
+    <title>Document</title>
+    <style>
+      .parent-container {
+        /* Забезпечуємо, що батьківський елемент займає всю доступну висоту екрану */
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        /* Використовуємо flexbox, щоб вміст позиціонувався коректно */
+        display: flex;
+      }
+
+      .left-sidebar {
+        /* Ширина 20% від .parent-container */
+        width: 350px;
+
+        /* Висота 100% від .parent-container (від всієї висоти екрану) */
+        height: 100%;
+        padding: 10px;
+
+        box-sizing: border-box; /* Враховуємо padding у загальній ширині 20% */
+      }
+
+      /* Приклад стилів для іншої частини екрану */
+      .main-content {
+        width: 80%;
+        height: 100%;
+        background-color: #ecf0f1;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ThermoTask testing</h1>
+    <script>
+      <!-- Тут буде скрипт з налаштуваннями DOM -->
+      window.myData = { lang: "ua" };
+    </script>
+    <div class="parent-container">
+      <div class="left-sidebar" id="CheckList1">
+        <div class="AppContainer" style="height: 100%">
+          <!-- App -->
+        </div>
+      </div>
+    </div>
+
+    <script src="/bootstrap/bootstrap.min.js"></script>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
