@@ -2,7 +2,9 @@
 import { createApp } from "vue";
 
 import App from "./app.vue"; // Імпортуємо наш кореневий компонент
-const containerClass = "CheckListContainer";
+
+const containerClass = "AppContainer";
+
 const containers = document.querySelectorAll(`.${containerClass}`); // Знаходимо всі елементи з класом "MB110A8"
 if (containers.length === 0) {
   console.error(`Контейнери з класом "${containerClass}" не знайдено.`);

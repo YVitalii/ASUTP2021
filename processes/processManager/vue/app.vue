@@ -1,8 +1,5 @@
 <template>
-  <div class="container-fluid vue-container">
-    <CheckList :table="datas" v-model="showModal" />
-  </div>
-
+  <ProcessManager> Process manager </ProcessManager>
 </template>
 
 <script setup>
@@ -11,8 +8,9 @@
 // "dev:vue:test": "cross-env VITE_APP_ROOT=./src/ontrollers/CheckListTask/vue vite",
 // потім запустити: npm run dev:vue:test
 
-import CheckList from "./СheckList.vue";
+
 import { ref } from 'vue';
+import ProcessManager from "./ProcessManager.vue"
 
 let program = ref({
   "_id": "waiting",

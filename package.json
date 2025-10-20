@@ -8,7 +8,7 @@
     "test:vitest": "vitest --watch ./src/components/atoms/checkbox_strike_test.mjs",
     "dev:vue:mb110-8a": "cross-env VITE_APP_ROOT=./devices/OWEN_MB110-8A/vue vite",
     "dev:vue:stepTest": "cross-env VITE_APP_ROOT=./controllers/CheckListTask/vue vite",
-    "dev:vue:test": "cross-env VITE_APP_ROOT=./controllers/thermoController/vue vite",
+    "dev:vue:test": "cross-env VITE_APP_ROOT=./processes/processManager/vue vite",
     "start": "supervisor --no-restart-on error  --watch ./routes,./,./views,./entyties/* ./bin/www",
     "jsdoc": "jsdoc --configure ./config_jsdoc.js --recurse"
   },

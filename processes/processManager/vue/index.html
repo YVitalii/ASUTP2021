@@ -5,22 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/bootstrap/bootstrap.min.css" />
     <script src="/bootstrap/bootstrap.bundle.min.js"></script>
+    <style>
+      /* 1. Налаштування Body та Кореневого Контейнера */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        /* Займає всю доступну висоту екрану */
+        height: 100%;
+        font-family: Arial, sans-serif;
+      }
+
+      /* Контейнер, що займає весь простір і має внутрішні відступи (10px) */
+      .page-wrapper {
+        height: 100vh; /* Висота всього видимого екрану */
+        padding: 10px; /* Відступи від країв екрану по 10px */
+        box-sizing: border-box; /* Важливо: включає padding у загальну висоту */
+        display: flex;
+        flex-direction: column; /* Вертикальне розташування: Header, потім PageBody */
+        gap: 10px; /* Додає простір між Header та PageBody */
+      }
+
+      /* 2. Header */
+      header {
+        /* Ширина 100% від батька (.page-wrapper) - вже забезпечено flexbox-ом */
+        width: 100%;
+        /* Висота фіксована для прикладу */
+        min-height: 50px;
+        background-color: #3498db;
+        color: white;
+        padding: 10px;
+        box-sizing: border-box;
+
+        /* margin-bottom 10px вже забезпечено властивістю gap у .page-wrapper */
+      }
+
+      /* 3. Page Body - займає решту простору */
+      .page-body {
+        /* Займає решту доступного вертикального простору */
+        flex-grow: 1;
+        background-color: white;
+        display: flex; /* Для горизонтального розташування панелей */
+      }
+
+      /* 3.1. Ліва бокова панель */
+      .left-sidebar {
+        width: 20%; /* 25% ширини від .page-body */
+        height: 100%; /* 100% висоти від .page-body */
+        background-color: #2c3e50;
+        color: #ecf0f1;
+        padding: 15px;
+        box-sizing: border-box;
+        overflow-y: auto;
+      }
+
+      /* 3.2. Права частина Content */
+      .main-content {
+        /* Автоматично займає решту 75% ширини */
+        flex-grow: 1;
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+      }
+
+      .col {
+        border: 1px, solid, #eedceb;
+      }
+    </style>
     <title>Document</title>
   </head>
   <body>
-    <script>
-      <!-- Тут буде скрипт з налаштуваннями DOM -->
-      const name = "CheckList";
-      window.myData = { lang: "ua" };
-    </script>
+    <div class="page-wrapper">
+      <header>
+        <h1>ProcessManager testing</h1>
+      </header>
 
-    <h2 id="caption"></h2>
-    <div class="CheckListContainer" id="CheckList1">
-      <!-- Тут буде рендеритися ваш Vue додаток -->
+      <div class="page-body">
+        <aside class="left-sidebar">
+          <div class="AppContainer" id="AppContainer1">
+            Тут буде рендеритися ваш Vue додаток
+          </div>
+        </aside>
+
+        <main class="main-content">
+          <h2>Основний Вміст</h2>
+          <p>
+            Тут розташовується весь контент сторінки. Бічна панель має фіксовану
+            ширину 25% від загальної ширини робочої зони.
+          </p>
+          <p>
+            Горизонтальний розподіл простору між лівою та правою частинами
+            керується Flexbox.
+          </p>
+        </main>
+      </div>
     </div>
-    <script>
-      caption.innerHTML = `${name} тестування.`;
-    </script>
     <script src="/bootstrap/bootstrap.min.js"></script>
     <script type="module" src="main.js"></script>
   </body>
