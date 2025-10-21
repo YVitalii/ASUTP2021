@@ -19,8 +19,11 @@
 <script setup>
 
 import { ref, onMounted } from "vue";
+import parseProgram from "./parseProgram.mjs"
+
 let gLn = "ProcessManager.js::", trace = 1;
 const program = defineProps({
+    // інформація для header
     header: {
         type: String,
         required: true,
@@ -41,11 +44,7 @@ let urls = {
 
 let lang = window.myData.language ? window.myData.language : "ua";
 
-const parseProgram = (p) => {
-    program.header = p.header[lang];
-    program.description = p.comment[lang];
 
-}
 
 
 
@@ -65,10 +64,13 @@ const fetchProgramData = async (url = "", method = "POST", body = {}, headers = 
         // отримання тіла запиту (див. про цей метод нижче)
         let json = await response.json();
         if (trace) { console.log(ln + `json=`); console.dir(json); }
+        return json
     } else {
-        alert("HTTP-Error: " + response.status);
+        let err = "HTTP-Error: " + response.status
+        console.error(err);
+        return Promise.reject(err)
     }
-    return json
+
 } //fetch
 
 onMounted(() => {

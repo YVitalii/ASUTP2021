@@ -27,7 +27,8 @@ class ClassStep {
     // перелік можливих станів: "waiting","going","finished","stoped","error"
     this.state._id = "waiting";
     this.state.note = { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` };
-    this.state.startTime = undefined;
+    this.state.startTime = ""; // початок виконання кроку
+    this.state.type = ""; // індентифікатор типу тип кроку "heating,holding"
     this.state.duration = "0"; // тривалість виконання кроку в вигляді "ГГ:ХХ:СС"
     // зберігає опис помилки
     this.err = null;
@@ -274,6 +275,7 @@ class ClassStep {
   getState() {
     let res = { ...this.state };
     res.id = this.id;
+    res.state = res._id;
     res.header = this.header;
     res.comment = this.comment;
     return res;

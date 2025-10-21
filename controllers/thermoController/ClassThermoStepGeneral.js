@@ -34,7 +34,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
       en: `ClassThermoStepGeneral`,
       ru: `ClassThermoStepGeneral`,
     };
-
+    this.state.type = "thermoTask";
     // сутність прилад для поточного кроку
     this.device = props.device;
     if (typeof this.device.getT != "function") {

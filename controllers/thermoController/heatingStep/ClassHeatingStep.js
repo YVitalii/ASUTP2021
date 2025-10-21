@@ -37,7 +37,7 @@ class ClassHeatingStep extends ClassThermoStepGeneral {
     //   log("i", ln, `after super() this=`);
     //   console.dir(this);
     // }
-
+    this.state.type = "heating";
     // ---- час нагрівання ---------
     this.H = props.regs.H ? props.regs.H : 0;
     //

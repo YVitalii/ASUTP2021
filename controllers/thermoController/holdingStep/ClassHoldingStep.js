@@ -34,7 +34,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     }
     //this.ln = this.device.header.en + "::" + this.ln + "::";
     ln = this.ln + "constructor()::";
-
+    this.state.type = "holding";
     // ---- час нагрівання (для програмування приладу),
     // =0 так як це витримка і піч вже розігріта
 
@@ -72,7 +72,7 @@ class ClassHoldingStep extends ClassThermoStepGeneral {
     // інакше перша зона в якої закінчилась витримка вимкне нагрівання та почне охолоджуватись
     // щоб в прилади записалось потрібне значення, додаємо його до завдання
 
-    this.errY = this.Y==0 ? 0 : 15; // при витримці Y=0, врахування помилки не потрібно
+    this.errY = this.Y == 0 ? 0 : 15; // при витримці Y=0, врахування помилки не потрібно
     this.Y += this.errY;
     // заголовок для логування
     this.ln += `tT=${this.tT}(${this.errTmin}/+${this.errTmax}); Y=${

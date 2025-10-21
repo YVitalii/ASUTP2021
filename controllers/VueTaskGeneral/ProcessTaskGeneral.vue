@@ -12,7 +12,7 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-    id: {
+    id: { // номер кроку
         type: String,
         required: true,
     },
@@ -25,7 +25,7 @@ const props = defineProps({
         type: String,
         required: true,
     },
-    note: {
+    note: { // примітка title
         type: String,
         required: false,
         default: "",

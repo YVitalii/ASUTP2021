@@ -36,7 +36,7 @@ class ClassQuickHeatingStep extends ClassThermoStepGeneral {
       console.dir(props);
     }
     super(props);
-
+    this.state.type = "quickHeating";
     ln = this.ln + "constructor()::";
     if (trace) {
       log("i", ln, `after super() this=`);
