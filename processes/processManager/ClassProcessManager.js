@@ -106,6 +106,7 @@ class ClassProcessManager {
     props.id = prefix;
     // створюємо крок
     let step = this.tasksManager.getType(list.id).getStep(props);
+    step.type = list.id;
     // if (trace) {
     //   log("i", ln, `step=`);
     //   console.dir(step);
@@ -166,7 +167,7 @@ class ClassProcessManager {
         ru: `Активная программа`,
       },
       ln: this.ln,
-      tasks: program[0],
+      tasks: program[0], //опис програми
     });
 
     // --- по завершенню програми потрібно або зупинити всі прилади,
@@ -286,7 +287,7 @@ class ClassProcessManager {
     }
     if (trace) {
       log("i", ln, `htmlProgram=`);
-      console.dir(htmlProgram, { depth: 3 });
+      console.dir(this.htmlProgram, { depth: 3 });
     }
     return this.htmlProgram.states;
   }
@@ -331,7 +332,7 @@ class ClassProcessManager {
   generateLogFileName() {
     let fileName = "",
       i = 0;
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + "generateLogFileName()::";
     do {
       let newFileN = new Date().toLocaleTimeString().slice(0, -3);
@@ -360,7 +361,7 @@ class ClassProcessManager {
   }
 
   async start(stepN = 1) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `Start(${stepN})::`;
     stepN = parseInt(stepN);
     if (isNaN(stepN)) {

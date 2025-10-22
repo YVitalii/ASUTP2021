@@ -1,17 +1,17 @@
-import { ref } from "vue";
-const props = ref({
+// опис даних
+const props = {
   // інформація для ProcessMan_Program
   header: {
-    //=header.lang
     type: String,
     required: true,
+    default: "not defined",
   },
   description: {
     //=comment.lang
     type: String,
     default: "",
   },
-  programState: {
+  state: {
     type: String,
     default: "waiting",
   },
@@ -25,10 +25,10 @@ const props = ref({
     default: 1,
   },
   //------ ProcessMan_Program --------
-  tasks: {
+  steps: {
     type: Array,
     default: [],
   },
-});
+};
 
 export default props;

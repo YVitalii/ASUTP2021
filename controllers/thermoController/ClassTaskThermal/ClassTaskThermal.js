@@ -63,7 +63,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
         this.ln + `Property "maxT" must be cpecified! maxT=${props.maxT}`
       );
     }
-
+    this.type = props.id;
     this.devices = [];
 
     // перевіряємо список приладів, що приймають участь в керуванні
@@ -101,7 +101,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
       header: { ua: "wT,°C", en: "wT,°C", ru: "wT,°C" },
       value: props.wT ? props.wT : -0, //від'ємні значення
       comment: {
-        ua: `Закінчення швидrого нагрівання (0=вимкн)`,
+        ua: `Закінчення швидкого нагрівання (0=вимкн)`,
         en: `Limit for quick heating (0=disable)`,
         ru: `Окончание быстрого нагрева (0=выкл)`,
       },
@@ -266,7 +266,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
    * видаляє непотрібні поля devices
    */
   getRegForHtml() {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "getRegForHtml()::";
     let reg = clone(this);
     reg.devices = undefined;
@@ -407,6 +407,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
       comment: { ua: `${comment}`, en: `${comment}`, ru: `${comment}` },
       tasks: res,
     });
+    res.state.type = this.id;
     res.taskPoints = stepTaskPoints;
     return res; //{ header: { ua: `123`, en: `123`, ru: `123` } };
   }

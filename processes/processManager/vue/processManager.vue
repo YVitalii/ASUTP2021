@@ -1,40 +1,41 @@
 <template>
-    <div class="row">
-        <div class="col">
-            <p>Program header</p>
+    <template v-if="program.value != null">
+        <div class="row">
+            <div class="col">
+                <p>Program name:{{ program.header.value }}
+                    <small>{{ program.description.value }}</small>
+                </p>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <p> Program control panel</p>
+        <div class="row">
+            <div class="col">
+                <p> Program control panel</p>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <p> Program body</p>
+        <div class="row">
+            <div class="col">
+                <p> Program body</p>
+            </div>
         </div>
-    </div>
+    </template>
+    <template v-else>
+        Завантаження програми...
+    </template>
 </template>
 
 <script setup>
 
 import { ref, onMounted } from "vue";
-import parseProgram from "./parseProgram.mjs"
+
+import propsDefine from "./processManager_propsDefine.mjs"
+import programTransform from "./programTransform.mjs";
 
 let gLn = "ProcessManager.js::", trace = 1;
-const program = defineProps({
-    // інформація для header
-    header: {
-        type: String,
-        required: true,
-    },
-    description: {
-        type: String,
-        default: "",
-    },
+if (trace) { console.log('i', gLn, `propsDefine=`); console.dir(propsDefine); }
 
+const program = ref(null);
 
-});
+if (trace) { console.log(gLn + `program.value.header=`); console.dir(program.value.header); }
 
 let urls = {
     home: "/entity/Calibrator_9points/processManager", //відносний шлях, щоб працював vite proxy 
@@ -44,8 +45,24 @@ let urls = {
 
 let lang = window.myData.language ? window.myData.language : "ua";
 
+setTimeout(function () { program.value.header = "456"; console.log("setTimeout switched!") }, 3000);
 
+async function initProgram() {
+    let trace = 1, ln = gLn + `getProgram()::`;
+    try {
+        let res = await fetchProgramData(urls.home + urls.getProgramState, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+        });
+        program = programTransform(res, props);
+        if (trace) { console.log(ln + `props=`); console.dir(props); }
 
+    } catch (error) {
+
+    }
+}
 
 
 const fetchProgramData = async (url = "", method = "POST", body = {}, headers = {}) => {
@@ -75,12 +92,7 @@ const fetchProgramData = async (url = "", method = "POST", body = {}, headers = 
 
 onMounted(() => {
     console.log("onMounted started")
-    fetchProgramData(urls.home + urls.getProgramState, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-    })
+    initProgram();
 });
 
 

@@ -67,6 +67,7 @@ class ClassTaskDescriptionStep extends ClassReg_regsList {
     }
     let res = {
       id: this.id,
+      type: this.id,
       header: this.header,
       comment: {
         ua: `${this.regs.note.value}`,
