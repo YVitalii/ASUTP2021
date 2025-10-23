@@ -1,0 +1,26 @@
+.state-waiting {
+  background-color: lightgray;
+  /* Світло-сірий фон для очікування */
+  color: #000;
+  /* Чорний текст */
+}
+
+.state-going {
+  background-color: lightgreen;
+  color: black;
+}
+
+.state-finished {
+  background-color: lightblue;
+  color: white;
+}
+
+.state-stoped {
+  background-color: darkorange;
+  color: black;
+}
+
+.state-error {
+  background-color: crimson;
+  color: white;
+}

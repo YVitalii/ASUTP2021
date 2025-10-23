@@ -40,7 +40,6 @@ let taskState = ref({
 let states=["waiting", "going", "finished", "stoped", "error"];
 let currStateCode=0;
 function changeState(n=0) {
-  
   currStateCode++;
   if(currStateCode>=states.length) currStateCode=0;
   let newState=states[currStateCode];
@@ -64,3 +63,4 @@ function changeState(n=0) {
   color: #35495e;
 }
 </style>
+

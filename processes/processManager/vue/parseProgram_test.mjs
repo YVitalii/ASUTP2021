@@ -1,5 +1,5 @@
 // cd ./processes/processManager/vue
-// mocha
+// supervisor --no-restart-on exit --watch ./ parseProgram_test.mjs
 // сира программа (з сервера)
 import inp from "./rawProgramFromServer.mjs";
 // трасувальник
@@ -11,10 +11,10 @@ let trace = 1,
 // }
 
 // модель даних компонента ProcessManager.vue
-import propsDefine from "./processManager_propsDefine.mjs";
+import propsDefine from "./ProcessMan_propsDefine.mjs";
 
 import { ref } from "vue";
-let out = ref(propsDefine);
+let out = {};
 
 // парсер програми
 import parseProgram from "./programTransform.mjs";
@@ -23,6 +23,6 @@ import parseProgram from "./programTransform.mjs";
 parseProgram(inp, out);
 trace = 1;
 if (trace) {
-  console.log(gLn + `out.value=`);
-  console.dir(out.value, { depth: 3 });
+  console.log(gLn + `out=`);
+  console.dir(out, { depth: 3 });
 }

@@ -38,80 +38,157 @@ export default {
       value: "12",
       editable: false,
     },
-    {
-      _id: "waiting",
-      note: {
-        ua: "Очікування",
-        en: "Waiting",
-        ru: "Ожидание",
-      },
-      startTime: "",
-      type: "taskThermal",
-      duration: "0",
-      changed: "2025-10-22T08:52:53.109Z",
-      id: "st_1",
-      state: "waiting",
-      header: {
-        ua: "Термообробка: tT=180; H=90; Y=150",
-        en: "Heat treatment: tT=180; H=90; Y=150",
-        ru: "Термообработка: tT=180; H=90; Y=150",
-      },
-      comment: {
-        ua: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
-        en: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
-        ru: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
-      },
-      tasks: [
-        {
-          _id: "waiting",
-          note: {
-            ua: "Очікування",
-            en: "Waiting",
-            ru: "Ожидание",
-          },
-          startTime: "",
-          type: "heating",
-          duration: "0",
-          changed: "2025-10-22T08:52:53.109Z",
-          id: "heating",
-          state: "waiting",
-          header: {
-            ua: "->180°C",
-            en: "->180°C",
-            ru: "->180°C",
-          },
-          comment: {
-            ua: "ТРМ251.Нагрівання до 180°C",
-            en: "TRM251.Heating to 180°C",
-            ru: "ТРМ251.Нагрев до 180°C",
-          },
+    [
+      //параллельні завдання
+      {
+        _id: "waiting",
+        note: {
+          ua: "Очікування",
+          en: "Waiting",
+          ru: "Ожидание",
         },
-        {
-          _id: "waiting",
-          note: {
-            ua: "Очікування",
-            en: "Waiting",
-            ru: "Ожидание",
-          },
-          startTime: "",
-          type: "holding",
-          duration: "0",
-          changed: "2025-10-22T08:52:53.109Z",
-          id: "holding",
-          state: "waiting",
-          header: {
-            ua: "= 180°C",
-            en: "= 180°C",
-            ru: "= 180°C",
-          },
-          comment: {
-            ua: "ТРМ251.Витримка 180°C",
-            en: "TRM251.Holding  180°C",
-            ru: "ТРМ251.Удержание 180°C",
-          },
+        startTime: "",
+        type: "taskThermal",
+        duration: "0",
+        changed: "2025-10-22T08:52:53.109Z",
+        id: "st_1_1",
+        state: "waiting",
+        header: {
+          ua: "Термообробка: tT=180; H=90; Y=150",
+          en: "Heat treatment: tT=180; H=90; Y=150",
+          ru: "Термообработка: tT=180; H=90; Y=150",
         },
-      ],
-    },
+        comment: {
+          ua: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+          en: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+          ru: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+        },
+        tasks: [
+          {
+            _id: "waiting",
+            note: {
+              ua: "Очікування",
+              en: "Waiting",
+              ru: "Ожидание",
+            },
+            startTime: "",
+            type: "heating",
+            duration: "0",
+            changed: "2025-10-22T08:52:53.109Z",
+            id: "heating",
+            state: "waiting",
+            header: {
+              ua: "->180°C",
+              en: "->180°C",
+              ru: "->180°C",
+            },
+            comment: {
+              ua: "ТРМ251.Нагрівання до 180°C",
+              en: "TRM251.Heating to 180°C",
+              ru: "ТРМ251.Нагрев до 180°C",
+            },
+          },
+          {
+            _id: "waiting",
+            note: {
+              ua: "Очікування",
+              en: "Waiting",
+              ru: "Ожидание",
+            },
+            startTime: "",
+            type: "holding",
+            duration: "0",
+            changed: "2025-10-22T08:52:53.109Z",
+            id: "holding",
+            state: "waiting",
+            header: {
+              ua: "= 180°C",
+              en: "= 180°C",
+              ru: "= 180°C",
+            },
+            comment: {
+              ua: "ТРМ251.Витримка 180°C",
+              en: "TRM251.Holding  180°C",
+              ru: "ТРМ251.Удержание 180°C",
+            },
+          },
+        ], //tasks
+      },
+      {
+        _id: "waiting",
+        note: {
+          ua: "Очікування",
+          en: "Waiting",
+          ru: "Ожидание",
+        },
+        startTime: "",
+        type: "taskThermal",
+        duration: "0",
+        changed: "2025-10-22T08:52:53.109Z",
+        id: "st_1_2",
+        state: "waiting",
+        header: {
+          ua: "Термообробка: tT=280; H=90; Y=150",
+          en: "Heat treatment: tT=280; H=90; Y=150",
+          ru: "Термообработка: tT=280; H=90; Y=150",
+        },
+        comment: {
+          ua: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+          en: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+          ru: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+        },
+        tasks: [
+          {
+            _id: "waiting",
+            note: {
+              ua: "Очікування",
+              en: "Waiting",
+              ru: "Ожидание",
+            },
+            startTime: "",
+            type: "heating",
+            duration: "0",
+            changed: "2025-10-22T08:52:53.109Z",
+            id: "heating",
+            state: "waiting",
+            header: {
+              ua: "->180°C",
+              en: "->180°C",
+              ru: "->180°C",
+            },
+            comment: {
+              ua: "ТРМ251.Нагрівання до 180°C",
+              en: "TRM251.Heating to 180°C",
+              ru: "ТРМ251.Нагрев до 180°C",
+            },
+          },
+          {
+            _id: "waiting",
+            note: {
+              ua: "Очікування",
+              en: "Waiting",
+              ru: "Ожидание",
+            },
+            startTime: "",
+            type: "holding",
+            duration: "0",
+            changed: "2025-10-22T08:52:53.109Z",
+            id: "holding",
+            state: "waiting",
+            header: {
+              ua: "= 180°C",
+              en: "= 180°C",
+              ru: "= 180°C",
+            },
+            comment: {
+              ua: "ТРМ251.Витримка 180°C",
+              en: "TRM251.Holding  180°C",
+              ru: "ТРМ251.Удержание 180°C",
+            },
+          },
+        ],
+      },
+    ],
     {
       _id: "waiting",
       note: {
@@ -124,7 +201,7 @@ export default {
       duration: "0",
       changed: "2025-10-22T08:52:53.109Z",
       id: "st_2",
-      state: "waiting",
+      state: "finished",
       header: {
         ua: "Термообробка: tT=300; H=0; Y=30",
         en: "Heat treatment: tT=300; H=0; Y=30",
@@ -187,7 +264,7 @@ export default {
       ],
     },
     {
-      _id: "waiting",
+      _id: "going",
       note: {
         ua: "Очікування",
         en: "Waiting",
@@ -246,7 +323,7 @@ export default {
           duration: "0",
           changed: "2025-10-22T08:52:53.109Z",
           id: "holding",
-          state: "waiting",
+          state: "going",
           header: {
             ua: "= 400°C",
             en: "= 400°C",

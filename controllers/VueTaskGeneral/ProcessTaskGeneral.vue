@@ -1,6 +1,6 @@
 <template>
 
-    <div class="col task-container">
+    <div class="task-container">
 
         <slot> Вміст кроку</slot>
 

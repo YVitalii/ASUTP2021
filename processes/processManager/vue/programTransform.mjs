@@ -12,6 +12,17 @@ function parseTasks(rawTasks, transformedTasks = [], lang = "ua") {
   for (let i = 0; i < tasks.length; i++) {
     // 0 = опис програми
     const el = tasks[i];
+    // перевіряємо чи це не масив - паралельні завдання
+    if (Array.isArray(el)) {
+      //паралельні завдання
+      if (trace) {
+        console.log(ln + `Found parallel tasks at index ${i}`);
+      }
+      const parallelTasks = [];
+      parseTasks(el, parallelTasks, lang);
+      transformedTasks.push(parallelTasks);
+      continue;
+    }
     if (trace) {
       console.log("i", ln, `============ ${i} ============`);
       console.log("i", ln, `tasks[${i}]=`);
@@ -42,7 +53,7 @@ function parseTasks(rawTasks, transformedTasks = [], lang = "ua") {
   return transformedTasks;
 }
 
-function programTransform(inp, out, lang = "ua") {
+function programTransform(inp, out = {}, lang = "ua") {
   let trace = 0,
     ln = gLn + `programTransform::`;
   let descr = inp.tasks[0];
@@ -51,16 +62,17 @@ function programTransform(inp, out, lang = "ua") {
     console.dir(inp.tasks[0]);
   }
 
-  out.value.header.value = descr.value; // назва програми
+  out.header = descr.value; // назва програми
   trace ? console.log(ln + `out.header=${out.header}`) : null;
-  out.value.description.value = descr.comment[lang]; // опис
+  out.description = descr.comment[lang]; // опис
   trace ? console.log(ln + `descr.comment[lang]=${descr.comment[lang]}`) : null;
-  out.value.state.value = inp._id; // стан
-  out.value.btnStartEnable.value = out.programState != "going"; // якщо не виконуэться то можна запустити
+  out.state = inp._id; // стан
+  out.btnStartEnable = out.programState != "going"; // якщо не виконуэться то можна запустити
   let steps = [];
   parseTasks(inp.tasks.slice(1), steps, lang);
   //console.dir(steps, { depth: 3 });
-  out.value.steps.value = steps;
+  out.steps = steps;
+  return out;
 }
 
 /** Отримує

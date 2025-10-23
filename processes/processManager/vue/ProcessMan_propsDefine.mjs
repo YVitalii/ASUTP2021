@@ -18,7 +18,7 @@ const props = {
   // інформація для панелі контролю ProcessMan_Control
   btnStartEnable: {
     type: Boolean,
-    default: false,
+    default: null,
   },
   startStepNumber: {
     type: Number,
