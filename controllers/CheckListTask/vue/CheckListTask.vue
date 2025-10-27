@@ -1,7 +1,6 @@
 <template>
 
-    <div class="task-container" :class="stateClass" :id="task.id"
-        :title="task.header + '\nПочаток: ' + task.startTime + ' Тривалість: ' + task.duration + '\nПримітка: ' + task.note">
+    <div class="task-container" :class="stateClass" :id="task.id" :title="title">
         <TaskStatesIcons :state="task.state" />
     </div>
 
@@ -33,7 +32,9 @@
 //  }
 let gLn = "controllers/CheckListTask/vue/CheckListTask.vue::",
     trace = 1;
-
+let title = computed(() => {
+    return `${props.task.header} \n Стан: [ ${props.task.state} ]\n ${props.task.note} \n Початок: ${props.task.startTime} \n Тривалість: ${props.task.duration}`;
+});
 import { ref, onMounted, computed } from 'vue';
 import TaskStatesIcons from '@root/controllers/VueTaskGeneral/TaskStateIcon.vue';
 import ModalWindow from '@atoms/ModalWindow/ModalWindow.vue';
