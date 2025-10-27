@@ -2,8 +2,10 @@
 <template>
     <div class="task-wraper">
         <!-- <p>{{ task.type }}</p> -->
-        <ThermoTask v-if="task.type === 'taskThermal'" v-bind="task">
+        <ThermoTask v-if="task.type === 'taskThermal'" :task>
         </ThermoTask>
+        <CheckListTask v-if="task.type === 'checkListTask'" :task>
+        </CheckListTask>
     </div>
 
 </template>
@@ -11,6 +13,7 @@
 <script setup>
 
 import ThermoTask from "@root/controllers/thermoController/vue/ThermoTask.vue";
+import CheckListTask from "@root/controllers/CheckListTask/vue/CheckListTask.vue";
 let trace = 1, gLn = `ProcManTasksSelector::`;
 const props = defineProps({
     task: { // масив кроків програми

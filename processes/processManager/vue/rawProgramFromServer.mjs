@@ -22,6 +22,7 @@ export default {
     ru: "Активная программа",
   },
   tasks: [
+    // крок 0 = загальний опис програми
     {
       id: "description",
       type: "description",
@@ -37,6 +38,36 @@ export default {
       },
       value: "12",
       editable: false,
+    },
+    // крок №1 = Підготовчі операції
+    {
+      _id: "waiting",
+      note: {
+        ua: "Очікування",
+        en: "Waiting",
+        ru: "Ожидание",
+      },
+      startTime: "",
+      type: "checkListTask",
+      duration: "0",
+      changed: "2025-10-22T08:52:53.109Z",
+      id: "st_0",
+      state: "waiting",
+      header: {
+        ua: "Підготовчі операції",
+        en: "Heat treatment: tT=300; H=0; Y=30",
+        ru: "Термообработка: tT=300; H=0; Y=30",
+      },
+      comment: {
+        ua: "Виконайте підготовчі операції перед початком програми",
+        en: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+        ru: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
+      },
+      tasks: [
+        "Увімкніть автоматичні вимикачі живдлення печі",
+        "Увімкніть живлення утилізатора",
+        "Перевірте наявність заземлення печі",
+      ],
     },
     [
       //параллельні завдання
@@ -190,7 +221,7 @@ export default {
       },
     ],
     {
-      _id: "waiting",
+      _id: "going",
       note: {
         ua: "Очікування",
         en: "Waiting",
@@ -201,7 +232,7 @@ export default {
       duration: "0",
       changed: "2025-10-22T08:52:53.109Z",
       id: "st_2",
-      state: "finished",
+      state: "going",
       header: {
         ua: "Термообробка: tT=300; H=0; Y=30",
         en: "Heat treatment: tT=300; H=0; Y=30",
@@ -213,6 +244,30 @@ export default {
         ru: "wT=0; errTmin=-5; errTmax=5; errH=0; regMode=pos; o=-1; ti=0; td=0;",
       },
       tasks: [
+        {
+          _id: "going",
+          note: {
+            ua: "Очікування",
+            en: "Waiting",
+            ru: "Ожидание",
+          },
+          startTime: "2025-10-22T08:52:53.109Z",
+          type: "quickHeating",
+          duration: "15хв",
+          changed: "2025-10-22T08:52:53.109Z",
+          id: "heating",
+          state: "waiting",
+          header: {
+            ua: "=>250°C",
+            en: "=>300°C",
+            ru: "=>300°C",
+          },
+          comment: {
+            ua: "ТРМ251.Нагрівання до 250°C",
+            en: "TRM251.Heating to 300°C",
+            ru: "ТРМ251.Нагрев до 300°C",
+          },
+        },
         {
           _id: "waiting",
           note: {
@@ -241,7 +296,7 @@ export default {
           _id: "waiting",
           note: {
             ua: "Очікування",
-            en: "Waiting",
+            en: "stoped",
             ru: "Ожидание",
           },
           startTime: "",
@@ -249,7 +304,7 @@ export default {
           duration: "0",
           changed: "2025-10-22T08:52:53.109Z",
           id: "holding",
-          state: "waiting",
+          state: "error",
           header: {
             ua: "= 300°C",
             en: "= 300°C",
@@ -264,7 +319,7 @@ export default {
       ],
     },
     {
-      _id: "going",
+      _id: "finished",
       note: {
         ua: "Очікування",
         en: "Waiting",
@@ -275,7 +330,7 @@ export default {
       duration: "0",
       changed: "2025-10-22T08:52:53.109Z",
       id: "st_3",
-      state: "waiting",
+      state: "finished",
       header: {
         ua: "Термообробка: tT=400; H=0; Y=30",
         en: "Heat treatment: tT=400; H=0; Y=30",
@@ -288,7 +343,7 @@ export default {
       },
       tasks: [
         {
-          _id: "waiting",
+          _id: "finished",
           note: {
             ua: "Очікування",
             en: "Waiting",

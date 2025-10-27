@@ -46,6 +46,7 @@ function clickStartBtn(stepN) {
     program.value.btnStartEnable = !program.value.btnStartEnable;
     trace ? console.log(gLn + `program.value.btnStartEnable=${program.value.btnStartEnable}`) : null;
     program.value.state = program.value.btnStartEnable ? 'stoped' : 'going';
+    program.value.steps[0].state = program.value.state;
     trace ? console.log(gLn + `program.value.state=${program.value.state}`) : null;
     console.log('Control Panel clicked: start from step', stepN)
 };

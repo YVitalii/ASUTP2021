@@ -4,14 +4,17 @@ function parseTasks(rawTasks, transformedTasks = [], lang = "ua") {
   let trace = 0,
     ln = gLn + `parseTasks::`;
   trace ? console.log(ln + `Started`) : null;
-  if (trace) {
-    console.log(ln + `rawTasks=`);
-    console.dir(rawTasks);
-  }
+
   let tasks = rawTasks;
   for (let i = 0; i < tasks.length; i++) {
-    // 0 = опис програми
+    trace = i === 0 ? 1 : 0;
+    // Крок 0 обрізається на попередньому етапі
     const el = tasks[i];
+    if (trace) {
+      console.log("i", ln, `============ ${i} ============`);
+      console.log("i", ln, `el=tasks[${i}]=`);
+      console.dir(tasks[i]);
+    }
     // перевіряємо чи це не масив - паралельні завдання
     if (Array.isArray(el)) {
       //паралельні завдання
@@ -23,11 +26,7 @@ function parseTasks(rawTasks, transformedTasks = [], lang = "ua") {
       transformedTasks.push(parallelTasks);
       continue;
     }
-    if (trace) {
-      console.log("i", ln, `============ ${i} ============`);
-      console.log("i", ln, `tasks[${i}]=`);
-      console.dir(tasks[i]);
-    }
+
     const item = {
       id: el.id, //id кроку
       type: el.type, // тип
@@ -39,14 +38,23 @@ function parseTasks(rawTasks, transformedTasks = [], lang = "ua") {
     };
 
     if (Array.isArray(el.tasks)) {
-      // якщо задача має список підзадач - викликаємо себе рекурсивно
-      (item.steps = []), parseTasks(el.tasks, item.steps, lang);
-      trace ? console.log("i", ln, `========= New Branch ======`) : null;
-    }
+      item.steps = [];
+      if (typeof el.tasks[0] == "string") {
+        trace
+          ? console.log(ln + `Found simple text content =${el.tasks[0]}`)
+          : null;
+        item.steps = el.tasks;
+      } else {
+        trace ? console.log("i", ln, `========= New Branch ======`) : null;
+        // якщо задача має список підзадач - викликаємо себе рекурсивно
+        parseTasks(el.tasks, item.steps, lang);
+      }
+    } // if has sub-tasks
 
     if (trace) {
-      console.log(ln + `item=`);
+      console.log(ln + `Transformed  item=`);
       console.dir(item);
+      console.log(ln + `==========end iteration ${i}=================`);
     }
     transformedTasks.push(item);
   } //for

@@ -1,5 +1,5 @@
 // cd ./processes/processManager/vue
-// supervisor --no-restart-on exit --watch ./ parseProgram_test.mjs
+// supervisor --no-restart-on exit --watch ./ programTransform_test.mjs
 // сира программа (з сервера)
 import inp from "./rawProgramFromServer.mjs";
 // трасувальник
@@ -19,10 +19,15 @@ let out = {};
 // парсер програми
 import parseProgram from "./programTransform.mjs";
 
+while (inp == undefined) {
+  console.log("Waiting for inp...");
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+console.log("==========================================================clear");
 // трансформуємо програму в модель
 parseProgram(inp, out);
 trace = 1;
 if (trace) {
-  console.log(gLn + `out=`);
-  console.dir(out, { depth: 3 });
+  console.log(gLn + `out.steps[0]=`);
+  console.dir(out.steps[0], { depth: 3 });
 }

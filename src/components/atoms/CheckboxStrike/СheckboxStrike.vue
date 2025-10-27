@@ -1,10 +1,10 @@
 <script setup>
 // reuired
-// let gLn = "checkbox_strike.vue::script::", trace = 1;
+let gLn = "checkbox_strike.vue::script::", trace = 1;
 
 // Визначаємо властивості, які компонент отримуватиме від батька
 // label - отримує через слот
-defineProps({
+const props = defineProps({
     required: { // обов'язковість відмітки
         type: Boolean,
         default: false
@@ -17,20 +17,20 @@ defineProps({
         type: String,
         default: ""
     },
-    modelValue: { // зв'язок з батьком = стану checkbox 
+    checked: { // стан чекбокса
         type: Boolean,
         default: false
-    }
+    },
 });
 // Визначаємо подію, яку компонент надсилатиме батьку
-const emit = defineEmits(['update:modelValue']); // , "label"
+const emit = defineEmits(['changeStatus']); // , "label"
 
 // Функція-обробник, яка викликається при зміні стану чекбокса
 const handleChange = (event) => {
-    // let trace = 1, ln = gLn + "handleChange()::";
-    // if (trace) { console.log(ln + `event.target.checked=`); console.dir(event.target.checked); }
-    emit('update:modelValue', event.target.checked);
+    let trace = 0, ln = gLn + "handleChange()::";
+    if (trace) { console.log(ln + `event.target=`); console.dir(event.target); }
 
+    emit('changeStatus', props.id, event.target.checked);
 };
 
 
@@ -38,11 +38,10 @@ const handleChange = (event) => {
 
 <template>
     <div class="checkbox-container form-check" :title="comment">
-        <input type="checkbox" :id="id" :required="required" :checked="modelValue" class="form-check-input"
-            @change="handleChange" />
+        <input type="checkbox" :id="id" :required="required" class="form-check-input" @change="handleChange" />
         <label :for="id" :class="{
-            'strikethrough': modelValue,
-            'text-bold': !modelValue
+            'strikethrough': checked,
+            'text-bold': !checked
         }" class="form-check-label">
 
             <slot> Не визначено !!</slot>
