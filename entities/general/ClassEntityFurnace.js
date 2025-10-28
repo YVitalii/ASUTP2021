@@ -24,5 +24,12 @@ module.exports = class ClassEntityFurnace extends ClassEntityGeneral {
       },
     });
     this.tasksManager.addType(taskThermal);
+
+    // let taskCheckList = new ClassTaskThermal({
+    //   homeUrl: this.homeUrl,
+    //   homeDir: this.homeDir / tasksManager / checkLists,
+    // });
+
+    // this.tasksManager.addType(taskCheckList);
   }
 };
