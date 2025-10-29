@@ -1,7 +1,7 @@
 const ClassStepGeneral = require("../ClassStep/ClassStepGeneral.js");
 
 class ClassCheckListStep extends ClassStepGeneral {
-  constructor(props) {}
+  constructor(props = {}) {}
   finishSygnal(msg) {
     let trace = 1,
       ln = `CheckListClass::finishSygnal::${this.id}::`;

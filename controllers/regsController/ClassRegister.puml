@@ -1,0 +1,18 @@
+@startuml ClassRegister
+
+class "ClassRegister"  { 
+	**File**: /controllers/regsController/ClassRegister.js
+	---
+    +id : String; // ідентифікатор регістру
+    +ln : String; // Заголовок для логування роботи коду
+    +header : Object; // {ua,en,ru}  Заголовок поля вводу
+    #type :  String; // Тип регістру для рендерингу в myElementsRender
+    +value : String|Number = props.value | 0; // Поточне значення
+    +comment : Object; // {ua,en,ru} Додатковий опис
+    +editable : Boolean = true // Дозвіл на редагування значення регістру
+    ---
+    +setValue(val): return val; // встановлює this.value=val
+    +getValue(): return this.value; // встановлює this.value
+}
+
+@enduml

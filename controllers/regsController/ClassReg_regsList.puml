@@ -1,0 +1,14 @@
+@startuml ClassReg_regsList
+
+!include ./ClassRegister.puml
+
+class ClassReg_regsList {
+	**File**: /controllers/regsController/ClassReg_regsList.js
+	---
+    #type="regsList"  // тип список регістрів
+    +regs : Object =props.regs | {} // список регістрів для вибору
+}
+
+ClassRegister <|-- ClassReg_regsList
+
+@enduml

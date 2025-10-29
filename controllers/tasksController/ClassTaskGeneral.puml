@@ -1,0 +1,16 @@
+@startuml ClassTaskGeneral
+
+!include ../regsController/ClassReg_regsList.puml
+
+' -------------  Базовий клас задачі ------------------ 
+
+class ClassTaskGeneral {
+	{abstract} getState() : Object 
+    {abstract} getStep() : Object
+    {abstract} getRegForHTML() : Object
+
+}
+
+ClassReg_regsList <|-- ClassTaskGeneral
+
+@enduml

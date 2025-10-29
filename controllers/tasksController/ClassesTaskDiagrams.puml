@@ -1,31 +1,8 @@
 @startuml ClassTasks
 
- 
+!include ./ClassTaskGeneral.puml
 
-class "ClassRegister" as register { 
-    +id : String; // ідентифікатор регістру
-    +ln : String; // Заголовок для логування роботи коду
-    +header : Object; // {ua,en,ru}  Заголовок поля вводу
-    #type :  String; // Тип регістру для рендерингу в myElementsRender
-    +value : String|Number = props.value | 0; // Поточне значення
-    +comment : Object; // {ua,en,ru} Додатковий опис
-    +editable : Boolean = true // Дозвіл на редагування значення регістру
-    +setValue(val): return val; // встановлює this.value
-    +getValue(): return this.value; // встановлює this.value
-}
 
-class ClassReg_regsList {
-    #type="regsList"  // тип список регістрів
-    +regs : Object =props.regs | {} // список регістрів для вибору
-}
-
-ClassRegister <|-- ClassReg_regsList
-
-class ClassTaskGeneral {
-'    //+regs : Object = props.regs : {} // контейнер для списку регістрів
-}
-
-ClassReg_regsList <|-- ClassTaskGeneral
 
 class ClassControllerPID {
     #range : Object {min=0,max=100} // межі вихідного сигналу

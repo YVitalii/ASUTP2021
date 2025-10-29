@@ -58,7 +58,7 @@ class ClassRegister {
     this.type = props.type;
 
     /** Поточне значення */
-    this.value = undefined;
+    this.value = null;
     if (props.value || props.value === 0 || props.value === "") {
       this.setValue(props.value);
     }

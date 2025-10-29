@@ -1,0 +1,13 @@
+@startuml ClassTaskCheckList
+
+!include ../tasksController/ClassTaskGeneral.puml
+
+' -------------  Базовий клас задачі ------------------ 
+
+class ClassTaskCheckList {
+	
+}
+
+ClassTaskGeneral <|-- ClassTaskCheckList
+
+@enduml
