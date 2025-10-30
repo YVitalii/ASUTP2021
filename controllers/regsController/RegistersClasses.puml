@@ -1,0 +1,7 @@
+@startuml RegistersClassesIerarchy
+!include ./ClassRegister.puml
+!include ./ClassReg_number.puml
+!include ./ClassReg_regsList.puml
+
+
+@enduml

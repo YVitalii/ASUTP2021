@@ -42,9 +42,19 @@ class ClassTaskCheckList extends ClassTaskGeneral {
     // тут буде зберігатись вміст завдання в форматі markdown
     this.content = "";
   } // constructor
+
+  /**
+   * Повертає крок для чеклиста
+   * @param {object} regs
+   * @property {string} regs.id - ідентифікатор кроку = імяФайлуКроку
+   * @returns Promise <ClassStepCheckList>
+   */
   getStep(regs) {
     let trace = 1,
       ln = this.ln + `getStep::`;
+
+    let step= new ClassStepCheckList({regs,homeDir:thisHomeDir, homeUrl:this.homeUrl, regs:regs});
+    return step;
   }
 } // class ClassTaskCheckList
 

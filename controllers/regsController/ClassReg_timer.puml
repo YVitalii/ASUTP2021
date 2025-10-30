@@ -1,0 +1,11 @@
+@startuml ClassReg_timer
+!include ./ClassRegister.puml
+class ClassReg_timer {
+    -this.type="timer"  // тип часовий
+    -this.min = 0 : Number //хв, мінімальне значення  
+    -this.max = 99*60 : Number //хв, максимальне значення
+    --
+    setValue(v) → super(): // min<= v <=max
+}
+ClassRegister <|-- ClassReg_timer
+@enduml

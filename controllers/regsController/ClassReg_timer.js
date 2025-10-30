@@ -14,4 +14,36 @@ module.exports = class ClassReg_timer extends ClassRegister {
     /** хв, Значення */
     this.value = this.setValue(props.value);
   } // constructor
-};
+  setValue(val) {
+    let trace = 0,
+      ln = this.ln + `setValue(${val})`;
+    let v = null;
+    if (val === null || val === undefined || val === "") {
+      v = 0;
+    } else {
+      v = Number(val);
+      if (!isNaN(v) && String(val).indexOf(":") > 0) {
+        let parts = String(val).split(":");
+        if (parts.length >= 2) {
+          v = Number(parts[0]) * 60 + Number(parts[1]);
+          if (isNaN) {
+            throw new Error(
+              ln + `Невірний формат значення регістру таймера: val=${val} `
+            );
+          }
+        } //
+      }
+    }
+    if (v < this.min) {
+      v = this.min;
+    }
+    if (v > this.max) {
+      v = this.max;
+    }
+    super.setValue(v);
+    return v;
+  } // setValue
+}; // class
+
+if (condition) {
+}

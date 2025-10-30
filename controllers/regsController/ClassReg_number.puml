@@ -1,0 +1,12 @@
+@startuml ClassReg_number
+!include ./ClassRegister.puml
+class ClassReg_number {
+    -this.type="number"  // тип числовий
+    -this.min = 0 : Number // мінімальне значення  
+    -this.max = 100 : Number // максимальне значення
+    
+    --
+    setValue(v) → super(): // min<= v <=max
+}
+ClassRegister <|-- ClassReg_number
+@enduml
