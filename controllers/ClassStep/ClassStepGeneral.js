@@ -15,35 +15,39 @@ class ClassStep {
    */
   constructor(props = {}) {
     let trace = 0;
-    this.checkTime = props.checkTime ? props.checkTime : 2000; // час перевірки стану кроку, мс
+
     //тут зберігаються основні налаштування
     //this.regs = {};
     this.id = props.id
       ? props.id
       : "id_" + new Date().getTime().toString().slice(-6);
+    // час перевірки стану кроку, мс
+    this.checkTime = props.checkTime ? props.checkTime : 2000;
+    /** Опис кроку, виводиться в полі програми */
+    // Заголовок
+    this.header = props.header
+      ? props.header
+      : { ua: `Крок ${this.id}`, en: `Step ${this.id}`, ru: `Шаг ${this.id}` };
+    // Коментарій
+    this.comment = props.comment ? props.comment : { ua: ``, en: ``, ru: `` };
+    // тривалість виконання кроку в секундах
+    this.currentDuration = 0;
     // тут зберігається стан кроку
     this.state = {};
     // поточний стан кроку,
     // перелік можливих станів: "waiting","going","finished","stoped","error"
     this.state._id = "waiting";
     this.state.note = { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` };
-    this.state.startTime = ""; // початок виконання кроку
+    this.state.startTime = null; // початок виконання кроку
     this.state.type = ""; // індентифікатор типу тип кроку "heating,holding"
     this.state.duration = "0"; // тривалість виконання кроку в вигляді "ГГ:ХХ:СС"
     // зберігає опис помилки
     this.err = null;
-    // тривалість виконання кроку в секундах
-    this.currentDuration = 0;
 
     // дата останньої зміни стану кроку
     this.state.changed = undefined;
     this.setChanged(); // відразу відмічаємо момент створення кроку
 
-    /** Опис кроку, виводиться в полі програми */
-    this.header = props.header
-      ? props.header
-      : { ua: `Крок ${this.id}`, en: `Step ${this.id}`, ru: `Шаг ${this.id}` };
-    this.comment = props.comment ? props.comment : { ua: ``, en: ``, ru: `` };
     // на 2024-05-02 не використовується, залишена для сумісності з нащадками
     // TODO видалити цю змінну
     // stepPoints=[] масив точок, що використовуються для відображення задачі на графіку
@@ -268,7 +272,7 @@ class ClassStep {
   }
 
   /**
-   *
+   *Повертає поточний стан кроку для відображення в ProcessManager
    * @returns {this.state}
    */
 
@@ -278,6 +282,7 @@ class ClassStep {
     res.state = res._id;
     res.header = this.header;
     res.comment = this.comment;
+    res.state.startTime = res.state.startTime.toLocaleString();
     return res;
   }
   /**

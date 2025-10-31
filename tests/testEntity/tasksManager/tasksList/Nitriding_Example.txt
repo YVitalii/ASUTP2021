@@ -10,18 +10,26 @@
 		"url":"taskCheckList",
 		"locked":"true",
 	},
-	{
-		"id": "taskThermal",
-		"tT": "180",
-		"wT": 0,
-		"errTmin": "-5",
-		"errTmax": "5",
-		"H": 90,
-		"errH": 0,
-		"Y": 150,
-		"regMode": "pos",
-		"o": "-1"
-	},
+	[
+		{
+			"id":"taskFlowController",
+			"flow": 15,
+			"duration": 0,
+			"gas":"N2",
+		},
+		{
+			"id": "taskThermal",
+			"tT": "180",
+			"wT": 0,
+			"errTmin": "-5",
+			"errTmax": "5",
+			"H": 90,
+			"errH": 0,
+			"Y": 150,
+			"regMode": "pos",
+			"o": "-1"
+		}
+	],
 	{
 		"id": "taskThermal",
 		"tT": "300",

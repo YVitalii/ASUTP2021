@@ -3,7 +3,6 @@
 !include ./ClassTaskGeneral.puml
 
 
-
 class ClassControllerPID {
     #range : Object {min=0,max=100} // межі вихідного сигналу
     #dt : Number =10 // сек, період між опитуванням

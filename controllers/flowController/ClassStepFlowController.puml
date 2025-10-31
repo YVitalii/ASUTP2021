@@ -1,0 +1,12 @@
+@startuml ClassStepFlowController
+!include ../ClassStep/ClassStepGeneral.puml
+
+class ClassStepFlowController{
+    -- /controllers/flowController/ClassStepFlowController.js --
+    --
+
+}
+
+ClassStepGeneral <|-- ClassStepFlowController 
+
+@enduml

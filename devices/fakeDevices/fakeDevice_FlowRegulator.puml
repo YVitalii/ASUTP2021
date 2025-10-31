@@ -1,0 +1,7 @@
+@startuml fakeDevice_FlowRegulator
+!include ../classDeviceGeneral/ClassDevManagerGeneral.puml
+class fakeDevice_FlowRegulator {
+
+}
+ClassDevManagerGeneral <|-- fakeDevice_FlowRegulator 
+@enduml

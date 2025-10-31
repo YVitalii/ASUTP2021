@@ -1,0 +1,35 @@
+@startuml ClassStepGeneral
+
+class ClassStepGeneral  {
+	---- constructor(props) ----
+	+id = props.id ? props.id : "id_" + new Date().getTime().toString().slice(-6) = "id_346929"
+	+checkTime = props.checkTime ? props.checkTime : 2000; // період перевірки стану кроку, мс
+	+header = props.header ? {ua:"Крок"+this.id,..}: Object {ua,en,ru} // назва кроку 
+	+comment = {ua,en,..} : Опис кроку
+	+beforeStart() : async Function // асинхронна функція для виконання перед початком кроку (підготовка)
+	+afterAll() : async Function // асинхронна функція для виконання в кінці процесу (завершення)
+	+ln = String // опис для логування
+	
+	---- this ----
+	+currentDuration : Number -  тривалість кроку в сек
+	+state : Object; // стан кроку 
+	+state._id ="waiting" String // id стану ["waiting","going","finished","stoped","error"]
+	+state.note: String Опис стану
+    +state.type: tring Тип кроку 
+	+state.startTime = null | ObjectDate // старт кроку
+	+state.duration = "0" : String // тривалість кроку e вигляді "ГГ:ХХ:СС"
+	+state.changed = undefined|ObjectDate // відмітка про час останньої зміни стану кроку
+	+regs = {}: Object; // тут зберігаються налаштування кроку (температура, потік, витримка та інше )
+	+err=null/{ua,en,..};  // опис помилки 
+	+getState() = {...this.state} + id + header + comment // повертає поточний стан кроку
+	+testState()  // коли все нормально то повертає 1=true, при помилці 0=false 
+	+logger(level,msg) // логер + автоматично додає відмітку часу та this.ln до повідомлення
+	+start(): async Function // основна функція, що кожні this.checkTime сек \n перевіряє стан процесу і завершується  resolve / reject
+	+stop(msg={ua,en,ru}) // примусова зупинка процесу
+	+finish(msg) // успішне завершення процесу
+	+error(msg) // завершення по помилці
+	-duration() // вираховує поточну тривалість кроку
+	
+}
+
+@enduml

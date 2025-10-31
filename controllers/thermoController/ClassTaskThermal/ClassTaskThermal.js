@@ -262,7 +262,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
   }
 
   /**
-   * Повертає копію this.reg для рендерингу сторінки
+   * Повертає копію this.reg для рендерингу сторінки редактора програм
    * видаляє непотрібні поля devices
    */
   getRegForHtml() {
@@ -275,7 +275,6 @@ class ClassTaskThermal extends ClassTaskGeneral {
       log("i", ln, `reg=`);
       console.dir(reg);
     }
-
     return reg;
   }
 

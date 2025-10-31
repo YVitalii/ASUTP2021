@@ -5,12 +5,10 @@
 ' -------------  Базовий клас задачі ------------------ 
 
 class ClassTaskGeneral {
-	{abstract} getState() : Object 
-    {abstract} getStep() : Object
-    {abstract} getRegForHTML() : Object
-
-}
-
+	{abstract} getState() : abstaract - має повертати стан задачі 
+    {abstract} getStep() : abstaract - має повертати крок для виконання менеджером процессу
+    {abstract} getRegForHTML() : abstaract - має повертати опис задачі для редактора програм
+    }
 ClassReg_regsList <|-- ClassTaskGeneral
 
 @enduml

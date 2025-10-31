@@ -1,7 +1,8 @@
 /** типовий регістр драйвера  */
 const ClassGeneral = require("../../ClassGeneral");
 const log = require("../../tools/log");
-
+let trace = 1,
+  ln = `${__filename}::`;
 /* Заготовка для опису регістру
  
   driver.addRegister({
@@ -37,7 +38,7 @@ function testFunction(func) {
   if (typeof func === "function") {
     return func;
   }
-  log("w", this.ln + `testFunction(${func.name})::func must be a Function`);
+  log("w", ln + `testFunction(${func.name})::func must be a Function`);
   return function (arg = {}) {
     return { err: null, data: arg };
   };
@@ -57,6 +58,7 @@ module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
    */
   constructor(props) {
     super(props);
+    this.ln = __filename + "::";
 
     // -------- addr ----------
     this.addr = test(props.addr, "'addr' of register must be defined!");

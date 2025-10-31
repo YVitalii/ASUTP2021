@@ -2,6 +2,6 @@
 !include ./ClassRegister.puml
 !include ./ClassReg_number.puml
 !include ./ClassReg_regsList.puml
-
+!include ./ClassReg_timer.puml
 
 @enduml

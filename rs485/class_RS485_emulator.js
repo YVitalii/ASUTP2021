@@ -10,7 +10,7 @@ class ClassRS485Emulator extends ClassGeneral {
     this.openPort();
   }
   async openPort() {
-    await dummy(2000);
+    await dummy(1000);
     this.isOpened = true;
   }
 
@@ -40,7 +40,7 @@ class ClassRS485Emulator extends ClassGeneral {
   }
 }
 
-const iface = new ClassRS485Emulator("COMsim", {
+const iface = new ClassRS485Emulator("fakeCOM", {
   id: "w2",
   header: {
     ua: `Емулятор RS485`,

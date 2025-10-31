@@ -1,0 +1,11 @@
+@startuml FlowControllerFabrick
+!include ../tasksController/ClassTaskGeneral.puml
+class FlowControllerFabrick {
+    +**flow** : Number // 0..100%
+    +**duration** : Number 
+}
+
+ClassTaskGeneral <|-- FlowControllerFabrick
+
+
+@enduml
