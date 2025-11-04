@@ -953,7 +953,7 @@ function setReg(iface, id, regName, value, cb) {
     let caption =
       "Указанный регистр отсутствует в списке регистров устройства:" + regName;
     log(0, modul, caption);
-    return cb(new Error(caption), res);
+    return cb(new Error(caption), null);
   }
 } // setReg
 
@@ -1001,6 +1001,8 @@ module.exports.getReg = getReg;
 module.exports.getRegPromise = getRegPromise;
 module.exports.has = has;
 module.exports.getRegDescription = getRegDescription;
+module.exports.regs = regs;
+module.exports.id = "trp08driver";
 
 if (!module.parent) {
   //const iface = require("../../rs485/RS485_v200.js");
