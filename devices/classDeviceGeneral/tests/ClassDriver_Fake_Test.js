@@ -1,19 +1,35 @@
 // cd ./devices/classDeviceGeneral
 // supervisor --no-restart-on exit --w '.' ./tests/ClassDriver_Fake_Test.js
-let degrees = { ua: `°C`, en: `°C`, ru: `°C` };
+
 const makeFake = require("../ClassDriver_Fake");
-let device = require("../../trp08/driver");
+let device = require("../../trp08/makeNewDriverFromOld.js");
+// console.dir(device);
+let iface = {
+  id: "fake iFace",
+  send: () => {},
+  isOpen: () => {
+    return true;
+  },
+};
 const assert = require("assert");
 const test = require("node:test");
 const clone = require("clone");
+const ClassDriverRegisterGeneral = require("../ClassDriverRegisterGeneral");
+const gLn = "./tests/ClassDriver_Fake_Test.js::";
 
 // dev.getRegsInfo();
 // перетворюємо драйвер в фейк-драйвер
-function newDevice() {
+function newDevice(trace = 0) {
+  let ln = gLn + `newDevice()::`;
   let newDev = clone(device);
   makeFake(newDev);
+  if (trace) {
+    console.log("i", ln, `newDev=`);
+    console.dir(newDev);
+  }
   return newDev;
 }
+
 //
 test("Перевірка відразу після емулятора", (err, done) => {
   let dev = newDevice();
@@ -40,9 +56,24 @@ test("Перевірка відразу після емулятора", (err, do
 test("Перевірка коректного запису регістру setReg", (err, done) => {
   let dev = newDevice();
   dev.setReg(0, 0, "tT", 200, (err, data) => {
-    console.log("data=");
-    console.dir(data);
+    // console.log("data=");
+    // console.dir(data);
     assert.equal(data.value, 200, "Must be tT=200");
+    assert.equal(err, null, "Error shoud be null");
+    done();
+  });
+});
+
+test("Перевірка коректної роботи функції set_()", (err, done) => {
+  let dev = newDevice();
+  let f = (val) => {
+    return val + 50;
+  };
+  dev.regs.get("tT").set_ = f;
+  dev.setReg(0, 0, "tT", 200, (err, data) => {
+    // console.log("data=");
+    // console.dir(data);
+    assert.equal(data.value, f(200), "Must be tT=200+50=250");
     assert.equal(err, null, "Error shoud be null");
     done();
   });
@@ -51,16 +82,51 @@ test("Перевірка коректного запису регістру setR
 test("Перевірка не коректного запису регістру setReg()", (err, done) => {
   let dev = newDevice();
   dev.setReg(0, 0, "badRegName", 200, (err, data) => {
-    console.log("data=");
-    console.dir(data);
-    console.log("err=");
-    console.dir(err);
+    // console.log("data=");
+    // console.dir(data);
+    // console.log("err=");
+    // console.dir(err);
     assert.equal(data, null, "Must be data=null");
     assert.match(err.message, /regName/, "Error shoud has 'regName'");
     done();
   });
 });
 
+test("Перевірка коректного читання регістру getReg", (err, done) => {
+  let dev = newDevice(0);
+  let f = (val = 0) => {
+    return val + 50;
+  };
+  dev.regs.get("tT").get_ = f;
+  dev.setReg(0, 0, "tT", 200, (err, data) => {
+    // console.log("setReg::data=");
+    // console.dir(data);
+    dev.getReg(0, 0, "tT", (err, data) => {
+      assert.equal(
+        data.value,
+        f(200),
+        "Must be tT=200+50=250, but we have" + JSON.stringify(data)
+      );
+      assert.equal(err, null, "Error shoud be null");
+      done();
+    });
+  });
+});
+
+test("Перевірка getRegPromise('tT') / setRegPromise", async (t) => {
+  let dev = newDevice(0);
+  let v = await dev.getRegPromise({ iface, devAddr: 1, regName: "tT" });
+  assert.equal(v.value, null);
+  v = await dev.setRegPromise({ iface, devAddr: 1, regName: "tT", value: 200 });
+  assert.equal(v.value, 200, "after setRegPromise(tT=200) must be tT=200");
+  v = await dev.getRegPromise({ iface, devAddr: 1, regName: "tT" });
+  assert.equal(
+    v.value,
+    200,
+    "after setRegPromise(tT=200) getPromiseReg(tT) must return tT=200"
+  );
+});
+// return Promise.resolve(1);
 // let reg = dev.regs.get("tT");
 // reg.get_ = function (val) {
 //   // console.log("this=");

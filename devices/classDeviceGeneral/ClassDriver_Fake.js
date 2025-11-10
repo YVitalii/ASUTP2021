@@ -10,6 +10,7 @@ function makeFake(driver = {}) {
     throw new Error(ln + "[driver.regs] must be instance of [Map]! ");
   }
   driver.offline = false;
+  driver.ln = driver.ln ? driver.ln : driver.id + "_fake::";
   // перевизначаємо всі функції
   driver.regs.forEach((value, key, map) => {
     let reg = value;
@@ -39,8 +40,12 @@ function makeFake(driver = {}) {
    */
   driver.getReg = async function (iface = 0, addr = 0, regName, cb) {
     let trace = 0,
-      ln = this.ln + `getReg(${iface.id},${addr},${regName})::`;
-    trace ? log("i", ln, `Started`) : null;
+      ln =
+        this.ln +
+        `getReg(${
+          iface.id ? iface.id : "fakeIface"
+        },addr=${addr},regName=${regName})::`;
+    trace ? console.log("i", ln, `Started`) : null;
     // перевіряємо та отримуємо посилання на регістр
     let reg;
     try {
@@ -52,7 +57,7 @@ function makeFake(driver = {}) {
     // формуємо відповідь
     let data = {
       regName,
-      value: reg.get_(),
+      value: reg.get_(reg.value),
       note: reg.note ? reg.note : "",
       detail: { request: "fake driver" },
     };
@@ -61,6 +66,15 @@ function makeFake(driver = {}) {
       cb(err, data);
     });
   };
+
+  // getRegPromise(props = undefined){
+  //    return new Promise(function (resolve, reject) {
+  //     if (!props) {
+  //         reject(new Error(ln + "props must be defined!"));
+  //       }
+  //    })
+  // };
+
   /**
    * Імітація запиту запису значення регістру
    * @param {*} iface -заглушка

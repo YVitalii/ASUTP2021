@@ -58,7 +58,7 @@ module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
    */
   constructor(props) {
     super(props);
-    this.ln = __filename + "::";
+    this.ln = props.ln ? props.ln : __filename + "::";
 
     // -------- addr ----------
     this.addr = test(props.addr, "'addr' of register must be defined!");
