@@ -1,9 +1,74 @@
 // cd ./devices/classDeviceGeneral
 // supervisor --no-restart-on exit --w '.' ./tests/ClassDriver_Fake_Test.js
+const assert = require("assert");
+const test = require("node:test");
+const clone = require("clone");
+const makeFake = require("../makeFakeDriver.js");
+// let device = require("../../trp08/makeNewDriverFromOld.js");
 
-const makeFake = require("../ClassDriver_Fake");
-let device = require("../../trp08/makeNewDriverFromOld.js");
-// console.dir(device);
+// ------------ виготовляємо емулятор приладу -------------------
+const ClassDriverGeneral = require("../ClassDriverGeneral.js");
+let device = new ClassDriverGeneral({
+  id: "testDevice",
+});
+// --------- додаємо тестовий регістр tT ---------------
+device.addRegister({
+  id: "tT",
+  addr: 0x0100,
+  title: "Цільова температура",
+  header: {
+    ua: `Цільова температура`,
+    en: `Goal temperature`,
+    ru: ``,
+  },
+  units: { ua: `°C`, en: `°C`, ru: `°C` },
+  type: "integer",
+  _get: function () {
+    return {
+      data: {
+        FC: 3,
+        addr: this.addr,
+        data: 0x1,
+      },
+      err: null,
+    };
+  },
+  get_: (buf) => {
+    let note = this.title;
+    let data = fromBCD(buf);
+    let err = null;
+    if (!data) {
+      err =
+        "_get: Не могу преобразовать буфер:[" +
+        buf.toString("hex") +
+        "] в число";
+    }
+    return {
+      data: { value: data, note: note },
+      err: err,
+    };
+  },
+  _set: function (data) {
+    let val = toBCD(data);
+    let err = null;
+    if (val === null) {
+      err = ln + "Не могу преобразовать в BCD:" + data;
+    }
+    return {
+      data: {
+        FC: 6,
+        addr: this.addr,
+        data: val,
+      },
+      err: err,
+    };
+  },
+  set_: function (buf) {
+    return this.get_(buf);
+  },
+}); ///regs.set("tT"
+
+// емулятор iface
 let iface = {
   id: "fake iFace",
   send: () => {},
@@ -11,10 +76,7 @@ let iface = {
     return true;
   },
 };
-const assert = require("assert");
-const test = require("node:test");
-const clone = require("clone");
-const ClassDriverRegisterGeneral = require("../ClassDriverRegisterGeneral");
+
 const gLn = "./tests/ClassDriver_Fake_Test.js::";
 
 // dev.getRegsInfo();

@@ -3,7 +3,8 @@ const ClassGeneral = require("../ClassGeneral");
 const dummy = require("../tools/dummy.js").dummyPromise;
 
 class ClassRS485Emulator extends ClassGeneral {
-  constructor(path, props) {
+  constructor(path = "", props = {}) {
+    props.id = "fakeRS485";
     super(props);
     this.path = path;
     this.isOpened = false;
@@ -25,8 +26,13 @@ class ClassRS485Emulator extends ClassGeneral {
    * @return {callback} (err,data) = >
    * @typedef {Object} data - отримані дані
    */
-  send(req, cb) {
+  send(req = {}, cb) {
     // налаштування трасувальника
+    req.id = req.id ? req.id : 33;
+    req.FC = req.FC ? req.FC : 3;
+    req.addr = req.addr ? req.addr : 33;
+    req.data = req.data ? req.data : Buffer.from(["f", "a", "k", "e"]);
+    req.timeout = req.timeout ? req.timeout : 1000;
     let trace = 0,
       ln =
         this.ln +
@@ -35,8 +41,8 @@ class ClassRS485Emulator extends ClassGeneral {
         )})::`;
     trace ? log(ln, `Started!`) : null;
     setTimeout(() => {
-      cb(null, data);
-    }, timeout);
+      cb(null, req.data);
+    }, req.timeout);
   }
 }
 

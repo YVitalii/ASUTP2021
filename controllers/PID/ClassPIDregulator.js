@@ -37,7 +37,7 @@ class PID extends ClassGeneral {
   constructor(params = {}) {
     super(params);
     this.manual = false; //
-
+    this.realSetPoint = 0; //  цільова точка в одиницях процесу (не переведена в %)
     this.period = params.period ? params.period * 1000 : 1000; //ms
     this.inputRange = params.inputRange
       ? params.inputRange
@@ -70,7 +70,7 @@ class PID extends ClassGeneral {
     this._kp = params.kp ? params.kp : 0;
     this._ki = params.ki ? params.ki : 0;
     this._kd = params.kd ? params.kd : 0;
-    this._setPoint = 0;
+    this._setPoint = 0; // нормалізована цільова точка (%)
     this._error = 0;
     this._errorPrev = 0;
     this._errorSum = 0;
@@ -172,6 +172,7 @@ class PID extends ClassGeneral {
   }
   set setPoint(value) {
     this._setPoint = inRange(this.normalizeInput.get(value), this.inputRange);
+    this.realSetPoint = value;
   }
 }
 

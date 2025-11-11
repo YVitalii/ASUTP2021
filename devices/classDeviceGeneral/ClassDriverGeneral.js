@@ -8,7 +8,7 @@ const ClassGeneral = require("../../ClassGeneral");
 const ClassDriverRegisterGeneral = require("./ClassDriverRegisterGeneral");
 
 module.exports = class ClassDriverGeneral extends ClassGeneral {
-  constructor(props) {
+  constructor(props = {}) {
     super(props);
 
     // ---- timeout ----------
@@ -193,7 +193,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
    * @returns cb {callback} (err,data), де data = {regName,value,note,detail:{duration,request,response,afterSet}}
    */
   setReg(iface, addr, regName, value, cb) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `setReg(${iface.id},${addr},${regName}):`;
     let reg = this.testRequest({ iface, regName });
     // запит
@@ -241,13 +241,15 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
   setRegPromise(props) {
     let environ = this;
     return new Promise(function (resolve, reject) {
-      let trace = 0,
+      let trace = 1,
         ln = environ.ln + `setRegPromise`;
       if (!props) {
         reject(new Error(ln + "props must be defined!"));
       }
       ln += `(iface=${props.iface.id};devAddr=${props.devAddr};regName=${props.regName})::`;
       trace ? log("i", ln, `Started`) : null;
+      // console.dir(environ, { depth: 1 });
+      // console.log(environ.setReg.toString());
       environ.setReg(
         props.iface,
         props.devAddr,

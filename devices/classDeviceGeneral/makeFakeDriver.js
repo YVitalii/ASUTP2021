@@ -9,8 +9,9 @@ function makeFake(driver = {}) {
   if (!driver.regs instanceof Map) {
     throw new Error(ln + "[driver.regs] must be instance of [Map]! ");
   }
+  driver.id = "fake_" + driver.id;
   driver.offline = false;
-  driver.ln = driver.ln ? driver.ln : driver.id + "_fake::";
+  driver.ln = driver.id + "::";
   // перевизначаємо всі функції
   driver.regs.forEach((value, key, map) => {
     let reg = value;
@@ -90,9 +91,9 @@ function makeFake(driver = {}) {
     value = null,
     cb
   ) {
-    let trace = 0,
-      ln = this.ln + `setReg(${iface.id},${addr},${regName})::`;
-
+    let trace = 1,
+      ln = this.ln + `fakedSetReg(${iface.id},${addr},${regName})::`;
+    trace ? console.log(ln + `Started`) : null;
     if (value === null)
       throw new Error(ln + `Value must be defined!!? But value=${value}`);
     let reg;
@@ -102,6 +103,7 @@ function makeFake(driver = {}) {
       cb(error, null);
       return;
     }
+    reg._set(value);
     // формуємо відповідь
     let data = {
       regName,
@@ -154,64 +156,7 @@ function makeFake(driver = {}) {
     this.offline = val ? true : false;
     return this.offline;
   };
+  return driver;
 } // function makeFake
 
 module.exports = makeFake;
-
-// class ClassDriverFake {
-//   constructor(props = {}) {
-//     if (!props.driver) {
-//       throw new Error("Driver should be received")
-//     }
-//     // this=driver;
-//     // super(props);
-//     this.iface = () => {
-//       return 1;
-//     };
-//   }
-//   addRegister(props) {
-//     // якщо props - масив, то додаємо кожен елемент масиву
-//     if (Array.isArray(props)) {
-//       let arr = [];
-//       for (let i = 0; i < props.length; i++) {
-//         // рекурсивно додаємо кожен елемент масиву
-//         let res = this.addRegister(props[i]);
-//         // реєструємо результат
-//         arr.push(res);
-//       }
-//       return arr;
-//     }
-//     props._set =
-//       typeof props._set == "function"
-//         ? props._set
-//         : () => {
-//             return true;
-//           };
-//     props.set_ =
-//       typeof props.set_ == "function"
-//         ? props.set_
-//         : (val) => {
-//             return val;
-//           };
-//     props._get =
-//       typeof props._get == "function"
-//         ? props._set
-//         : () => {
-//             return true;
-//           };
-//     props.get_ =
-//       typeof props.get_ == "function"
-//         ? props.get_
-//         : (val) => {
-//             return val;
-//           };
-//     super.addRegister(props);
-//     for (const key in this.regs) {
-//       if (!Object.hasOwn(this.regs, key)) continue;
-//       this.regs[key].value = null;
-//     } // for in
-//   } // addRegister
-
-// } // class
-
-// module.exports = ClassDriverFake;

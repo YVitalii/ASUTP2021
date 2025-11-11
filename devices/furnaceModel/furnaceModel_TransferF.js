@@ -39,8 +39,13 @@ class ElectricOvenModel {
     this.update();
   } // constructor
 
+  /**
+   * Встановлює поточну потужність
+   * @param {Number[0..100]} power - потужність в %
+   * @returns {Promise}
+   */
   async setPower(power) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setPower(${power})::`;
     power = power < 0 ? 0 : power;
     power = power > 100 ? 100 : power;
@@ -53,7 +58,26 @@ class ElectricOvenModel {
           this.currentPower
         )
       : null;
-    return power;
+    return Promise.resolve(power);
+  }
+
+  start() {
+    setTimeout(() => {
+      let trace = 1,
+        ln = this.ln + `start()::`;
+
+      this.update();
+      trace
+        ? log(
+            "i",
+            ln,
+            `P=${this.currentPower}%; T=${this.currentTemperature.toFixed(
+              1
+            )}°C; time=${this.currentTime} tik`
+          )
+        : null;
+      this.start();
+    }, this.deltaTime * 1000);
   }
 
   /**
@@ -111,69 +135,85 @@ class ElectricOvenModel {
 
     return this.currentTemperature;
   }
-  async getT() {
+  getT() {
     return this.currentTemperature;
   }
 }
 
-// --- Приклад використання моделі ---
+module.exports = ElectricOvenModel;
 
-// Параметри печі (можна налаштувати!)
-// Припустимо, піч може нагрітися на 300°C вище навколишнього середовища (K=300) при 100% потужності.
-// Постійна часу 120 секунд (2 хвилини) - досить повільно нагрівається/охолоджується.
-// Чиста затримка 10 секунд - затримка між подачею тепла та його реєстрацією датчиком.
-const ovenParameters = {
-  gain: 300, // Максимальне підвищення температури відносно навколишнього середовища при 100% потужності
-  timeConstant: 120, // Секунди (T1)
-  deadTime: 10, // Секунди (tau)
-  initialTemperature: 20, // Початкова температура печі
-  ambientTemperature: 20, // Температура навколишнього середовища
-  deltaTime: 2, // Крок симуляції в секундах
-};
+if (require.main === module) {
+  let autoStart = true;
 
-const oven = new ElectricOvenModel(ovenParameters);
+  // --- Приклад використання моделі ---
 
-console.dir(oven);
+  // Параметри печі (можна налаштувати!)
+  // Припустимо, піч може нагрітися на 300°C вище навколишнього середовища (K=300) при 100% потужності.
+  // Постійна часу 120 секунд (2 хвилини) - досить повільно нагрівається/охолоджується.
+  // Чиста затримка 10 секунд - затримка між подачею тепла та його реєстрацією датчиком.
+  const ovenParameters = {
+    gain: 300, // Максимальне підвищення температури відносно навколишнього середовища при 100% потужності
+    timeConstant: 120, // Секунди (T1)
+    deadTime: 10, // Секунди (tau)
+    initialTemperature: 20, // Початкова температура печі
+    ambientTemperature: 20, // Температура навколишнього середовища
+    deltaTime: 1, // Крок симуляції в секундах
+  };
+  //виконується, якщо модуль викликано окремо, а не імпортовано (в командному рядку)
+  const oven = new ElectricOvenModel(ovenParameters);
 
-// const deltaTime = 1; // Крок симуляції в секундах
+  console.dir(oven);
 
-// Вхідна потужність:
-// Спочатку 0%
-// Через 10 секунд -> 100%
-// Через 100 секунд -> 50%
-// Через 200 секунд -> 0% (вимкнути нагрів)
-
-(async () => {
-  // Масив для збереження даних для графіку (якщо потрібно)
-  const temperatureLog = [
-    { time: 0, pow: oven.currentPower, temp: await oven.getT() },
-  ];
-  let currentTime = 0;
-  const simulationTime = 300; // Загальний час симуляції в секундах (5 хвилин)
-  console.log("--- Симуляція температури печі ---");
-  console.log(
-    `Початкова температура: ${oven.currentTemperature.toFixed(2)} °C`
-  );
-  while (currentTime <= simulationTime) {
-    if (currentTime === 10) {
-      oven.setPower(100);
-    } else if (currentTime === 100) {
+  if (autoStart) {
+    oven.start();
+    setTimeout(() => {
       oven.setPower(50);
-    } else if (currentTime === 200) {
-      oven.setPower(0);
-    }
-    oven.update();
-    let t = await oven.getT();
-    temperatureLog.push({
-      time: oven.currentTime,
-      pow: oven.currentPower,
-      temp: parseFloat(t.toFixed(1)),
-    });
-    currentTime += ovenParameters.deltaTime;
-    //await dummy(ovenParameters.props.deltaTime * 1000);
+      setTimeout(() => {
+        oven.setPower(0);
+      }, 10 * 1000);
+    }, 10 * 1000);
+  } else {
+    // const deltaTime = 1; // Крок симуляції в секундах
+
+    // Вхідна потужність:
+    // Спочатку 0%
+    // Через 10 секунд -> 100%
+    // Через 100 секунд -> 50%
+    // Через 200 секунд -> 0% (вимкнути нагрів)
+
+    (async () => {
+      // Масив для збереження даних для графіку (якщо потрібно)
+      const temperatureLog = [
+        { time: 0, pow: oven.currentPower, temp: await oven.getT() },
+      ];
+      let currentTime = 0;
+      const simulationTime = 300; // Загальний час симуляції в секундах (5 хвилин)
+      console.log("--- Симуляція температури печі ---");
+      console.log(
+        `Початкова температура: ${oven.currentTemperature.toFixed(2)} °C`
+      );
+      while (currentTime <= simulationTime) {
+        if (currentTime === 10) {
+          oven.setPower(100);
+        } else if (currentTime === 100) {
+          oven.setPower(50);
+        } else if (currentTime === 200) {
+          oven.setPower(0);
+        }
+        oven.update();
+        let t = await oven.getT();
+        temperatureLog.push({
+          time: oven.currentTime,
+          pow: oven.currentPower,
+          temp: parseFloat(t.toFixed(1)),
+        });
+        currentTime += ovenParameters.deltaTime;
+        //await dummy(ovenParameters.props.deltaTime * 1000);
+      }
+      console.log("\n--- Симуляція завершена ---");
+      console.table(temperatureLog);
+    })();
   }
-  console.log("\n--- Симуляція завершена ---");
-  console.table(temperatureLog);
-})();
+}
 
 // Можна вивести лог для подальшої обробки (наприклад, побудови графіку)

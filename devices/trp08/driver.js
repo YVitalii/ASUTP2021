@@ -140,7 +140,7 @@ regs.set(
       ru: `Состояние прибора`,
     },
     units: "",
-
+    
     type: "states",
     _get: function () {
       return {
