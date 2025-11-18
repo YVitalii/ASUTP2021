@@ -92,7 +92,7 @@ function makeFake(driver = {}) {
     cb
   ) {
     let trace = 1,
-      ln = this.ln + `fakedSetReg(${iface.id},${addr},${regName})::`;
+      ln = this.ln + `fakedSetReg(${iface.id},${addr},${regName},${value})::`;
     trace ? console.log(ln + `Started`) : null;
     if (value === null)
       throw new Error(ln + `Value must be defined!!? But value=${value}`);
@@ -103,11 +103,12 @@ function makeFake(driver = {}) {
       cb(error, null);
       return;
     }
-    reg._set(value);
+    // передобробка
+    let v = reg._set(value);
     // формуємо відповідь
     let data = {
       regName,
-      value: reg.set_(value),
+      value: reg.set_(v), // пост обробка
       note: reg.note ? reg.note : "",
       detail: { request: "fake driver" },
     };

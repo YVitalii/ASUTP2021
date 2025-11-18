@@ -1,3 +1,6 @@
+// cd ./controllers/PID
+// supervisor --watch './,../'  --extensions 'js,pug' --timestamp --no-restart-on exit ClassPIDregulator_test_withFurnaceModelTransferFunction.js
+
 const ClassPIDregulator = require("./ClassPIDregulator");
 const log = require("../../tools/log");
 const dummy = require("../../tools/dummy").dummyPromise;
@@ -29,4 +32,4 @@ let pid = new ClassPIDregulator({
   outputRange: { min: 10, max: 100 },
   kiError: 25,
 });
-pid.start(100);
+pid.start(50);

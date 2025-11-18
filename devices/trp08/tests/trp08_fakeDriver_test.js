@@ -20,14 +20,20 @@ let trace = 1,
 const driver = makeFakeDriverTrp08(realDriver, { maxT: 500 });
 
 driver.printRegsDescription();
-function getNewDriver() {
+
+function getNewDriver(trace = 0) {
   let newDriver = makeFakeDriverTrp08(require("../makeNewDriverFromOld"), {
     maxT: 500,
   });
+  let ln = gLn + `getNewDriver();`;
+  if (trace) {
+    log("i", ln, `newDriver=`);
+    console.dir(newDriver, { depth: 1 });
+  }
   return newDriver;
 }
 
-let makeParams = (regName = "tT", value = null) => {
+let makeParams = (regName = "tT", value = null, trace = 0) => {
   let res = {
     iface,
     devAddr: 55,
@@ -36,14 +42,23 @@ let makeParams = (regName = "tT", value = null) => {
   if (value != null) {
     res.value = value;
   }
+  let ln = `makeParams(${regName},${value},${trace})::`;
+  if (trace) {
+    console.log(ln + `params=`);
+    console.dir(res, { depth: 1 });
+  }
   return res;
 };
 
 describe("test fake driver TRP08 ", () => {
   let driver = getNewDriver();
   it("Start from cold furnace", () => {
-    assert(driver.furnace.getT(), 20);
-    assert(driver.pid.inputRange.max, 500);
+    assert(
+      driver.furnace.getT(),
+      20,
+      "Відразу після створення температура в печі має бути 20С"
+    );
+    assert(driver.pid.inputRange.max, driver.maxT);
     assert(typeof driver.setRegPromise, "function");
   });
 });
@@ -51,14 +66,23 @@ describe("test fake driver TRP08 ", () => {
 describe("test working with 'tT'", () => {
   //   let driver = getNewDriver();
   let tT = 500;
-  let driver = getNewDriver();
+  let driver = getNewDriver(0);
   it("set tT", async () => {
-    await driver.setRegPromise(makeParams("tT", 500));
-    let t = await driver.getRegPromise({ iface, devAddr: 1, regName: "tT" });
-    assert.equal(t.value, tT, "must be tT=" + tT);
-    console.log("------driver.pid=");
-    console.dir(driver.pid);
+    await driver.setRegPromise(makeParams("tT", driver.maxT));
+    let reg = await driver.getRegPromise({ iface, devAddr: 1, regName: "tT" });
+    assert.equal(reg.value, tT, "must be tT=" + tT);
+    // console.log("------driver=");
+    // console.dir(driver, { depth: 1 });
     assert.equal(driver.pid.setPoint, 100);
+    let tT50 = Math.round(driver.maxT / 2);
+    await driver.setRegPromise(makeParams("tT", tT50, 0));
+    reg = await driver.getRegPromise({ iface, devAddr: 1, regName: "tT" });
+    assert.equal(reg.value, tT50, "must be tT=" + tT50);
+    assert.equal(
+      driver.pid.setPoint,
+      (tT50 * 100) / driver.maxT,
+      `For tT=${tT50} and maxT=${driver.maxT} should be PID.setPoint=50% but received ${driver.pid.setPoint}`
+    );
     return 1;
   }); //set tT
 });

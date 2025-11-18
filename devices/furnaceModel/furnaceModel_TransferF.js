@@ -1,3 +1,5 @@
+// на 2025-11-18 модель працює занадто швидко, поки не користуюсь
+
 const dummy = require("../../tools/dummy").dummyPromise;
 const log = require("../../tools/log");
 class ElectricOvenModel {
@@ -44,7 +46,7 @@ class ElectricOvenModel {
    * @param {Number[0..100]} power - потужність в %
    * @returns {Promise}
    */
-  async setPower(power) {
+  async setPower(power = 100) {
     let trace = 0,
       ln = this.ln + `setPower(${power})::`;
     power = power < 0 ? 0 : power;
@@ -61,24 +63,24 @@ class ElectricOvenModel {
     return Promise.resolve(power);
   }
 
-  start() {
-    setTimeout(() => {
-      let trace = 1,
-        ln = this.ln + `start()::`;
+  // start() {
+  //   setTimeout(() => {
+  //     let trace = 1,
+  //       ln = this.ln + `start()::`;
 
-      this.update();
-      trace
-        ? log(
-            "i",
-            ln,
-            `P=${this.currentPower}%; T=${this.currentTemperature.toFixed(
-              1
-            )}°C; time=${this.currentTime} tik`
-          )
-        : null;
-      this.start();
-    }, this.deltaTime * 1000);
-  }
+  //     this.update();
+  //     trace
+  //       ? log(
+  //           "i",
+  //           ln,
+  //           `P=${this.currentPower}%; T=${this.currentTemperature.toFixed(
+  //             1
+  //           )}°C; time=${this.currentTime} tik`
+  //         )
+  //       : null;
+  //     this.start();
+  //   }, this.deltaTime * 1000);
+  // }
 
   /**
    * Симулює один крок динаміки печі.
@@ -132,7 +134,9 @@ class ElectricOvenModel {
     // setTimeout(() => {
     //   this.update();
     // }, this.deltaTime * 1000);
-
+    setTimeout(() => {
+      this.update();
+    }, this.deltaTime * 1000);
     return this.currentTemperature;
   }
   getT() {

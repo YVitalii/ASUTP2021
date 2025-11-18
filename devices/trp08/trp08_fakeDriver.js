@@ -20,9 +20,11 @@ function makeFakeTrp08(driver, props = {}) {
     ln = driver.ln + `::makeFakeTrp08()::`;
   // підміняємо методи фальшивими методами
   makeFake(driver);
-
+  driver.ln = "fakeTrp08driver::";
   trace ? console.log(ln + `makeFake(driver) completed ! `) : null;
   //   console.log(ln + "" + driver.setReg.toString());
+  // запамятовуємо максимальну температуру
+  driver.maxT = props.maxT;
   // створюємо модель печі
   props.furnace = props.furnace
     ? props.furnace
@@ -39,6 +41,7 @@ function makeFakeTrp08(driver, props = {}) {
   driver.furnace = furnace;
 
   // ------------ PID-регулятор -------------
+  // ------------ використовується для управління моделлю печі -------
   props.pid = props.pid
     ? props.pid
     : {
@@ -52,30 +55,38 @@ function makeFakeTrp08(driver, props = {}) {
   props.pid.getPV = async () => {
     await driver.getRegPromise("T");
   };
+  // поточна потужність передається в модель печі
   props.pid.setOutput = async (pow) => {
     await furnace.setPower(pow);
   };
+
   // ------------ створюємо модель PID-регулятора -------------
   let pid = new ClassPIDregulator(props.pid);
   driver.pid = pid;
+
   // --------  tT ----------
   driver.regs.get("tT")._set = (val) => {
+    // при записі в регістр приладу tT - передаємо значення в модель ПИД-регулятора
     // console.log(`driver.regs.get("tT")._set(${val})::Started;`);
     // console.log("pid=");
     // console.dir(pid);
     pid.setPoint = val;
+    return val;
   };
+
   // ------- start/stop ----------
   driver.regs.get("state")._set = (val) => {
     if (val == 17) {
       //start
       pid.start();
-      return val;
+      // режим Пуск
+      return 23;
     }
     if (val == 1) {
       //stop
       pid.stop();
-      return val;
+      //режим Стоп
+      return 7;
     }
     throw new Error(
       `Not compatible value for register/ Can be 17-start or 1=stop? but received [${val}]`
@@ -93,7 +104,6 @@ function makeFakeTrp08(driver, props = {}) {
     console.log(ln + `After make Fake:: driver=`);
     console.dir(driver);
   }
-  // -- робота з заданою температурою
 
   return driver;
 }

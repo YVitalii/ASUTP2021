@@ -246,7 +246,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
       if (!props) {
         reject(new Error(ln + "props must be defined!"));
       }
-      ln += `(iface=${props.iface.id};devAddr=${props.devAddr};regName=${props.regName})::`;
+      ln += `(iface=${props.iface.id};devAddr=${props.devAddr};regName=${props.regName},value=${props.value})::`;
       trace ? log("i", ln, `Started`) : null;
       // console.dir(environ, { depth: 1 });
       // console.log(environ.setReg.toString());

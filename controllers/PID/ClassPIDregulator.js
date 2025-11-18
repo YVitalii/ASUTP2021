@@ -96,9 +96,18 @@ class PID extends ClassGeneral {
     this.calculate();
   }
 
+  stop() {
+    this.going = 0;
+    return;
+  }
+
   calculate() {
     let trace = 1,
       ln = this.ln + `calculate()::`;
+    if (this.going == 0) {
+      this.setOutput(0);
+      return;
+    }
     // console.log("Started");
     // console.log("T=" + this.getPV());
     // let input = 1;
