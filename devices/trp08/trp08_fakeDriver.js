@@ -1,6 +1,6 @@
 const realDriver = require("./makeNewDriverFromOld.js");
 const makeFake = require("../classDeviceGeneral/makeFakeDriver.js");
-const ClassFurnaceEmulator = require("../furnaceModel/furnaceModel_TransferF.js");
+const ClassFurnaceEmulator = require("../furnaceModel/ClassFurnaceModel.js"); // на 2025-11-18 furnaceModel_TransferF.js потребує доробки
 const ClassPIDregulator = require("../../controllers/PID/ClassPIDregulator.js");
 
 /**

@@ -1,5 +1,5 @@
 // cd ./controllers/PID
-// supervisor --watch './,../'  --extensions 'js,pug' --timestamp --no-restart-on exit ClassPIDregulator_test_withFurnaceModelTransferFunction.js
+// supervisor --watch './,../'  --extensions 'js,pug' --timestamp --no-restart-on exit ClassPIDregulator_test_withFurnaceModel.js
 
 const ClassPIDregulator = require("./ClassPIDregulator");
 const log = require("../../tools/log");
