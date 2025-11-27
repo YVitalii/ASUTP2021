@@ -2,6 +2,8 @@
  * 2024-03-29 Додав функцію getCompactHtml
  */
 const device = require("./driver.js");
+// console.log(`device=`);
+// console.dir(device, { depth: 1 });
 const log = require("../../tools/log.js");
 const trySomeTimes = require("../../tools/trySomeTimes.js");
 const pug = require("pug");
@@ -214,13 +216,17 @@ class Manager {
    */
   async iteration(func, params) {
     return new Promise(async (resolve, reject) => {
-      let trace = 0,
+      let trace = 1,
         ln =
           this.ln +
           `iteration(${func.name},${params.regName}${
             params.value || params.value === 0 ? "=" + params.value : ""
           })::`;
       trace ? log("i", ln, `Started`) : null;
+      // if (trace) {
+      //   console.log(ln + `this=`);
+      //   console.dir(this);
+      // }
       // очікуємо закінчення попередньої операції
       let i = 0; // лічильник повторів
       while (!this.iface.isOpened || this.busy) {
@@ -248,6 +254,8 @@ class Manager {
           res = await func(params);
           ok = true;
         } catch (error) {
+          console.log(ln + " Error:");
+          console.dir(error);
           log("", ln, "err=", error.messages.en);
           if (error.code != 13) {
             ok = true;
@@ -300,9 +308,9 @@ class Manager {
     let res,
       resString = "";
 
-    res = await this.iteration(device.setRegPromise, {
+    res = await this.iteration(device.setRegPromise.bind(device), {
       iface: this.iface,
-      id: this.addr,
+      devAddr: this.addr,
       regName: regName,
       value: value,
     });
@@ -443,7 +451,7 @@ class Manager {
    *  @return {Promise} - з результатом {Number} = поточна температура
    */
   async getT() {
-    let trace = 0;
+    let trace = 1;
     let ln = this.ln + `getT()::`;
     trace
       ? console.log(ln, `Started at ${new Date().toLocaleTimeString()}`)
@@ -474,7 +482,7 @@ class Manager {
    * @returns {Promise} - {tT:50}
    */
   async getParams(params = "tT") {
-    let trace = 0;
+    let trace = 1;
     let ln = this.ln + `getParams(${params})::`;
     trace ? console.log(ln, `Started.`) : null;
     let response = {};
@@ -508,7 +516,7 @@ class Manager {
       }
 
       // робимо запит в прилад по інтерфейсу
-      let res = await this.iteration(device.getRegPromise, {
+      let res = await this.iteration(device.getRegPromise.bind(device), {
         iface: this.iface,
         id: this.addr,
         regName: item,
@@ -519,25 +527,6 @@ class Manager {
       }
       currReg.value = res[0].value;
       currReg.timestamp = res[0].timestamp;
-
-      // try {
-      //   res = await device.getRegPromise({
-      //     iface: this.iface,
-      //     id: this.addr,
-      //     regName: item,
-      //   });
-      //   if (trace) {
-      //     log("i", ln, `res=`);
-      //     console.dir(res);
-      //   }
-      //   currReg.value = res[0].value;
-      //   currReg.timestamp = res[0].timestamp;
-      //   this.busy = false;
-      // } catch (error) {
-      //   log("e", ln, error);
-      //   currReg.value = null;
-      //   this.busy = false;
-      // }
 
       trace ? console.log(ln, item, "=", currReg.value) : null;
       response[item] = currReg;
@@ -554,71 +543,6 @@ class Manager {
     trace ? log("i", resString) : null;
     return response;
   }
-
-  // async getRegPromise(props) {
-  //   let trace = 1,
-  //     ln = `driver::getRegPromise(id=${props.id};${props.regName})::`;
-  //   let res;
-  //   let i = 0;
-  //   while (this.busy) {
-  //     log("", ln + "Device are this.busy. Waiting: ", i);
-  //     await dummyPromise(2000);
-  //   }
-  //   this.busy = true;
-  //   i = 0;
-  //   let ok = false;
-  //   do {
-  //     try {
-  //       res = await device.getRegPromise(props);
-  //       ok = true;
-  //       this.busy = false;
-  //     } catch (error) {
-  //       log("e", ln, "err=", error.messages.en);
-  //       if (error.code != 13) {
-  //         ok = true;
-  //         this.busy = false;
-  //         throw new Error(error.messages.en);
-  //       }
-
-  //       log("w", ln + `Try again.. ${i}`);
-  //       i++;
-  //       dummyPromise(2000);
-  //     }
-  //   } while (!ok);
-  //   return res;
-  // }
-
-  // async setRegPromise(props) {
-  //   let trace = 1,
-  //     ln = `driver::setRegPromise(id=${props.id};${props.regName}=${props.value})::`;
-  //   let res;
-  //   let i = 0;
-  //   while (this.busy) {
-  //     log("", ln + "Device are busy. Waiting: ", i);
-  //     await dummyPromise(2000);
-  //   }
-  //   this.busy = true;
-  //   i = 0;
-  //   let ok = false;
-  //   do {
-  //     try {
-  //       res = await device.setRegPromise(props);
-  //       ok = true;
-  //       this.busy = false;
-  //     } catch (error) {
-  //       log("e", ln, "err=", error.messages.en);
-  //       if (error.code != 13) {
-  //         ok = true;
-  //         this.busy = false;
-  //         throw new Error(error.messages.en);
-  //       }
-  //       log("w", ln + `Try again.. ${i}`);
-  //       i++;
-  //       dummyPromise(2000);
-  //     }
-  //   } while (!ok);
-  //   return res;
-  // }
 
   getCompactHtml(params = { baseUrl: "/", prefix: "" }) {
     params.prefix =

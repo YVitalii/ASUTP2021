@@ -1,4 +1,4 @@
-const parseBuf = require("../../tools/parseBuf");
+const parseBuf = require("../../tools/parseBuf.js");
 // const Iface = require("../class_RS485_iface");
 //let iface = new Iface("COM3", { baudRate: 2400 });
 
@@ -20,3 +20,10 @@ function test() {
     }
   }); //addTask
 } //test
+
+setTimeout(() => {
+  iface.closePort();
+}, 10 * 1000);
+setTimeout(() => {
+  iface.openPort();
+}, 20 * 1000);

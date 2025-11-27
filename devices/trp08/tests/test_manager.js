@@ -1,3 +1,6 @@
+// cd ./devices/trp08
+// supervisor --extensions 'js,pug' --timestamp --no-restart-on exit ./tests/test_manager.js
+
 let iface = require("../../../conf_iface.js").w2;
 
 // ------------ логгер  --------------------
@@ -10,6 +13,7 @@ let id = 1;
 let i = 0;
 
 async function getT() {
+  log("w", ln + "getT():: Started");
   let t = await device1.getT();
   log("", ln + `iteration :${i}; t= ${t} C`);
   i++;

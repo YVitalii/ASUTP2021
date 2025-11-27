@@ -49,7 +49,9 @@ class IfaceRS485 extends ClassGeneral {
         en: `baudRate don't specified`,
         ru: `Не указана скорость порта`,
       };
-      throw new Error(err);
+      let error = new Error(err.en);
+      error.messages = err;
+      throw error;
     }
 
     this.stateMessages = {

@@ -5,33 +5,33 @@ const EventEmitter = require("events");
 
 class ClassRS485Emulator extends ClassIface {
   constructor(path = "fakeCOM", props = {}, timeout = 300) {
-    let trace = 1,
+    let trace = 0,
       ln = __filename + "::constructor()::";
 
-    props.id = "fakeRS485";
+    props.id += "fake";
     if (trace) {
       console.log(ln + `props=`);
       console.dir(props);
     }
-    super(props);
+    super((path = "fakeCOM"), props);
     this.path = path;
     this.isOpened = false;
     // емуляція серійного порту
     this.serial = new EventEmitter();
     this.serial.isOpen = false;
     this.serial.open = function (cb) {
-      this.isOpen = true;
+      this.isOpened = true;
       process.nextTick(function () {
         cb(null);
       });
     };
     this.serial.write = function (msg, cb) {
       process.nextTick(function () {
-        cb(null, { data: msg });
+        cb(null);
       });
     };
     this.serial.close = function (cb) {
-      this.isOpen = false;
+      this.isOpened = false;
       process.nextTick(function () {
         cb(null);
       });
@@ -41,6 +41,7 @@ class ClassRS485Emulator extends ClassIface {
   async openPort() {
     await dummy(1000);
     this.isOpened = true;
+    console.log("Emulator port opened");
   }
 
   /**
@@ -63,25 +64,29 @@ class ClassRS485Emulator extends ClassIface {
     let trace = 0,
       ln =
         this.ln +
-        `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
-          req.data
+        `send(id=${req.id};FC=${req.FC};addr=${req.addr};data
+          ${req.data}
         )})::`;
     trace ? log(ln, `Started!`) : null;
-    setTimeout(() => {
-      cb(null, req.data);
-    }, req.timeout);
+    process.nextTick(() => {
+      let err = null,
+        data = req.data;
+      // console.log("this=");
+      // console.dir(this);
+      if (!this.isOpened) {
+        err = new Error("Port is closed");
+        err.code = "PortClosed";
+        err.messages = {
+          ua: `Помилка timeout`,
+          en: `Timeout error`,
+          ru: `Ошибка Timeout.`,
+        };
+        data = null;
+      }
+      cb(err, data);
+    });
   }
 }
-
-const iface = new ClassRS485Emulator("fakeCOM", {
-  id: "w2",
-  header: {
-    ua: `Емулятор RS485`,
-    en: `Emulator for RS485`,
-    ru: `Эмулятор RS485`,
-  },
-  timeoutBetweenCalls: 500,
-});
 
 module.exports = ClassRS485Emulator;
 

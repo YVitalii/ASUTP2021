@@ -151,12 +151,12 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     // console.log("props=");
     // console.dir(props);
     return new Promise(function (resolve, reject) {
-      let trace = 0,
+      let trace = 1,
         ln = environ.ln + `getRegPromise`;
-      // if (trace) {
-      //   log("i", ln, `::environ=`);
-      //   console.dir(environ);
-      // }
+      if (trace) {
+        log("i", ln, `::props=`);
+        console.dir(props);
+      }
       if (!props) {
         reject(new Error(ln + "props must be defined!"));
       }
@@ -239,6 +239,12 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
    * @returns {Ppomise}  {regName,value,note,detail:{duration,request,response,afterSet}}
    */
   setRegPromise(props) {
+    let trace = 1,
+      ln = `setRegPromise${props}::`;
+    // if (trace) {
+    //   console.log(ln + `this=`);
+    //   console.dir(this);
+    // }
     let environ = this;
     return new Promise(function (resolve, reject) {
       let trace = 1,
