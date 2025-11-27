@@ -4,6 +4,7 @@ let iface = require("../../../conf_iface.js").w2;
 const log = require("../../../tools/log.js"); // логер
 // let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";
 const device1 = require("./testCreateTrp.js");
+
 const ln = "test_manager.js::";
 let id = 1;
 let i = 0;

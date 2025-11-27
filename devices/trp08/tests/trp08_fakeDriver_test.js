@@ -3,7 +3,7 @@
 const assert = require("assert");
 const { describe, it } = require("node:test");
 const clone = require("clone");
-const iface = require("../../../rs485/class_RS485_emulator");
+const iface = require("../../../rs485/class_RS485_iface_emulator");
 const makeFakeDriverTrp08 = require("../trp08_fakeDriver");
 const realDriver = require("../makeNewDriverFromOld");
 let trace = 1,
@@ -85,4 +85,64 @@ describe("test working with 'tT'", () => {
     );
     return 1;
   }); //set tT
+}); //test working with 'tT' /
+
+describe("test Start/Stop operation", async () => {
+  let tT = 500;
+  let driver = getNewDriver(0);
+  await driver.setRegPromise(makeParams("tT", tT));
+  it("Start operation", async () => {
+    await driver.setRegPromise(makeParams("state", 17));
+    let reg = await driver.getRegPromise(makeParams("state"));
+    assert.equal(reg.value, 23, "must be state=23 (Start mode)");
+    assert.equal(driver.pid.getState().value, true, `must be state.value=true`);
+    return 1;
+  }); //Start operation
+  it("Stop operation", async () => {
+    await driver.setRegPromise(makeParams("state", 1));
+    let reg = await driver.getRegPromise(makeParams("state"));
+    assert.equal(reg.value, 7, "must be state=7 (Stop mode)");
+    assert.equal(
+      driver.pid.getState().value,
+      false,
+      `must be state.value=true`
+    );
+    return 1;
+  }); //Stop operation
+
+  it("Set regMode", async () => {
+    let rN = "regMode",
+      v = 1;
+    let res = await driver.setRegPromise(makeParams(rN, v));
+    let reg = await driver.getRegPromise(makeParams(rN));
+    assert.equal(reg.value, v, `must be ${rN}=${v}`);
+    assert.equal(driver.regMode, "PID", `must be driver.regMode = PID`);
+
+    await assert.rejects(async () => {
+      await driver.setRegPromise(makeParams(rN, 2));
+    }, /not implemented/);
+
+    assert.match(
+      driver.regulator.ln,
+      /::pid/,
+      `must be driver.regulator.ln = *pid* `
+    );
+    return 1;
+  }); //Set regMode
+
+  it("Set o=10; ti=100; td=150", async () => {
+    let regs = { o: 10, ti: 100, td: 150 };
+    for (let rN in regs) {
+      let v = regs[rN];
+      let res = await driver.setRegPromise(makeParams(rN, v));
+      let reg = await driver.getRegPromise(makeParams(rN));
+      assert.equal(reg.value, v, `must be ${rN}=${v}`);
+      let pidKname =
+        rN == "o" ? "kp" : rN == "ti" ? "ki" : rN == "td" ? "kd" : "???";
+      assert.equal(driver.pid.kp, 10, `must be driver.pid.${pidKname} =${v}`);
+    }
+    return 1;
+  }); //Set o=10; ti=100; td=150
+
+  return 1;
 });

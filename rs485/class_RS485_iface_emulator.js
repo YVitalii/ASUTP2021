@@ -1,14 +1,42 @@
-const ClassIface = require("./class_RS485_iface");
-const ClassGeneral = require("../ClassGeneral");
+const ClassIface = require("./class_RS485_iface_real.js");
+const ClassGeneral = require("../ClassGeneral.js");
 const dummy = require("../tools/dummy.js").dummyPromise;
+const EventEmitter = require("events");
 
-class ClassRS485Emulator extends ClassGeneral {
-  constructor(path = "", props = {}) {
+class ClassRS485Emulator extends ClassIface {
+  constructor(path = "fakeCOM", props = {}, timeout = 300) {
+    let trace = 1,
+      ln = __filename + "::constructor()::";
+
     props.id = "fakeRS485";
+    if (trace) {
+      console.log(ln + `props=`);
+      console.dir(props);
+    }
     super(props);
     this.path = path;
     this.isOpened = false;
-    this.openPort();
+    // емуляція серійного порту
+    this.serial = new EventEmitter();
+    this.serial.isOpen = false;
+    this.serial.open = function (cb) {
+      this.isOpen = true;
+      process.nextTick(function () {
+        cb(null);
+      });
+    };
+    this.serial.write = function (msg, cb) {
+      process.nextTick(function () {
+        cb(null, { data: msg });
+      });
+    };
+    this.serial.close = function (cb) {
+      this.isOpen = false;
+      process.nextTick(function () {
+        cb(null);
+      });
+    };
+    this.iterate = () => {};
   }
   async openPort() {
     await dummy(1000);
@@ -27,7 +55,6 @@ class ClassRS485Emulator extends ClassGeneral {
    * @typedef {Object} data - отримані дані
    */
   send(req = {}, cb) {
-    // налаштування трасувальника
     req.id = req.id ? req.id : 33;
     req.FC = req.FC ? req.FC : 3;
     req.addr = req.addr ? req.addr : 33;
@@ -56,9 +83,15 @@ const iface = new ClassRS485Emulator("fakeCOM", {
   timeoutBetweenCalls: 500,
 });
 
-module.exports = iface;
+module.exports = ClassRS485Emulator;
 
 if (!module.parent) {
-  console.log("iface=");
-  console.dir(iface, { depth: 2 });
+  //виконується, якщо модуль викликано окремо, а не імпортовано (в командному рядку)
+  let trace = 1,
+    ln = __filename + `::`;
+  let iface = new ClassRS485Emulator("COM3", { id: "w2", baudRate: 9600 });
+  if (trace) {
+    console.log(ln + `iface=`);
+    console.dir(iface);
+  }
 }

@@ -23,12 +23,14 @@ class Furnace {
     this.ambientTemperature = 20;
     // теплоємність печі
     this.heatCapacity = props.heatCapacity ? props.heatCapacity : 1000;
-    // коефіцієнт тепловтрат печі
-    this.heatLossCoefficient = props.heatLossCoefficient
-      ? props.heatLossCoefficient
-      : 0.002 * this.heatCapacity;
+
     // максимальна потужність печі в Вт
     this.power = props.power ? props.power : 1000;
+    // коефіцієнт тепловтрат печі
+    // по замовчуваннюо 10% потужності втрачається при різниці температур 1000С
+    this.heatLossCoefficient = props.heatLossCoefficient
+      ? props.heatLossCoefficient
+      : (this.power * 0.1) / 1000;
     // часовий крок моделювання в секундах
     this.deltaTime = props.deltaTime ? props.deltaTime : 2; // seconds
     // % потужність нагрівача в даний момент часу
@@ -54,7 +56,7 @@ class Furnace {
    * Оновлює температуру печі на основі потужності нагрівача та тепловтрат
    */
   updateTemperature() {
-    let trace = 1;
+    let trace = 0;
     let msg = "furnaceModel::";
     let deltaTime = this.deltaTime;
 
@@ -108,9 +110,8 @@ class Furnace {
    *
    * @param {Number} power - потужність нагрівача в %
    */
-  setHeatingPower(power) {
-    let trace = 1,
-      ln = this.ln + `setHeatingPower(${power})::`;
+  setHeatingPower(power, trace = 0) {
+    let ln = this.ln + `setHeatingPower(${power})::`;
     power = power < 0 ? 0 : power;
     power = power > 100 ? 100 : power;
 

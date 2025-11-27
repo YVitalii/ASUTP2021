@@ -80,7 +80,7 @@ if (platform != "win32") {
   comId = comName = "COM14";
 }
 
-const Iface = require("./rs485/class_RS485_iface.js");
+const Iface = require("./rs485/class_RS485_iface_real.js");
 let portId = "w2",
   portHeader = `${portId}(${comId})`;
 // module.exports.path = comName;

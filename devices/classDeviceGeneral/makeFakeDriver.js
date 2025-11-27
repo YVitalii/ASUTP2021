@@ -91,7 +91,7 @@ function makeFake(driver = {}) {
     value = null,
     cb
   ) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `fakedSetReg(${iface.id},${addr},${regName},${value})::`;
     trace ? console.log(ln + `Started`) : null;
     if (value === null)
@@ -113,7 +113,7 @@ function makeFake(driver = {}) {
       detail: { request: "fake driver" },
     };
     let err = this.isOffline();
-    if (err != null) {
+    if (err == null) {
       reg.value = data.value;
     }
     process.nextTick(() => {
@@ -136,7 +136,7 @@ function makeFake(driver = {}) {
 
   /**
    * Для емуляції стану коли прилад не відповідає.
-   * @returns Error = offline || null = online
+   * @returns Error if offline || null if online
    */
   driver.isOffline = function () {
     if (this.offline) {

@@ -6,7 +6,7 @@
  * (з класу ClassDriverGeneral )
  */
 
-const oldDriver = require("./driver");
+const oldDriver = require("./driverReal");
 const ClassDriverGeneral = require("../classDeviceGeneral/ClassDriverGeneral");
 const newDriver = new ClassDriverGeneral({
   id: "trp08driver",

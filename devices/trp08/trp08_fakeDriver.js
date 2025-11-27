@@ -20,7 +20,7 @@ function makeFakeTrp08(driver, props = {}) {
     ln = driver.ln + `::makeFakeTrp08()::`;
   // підміняємо методи фальшивими методами
   makeFake(driver);
-  driver.ln = "fakeTrp08driver::";
+  driver.ln = "Trp08driver::";
   trace ? console.log(ln + `makeFake(driver) completed ! `) : null;
   //   console.log(ln + "" + driver.setReg.toString());
   // запамятовуємо максимальну температуру
@@ -45,7 +45,7 @@ function makeFakeTrp08(driver, props = {}) {
   props.pid = props.pid
     ? props.pid
     : {
-        id: driver.id + "::pid::",
+        id: driver.id + "::pid",
         inputRange: {
           min: props.minT ? props.minT : 0,
           max: props.maxT ? props.maxT : 500,
@@ -53,7 +53,7 @@ function makeFakeTrp08(driver, props = {}) {
       };
   // поточна температура для pid береться з приладу
   props.pid.getPV = async () => {
-    await driver.getRegPromise("T");
+    return await driver.getRegPromise("T").value;
   };
   // поточна потужність передається в модель печі
   props.pid.setOutput = async (pow) => {
@@ -63,6 +63,11 @@ function makeFakeTrp08(driver, props = {}) {
   // ------------ створюємо модель PID-регулятора -------------
   let pid = new ClassPIDregulator(props.pid);
   driver.pid = pid;
+  // встановлюємо PID-регулятор як регулятор за замовчуванням (можливо ПОЗ/ПІД)
+  driver.regulator = pid;
+  driver.regMode = "PID";
+  driver.regs.get("regMode").value = 1; // PID-регулювання
+  // потрібно розробити модель ПОЗ регулятора
 
   // --------  tT ----------
   driver.regs.get("tT")._set = (val) => {
@@ -99,6 +104,47 @@ function makeFakeTrp08(driver, props = {}) {
   // --- робота з температурою -----------
   // поточна температура для приладу береться з моделі печі
   driver.regs.get("T").get_ = () => furnace.getT();
+
+  // ---- закон регулювання ------
+  driver.regs.get("regMode").set_ = (val) => {
+    if (val == 1) {
+      // PID-регулювання
+      this.regulator = pid;
+      this.regMode = "PID";
+      return val;
+    }
+    if (val == 2) {
+      // POS-регулювання - не реалізовано
+      throw new Error("POS-regulation mode is not implemented yet!");
+    }
+    return val;
+  };
+  // ---- пропорційна складова / неузгодження  ------
+  driver.regs.get("o").set_ = (val) => {
+    if (driver.regMode == "PID") {
+      val = val < 0 ? 0 : val;
+      val = val > 100 ? 100 : val;
+      driver.pid.kp = val;
+      return val;
+    }
+    throw new Error("Only PID-regulation mode is implemented yet!");
+  };
+  // ---- PID інтегральна складова   ------
+  driver.regs.get("ti").set_ = (val) => {
+    if (this.regMode == "PID") {
+      driver.pid.ki = val;
+      return val;
+    }
+    // для ПОЗ регулювання не має сенсу
+  };
+  // ---- PID диференційна складова   ------
+  driver.regs.get("td").set_ = (val) => {
+    if (this.regMode == "PID") {
+      driver.pid.kd = val;
+      return val;
+    }
+    // для ПОЗ регулювання не має сенсу
+  };
 
   if (trace) {
     console.log(ln + `After make Fake:: driver=`);

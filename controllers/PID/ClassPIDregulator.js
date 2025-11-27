@@ -29,12 +29,13 @@ class PID extends ClassGeneral {
    * @param {number} [params.kd=0] - The derivative gain.
    * @param {number} [params.setPoint=0] - The desired set point.
    * @param {number} [params.period=1000] - ms, period between calculation
-   * @param {async Function} params.getPV - функція для отримання поточного Process Value
-   * @param {async Function} params.setOutput - функція для встановлення поточної потужності
+   * @param {async Function} params.getPV - async функція для отримання поточного Process Value
+   * @param {async Function} params.setOutput - async функція для встановлення поточної потужності
    *
    */
 
   constructor(params = {}) {
+    params.ln ? params.ln : "PIDregulator::";
     super(params);
     this.manual = false; //
     this.realSetPoint = 0; //  цільова точка в одиницях процесу (не переведена в %)
@@ -60,7 +61,6 @@ class PID extends ClassGeneral {
     if (!params.getPV && typeof params.getPV !== "function")
       throw new Error("getPV() function is not defined");
     this.getPV = params.getPV;
-    console.dir(this.getPV);
 
     if (!params.setOutput && typeof params.setOutput !== "function")
       throw new Error("setOutput() function is not defined");
@@ -101,18 +101,18 @@ class PID extends ClassGeneral {
     return;
   }
 
-  calculate() {
+  async calculate() {
     let trace = 1,
       ln = this.ln + `calculate()::`;
     if (this.going == 0) {
-      this.setOutput(0);
+      await this.setOutput(0);
       return;
     }
     // console.log("Started");
     // console.log("T=" + this.getPV());
     // let input = 1;
-    let input = this.getPV();
-    let msg = `T=${this.getPV().toFixed(2)};`;
+    let input = await this.getPV();
+    let msg = `T=${this.input.toFixed(2)};`;
     if (this.manual) return this.output;
     input = this.normalizeInput.get(input);
     this.error = this.setPoint - input;
@@ -148,7 +148,7 @@ class PID extends ClassGeneral {
         : null;
     }
 
-    this.setOutput(this.normalizeOutput.get(this.output));
+    await this.setOutput(this.normalizeOutput.get(this.output));
 
     setTimeout(() => {
       this.calculate();
@@ -163,6 +163,7 @@ class PID extends ClassGeneral {
   set kp(value) {
     this._kp = inRange(value);
   }
+
   get ki() {
     return this._ki;
   }
@@ -182,6 +183,19 @@ class PID extends ClassGeneral {
   set setPoint(value) {
     this._setPoint = inRange(this.normalizeInput.get(value), this.inputRange);
     this.realSetPoint = value;
+  }
+
+  /**
+   * Повертає стан регулятора (робота/очікування)
+   * @returns {value:Boolean, note:{ua,en,ru}}
+   */
+  getState() {
+    return {
+      value: this.going,
+      note: this.going
+        ? { ua: `Робота`, en: `Working`, ru: `Работа` }
+        : { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` },
+    };
   }
 }
 

@@ -2,6 +2,10 @@ const config = {};
 
 // включает/выключает  эмуляцию обмена по RS485
 config.emulateRS485 = 0; //емуляція rs485;
+config.emulateDevices = true;
+// режим розробки
+// якщо встановлено в true - використовується менший час затримок, таймаутів і періодів опитування
+config.development = process.env.NODE_ENV !== "production"; // режим розробки
 
 // режим розробки всі періоди опитування зменшені
 config.test = true; //false; //true;
