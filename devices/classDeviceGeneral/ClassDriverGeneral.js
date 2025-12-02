@@ -151,7 +151,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     // console.log("props=");
     // console.dir(props);
     return new Promise(function (resolve, reject) {
-      let trace = 1,
+      let trace = 0,
         ln = environ.ln + `getRegPromise`;
       if (trace) {
         log("i", ln, `::props=`);
@@ -178,6 +178,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
           console.log(ln, "data=");
           console.dir(data);
         }
+        data.timestamp = new Date();
         resolve(data);
         return;
       });

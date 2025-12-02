@@ -56,12 +56,15 @@ function makeFake(driver = {}) {
       return;
     }
     // формуємо відповідь
-    let data = {
-      regName,
-      value: reg.get_(reg.value),
-      note: reg.note ? reg.note : "",
-      detail: { request: "fake driver" },
-    };
+    let data = [
+      {
+        regName,
+        value: reg.get_(reg.value),
+        note: reg.note ? reg.note : "",
+        detail: { request: "fake driver" },
+        timestamp: new Date(),
+      },
+    ];
     let err = this.isOffline();
     process.nextTick(() => {
       cb(err, data);
@@ -111,6 +114,7 @@ function makeFake(driver = {}) {
       value: reg.set_(v), // пост обробка
       note: reg.note ? reg.note : "",
       detail: { request: "fake driver" },
+      timestamp: new Date(),
     };
     let err = this.isOffline();
     if (err == null) {

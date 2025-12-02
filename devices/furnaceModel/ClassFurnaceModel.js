@@ -135,9 +135,15 @@ class Furnace {
     this.setHeatingPower(power);
     return Promise.resolve(power);
   }
-
+  /**
+   * async function getT() - отримати поточну температуру печі
+   * @returns Promise(temperature)
+   */
   getT() {
     return Promise.resolve(this.currentTemperature);
+  }
+  getTSync() {
+    return this.currentTemperature;
   }
 }
 

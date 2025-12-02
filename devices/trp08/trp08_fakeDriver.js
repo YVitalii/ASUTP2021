@@ -103,19 +103,26 @@ function makeFakeTrp08(driver, props = {}) {
 
   // --- робота з температурою -----------
   // поточна температура для приладу береться з моделі печі
-  driver.regs.get("T").get_ = () => furnace.getT();
+  driver.regs.get("T").get_ = () => furnace.getTSync();
 
   // ---- закон регулювання ------
   driver.regs.get("regMode").set_ = (val) => {
-    if (val == 1) {
+    if (val == "pid") {
       // PID-регулювання
       this.regulator = pid;
       this.regMode = "PID";
-      return val;
+      return 1;
     }
-    if (val == 2) {
+    if (val == "pos") {
       // POS-регулювання - не реалізовано
-      throw new Error("POS-regulation mode is not implemented yet!");
+      let msg = {
+        ua: `Позиційне регулювання ще не реалізовано`,
+        en: `POS-regulation mode is not implemented yet!`,
+        ru: ``,
+      };
+      let err = new Error(msg.ua);
+      err.messages = msg;
+      throw err;
     }
     return val;
   };

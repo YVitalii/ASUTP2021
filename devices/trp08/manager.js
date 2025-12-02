@@ -216,7 +216,7 @@ class Manager {
    */
   async iteration(func, params) {
     return new Promise(async (resolve, reject) => {
-      let trace = 1,
+      let trace = 0,
         ln =
           this.ln +
           `iteration(${func.name},${params.regName}${
@@ -300,7 +300,7 @@ class Manager {
 
   /** Функція записує 1 параметр */
   async setRegister(regName, value) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `setRegister(${regName}=${value})::`;
     trace ? log("i", ln, `Started`) : null;
     let reg = this.state[regName];
@@ -406,10 +406,11 @@ class Manager {
 
   async start(regs = {}) {
     let trace = 1;
-    regs = this.parseRegs(regs);
-    let ln = this.ln + `start(${JSON.stringify(regs)})::`;
-    trace ? log("w", ln, "Started") : null;
 
+    let ln = this.ln + `start(${JSON.stringify(regs)})::`;
+    trace ? log("w", ln, "Started with regs=", regs) : null;
+    regs = this.parseRegs(regs);
+    trace ? log("w", ln, "Parsed regs=", regs) : null;
     try {
       // зупинка приладу
       await this.stop();
@@ -451,7 +452,7 @@ class Manager {
    *  @return {Promise} - з результатом {Number} = поточна температура
    */
   async getT() {
-    let trace = 1;
+    let trace = 0;
     let ln = this.ln + `getT()::`;
     trace
       ? console.log(ln, `Started at ${new Date().toLocaleTimeString()}`)
@@ -482,7 +483,7 @@ class Manager {
    * @returns {Promise} - {tT:50}
    */
   async getParams(params = "tT") {
-    let trace = 1;
+    let trace = 0;
     let ln = this.ln + `getParams(${params})::`;
     trace ? console.log(ln, `Started.`) : null;
     let response = {};
@@ -504,6 +505,10 @@ class Manager {
 
       // робимо посилання на state[item] для скорочення наступного коду
       let currReg = this.state[item];
+      if (trace) {
+        console.log(ln + `currReg=`);
+        console.dir(currReg);
+      }
 
       // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх
       if (
@@ -518,7 +523,7 @@ class Manager {
       // робимо запит в прилад по інтерфейсу
       let res = await this.iteration(device.getRegPromise.bind(device), {
         iface: this.iface,
-        id: this.addr,
+        devAddr: this.addr,
         regName: item,
       });
       if (trace) {
