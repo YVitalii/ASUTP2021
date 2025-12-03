@@ -300,7 +300,7 @@ class Manager {
 
   /** Функція записує 1 параметр */
   async setRegister(regName, value) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `setRegister(${regName}=${value})::`;
     trace ? log("i", ln, `Started`) : null;
     let reg = this.state[regName];
@@ -364,7 +364,7 @@ class Manager {
   /**
    * Функція підлаштовує узагальнені параметри завдання
    * конкретно під ТРП-08
-   * @param {Object} regs - об'єкт з налаштуваннями типу {tT:{value:10,..},H:{value:10,...}}
+   * @param {Object} regs - об'єкт з налаштуваннями типу {tT:500,H:50,Y:10,...}}
    *
    */
   parseRegs(regs = {}) {

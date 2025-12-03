@@ -52,9 +52,18 @@ function makeFakeTrp08(driver, props = {}) {
         },
       };
   // поточна температура для pid береться з приладу
-  props.pid.getPV = async () => {
-    return await driver.getRegPromise("T").value;
+
+  props.pid.getPV = async function () {
+    return new Promise((resolve, reject) => {
+      let trace = 0,
+        ln = driver.id + `.pid.getPV()::`;
+      trace ? console.log("i", ln, `Started`) : null;
+      let t = furnace.getTSync();
+      trace ? console.log("i", ln, `Returning currentTemperature=${t}`) : null;
+      resolve(t);
+    });
   };
+
   // поточна потужність передається в модель печі
   props.pid.setOutput = async (pow) => {
     await furnace.setPower(pow);
@@ -107,13 +116,13 @@ function makeFakeTrp08(driver, props = {}) {
 
   // ---- закон регулювання ------
   driver.regs.get("regMode").set_ = (val) => {
-    if (val == "pid") {
+    if (val == "pid" || val == "PID") {
       // PID-регулювання
       this.regulator = pid;
       this.regMode = "PID";
       return 1;
     }
-    if (val == "pos") {
+    if (val == "pos" || val == "POS") {
       // POS-регулювання - не реалізовано
       let msg = {
         ua: `Позиційне регулювання ще не реалізовано`,
@@ -129,28 +138,31 @@ function makeFakeTrp08(driver, props = {}) {
   // ---- пропорційна складова / неузгодження  ------
   driver.regs.get("o").set_ = (val) => {
     if (driver.regMode == "PID") {
-      val = val < 0 ? 0 : val;
-      val = val > 100 ? 100 : val;
-      driver.pid.kp = val;
+      driver.pid.kp = val / 10;
       return val;
     }
     throw new Error("Only PID-regulation mode is implemented yet!");
   };
+
   // ---- PID інтегральна складова   ------
   driver.regs.get("ti").set_ = (val) => {
-    if (this.regMode == "PID") {
-      driver.pid.ki = val;
-      return val;
+    console.log(
+      ln + `ti.set_(${val}):: called:: driver.regMode=${driver.regMode}`
+    );
+    if (driver.regMode == "PID") {
+      driver.pid.ki = val / 100;
     }
     // для ПОЗ регулювання не має сенсу
+    return val;
   };
+
   // ---- PID диференційна складова   ------
   driver.regs.get("td").set_ = (val) => {
-    if (this.regMode == "PID") {
-      driver.pid.kd = val;
-      return val;
+    if (driver.regMode == "PID") {
+      driver.pid.kd = val / 100;
     }
     // для ПОЗ регулювання не має сенсу
+    return val;
   };
 
   if (trace) {

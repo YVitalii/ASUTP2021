@@ -25,7 +25,7 @@ class PID extends ClassGeneral {
    * @param {number} [params.outputRange.max=100] - The maximum output value.
    * @param {number} [params.kp=0] - The proportional gain.
    * @param {number} [params.ki=0] - The integral gain.
-   * @param {number} params.kiError=0 - величина помилки PV, при якій інтегральна складова не рахується
+   * @param {number} params.kiError=(100/kp)*0.9 - величина помилки PV, при якій інтегральна складова не рахується
    * @param {number} [params.kd=0] - The derivative gain.
    * @param {number} [params.setPoint=0] - The desired set point.
    * @param {number} [params.period=1000] - ms, period between calculation
@@ -36,6 +36,8 @@ class PID extends ClassGeneral {
 
   constructor(params = {}) {
     params.ln ? params.ln : "PIDregulator::";
+    let trace = 1,
+      ln = params.ln + `constructor()::`;
     super(params);
     this.manual = false; //
     this.realSetPoint = 0; //  цільова точка в одиницях процесу (не переведена в %)
@@ -58,6 +60,7 @@ class PID extends ClassGeneral {
       x2: this.outputRange.max,
       y2: 100,
     });
+
     if (!params.getPV && typeof params.getPV !== "function")
       throw new Error("getPV() function is not defined");
     this.getPV = params.getPV;
@@ -76,7 +79,13 @@ class PID extends ClassGeneral {
     this._errorSum = 0;
     this._output = 0;
     // величина помилки, при якій інтегральна складова не враховується
-    this.kiError = this.normalizeInput.get(params.kiError ? params.kiError : 0);
+    // this.normalizeInput.get(params.kiError ? params.kiError : 0);
+    this.kiError =
+      params.kiError || params.kiError === 0 ? params.kiError : null;
+    if (trace) {
+      console.log(ln + `this=`);
+      console.dir(this);
+    }
   }
 
   start(setPoint = undefined) {
@@ -93,6 +102,12 @@ class PID extends ClassGeneral {
     this.errorSum = 0;
     this.going = 1;
     this.startTime = new Date().getTime();
+    if (this.kiError === null)
+      // kiError - не вказана взагалі - беремо її  (100 / this.kp) * 0.8
+      // наприклад kp=10 →  (100/10)*0.8=8% - отже якщо помилка > 8%, то інтегральна складова починає працювати
+      // якщо kp=0 то потрібно працювати тільки
+      // з інтегральною складовою - встановлюємо 100% - щоб працювала в усьому діапазоні
+      this.kiError = this._kp == 0 ? 100 : (100 / this.kp) * 0.8;
     this.calculate();
   }
 
@@ -106,47 +121,50 @@ class PID extends ClassGeneral {
       ln = this.ln + `calculate()::`;
     if (this.going == 0) {
       await this.setOutput(0);
-      return;
+      return this.normalizeOutput.get(this.output);
     }
-    // console.log("Started");
-    // console.log("T=" + this.getPV());
-    // let input = 1;
+
     let input = await this.getPV();
-    let msg = `T=${this.input.toFixed(2)};`;
+    // trace ? console.log(ln + `input=${input}`) : null;
+    let msg = `Treal=${input.toFixed(2)};`;
     if (this.manual) return this.output;
+
     input = this.normalizeInput.get(input);
+
     this.error = this.setPoint - input;
-    msg += ` SP=${this.setPoint} → PV=${input.toFixed(
-      2
-    )}; error=${this.error.toFixed(2)};`;
+
+    msg += ` SP=${this.setPoint}% → PV=${input.toFixed(
+      1
+    )}%; error=${this.error.toFixed(2)};`;
+
     if (Math.abs(this.error) > this.kiError) {
       this.errorSum = 0;
     } else {
       this.errorSum += this.error;
     }
-    if (this.error > this.kiError * 1.5) {
-      this.output = 100;
-      trace ? log("", ln, msg, ` output=${this.output}; `) : null;
-    } else {
-      let qp = this.kp * this.error;
-      let qi = this.ki * this.errorSum;
-      let qd = this.kd * (this.error - this.errorPrev);
-      this.output = qp + qi + qd;
-      this.errorPrev = this.error;
-      this.output = inRange(this.output, this.outputRange);
-      trace
-        ? log(
-            "",
-            ln,
-            msg,
-            ` errorSum=${this.errorSum.toFixed(
-              2
-            )}; output=${this.output.toFixed(2)} = ${qp.toFixed(
-              2
-            )}p + ${qi.toFixed(2)}i + ${qd.toFixed(2)}d`
-          )
-        : null;
-    }
+
+    // if (this.error > this.kiError * 1.5) {
+    //   this.output = 100;
+    //   trace ? log("", ln, msg, ` output=${this.output}; `) : null;
+    // } else {
+    let qp = this.kp * this.error;
+    let qi = this.ki * this.errorSum;
+    qi = qi < -100 ? -100 : qi > 100 ? 100 : qi; // обмеження інтегральної складової ±100%;
+    let qd = this.kd * (this.error - this.errorPrev);
+    this.output = qp + qi + qd;
+    this.errorPrev = this.error;
+    // перевірка виходу з  діапазону 0..100%
+    this.output = inRange(this.output, this.outputRange);
+    trace
+      ? log(
+          "",
+          ln,
+          msg,
+          ` errorSum=${this.errorSum.toFixed(2)}; output=${this.output.toFixed(
+            2
+          )} = ${qp.toFixed(2)}p + ${qi.toFixed(2)}i + ${qd.toFixed(2)}d`
+        )
+      : null;
 
     await this.setOutput(this.normalizeOutput.get(this.output));
 

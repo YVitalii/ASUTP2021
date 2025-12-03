@@ -20,19 +20,18 @@ async function getT() {
   setTimeout(() => getT(), 2000);
 }
 
-getT();
-
 setTimeout(async () => {
   let trace = 1,
     ln = `test_manager::start()::`;
-  let regs = { tT: 150, H: 50, Y: 20, ti: 100, td: 50, regMode: "pid" };
-  trace ? log("w", ln, `Starting with regs=`, regs) : null;
+  let regs = { tT: 150, H: 50, Y: 20, ti: 0.1, td: 0, o: 10, regMode: "pid" };
+  trace ? log("e", ln, `Starting with regs=`, regs) : null;
   await device1.start(regs);
 }, 6 * 1000);
 
 setTimeout(async () => {
   await device1.stop();
-}, 35 * 1000);
+  getT();
+}, 5 * 60 * 1000);
 
 // async function getState() {
 //   let t = device1.getState();

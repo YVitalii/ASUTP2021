@@ -94,7 +94,7 @@ function makeFake(driver = {}) {
     value = null,
     cb
   ) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `fakedSetReg(${iface.id},${addr},${regName},${value})::`;
     trace ? console.log(ln + `Started`) : null;
     if (value === null)

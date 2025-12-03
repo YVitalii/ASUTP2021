@@ -1,4 +1,3 @@
-let comName = "";
 let platform = process.platform;
 let ifaces = {};
 const log = require("./tools/log.js");
@@ -27,31 +26,36 @@ function getPublicIpAddress() {
 ifaces.ipAddr = getPublicIpAddress();
 console.log(`Поточна публічна IP-адреса сервера: ${ifaces.ipAddr}`);
 
-let comId;
-
 // -------------  w2 two wire RS485 ------------------------
-if (platform != "win32") {
-  comName = "/dev/ttyUSB0";
-  comId = comName.split("/")[2];
+
+let comId, comName;
+
+if (emulateDevices) {
+  comId = comName = "fake";
 } else {
-  comId = comName = "COM14";
+  if (platform != "win32") {
+    comName = "/dev/ttyUSB0";
+    comId = comName.split("/")[2];
+  } else {
+    comId = comName = "COM14";
+  }
 }
 
 const Iface = emulateDevices
-  ? require("./rs485/class_RS485_iface_emulator.js") // емулюючий інтерфейс
-  : require("./rs485/class_RS485_iface_real.js"); // реальний інтерфейс
-// console.dir("Iface=");
-// console.dir(Iface);
-comId += emulateDevices ? "fake" : "";
+  ? require("./rs485/class_RS485_iface_emulator.js")
+  : require("./rs485/class_RS485_iface_real.js");
+
 let portId = "w2",
   portHeader = `${portId}(${comId})`;
 // module.exports.path = comName;
-ifaces.w2 = new Iface(comName, {
+let props = {
   baudRate: 2400,
   timeoutBetweenCalls: 200,
   id: "w2",
   header: { ua: portHeader, en: portHeader, ru: portHeader },
-});
+};
+// console.dir(props);
+ifaces.w2 = new Iface(comName, props, 700);
 
 // // -- w4 чотирьох провідна лінія ------------------
 // if (platform != "win32") {
