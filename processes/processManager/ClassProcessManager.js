@@ -175,11 +175,14 @@ class ClassProcessManager {
     // в entity.js→process.afterAll()
     this.program.afterAll = async () => {
       let trace = 1,
-        ln = this.ln + "afterAll()::";
+        ln = "ClassProcessManager.js::" + this.ln + "afterAll()::";
       trace ? log("i", ln, `Started`) : null;
       // якщо є функція afterAll - викликаємо її
       if (this.afterAll && typeof this.afterAll == "function") {
         try {
+          trace
+            ? console.log(ln + `this.afterAll=${this.afterAll.toString()}`)
+            : null;
           await this.afterAll();
           trace ? log("i", ln, `External afterAll() function executed`) : null;
         } catch (error) {

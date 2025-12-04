@@ -5,14 +5,14 @@
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
 const dummy = require("../../tools/dummy.js").dummyPromise;
 const log = require("../../tools/log.js");
-let trace = 0,
-  gln = __filename + "::";
+let trace = 1,
+  gLn = __filename + "::";
 
 // ------ ідентифікатор печі,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
 let props = {
-  id: "Test furnace",
+  id: "PES-3-2",
   homeDir: __dirname,
 };
 
@@ -33,7 +33,7 @@ props.fullName = {
 // -- максимальна температура в печі required {Number}
 props.maxT = 1000;
 if (trace) {
-  log("i", ln, `props=`);
+  log("i", gLn, `props=`);
   console.dir(props);
 }
 
@@ -50,7 +50,17 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 const TRP08 = require("../../devices/trp08/manager.js");
 // const TRM251 = require("../../devices/OWEN_TRM251/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
-let furnaceTop = new TRP08(ifaceW2, 1, { id: "furnaceTop", addT: 0 });
+let furnaceTop = new TRP08(ifaceW2, 1, {
+  id: "furnaceTop",
+  addT: 0,
+  emulator: {
+    // налаштування емулятора приладу
+    minT: 0, // мінімальна температура печі для PID inputRange
+    maxT: props.maxT, // максимальна температура печі для PID inputRange
+    pid: undefined, // налаштування емулятора pid-регулятора
+    furnace: undefined, // налаштування емулятора печі ClassFurnaceModel.js
+  },
+});
 // let furnaceUp = new TRP08(ifaceW2, 1, { id: "furnace", addT: 0 });
 
 // let furnace = new TRM251({ iface: ifaceW2, addr: 1, id: "furnace", addT: 0 });
@@ -191,8 +201,8 @@ logger.addReg({
 //   logger.addReg(reg);
 // } // for
 
-console.log("logger=");
-console.dir(logger);
+// console.log("logger=");
+// console.dir(logger);
 
 // logger.addReg({
 //   id: "T0",
@@ -236,15 +246,20 @@ console.dir(logger);
 entity.processManager.afterAll = async function () {
   // функція, що викликається після завершення всієї програми
   let trace = 1,
-    ln = entity.ln + `processManager.afterAll()::`;
+    ln = entity.ln + `entity.js.processManager.afterAll()::`;
   if (trace) {
     console.log(ln + `entity.id=${entity.id}`);
     //console.dir(this, { depth: 1, colors: true });
   }
   let dev = this.devicesManager.getDevice("furnaceTop");
+
   if (!dev) {
     log("e", ln + `Device furnace not found!`);
     return;
+  }
+  if (trace) {
+    console.log(ln + `dev=`);
+    console.dir(dev);
   }
   // ---- зупиняємо нагрівання
   // await dev.setOutput(0);
@@ -258,26 +273,26 @@ module.exports = entity;
 // --------- для контролю створеного об'єкту ------------
 trace = 1;
 if (trace) {
-  console.log(gln + `entity.processManager=`);
-  // console.dir(entity.processManager, { depth: 2, colors: true });
-  entity.processManager.afterAll();
+  console.log(gLn + `entity.processManager=`);
+  console.dir(entity.processManager, { depth: 2, colors: true });
+  // entity.processManager.afterAll();
 }
 
 if (!module.parent) {
-  (async () => {
-    await dummy(5000);
-    let regs = entity.loggerManager.regs;
-    while (true) {
-      regs["T0"].getValue().then((res) => {
-        console.log("T0=", res);
-      });
-      regs["T1"].getValue().then((res) => {
-        console.log("T1=", res);
-      });
-      regs["T2"].getValue().then((res) => {
-        console.log("T2=", res);
-      });
-      await dummy(4000);
-    } // while
-  })();
+  // (async () => {
+  //   await dummy(5000);
+  //   let regs = entity.loggerManager.regs;
+  //   while (true) {
+  //     regs["T0"].getValue().then((res) => {
+  //       console.log("T0=", res);
+  //     });
+  //     regs["T1"].getValue().then((res) => {
+  //       console.log("T1=", res);
+  //     });
+  //     regs["T2"].getValue().then((res) => {
+  //       console.log("T2=", res);
+  //     });
+  //     await dummy(4000);
+  //   } // while
+  // })();
 }

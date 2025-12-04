@@ -39,6 +39,7 @@ class PID extends ClassGeneral {
     let trace = 1,
       ln = params.ln + `constructor()::`;
     super(params);
+
     this.manual = false; //
     this.realSetPoint = 0; //  цільова точка в одиницях процесу (не переведена в %)
     this.period = params.period ? params.period * 1000 : 1000; //ms
@@ -96,7 +97,9 @@ class PID extends ClassGeneral {
       "i",
       this.ln +
         "start()::" +
-        `kp=${this.kp}, ki=${this.ki}, kd=${this.kd}, setPoint=${this.setPoint}`
+        `kp=${this.kp}, ki=${this.ki}, kd=${this.kd}, realSetPoint = ${
+          setPoint ? setPoint : this.realSetPoint
+        }; normalizedSetPoint=${this.setPoint}%`
     );
     this.errorPrev = 0;
     this.errorSum = 0;
@@ -112,6 +115,7 @@ class PID extends ClassGeneral {
   }
 
   stop() {
+    log("i", this.ln + "stop()::Stopping PID regulator");
     this.going = 0;
     return;
   }
@@ -119,7 +123,7 @@ class PID extends ClassGeneral {
   async calculate() {
     let trace = 1,
       ln = this.ln + `calculate()::`;
-    if (this.going == 0) {
+    if (this.going === 0) {
       await this.setOutput(0);
       return this.normalizeOutput.get(this.output);
     }
@@ -181,6 +185,7 @@ class PID extends ClassGeneral {
   }
 
   set kp(value) {
+    console.log(this.ln + `set ki(${value})::`);
     this._kp = inRange(value);
   }
 
@@ -188,6 +193,7 @@ class PID extends ClassGeneral {
     return this._ki;
   }
   set ki(value) {
+    console.log(this.ln + `set ki(${value})::`);
     this._ki = inRange(value);
   }
   get kd() {
@@ -195,6 +201,7 @@ class PID extends ClassGeneral {
   }
 
   set kd(value) {
+    console.log(this.ln + `set ki(${value})::`);
     this._kd = inRange(value);
   }
   get setPoint() {

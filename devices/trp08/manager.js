@@ -9,6 +9,7 @@ const trySomeTimes = require("../../tools/trySomeTimes.js");
 const pug = require("pug");
 const path = require("path");
 const { dummyPromise } = require("../../tools/dummy.js");
+const { emulateDevices } = require("../../config");
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор
@@ -23,12 +24,27 @@ class Manager {
    * @param {Integer} params.id - ідентифікатор приладу в deviceManager
    * @param {Number} params.addT=0 - зміщення завдання для конкретного приладу (потрібно вручну додавати до завдання tT в кроці)
    * @param {Number} params.header={ua,en..} - назва приладу
+   * @param {Object} params.emulator - налаштування емулятора приладу (якщо використовується емуляція)
+   * @param {Object} params.emulator.pid - налаштування PID-регулятора емулятора див. ClassPIDregulator.js
+   * @param {Object} params.emulator.furnace - налаштування моделі печі емулятора див. ClassFurnaceEmulator.js
    */
 
   constructor(iface, addr, params = {}) {
     this.trace = 0; // дозвіл трасування
     this.ln = `managerTRP08(addr=${addr}):`; // заголовок трасування
+    if (1) {
+      console.log(this.ln + `params=`);
+      console.dir(params);
+    }
 
+    // ---- налаштування для емуляції приладу -------
+    if (emulateDevices) {
+      // режим емуляції пристроїв увімкнено
+      // модифікуємо драйвер, щоб він імітував роботу печі
+      require("./trp08_fakeDriver")(device, params.emulator);
+      log("w", this.ln, `Emulation mode is ON`);
+    }
+    // process.exit(0);
     // -------- інтерфейс -----------
     this.iface = iface;
     // ознака поточного циклу запису
@@ -407,7 +423,7 @@ class Manager {
   async start(regs = {}) {
     let trace = 1;
 
-    let ln = this.ln + `start(${JSON.stringify(regs)})::`;
+    let ln = this.ln + `start(${JSON.stringify(regs.header.en)})::`;
     trace ? log("w", ln, "Started with regs=", regs) : null;
     regs = this.parseRegs(regs);
     trace ? log("w", ln, "Parsed regs=", regs) : null;

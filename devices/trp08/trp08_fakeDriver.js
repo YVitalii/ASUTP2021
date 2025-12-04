@@ -8,23 +8,29 @@ const ClassPIDregulator = require("../../controllers/PID/ClassPIDregulator.js");
  * @param {Object} props
  * @param {Number} props.minT=0 - мінімальна температура печі для PID inputRange
  * @param {Number} props.maxT=500 - максимальна температура печі для PID inputRange
- * @param {Object} props.furnace - модель печі параметри
- * @param {Number} props.furnace.timeConstant = 30±10
+ * @param {Object} props.furnace - модель печі параметри див.: /devices/furnaceModel/ClassFurnaceModel.js
+ * @param {Number} props.furnace.heatCapacity = 30±10
  * @param {Number} props.furnace.deadTime = 10±2
  * @param {Object} props.pid - ПІД-регулятор параметри
  * @param {Number} props.pid.inputRange={min:props.minT,max:props.maxT} - допустимий діапазон температур
  */
 
 function makeFakeTrp08(driver, props = {}) {
-  let trace = 0,
+  let trace = 1,
     ln = driver.ln + `::makeFakeTrp08()::`;
   // підміняємо методи фальшивими методами
   makeFake(driver);
-  driver.ln = "Trp08driver::";
+  if (trace) {
+    console.log(ln + `props=`);
+    console.dir(props);
+  }
+  driver.ln = driver.id + "(fake)::";
+
   trace ? console.log(ln + `makeFake(driver) completed ! `) : null;
   //   console.log(ln + "" + driver.setReg.toString());
   // запамятовуємо максимальну температуру
   driver.maxT = props.maxT;
+  driver.minT = props.minT;
   // --------------- створюємо модель печі ------------
   props.furnace = props.furnace
     ? props.furnace

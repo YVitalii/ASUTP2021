@@ -277,12 +277,19 @@ class ClassStep {
    */
 
   getState() {
+    let trace = 0,
+      ln = this.ln + `getState()::`;
     let res = { ...this.state };
+    if (trace) {
+      console.log(ln + `res=`);
+      console.dir(res);
+    }
     res.id = this.id;
     res.state = res._id;
     res.header = this.header;
     res.comment = this.comment;
-    res.state.startTime = res.state.startTime.toLocaleString();
+    res.startTime =
+      res.startTime == null ? null : res.startTime.toLocaleString();
     return res;
   }
   /**
