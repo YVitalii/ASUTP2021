@@ -9,12 +9,12 @@ class Furnace {
    * @property {Number} props.initialTemperature=20 - початкова температура печі
    * @property {Number} props.ambientTemperature=20 - температура навколишнього середовища
    * @property {Number} props.heatCapacity=1000 - теплоємність печі
-   * @property {Number} props.heatLossCoefficient=0.002 * this.heatCapacity - коефіцієнт тепловтрат печі
+   * @property {Number} props.heatLossCoefficient=(power * 0.25) / 1000 - коефіцієнт тепловтрат печі
    * @property {Number} props.power=7000 - максимальна потужність печі в Вт
    * @property {Number} props.deltaTime=2 - часовий крок моделювання в секундах
    */
   constructor(props = {}) {
-    this.ln = "FurnaceModel::";
+    this.ln = props.ln ? props.ln : "FurnaceModel::";
     // початкова температура печі
     this.currentTemperature = props.initialTemperature
       ? props.initialTemperature
@@ -27,10 +27,10 @@ class Furnace {
     // максимальна потужність печі в Вт
     this.power = props.power ? props.power : 7000;
     // коефіцієнт тепловтрат печі
-    // по замовчуваннюо 25% (для швидшого охолодження моделі) потужності втрачається при різниці температур 1100С
+    // по замовчуваннюо 25% (для швидшого охолодження моделі) потужності втрачається при різниці температур 1000С
     this.heatLossCoefficient = props.heatLossCoefficient
       ? props.heatLossCoefficient
-      : (this.power * 0.25) / 1100;
+      : (this.power * 0.25) / 1000;
     // часовий крок моделювання в секундах
     this.deltaTime = props.deltaTime ? props.deltaTime : 2; // seconds
     // % потужність нагрівача в даний момент часу
@@ -48,7 +48,8 @@ class Furnace {
       this.heater.temperature * this.heater.heatCapacity;
     this.heater.heatTransferCoefficient = this.heatCapacity * 0.05; // коефіцієнт теплопередачі між нагрівачем і піччю
     // запускаємо оновлення температури
-
+    console.log(this.ln + `Created furnace model with props:`, props);
+    console.dir(this, { depth: 1 });
     this.updateTemperature();
   }
 

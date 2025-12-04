@@ -25,16 +25,19 @@ function makeFakeTrp08(driver, props = {}) {
   //   console.log(ln + "" + driver.setReg.toString());
   // запамятовуємо максимальну температуру
   driver.maxT = props.maxT;
-  // створюємо модель печі
+  // --------------- створюємо модель печі ------------
   props.furnace = props.furnace
     ? props.furnace
     : {
         // випадковим чином змінюємо параметр часу
         // щоб отримати близькі але не однакові характеристики печей
         // Math.floor(Math.random() * (max - min + 1)) + min
-        timeConstant: 30 + Math.round(Math.random() * (10 + 10 + 1) - 10),
-        deadTime: 10 + Math.round(Math.random() * (2 + 2 + 1) - 2),
-        gain: props.maxT * 1.1,
+        heatCapacity:
+          1000 *
+          (1 - Math.round((Math.random() * (0.1 + 0.1 + 1) - 1) * 100) / 1000),
+        power:
+          7000 *
+          (1 - Math.round((Math.random() * (0.1 + 0.1 + 1) - 1) * 100) / 1000),
         ln: driver.id + "::furnace::",
       };
   let furnace = new ClassFurnaceEmulator(props.furnace);
@@ -45,11 +48,12 @@ function makeFakeTrp08(driver, props = {}) {
   props.pid = props.pid
     ? props.pid
     : {
-        id: driver.id + "::pid",
+        id: driver.id + "_PID",
         inputRange: {
           min: props.minT ? props.minT : 0,
           max: props.maxT ? props.maxT : 500,
         },
+        ln: driver.id + "::PID::",
       };
   // поточна температура для pid береться з приладу
 

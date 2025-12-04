@@ -35,7 +35,7 @@ class PID extends ClassGeneral {
    */
 
   constructor(params = {}) {
-    params.ln ? params.ln : "PIDregulator::";
+    params.ln = params.ln ? params.ln : "PIDregulator::";
     let trace = 1,
       ln = params.ln + `constructor()::`;
     super(params);
@@ -140,7 +140,9 @@ class PID extends ClassGeneral {
     if (Math.abs(this.error) > this.kiError) {
       this.errorSum = 0;
     } else {
-      this.errorSum += this.error;
+      if (this.ki <= 99 || this.ki >= -99) {
+        this.errorSum += this.error;
+      }
     }
 
     // if (this.error > this.kiError * 1.5) {
