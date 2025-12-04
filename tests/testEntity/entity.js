@@ -3,7 +3,7 @@
 
 // ----------- приклад опису сутності ----------------
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
-const dummy = require("../../tools/dummy.js").dummyPromise;
+// const dummy = require("../../tools/dummy.js").dummyPromise;
 const log = require("../../tools/log.js");
 let trace = 1,
   gLn = __filename + "::";
@@ -26,7 +26,7 @@ props.shortName = {
 // -- повне імя печі, якщо не вказано  props.fullName = props.shortName
 props.fullName = {
   ua: "Електропіч " + props.shortName.ua,
-  en: "Furnce " + props.shortName.en,
+  en: "Furnace " + props.shortName.en,
   ru: "Електропечь " + props.shortName.ru,
 };
 
@@ -262,6 +262,9 @@ entity.processManager.afterAll = async function () {
     console.dir(dev);
   }
   // ---- зупиняємо нагрівання
+  // ---- ця дія дозволяє ввімкнути дзвіно через 1 хв після закінчення програми
+  // ---- якщо цієї дії немає - то кінець програми на терморегуляторі ТРП не призводить
+  // ---- до ввімкнення звукового сигналу
   // await dev.setOutput(0);
   await dev.start({ tT: 20, H: 0, Y: 1, o: 2 });
   return;

@@ -11,9 +11,9 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
    * @property {Number} props.regs.errTmin=-50 - *С, (<0) =0 вимкнуто, нижня границя коридору температури
    * @property {Number} props.regs.errTmax=50 - *С, (>0) =0 вимкнуто, верхня границя коридору температури
    * @property {String} props.regs.regMode="pid"- "pos" / "pid" закон регулювання температури
-   * @property {Number} props.regs.o=0 -  для regMode="pid" - постійна складова, для regMode="pos" неузгодження температури
-   * @property {Number} props.regs.ti=0 - для regMode="pid" - інтегральний коєф-т, для regMode="pos" немає значення
-   * @property {Number} props.regs.td=0 - для regMode="pid" - пропорційний коєф-т, для regMode="pos" немає значення
+   * @property {Number} props.regs.o=0 -  [0...1000] для regMode="pid" - постійна складова, для regMode="pos" неузгодження температури
+   * @property {Number} props.regs.ti=0 - [0.01..1] для regMode="pid" - інтегральний коєф-т, для regMode="pos" немає значення
+   * @property {Number} props.regs.td=0 - [0.01..10] для regMode="pid" - пропорційний коєф-т, для regMode="pos" немає значення
    * @property {async Function} props.getT - async функція запиту поточної температури
    * @property {async Function} props.checkPeriod=5 - сек, період між опитуваннями поточної температури
    * @property {Object} props.device - обєкт приладу, що має async функції start(regs), addT() та getT
@@ -83,8 +83,8 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
             return "pid";
           }.bind(this)();
     this.o = props.regs.o || props.regs.o == 0 ? parseInt(props.regs.o) : 2;
-    this.ti = props.regs.ti || props.regs.ti == 0 ? parseInt(props.regs.ti) : 0;
-    this.td = props.regs.td || props.regs.td == 0 ? parseInt(props.regs.td) : 0;
+    this.ti = props.regs.ti || props.regs.ti == 0 ? props.regs.ti : 0;
+    this.td = props.regs.td || props.regs.td == 0 ? props.regs.td : 0;
 
     // Функція отримання поточної температури
     this.getT = async () => {

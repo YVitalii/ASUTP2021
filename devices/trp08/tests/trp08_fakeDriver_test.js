@@ -1,5 +1,6 @@
 // cd ./devices/trp08
-// supervisor --no-restart-on exit --w '.' ./tests/trp08_fakeDriver_test.js
+//
+
 const assert = require("assert");
 const { describe, it } = require("node:test");
 const clone = require("clone");

@@ -16,7 +16,7 @@ const ClassPIDregulator = require("../../controllers/PID/ClassPIDregulator.js");
  */
 
 function makeFakeTrp08(driver, props = {}) {
-  let trace = 1,
+  let trace = 0,
     ln = driver.ln + `::makeFakeTrp08()::`;
   // підміняємо методи фальшивими методами
   makeFake(driver);

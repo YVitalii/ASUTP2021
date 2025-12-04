@@ -69,7 +69,6 @@ class PID extends ClassGeneral {
     if (!params.setOutput && typeof params.setOutput !== "function")
       throw new Error("setOutput() function is not defined");
     this.setOutput = params.setOutput;
-
     this._processValue = 0;
     this._kp = params.kp ? params.kp : 0;
     this._ki = params.ki ? params.ki : 0;
@@ -87,20 +86,13 @@ class PID extends ClassGeneral {
       console.log(ln + `this=`);
       console.dir(this);
     }
-  }
+  } // constructor
 
   start(setPoint = undefined) {
     if (setPoint != undefined) {
       this.setPoint = setPoint;
     }
-    log(
-      "i",
-      this.ln +
-        "start()::" +
-        `kp=${this.kp}, ki=${this.ki}, kd=${this.kd}, realSetPoint = ${
-          setPoint ? setPoint : this.realSetPoint
-        }; normalizedSetPoint=${this.setPoint}%`
-    );
+
     this.errorPrev = 0;
     this.errorSum = 0;
     this.going = 1;
@@ -111,6 +103,14 @@ class PID extends ClassGeneral {
       // якщо kp=0 то потрібно працювати тільки
       // з інтегральною складовою - встановлюємо 100% - щоб працювала в усьому діапазоні
       this.kiError = this._kp == 0 ? 100 : (100 / this.kp) * 0.8;
+    log(
+      "i",
+      this.ln +
+        "start()::" +
+        `kp=${this.kp}, ki=${this.ki}, kd=${this.kd}, realSetPoint = ${
+          setPoint ? setPoint : this.realSetPoint
+        }; normalizedSetPoint=${this.setPoint}%; kiError=${this.kiError}`
+    );
     this.calculate();
   }
 
@@ -141,26 +141,29 @@ class PID extends ClassGeneral {
       1
     )}%; error=${this.error.toFixed(2)};`;
 
+    // обчислення інтегральної складової
+    let qi = this.ki * this.errorSum;
     if (Math.abs(this.error) > this.kiError) {
       this.errorSum = 0;
     } else {
-      if (this.ki <= 99 || this.ki >= -99) {
+      if (qi >= -99 || qi <= 99) {
         this.errorSum += this.error;
       }
     }
-
-    // if (this.error > this.kiError * 1.5) {
-    //   this.output = 100;
-    //   trace ? log("", ln, msg, ` output=${this.output}; `) : null;
-    // } else {
-    let qp = this.kp * this.error;
-    let qi = this.ki * this.errorSum;
     qi = qi < -100 ? -100 : qi > 100 ? 100 : qi; // обмеження інтегральної складової ±100%;
+
+    // обчислення пропорційної складової
+    let qp = this.kp * this.error;
+
+    // обчислення диференціальної складової
     let qd = this.kd * (this.error - this.errorPrev);
+    // вихідний сигнал
     this.output = qp + qi + qd;
-    this.errorPrev = this.error;
+
     // перевірка виходу з  діапазону 0..100%
     this.output = inRange(this.output, this.outputRange);
+    // збереження попередньої помилки
+    this.errorPrev = this.error;
     trace
       ? log(
           "",
@@ -185,31 +188,37 @@ class PID extends ClassGeneral {
   }
 
   set kp(value) {
-    console.log(this.ln + `set ki(${value})::`);
     this._kp = inRange(value);
+    console.log(this.ln + `set kp(${value})::this._kp=${this._kp}`);
   }
 
   get ki() {
     return this._ki;
   }
   set ki(value) {
-    console.log(this.ln + `set ki(${value})::`);
     this._ki = inRange(value);
+    console.log(this.ln + `set ki(${value})::this._ki=${this._ki}`);
   }
+
   get kd() {
     return this._kd;
   }
-
   set kd(value) {
-    console.log(this.ln + `set ki(${value})::`);
     this._kd = inRange(value);
+    console.log(this.ln + `set kd(${value})::this._kd=${this._kd}`);
   }
+
   get setPoint() {
     return this._setPoint;
   }
+
   set setPoint(value) {
     this._setPoint = inRange(this.normalizeInput.get(value), this.inputRange);
     this.realSetPoint = value;
+    console.log(
+      this.ln +
+        `set setPoint(${value})::realSetPoint=${value}; this._setPoint=${this._setPoint}%`
+    );
   }
 
   /**

@@ -384,11 +384,11 @@ class Manager {
    *
    */
   parseRegs(regs = {}) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + "parseRegs()::";
     if (trace) {
       log("i", ln, `regs=`);
-      console.dir(regs);
+      console.dir(regs, { depth: 1 });
     }
     // if (trace) {
     //   log("i", ln, `Started with regs=`);
@@ -423,8 +423,8 @@ class Manager {
   async start(regs = {}) {
     let trace = 1;
 
-    let ln = this.ln + `start(${JSON.stringify(regs.header.en)})::`;
-    trace ? log("w", ln, "Started with regs=", regs) : null;
+    let ln = this.ln + `start()::`;
+
     regs = this.parseRegs(regs);
     trace ? log("w", ln, "Parsed regs=", regs) : null;
     try {
