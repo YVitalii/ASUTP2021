@@ -14,6 +14,7 @@ class Furnace {
    * @property {Number} props.deltaTime=2 - часовий крок моделювання в секундах
    */
   constructor(props = {}) {
+    let trace = 0;
     this.ln = props.ln ? props.ln : "FurnaceModel::";
     // початкова температура печі
     this.currentTemperature = props.initialTemperature
@@ -47,9 +48,12 @@ class Furnace {
     this.heater.accumulatedEnergy =
       this.heater.temperature * this.heater.heatCapacity;
     this.heater.heatTransferCoefficient = this.heatCapacity * 0.05; // коефіцієнт теплопередачі між нагрівачем і піччю
+    trace = 1;
+    if (trace) {
+      console.log(this.ln + `this=`);
+      console.dir(this, { depth: 1 });
+    }
     // запускаємо оновлення температури
-    console.log(this.ln + `Created furnace model with props:`, props);
-    console.dir(this, { depth: 1 });
     this.updateTemperature();
   }
 

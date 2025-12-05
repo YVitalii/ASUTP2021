@@ -36,7 +36,7 @@ class PID extends ClassGeneral {
 
   constructor(params = {}) {
     params.ln = params.ln ? params.ln : "PIDregulator::";
-    let trace = 1,
+    let trace = 0,
       ln = params.ln + `constructor()::`;
     super(params);
 

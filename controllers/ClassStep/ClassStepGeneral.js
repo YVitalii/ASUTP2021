@@ -227,8 +227,9 @@ class ClassStep {
   }
 
   error(err) {
+    err = err && err.messages ? err.messages : err;
     err =
-      err || err.ua
+      err && err.ua
         ? err
         : {
             ua: `Сталася помилка!`,

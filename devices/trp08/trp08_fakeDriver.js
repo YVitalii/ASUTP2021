@@ -17,7 +17,7 @@ const ClassPIDregulator = require("../../controllers/PID/ClassPIDregulator.js");
 
 function makeFakeTrp08(driver, props = {}) {
   let trace = 0,
-    ln = driver.ln + `::makeFakeTrp08()::`;
+    ln = driver.ln + `makeFakeTrp08()::`;
   // підміняємо методи фальшивими методами
   makeFake(driver);
   if (trace) {
@@ -32,26 +32,28 @@ function makeFakeTrp08(driver, props = {}) {
   driver.maxT = props.maxT;
   driver.minT = props.minT;
   // --------------- створюємо модель печі ------------
-  props.furnace = props.furnace
+  let propsFurnace = props.furnace
     ? props.furnace
     : {
         // випадковим чином змінюємо параметр часу
         // щоб отримати близькі але не однакові характеристики печей
         // Math.floor(Math.random() * (max - min + 1)) + min
         heatCapacity:
-          1000 *
-          (1 - Math.round((Math.random() * (0.1 + 0.1 + 1) - 1) * 100) / 1000),
+          2000 *
+          (1 -
+            Math.round((Math.random() * (0.15 + 0.15 + 1) - 1) * 100) / 1000),
         power:
           7000 *
-          (1 - Math.round((Math.random() * (0.1 + 0.1 + 1) - 1) * 100) / 1000),
+          (1 -
+            Math.round((Math.random() * (0.15 + 0.15 + 1) - 1) * 100) / 1000),
         ln: driver.id + "::furnace::",
       };
-  let furnace = new ClassFurnaceEmulator(props.furnace);
+  let furnace = new ClassFurnaceEmulator(propsFurnace);
   driver.furnace = furnace;
 
   // ------------ PID-регулятор -------------
   // ------------ використовується для управління моделлю печі -------
-  props.pid = props.pid
+  let propsPid = props.pid
     ? props.pid
     : {
         id: driver.id + "_PID",
@@ -63,7 +65,7 @@ function makeFakeTrp08(driver, props = {}) {
       };
   // поточна температура для pid береться з приладу
 
-  props.pid.getPV = async function () {
+  propsPid.getPV = async function () {
     return new Promise((resolve, reject) => {
       let trace = 0,
         ln = driver.id + `.pid.getPV()::`;
@@ -75,12 +77,12 @@ function makeFakeTrp08(driver, props = {}) {
   };
 
   // поточна потужність передається в модель печі
-  props.pid.setOutput = async (pow) => {
+  propsPid.setOutput = async (pow) => {
     await furnace.setPower(pow);
   };
 
   // ------------ створюємо модель PID-регулятора -------------
-  let pid = new ClassPIDregulator(props.pid);
+  let pid = new ClassPIDregulator(propsPid);
   driver.pid = pid;
   // встановлюємо PID-регулятор як регулятор за замовчуванням (можливо ПОЗ/ПІД)
   driver.regulator = pid;
@@ -89,6 +91,7 @@ function makeFakeTrp08(driver, props = {}) {
   // потрібно розробити модель ПОЗ регулятора
 
   // --------  tT ----------
+  driver.regs.get("tT").value = 0;
   driver.regs.get("tT")._set = (val) => {
     // при записі в регістр приладу tT - передаємо значення в модель ПИД-регулятора
     // console.log(`driver.regs.get("tT")._set(${val})::Started;`);
@@ -126,20 +129,20 @@ function makeFakeTrp08(driver, props = {}) {
 
   // ---- закон регулювання ------
   driver.regs.get("regMode").set_ = (val) => {
-    if (val == "pid" || val == "PID") {
+    if (val == 1 || val == "pid" || val == "PID") {
       // PID-регулювання
       this.regulator = pid;
       this.regMode = "PID";
       return 1;
     }
-    if (val == "pos" || val == "POS") {
+    if (val == 2 || val == "pos" || val == "POS") {
       // POS-регулювання - не реалізовано
       let msg = {
         ua: `Позиційне регулювання ще не реалізовано`,
         en: `POS-regulation mode is not implemented yet!`,
         ru: ``,
       };
-      let err = new Error(msg.ua);
+      let err = new Error(msg.en); //в тестах перевіряється на англійській: /not implemented/
       err.messages = msg;
       throw err;
     }
@@ -156,9 +159,9 @@ function makeFakeTrp08(driver, props = {}) {
 
   // ---- PID інтегральна складова   ------
   driver.regs.get("ti").set_ = (val) => {
-    console.log(
-      ln + `ti.set_(${val}):: called:: driver.regMode=${driver.regMode}`
-    );
+    // console.log(
+    //   ln + `ti.set_(${val}):: called:: driver.regMode=${driver.regMode}`
+    // );
     if (driver.regMode == "PID") {
       driver.pid.ki = val / 100;
     }
@@ -174,10 +177,10 @@ function makeFakeTrp08(driver, props = {}) {
     // для ПОЗ регулювання не має сенсу
     return val;
   };
-
+  trace = 0;
   if (trace) {
     console.log(ln + `After make Fake:: driver=`);
-    console.dir(driver);
+    console.dir(driver, { depth: 1 });
   }
 
   return driver;

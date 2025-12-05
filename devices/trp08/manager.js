@@ -32,7 +32,7 @@ class Manager {
   constructor(iface, addr, params = {}) {
     this.trace = 0; // дозвіл трасування
     this.ln = `managerTRP08(addr=${addr}):`; // заголовок трасування
-    if (1) {
+    if (this.trace) {
       console.log(this.ln + `params=`);
       console.dir(params);
     }
@@ -41,8 +41,12 @@ class Manager {
     if (emulateDevices) {
       // режим емуляції пристроїв увімкнено
       // модифікуємо драйвер, щоб він імітував роботу печі
-      require("./trp08_fakeDriver")(device, params.emulator);
+      this.device = require("./driver.js");
+      this.device.id = `${params.id}(${addr})`;
+      require("./trp08_fakeDriver")(this.device, params.emulator);
       log("w", this.ln, `Emulation mode is ON`);
+    } else {
+      this.device = device;
     }
     // process.exit(0);
     // -------- інтерфейс -----------
@@ -95,7 +99,11 @@ class Manager {
      */
 
     // поточні налаштування приладу поки null
-    let period = { high: 10 * 1000, middle: 20 * 1000, low: 60 * 1000 };
+    let period = {
+      high: (emulateDevices ? 1 : 10) * 1000,
+      middle: (emulateDevices ? 3 : 20) * 1000,
+      low: (emulateDevices ? 6 : 60) * 1000,
+    };
     this.state = {
       T: {
         id: "T",
@@ -179,7 +187,7 @@ class Manager {
     }; //state
 
     for (let key in this.state) {
-      let d = device.getRegDescription(key);
+      let d = this.device.getRegDescription(key);
       let regs = this.state;
       regs[key].header = d.header ? d.header : { ua: ``, en: ``, ru: `` };
       d.type = d.type ? d.type : undefined;
@@ -324,7 +332,7 @@ class Manager {
     let res,
       resString = "";
 
-    res = await this.iteration(device.setRegPromise.bind(device), {
+    res = await this.iteration(this.device.setRegPromise.bind(device), {
       iface: this.iface,
       devAddr: this.addr,
       regName: regName,
@@ -441,7 +449,8 @@ class Manager {
       log("w", ln, "Device started");
       return 1;
     } catch (error) {
-      log("e", ln, "Error:", error);
+      log("e", ln, "Error:", error.messages.ua);
+      throw error;
     }
   }
 
@@ -537,7 +546,7 @@ class Manager {
       }
 
       // робимо запит в прилад по інтерфейсу
-      let res = await this.iteration(device.getRegPromise.bind(device), {
+      let res = await this.iteration(this.device.getRegPromise.bind(device), {
         iface: this.iface,
         devAddr: this.addr,
         regName: item,

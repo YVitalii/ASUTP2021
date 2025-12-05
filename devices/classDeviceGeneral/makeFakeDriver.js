@@ -9,7 +9,7 @@ function makeFake(driver = {}) {
   if (!driver.regs instanceof Map) {
     throw new Error(ln + "[driver.regs] must be instance of [Map]! ");
   }
-  driver.id = "fake_" + driver.id;
+  // driver.id =  driver.id;
   driver.offline = false;
   driver.ln = driver.id + "::";
   // перевизначаємо всі функції
@@ -94,7 +94,7 @@ function makeFake(driver = {}) {
     value = null,
     cb
   ) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `fakedSetReg(${iface.id},${addr},${regName},${value})::`;
     trace ? console.log(ln + `Started`) : null;
     if (value === null)
