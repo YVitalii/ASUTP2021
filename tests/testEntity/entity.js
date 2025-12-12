@@ -74,6 +74,14 @@ settings.id = "furnace3";
 settings.addT = 6;
 let furnace3 = new TRP08(ifaceW2, 3, settings);
 entity.devicesManager.addDevice(settings.id, furnace3);
+console.log("==========================================================");
+console.log(
+  `furnace1.device === furnace2.device = ${furnace1.device === furnace2.device}`
+);
+console.log(
+  `furnace2.device === furnace3.device = ${furnace2.device === furnace3.device}`
+);
+console.log("==========================================================");
 
 // let furnaceUp = new TRP08(ifaceW2, 1, { id: "furnace", addT: 0 });
 
