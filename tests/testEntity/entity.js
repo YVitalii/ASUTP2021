@@ -194,110 +194,6 @@ logger.addReg({
   },
 }); //logger.addReg(id: "T3"
 
-// ----------------2025-10-01 ---------------
-// // ---- додаємо регістр для логування + його опис
-// logger.addReg({
-//   id: "T0",
-//   units,
-//   header: {
-//     ua: `T0`,
-//     en: `T0`,
-//     ru: `T0`,
-//   },
-//   comment: {
-//     ua: `Температура в точці N0`,
-//     en: `Current temperature in point N0`,
-//     ru: `Текущая температура в точке N0`,
-//   },
-//   getValue: async () => {
-//     // повинна повертати числове значення регістру
-//     return await entity.devicesManager.getDevice("trp08n2").getT();
-//   },
-// }); //logger.addReg(
-
-// // ---- додаємо регістр для логування + його опис
-// for (let i = 1; i < 9; i++) {
-//   let reg = {
-//     id: `T${i}`,
-//     units,
-//     header: {
-//       ua: `T${i}`,
-//       en: `T${i}`,
-//       ru: `T${i}`,
-//     },
-//     comment: {
-//       ua: `AI0${i}`,
-//       en: `AI0${i}`,
-//       ru: `AI0${i}`,
-//     },
-//     getValue: async () => {
-//       let ln = this.id + "::getValue()::";
-//       let res;
-//       try {
-//         res = await entity.devicesManager
-//           .getDevice("mb110")
-//           .getRegister(`T${i}`);
-//       } catch (error) {
-//         log("e", ln, error);
-//         throw error;
-//       }
-//       if (res != null) {
-//         res = res.toFixed(1);
-//       }
-//       // let baseT = await entity.devicesManager.getDevice("trp08n2").getT();
-//       return res; // повертаємо результат
-//     },
-//   };
-//   if (i === 0) {
-//     reg.getValue = async () => {
-//       return await entity.devicesManager.getDevice("trp08n2").getT();
-//     };
-//   }
-//   logger.addReg(reg);
-// } // for
-
-// console.log("logger=");
-// console.dir(logger);
-
-// logger.addReg({
-//   id: "T0",
-//   units,
-//   header: {
-//     ua: `T0`,
-//     en: `T0`,
-//     ru: `T0`,
-//   },
-//   comment: {
-//     ua: `Поточна температура в точці печі`,
-//     en: `Current temperature in furnace`,
-//     ru: `Текущая температура в печи`,
-//   },
-//   getValue: async () => {
-//     // повинна повертати числове значення регістру
-//     return await entity.devicesManager.getDevice("trp08furnace").getT();
-//   },
-// });
-
-// ---- додаємо регістр для логування + його опис
-// logger.addReg({
-//   id: "T2",
-//   units: { ua: `C`, en: `C`, ru: `C` },
-//   header: {
-//     ua: `T2`,
-//     en: `T2`,
-//     ru: `T2`,
-//   },
-//   comment: {
-//     ua: `Поточна температура в зоні №2`,
-//     en: `Current temperature in zone 2`,
-//     ru: `Текущая температура в зоне №2`,
-//   },
-//   getValue: async () => {
-//     // повинна повертати числове значення регістру
-//     return await entity.devicesManager.getDevice("trp08n2").getT();
-//   },
-// });
-
 entity.processManager.afterAll = async function () {
   // функція, що викликається після завершення всієї програми
   let trace = 1,
@@ -312,12 +208,13 @@ entity.processManager.afterAll = async function () {
     log("e", ln + `Device furnace not found!`);
     return;
   }
+
   if (trace) {
     console.log(ln + `dev=`);
     console.dir(dev);
   }
   // ---- зупиняємо нагрівання
-  // ---- ця дія дозволяє ввімкнути дзвіно через 1 хв після закінчення програми
+  // ---- ця дія дозволяє ввімкнути дзвінок через 1 хв після закінчення програми
   // ---- якщо цієї дії немає - то кінець програми на терморегуляторі ТРП не призводить
   // ---- до ввімкнення звукового сигналу
   // await dev.setOutput(0);
@@ -337,20 +234,4 @@ if (trace) {
 }
 
 if (!module.parent) {
-  // (async () => {
-  //   await dummy(5000);
-  //   let regs = entity.loggerManager.regs;
-  //   while (true) {
-  //     regs["T0"].getValue().then((res) => {
-  //       console.log("T0=", res);
-  //     });
-  //     regs["T1"].getValue().then((res) => {
-  //       console.log("T1=", res);
-  //     });
-  //     regs["T2"].getValue().then((res) => {
-  //       console.log("T2=", res);
-  //     });
-  //     await dummy(4000);
-  //   } // while
-  // })();
 }
