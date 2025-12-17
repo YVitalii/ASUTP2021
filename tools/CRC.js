@@ -2,7 +2,7 @@
 const crc = require("crc");
 
 /**
- *
+ * перетворюэ число в буфер з двох байт [Hi,Lo]
  * @param {*} addr
  * @returns
  */
