@@ -1,3 +1,6 @@
+// cd ./devices/trp08
+// supervisor  --extensions 'js,pug' --timestamp --no-restart-on exit ./trp08_fakeDevice.js
+
 // емулює роботу ТРП-08-ТП на базі моделі печі та ПІД-регулятора
 // повинен підключатися через емулятор RS485 через менеджер DeviceEmulator
 // повністю емітує роботу терморегулятора по інтерфейсу RS485
@@ -7,13 +10,15 @@ const ClassPIDregulator = require("../../controllers/PID/ClassPIDregulator.js");
 const crc16 = require("../../tools/CRC.js");
 let ClassGeneral = require("../../ClassGeneral.js");
 
-class TRPemulator extends ClassGeneral {
+class ClassFakeTRP extends ClassGeneral {
   /**
    *
    * @param {Object} props
-   * @param {Object} props.furnace - параметри моделі печі
-   * @param {} props.furnace.minT - мінімальна температура
-   * @param {} props.furnace.maxT - максимальна температура
+   * @param {Object} props.furnace - параметри моделі печі дивись devices\furnaceModel\ClassFurnaceModel.js
+   * @param {Number} props.furnace.heatCapacity=2000±15% - Дж/°С теплоємність печі
+   * @param {Number} props.furnace.heatCapacity=7000±15% - Вт=Дж/с потужність нагрівачів
+   * @param {Number} props.minT - мінімальна температура
+   * @param {Number} props.maxT - максимальна температура
    *
    */
   constructor(props = {}) {
@@ -113,12 +118,13 @@ class TRPemulator extends ClassGeneral {
     }
   }
 }
+module.exports = ClassFakeTRP;
 
 if (require.main === module) {
   //виконується, якщо модуль викликано окремо, а не імпортовано (в командному рядку)
   let trace = 1,
     ln = `${__filename}::`;
-  let device = new TRPemulator({ id: "z1_top", maxT: 1000 });
+  let device = new ClassFakeTRP({ id: "z1_top", maxT: 1000 });
   if (trace) {
     console.log("i", ln, `device=`);
     console.dir(device);

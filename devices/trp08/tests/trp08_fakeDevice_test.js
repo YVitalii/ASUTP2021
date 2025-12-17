@@ -1,0 +1,36 @@
+// cd ./devices/trp08
+// supervisor --watch './,./tests'  --extensions 'js,pug' --timestamp --no-restart-on exit ./tests/trp08_fakeDevice_test.js
+
+const assert = require("assert");
+const { describe, it } = require("node:test");
+const ClassFakeTRP = require("../trp08_fakeDevice.js");
+let params = {
+  id: "zone1",
+  minT: 0,
+  maxT: 1000,
+  furnace: {
+    heatCapacity: 3000,
+    power: 7000,
+  },
+};
+
+describe("Create new device ", () => {
+  it("From empty parameters", () => {
+    let dev = new ClassFakeTRP({ id: "z1" });
+    assert.equal(dev.id, "z1", "should be id='z1'");
+    let hc = 2000;
+    assert.ok(
+      hc * 0.85 <= dev.furnace.heatCapacity &&
+        dev.furnace.heatCapacity <= hc * 1.15,
+      "should be furnace.heatCapacity=2000±15%Дж, but really=" +
+        dev.furnace.heatCapacity
+    );
+    let p = 7000,
+      cP = dev.furnace.power;
+    assert.ok(
+      p * 0.85 <= cP && cP <= p * 1.15,
+      "should be furnace.power=7000±15%Дж but really=" + dev.furnace.power
+    );
+    assert.equal(typeof dev.pid, "object", "Should be an Object");
+  });
+});

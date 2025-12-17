@@ -48,7 +48,7 @@ class Furnace {
     this.heater.accumulatedEnergy =
       this.heater.temperature * this.heater.heatCapacity;
     this.heater.heatTransferCoefficient = this.heatCapacity * 0.05; // коефіцієнт теплопередачі між нагрівачем і піччю
-    trace = 1;
+    trace = 0;
     if (trace) {
       console.log(this.ln + `this=`);
       console.dir(this, { depth: 1 });
