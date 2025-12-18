@@ -1,6 +1,15 @@
 /** загальні елементи для всіх класів */
 // const log = require("./tools/log");
 module.exports = class ClassGeneral {
+  /**
+   * Загальний інтерфейс
+   * @param {Object} props
+   * @param {String} props.id
+   * @param {String} props.header={ua:id.en:id,ru:id} - назва компонента (виводиться в заголовку)
+   * @param {String} props.comment={ua:"".en:"",ru:""} - примітка з поясненням (спливаюча підказка, або меншим шрифтом)
+   * @param {String} props.ln=props.id+"::" - заголовок для логера
+   */
+
   constructor(props) {
     let trace = 0,
       ln = "ClassGeneral::constructor::";

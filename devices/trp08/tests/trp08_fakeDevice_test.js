@@ -4,6 +4,7 @@
 const assert = require("assert");
 const { describe, it } = require("node:test");
 const ClassFakeTRP = require("../trp08_fakeDevice.js");
+
 let params = {
   id: "zone1",
   minT: 0,
@@ -17,6 +18,12 @@ let params = {
 describe("Create new device ", () => {
   it("From empty parameters", () => {
     let dev = new ClassFakeTRP({ id: "z1" });
+    let trace = 1,
+      ln = "From empty parameters::";
+    if (trace) {
+      console.log("i", ln, `dev=`);
+      console.dir(dev);
+    }
     assert.equal(dev.id, "z1", "should be id='z1'");
     let hc = 2000;
     assert.ok(
@@ -32,5 +39,10 @@ describe("Create new device ", () => {
       "should be furnace.power=7000±15%Дж but really=" + dev.furnace.power
     );
     assert.equal(typeof dev.pid, "object", "Should be an Object");
+    assert.equal(
+      dev.pid.inputRange.max,
+      500,
+      "Should be dev.pid.inputRange.max=500"
+    );
   });
 });

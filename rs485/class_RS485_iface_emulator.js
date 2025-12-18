@@ -1,8 +1,8 @@
 const ClassIface = require("./class_RS485_iface_real.js");
-const ClassGeneral = require("../ClassGeneral.js");
+
 const dummy = require("../tools/dummy.js").dummyPromise;
 const EventEmitter = require("events");
-
+const APIerror = require("../tools/apiError.js");
 class ClassRS485Emulator extends ClassIface {
   constructor(path = "fakeCOM", props = {}, timeout = 300) {
     let trace = 0,
@@ -37,17 +37,83 @@ class ClassRS485Emulator extends ClassIface {
       });
     };
     this.iterate = () => {};
+    this.devices = [];
   }
+
+  addDevice(addr, dev) {
+    let err = this.checkAddress(addr);
+    if (err != null) throw err;
+    if (this.devices[addr]) {
+      err = new APIerror(
+        {
+          ua: `Прилад уже визначений`,
+          en: `Device already defined`,
+          ru: `Устройство уже определено`,
+        },
+        (code = 0),
+        (prefix = this.ln),
+        (suffix = `devices[${adr}].id=${this.devices[addr].id}`)
+      );
+      throw new Error(err);
+    }
+    let dev = this.devices[addr];
+    if (typeof dev.send != "function") {
+      err = new APIerror(
+        {
+          ua: `Прилад повинен мати визначену функцію`,
+          en: `Device must have function`,
+          ru: `Устройство должно реализовывать функцию`,
+        },
+        (code = 0),
+        (prefix = this.ln),
+        (suffix = ` send(err,cb) -> devices[${adr}].send=${typeof this.devices[
+          addr
+        ].send}`)
+      );
+      throw new Error(err);
+    }
+    // add device to list
+    this.devices[addr] = dev;
+  }
+
   async openPort() {
     await dummy(1000);
     this.isOpened = true;
     console.log("Emulator port opened");
   }
+  /**
+   * Перевіряє адреси на сумісність 0-broadcost address
+   * @param {Number} addr
+   * @returns
+   */
+  checkAddress(addr) {
+    let err = null,
+      min = 0,
+      max = 247;
+    if (
+      typeof req.id === "undefined" ||
+      isNaN(parseInt(req.id)) ||
+      req.id < min ||
+      req.id > max
+    ) {
+      err = new APIerror(
+        {
+          ua: `Адреса пристрою повинна бути в межах`,
+          en: "Device address must be in range",
+          ru: `Адрес устройства должен быть в диапазоне`,
+        },
+        (code = 0),
+        (prefix = this.ln),
+        (suffix = ` [${min}..${max}] -> [req.addr=${req.addr}]`)
+      );
+    }
+    return err;
+  } // checkAddress
 
   /**
    * функція імітує запит
    * @typedef {Object} req - запит RS485
-   * @property {Number} id - адреса пристрою в мережі [1..254]
+   * @property {Number} id - адреса пристрою в мережі RS485 [1..254]
    * @property {Number} FC - функція, наразі реалізовано FC=[3,6,10]
    * @property {Number} addr - адрес початкового регістру
    * @property {Number | Buffer } data - дані для передачі
@@ -56,6 +122,24 @@ class ClassRS485Emulator extends ClassIface {
    * @typedef {Object} data - отримані дані
    */
   send(req = {}, cb) {
+    let err = this.checkAddress(req.addr);
+    if (err != null) {
+      cb(err, null);
+      return;
+    }
+    if (!this.devices[addr]) {
+      let msg = this.ln + "Device already not defined!";
+      throw (err = new APIerror(
+        {
+          ua: `Пристрій ще не визначений`,
+          en: "Device not defined yet",
+          ru: `Устройство еще не определено`,
+        },
+        (code = 0),
+        (prefix = this.ln),
+        (suffix = ` [req.addr=${req.addr}]`)
+      ));
+    }
     req.id = req.id ? req.id : 33;
     req.FC = req.FC ? req.FC : 3;
     req.addr = req.addr ? req.addr : 33;

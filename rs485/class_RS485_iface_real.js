@@ -211,9 +211,10 @@ class IfaceRS485 extends ClassGeneral {
    * @property {Number} req.FC - функція, наразі реалізовано FC=[3,6,10]
    * @property {Number} req.addr - адрес початкового регістру
    * @property {Number | Buffer } req.data - дані для передачі
-   * @property {Number} req.timeout - час очікування відповіді
+   * @property {Number} req.timeou=1000 - час очікування відповіді
    * @return {callback} (err,data) = >
-   * @typedef {Object} data - отримані дані
+   * @typedef {Object} data - Buffer отримані дані
+   * @typedef {Object} err - APIerror - помилка
    */
   send(req, cb) {
     // налаштування трасувальника
