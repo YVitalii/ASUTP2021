@@ -50,10 +50,10 @@ module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
    * @param {String|Number} props.addr - адреса регістра в приладі
    * @param {Object} props.units - { ua: ``, en: ``, ru: ``} одиниці виміру
    * @param {String} props.note - примітки до опису регістру (наприлад:"Вхід DI1")
-   * @param {Function} props._get(arg={}) = {err:null,data:arg} - читання перед-обробка, data - набір даних для iface.send(data)
-   * @param {Function} props.get_(arg={}) = {err:null,data:arg} - читання пост-обробка, data - інтерпретація відповіді iface.send(data)
-   * @param {Function} props._set(arg={}) = {err:null,data:arg} - запис перед-обробка, data - набір даних для iface.send(data)
-   * @param {Function} props.set_(arg={}) = {err:null,data:arg} - запис пост-обробка, data - інтерпретація відповіді iface.send(data)
+   * @param {Function} props._get(arg={}) = {err:null,data:args} - читання перед-обробка, data - набір даних для iface.send(data)
+   * @param {Function} props.get_(arg={}) = {err:null,data:args} - читання пост-обробка, data - інтерпретація відповіді iface.send(data)
+   * @param {Function} props._set(arg={}) = {err:null,data:args} - запис перед-обробка, data - набір даних для iface.send(data)
+   * @param {Function} props.set_(arg={}) = {err:null,data:args} - запис пост-обробка, data - інтерпретація відповіді iface.send(data)
    */
   constructor(props) {
     super(props);

@@ -8,8 +8,11 @@ const units = require("../../config.js").units;
 class ClassManager extends ClassDevManagerGeneral {
   constructor(props = {}) {
     props.driver = driver;
-    props.ln = `TRM251-Manager::`;
-    props.header = { ua: `ТРМ251`, en: `TRM251`, ru: `ТРМ251` };
+    let addr = `[${props.addr || props.addr == 0 ? props.addr : undefined}]`;
+    props.ln = props.ln ? props.ln : `TRM251-Manager[${props.addr}]::`;
+    props.header = props.header
+      ? props.header
+      : { ua: `ТРМ251` + addr, en: `TRM251` + addr, ru: `ТРМ251` + addr };
     let trace = 1,
       ln = props.ln + "constructor()::";
     if (trace) {
@@ -33,11 +36,45 @@ class ClassManager extends ClassDevManagerGeneral {
         obsolescence: 10,
         driverRegName: `I${i}`,
       }); // addRegister
-    }
+    } // for
+    // ------- tT ----------
+    this.addRegister({
+      id: `tT`,
+      comment: {
+        ua: `Цільова температура`,
+        en: `Goal temperature`,
+        ru: `Целевая температура`,
+      },
+      units: units.degC,
+      type: "number",
+      min: -20,
+      max: 1200,
+      readonly: true,
+      obsolescence: 10,
+      driverRegName: `tT`,
+    }); // addRegister
+
+    // ------- mode ----------
+    this.addRegister({
+      id: `mode`,
+      comment: {
+        ua: `Стан приладу`,
+        en: `Working mode`,
+        ru: `Состояние прибора`,
+      },
+      units: { ua: ``, en: ``, ru: `` },
+      type: "number",
+      min: 0,
+      max: 7,
+      readonly: true,
+      obsolescence: 10,
+      driverRegName: `mode`,
+    }); // addRegister
+
     log("w", this.ln, ` ==> Device was created`);
     if (trace) {
       console.log(ln + `this=`);
-      console.dir(this);
+      console.dir(this, { depth: 1 });
     }
   } // constructor
   getCompactHtml(props) {

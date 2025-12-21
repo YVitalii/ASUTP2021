@@ -1,3 +1,6 @@
+// cd ./tests/testEntity
+// supervisor --timestamp --no-restart-on exit ./entity.js
+
 // ----------- приклад опису сутності ----------------
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
 const dummy = require("../../tools/dummy.js").dummyPromise;
@@ -9,26 +12,26 @@ let trace = 0,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
 let props = {
-  id: "Calibrator_9points",
+  id: "SNO-6-6-4)6_2025",
   homeDir: __dirname,
 };
 
 // -- коротке імя печі
 props.shortName = {
-  ua: "Калібратор 9 точок",
-  en: "Calibrator_9points",
-  ru: "Калибратор 9 точек",
+  ua: "СНО-6.6.4/4ГЦ",
+  en: "SNO-6.6.4/4GC",
+  ru: "СНО-6.6.4/4ГЦ",
 };
 
 // -- повне імя печі, якщо не вказано  props.fullName = props.shortName
 props.fullName = {
-  ua: "Калібратор 9 точок",
-  en: "Calibrator_9points",
-  ru: "Калибратор 9 точек",
+  ua: "Електропіч СНО-6.6.4/4ГЦ",
+  en: "Furnace SNO-6.6.4/4GC",
+  ru: "Електропечь СНО-6.6.4/4ГЦ",
 };
 
 // -- максимальна температура в печі required {Number}
-props.maxT = 1100;
+props.maxT = 400;
 
 // -------- створюємо та повертаємо об'єкт печі
 let entity = new classEntityFurnace(props);
@@ -118,6 +121,29 @@ logger.addReg({
     return t;
   },
 }); //logger.addReg(
+
+// ---- додаємо регістр для логування + його опис
+logger.addReg({
+  id: "tT",
+  units,
+  header: {
+    ua: `Ціль`,
+    en: `Goal`,
+    ru: `Цель`,
+  },
+  comment: {
+    ua: `Поточне значення уставки`,
+    en: `Current set point`,
+    ru: `Текущее задание`,
+  },
+  getValue: async () => {
+    // повинна повертати числове значення регістру
+    let t = await entity.devicesManager.getDevice("furnace").getRegister("tT"); //TRM251
+    // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
+    return t;
+  },
+}); //logger.addReg(
+
 // ----------------2025-10-01 ---------------
 // // ---- додаємо регістр для логування + його опис
 // logger.addReg({
@@ -224,20 +250,20 @@ logger.addReg({
 
 entity.processManager.afterAll = async function () {
   // функція, що викликається після завершення всієї програми
-  let trace = 1,
-    ln = entity.ln + `afterAll()::`;
-  if (trace) {
-    log("w", ln + `entity.id=${entity.id}. Started`);
-    //console.dir(this, { depth: 1, colors: true });
-  }
-  let dev = this.devicesManager.getDevice("furnace");
-  if (!dev) {
-    log("e", ln + `Device furnace not found!`);
-    return;
-  }
+  // let trace = 1,
+  //   ln = entity.ln + `afterAll()::`;
+  // if (trace) {
+  //   log("w", ln + `entity.id=${entity.id}. Started`);
+  //   //console.dir(this, { depth: 1, colors: true });
+  // }
+  // let dev = this.devicesManager.getDevice("furnace");
+  // if (!dev) {
+  //   log("e", ln + `Device furnace not found!`);
+  //   return;
+  // }
   // ---- зупиняємо нагрівання
-  await dev.setOutput(0);
-  await dev.start({ tT: 20, H: 0, Y: 1, o: 2 });
+  // await dev.setOutput(0);
+  // await dev.start({ tT: 20, H: 0, Y: 1, o: 2 });
   return;
   // ---- запускаємо менеджер процесів
 };
@@ -257,13 +283,13 @@ if (!module.parent) {
     await dummy(5000);
     let regs = entity.loggerManager.regs;
     while (true) {
-      regs["T0"].getValue().then((res) => {
+      regs["Tf"].getValue().then((res) => {
         console.log("T0=", res);
       });
-      regs["T1"].getValue().then((res) => {
-        console.log("T1=", res);
-      });
-      regs["T2"].getValue().then((res) => {
+      // regs["mode"].getValue().then((res) => {
+      //   console.log("T1=", res);
+      // });
+      regs["tT"].getValue().then((res) => {
         console.log("T2=", res);
       });
       await dummy(4000);

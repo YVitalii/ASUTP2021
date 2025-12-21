@@ -47,7 +47,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     // settings for tracing
     let addr = "" + this.addr;
     addr = addr.length > 10 ? ".." + addr.slice(-10) : addr;
-    this.ln += `[${this.addr}]::`;
+    // this.ln += ``;
     ln = this.ln + ln;
 
     // ----------- driver -------------

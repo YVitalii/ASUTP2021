@@ -25,7 +25,9 @@ const _getFC3 = function (env) {
  * @throws {Error} Throws an error indicating that the register is read-only.
  */
 let readOnly = function (env) {
-  throw new Error(`Register "${env.id}" is readonly !`);
+  let err = new Error(`Register "${env.id}" is readonly !`);
+
+  return { err, data: null };
 };
 
 /**
@@ -128,13 +130,132 @@ for (let i = 1; i < 3; i++) {
       return { err, data: { value: data, note } };
     },
     _set: function (arg) {
-      readOnly(this);
+      return readOnly(this);
     },
     set_: function (arg) {
-      readOnly(this);
+      return readOnly(this);
     },
   });
-}
+} // for (let i = 1; i < 3; i++)
+
+// ------------ tT ---------
+driver.addRegister({
+  id: "tT",
+  addr: 0x000d,
+  header: {
+    ua: `Цільова температура`,
+    en: `Current set point`,
+    ru: `Целевая температура`,
+  },
+  note: `Current set point`,
+  units: degC,
+  _get: function (arg) {
+    let trace = 1,
+      ln = this.id + `::_get(${arg})::`;
+    let req = _getFC3(this);
+    req.data.data = 1;
+    if (trace) {
+      console.log(ln + `req=`);
+      console.dir(req, { depth: 1 });
+    }
+    return req;
+  }, //_get
+  get_: function (arg) {
+    let trace = 1,
+      ln = this.id + `::get_(${arg})::`;
+
+    // поточна уставка
+    let value = arg.readUInt16BE() / 10;
+    let res = { err: null, data: { value, note: this.note } };
+    if (trace) {
+      console.log(ln + `res=`);
+      console.dir(res, { depth: 1 });
+    }
+    return res;
+  }, //get_
+  _set: function (arg) {
+    return readOnly(this);
+  },
+  set_: function (arg) {
+    return readOnly(this);
+  },
+}); // addRegister(tT)
+
+// ------------ mode  ---------
+driver.addRegister({
+  id: "mode",
+  addr: 0x0011,
+  header: { ua: `Режим роботи`, en: `Working mode`, ru: `Режим работы` },
+  note: `Working mode`,
+  units: { ua: ``, en: ``, ru: `` },
+  _get: function (arg = 0) {
+    let trace = 1,
+      ln = this.id + `::_get(${arg})::`;
+    let req = _getFC3(this);
+    req.data.data = 1;
+    if (trace) {
+      console.log(ln + `req=`);
+      console.dir(req, { depth: 1 });
+    }
+    return req;
+  }, //_get
+  get_: function (arg) {
+    let trace = 1,
+      ln = this.id + `::get_(${arg})::`;
+    let note = this.note;
+    err = null;
+    // поточна уставка
+    let value = arg.readUInt16BE();
+    // switch (value) {
+    //   case 0:
+    //     note += "Стоп";
+    //     break;
+
+    //   case 1:
+    //     note += "Робота";
+    //     break;
+
+    //   case 2:
+    //     note += "Критична аварія";
+    //     break;
+
+    //   case 3:
+    //     note += "Завершено";
+    //     break;
+
+    //   case 4:
+    //     note += "Автоналаштування";
+    //     break;
+
+    //   case 5:
+    //     note += "Очікування автоналаштування";
+    //     break;
+
+    //   case 6:
+    //     note += "Автоналаштування завершено";
+    //     break;
+
+    //   case 7:
+    //     note += "Налаштування";
+    //     break;
+
+    //   default:
+    //     break;
+    // }
+    let res = { err, data: { value, note } };
+    if (trace) {
+      console.log(ln + `res=`);
+      console.dir(res, { depth: 1 });
+    }
+    return res;
+  }, //get_
+  _set: function (arg) {
+    return readOnly(this);
+  },
+  set_: function (arg) {
+    return readOnly(this);
+  },
+}); // addRegister(tT)
 
 function getNote(code) {
   const offsetStatusCode = 0x0f00;
