@@ -56,7 +56,7 @@ class ClassRS485Emulator extends ClassIface {
       );
       throw new Error(err);
     }
-    let dev = this.devices[addr];
+
     if (typeof dev.send != "function") {
       err = new APIerror(
         {
@@ -122,12 +122,20 @@ class ClassRS485Emulator extends ClassIface {
    * @typedef {Object} data - отримані дані
    */
   send(req = {}, cb) {
+    let trace = 0,
+      ln =
+        this.ln +
+        `send(id=${req.id};FC=${req.FC};addr=${req.addr};data
+          ${req.data}
+        )})::`;
+    trace ? log(ln, `Started!`) : null;
     let err = this.checkAddress(req.addr);
     if (err != null) {
       cb(err, null);
       return;
     }
-    if (!this.devices[addr]) {
+    let dev = this.devices[addr];
+    if (!dev) {
       let msg = this.ln + "Device already not defined!";
       throw (err = new APIerror(
         {
@@ -140,35 +148,31 @@ class ClassRS485Emulator extends ClassIface {
         (suffix = ` [req.addr=${req.addr}]`)
       ));
     }
-    req.id = req.id ? req.id : 33;
-    req.FC = req.FC ? req.FC : 3;
-    req.addr = req.addr ? req.addr : 33;
-    req.data = req.data ? req.data : Buffer.from(["f", "a", "k", "e"]);
-    req.timeout = req.timeout ? req.timeout : 1000;
-    let trace = 0,
-      ln =
-        this.ln +
-        `send(id=${req.id};FC=${req.FC};addr=${req.addr};data
-          ${req.data}
-        )})::`;
-    trace ? log(ln, `Started!`) : null;
-    process.nextTick(() => {
-      let err = null,
-        data = req.data;
-      // console.log("this=");
-      // console.dir(this);
-      if (!this.isOpened) {
-        err = new Error("Port is closed");
-        err.code = "PortClosed";
-        err.messages = {
-          ua: `Помилка timeout`,
-          en: `Timeout error`,
-          ru: `Ошибка Timeout.`,
-        };
-        data = null;
-      }
-      cb(err, data);
-    });
+    dev.send(req, (err, data) => {
+      cb(err, dev.value);
+    }); // send()
+
+    // process.nextTick(function () {
+    //   cb(null);
+    // });
+
+    // process.nextTick(() => {
+    //   let err = null,
+    //     data = req.data;
+    //   // console.log("this=");
+    //   // console.dir(this);
+    //   if (!this.isOpened) {
+    //     err = new Error("Port is closed");
+    //     err.code = "PortClosed";
+    //     err.messages = {
+    //       ua: `Помилка timeout`,
+    //       en: `Timeout error`,
+    //       ru: `Ошибка Timeout.`,
+    //     };
+    //     data = null;
+    //   }
+    //   cb(err, data);
+    // });
   }
 }
 

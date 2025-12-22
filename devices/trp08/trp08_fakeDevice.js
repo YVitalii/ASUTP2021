@@ -9,7 +9,7 @@ const FurnaceModel = require("../furnaceModel/ClassFurnaceModel.js");
 const ClassPIDregulator = require("../../controllers/PID/ClassPIDregulator.js");
 const crc16 = require("../../tools/CRC.js");
 let ClassGeneral = require("../../ClassGeneral.js");
-
+const { toBCD, fromBCD } = require("./driverOld.js");
 class ClassFakeTRP extends ClassGeneral {
   /**
    *
@@ -77,21 +77,23 @@ class ClassFakeTRP extends ClassGeneral {
     // ---- state ----
     this.regs[0] = {
       id: "state",
-      set: function (value) {
+      set value(value) {
         if (value == 17) {
-          this.pid.start(0);
-          this.regs[0].value = 23;
+          this.pid.start();
+          this.regs[0]._value = 23;
         }
-        if (value == 17) {
-          this.pid.start(0);
-          this.regs[0].value = 23;
+        if (value == 1) {
+          this.pid.stop();
+          this.regs[0]._value = 7;
         }
-
-        this.regs[0].value = value;
+        this.regs[0]._value = value;
       },
-      get: function (v) {
-        return this.regs[0].value;
+      get value() {
+        let val = toBCD(this.regs[0]._value);
+        val = crc16.toTetrad(val);
+        return val;
       },
+      _value: 1,
     };
   }
   /**

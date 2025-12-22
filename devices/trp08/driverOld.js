@@ -140,7 +140,7 @@ regs.set(
       ru: `Состояние прибора`,
     },
     units: "",
-    
+
     type: "states",
     _get: function () {
       return {
@@ -1001,6 +1001,10 @@ module.exports.getReg = getReg;
 module.exports.getRegPromise = getRegPromise;
 module.exports.has = has;
 module.exports.getRegDescription = getRegDescription;
+module.exports.toBCD = toBCD;
+module.exports.fromBCD = fromBCD;
+module.exports.toClock = toClock;
+module.exports.fromClock = fromClock;
 module.exports.regs = regs;
 module.exports.id = "trp08driver";
 

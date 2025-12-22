@@ -9,9 +9,9 @@ class ClassFakeDeviceForIfaceTesting extends ClassFakeDeviceGeneral {
     super(props);
     this.regs[0] = {
       id: "state",
-      val: null,
-      set: function (val) {
-        this.regs[0].val = val;
+      _value: null,
+      set value(val) {
+        this.regs[0]._value = val;
         return val;
       },
       get: function () {

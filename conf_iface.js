@@ -37,7 +37,7 @@ if (emulateDevices) {
     comName = "/dev/ttyUSB0";
     comId = comName.split("/")[2];
   } else {
-    comId = comName = "COM14";
+    comId = comName = "COM3";
   }
 }
 
