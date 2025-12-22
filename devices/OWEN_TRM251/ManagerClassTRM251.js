@@ -4,6 +4,8 @@ const log = require("../../tools/log.js");
 const pug = require("pug");
 const { dummyPromise } = require("../../tools/dummy.js");
 const units = require("../../config.js").units;
+const emulateDevices = require("../../config.js").emulateRS485;
+
 // driver.printRegsDescription();
 class ClassManager extends ClassDevManagerGeneral {
   constructor(props = {}) {
@@ -37,6 +39,7 @@ class ClassManager extends ClassDevManagerGeneral {
         driverRegName: `I${i}`,
       }); // addRegister
     } // for
+
     // ------- tT ----------
     this.addRegister({
       id: `tT`,
@@ -77,6 +80,7 @@ class ClassManager extends ClassDevManagerGeneral {
       console.dir(this, { depth: 1 });
     }
   } // constructor
+
   getCompactHtml(props) {
     let trace = 0,
       ln = this.ln + `getCompactHtml::`;

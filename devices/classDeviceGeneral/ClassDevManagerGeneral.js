@@ -102,6 +102,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    */
   async start(regs = {}) {
     log("w", "start()::", "Not defined yet");
+    return 1;
   }
 
   /**
@@ -113,6 +114,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
    */
   async stop(regs = {}) {
     log("w", "stop()::", "Not defined yet");
+    return 1;
   }
 
   /**

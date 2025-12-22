@@ -71,7 +71,7 @@ let driver = new ClassDriverGeneral({
   },
   comment: {
     ua: `ПІД-терморегулятор`,
-    en: `PID-thermo regulator`,
+    en: `PID-thermoregulator`,
     ru: `ПИД-терморегулятор`,
   },
   timeout: 2000,
