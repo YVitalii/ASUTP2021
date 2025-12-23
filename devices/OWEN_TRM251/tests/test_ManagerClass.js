@@ -1,3 +1,4 @@
+// cd ./devices/OWEN_TRM251
 //  supervisor   --no-restart-on exit ./tests/test_ManagerClass.js
 
 const ManagerClass = require("../ManagerClassTRM251.js");
@@ -49,12 +50,12 @@ let dev = new ManagerClass(props);
     // });
     // console.log("====== res2=");
     // console.dir(res2);
-    let regs=["T1","T2", "tT","mode"]
+    let regs = ["T1", "T2", "tT", "mode"];
     for (let i = 0; i < regs.length; i++) {
       let regName = regs[i];
       let value = await dev.getRegister(regName);
       let res = await dev.getRegForHtml(regName);
-       //console.dir(res);
+      //console.dir(res);
       line += `${regName}=${value}${res.units.ua} - ${res.note}; `;
     }
 

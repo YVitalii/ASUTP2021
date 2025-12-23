@@ -72,6 +72,28 @@ class ClassManager extends ClassDevManagerGeneral {
       readonly: true,
       obsolescence: 10,
       driverRegName: `mode`,
+      modesDescription: [
+        { value: 0, comment: { ua: `Вимкнено`, en: `Off`, ru: `Выключено` } },
+        { value: 1, comment: { ua: `Робота`, en: `Working`, ru: `Работа` } },
+        {
+          value: 2,
+          comment: { ua: `Аварія`, en: `Critical error`, ru: `Авария` },
+        },
+        { value: 3, comment: { ua: `Завершено`, en: ``, ru: `` } },
+        { value: 4, comment: { ua: `Автоналаштування`, en: ``, ru: `` } },
+        {
+          value: 5,
+          comment: { ua: `Очікування автоналаштування`, en: ``, ru: `` },
+        },
+        {
+          value: 6,
+          comment: { ua: `Автоналаштування завершено`, en: ``, ru: `` },
+        },
+        {
+          value: 7,
+          comment: { ua: `Налаштування`, en: `Setup`, ru: `Настройка` },
+        },
+      ],
     }); // addRegister
 
     log("w", this.ln, ` ==> Device was created`);
@@ -80,7 +102,35 @@ class ClassManager extends ClassDevManagerGeneral {
       console.dir(this, { depth: 1 });
     }
   } // constructor
+  async getRegister(regName) {
+    // якщо режим null,0,3,7 - то tT недоступний
+    if (regName == "tT") {
+      let mode = this.regs["mode"].value;
+      if (mode == null || mode == 0 || mode == 3 || mode == 7) return null;
+    }
 
+    let res;
+
+    try {
+      res = await super.getRegister(regName);
+      if (regName == "mode") {
+        let reg = this.regs["mode"];
+        reg.value = res;
+        reg.comment =
+          reg.modesDescription[reg.value].comment &&
+          reg.modesDescription[reg.value].comment.ua
+            ? reg.modesDescription[reg.value].comment
+            : {
+                ua: `mode=${reg.value}`,
+                en: `mode=${reg.value}`,
+                ru: `mode=${reg.value}`,
+              };
+      } // if mode
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
   getCompactHtml(props) {
     let trace = 0,
       ln = this.ln + `getCompactHtml::`;
