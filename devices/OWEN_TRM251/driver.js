@@ -90,7 +90,7 @@ for (let i = 1; i < 3; i++) {
     _get: function (arg) {
       let req = _getFC3(this),
         ln = "_get::",
-        trace = 0;
+        trace = 1;
       if (trace) {
         console.log(ln + `req=`);
         console.dir(req);
