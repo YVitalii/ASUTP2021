@@ -4,7 +4,7 @@ const log = require("../../tools/log.js"); // логер
 /** Функція для скорочення записів
  * env = Object of ClassDriverRegisterGeneral
  */
-
+const apiError = require ("../../tools/apiError.js")
 const _getFC3 = function (env) {
   //console.dir(this);
   return {
@@ -206,42 +206,6 @@ driver.addRegister({
     err = null;
     // поточна уставка
     let value = arg.readUInt16BE();
-    // switch (value) {
-    //   case 0:
-    //     note += "Стоп";
-    //     break;
-
-    //   case 1:
-    //     note += "Робота";
-    //     break;
-
-    //   case 2:
-    //     note += "Критична аварія";
-    //     break;
-
-    //   case 3:
-    //     note += "Завершено";
-    //     break;
-
-    //   case 4:
-    //     note += "Автоналаштування";
-    //     break;
-
-    //   case 5:
-    //     note += "Очікування автоналаштування";
-    //     break;
-
-    //   case 6:
-    //     note += "Автоналаштування завершено";
-    //     break;
-
-    //   case 7:
-    //     note += "Налаштування";
-    //     break;
-
-    //   default:
-    //     break;
-    // }
     let res = { err, data: { value, note } };
     if (trace) {
       console.log(ln + `res=`);
@@ -256,6 +220,39 @@ driver.addRegister({
     return readOnly(this);
   },
 }); // addRegister(tT)
+
+// ------------ startStop  ---------
+driver.addRegister({
+  id: "startStop",
+  addr: 0x0011,
+  header: { ua: `Старт/Стоп`, en: `Start/Stop`, ru: `Старт/Стоп` },
+  note: `Write coil`,
+  units: { ua: ``, en: ``, ru: `` },
+  _get: function (arg) {
+    return readOnly(this);
+  }, //_get
+  get_: function (arg) {
+    return readOnly(this);
+  }, //get_
+  _set: function (arg) {
+    let trace = 0,
+      ln = this.id + `::_set(${arg})::`;
+    let data 
+    if (arg == 1 || arg ==0xFF00) {
+      data=0xFF00;
+    } else if(arg == 0){
+      data=0x0000;
+    } else {
+      //let err = new apiError()
+    };
+    
+    return readOnly(this);
+  },
+  set_: function (arg) {
+    return readOnly(this);
+  },
+}); // addRegister(startStop)
+
 
 function getNote(code) {
   const offsetStatusCode = 0x0f00;
