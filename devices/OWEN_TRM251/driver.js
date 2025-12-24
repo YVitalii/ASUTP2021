@@ -4,7 +4,7 @@ const log = require("../../tools/log.js"); // логер
 /** Функція для скорочення записів
  * env = Object of ClassDriverRegisterGeneral
  */
-const apiError = require ("../../tools/apiError.js")
+const apiError = require("../../tools/apiError.js");
 const _getFC3 = function (env) {
   //console.dir(this);
   return {
@@ -26,7 +26,6 @@ const _getFC3 = function (env) {
  */
 let readOnly = function (env) {
   let err = new Error(`Register "${env.id}" is readonly !`);
-
   return { err, data: null };
 };
 
@@ -229,30 +228,97 @@ driver.addRegister({
   note: `Write coil`,
   units: { ua: ``, en: ``, ru: `` },
   _get: function (arg) {
+    // костиль бо немає часу розробляти функцію читання котушки FC1
     return readOnly(this);
   }, //_get
   get_: function (arg) {
+    // костиль бо немає часу розробляти функцію читання котушки FC1
     return readOnly(this);
   }, //get_
   _set: function (arg) {
     let trace = 0,
       ln = this.id + `::_set(${arg})::`;
-    let data 
-    if (arg == 1 || arg ==0xFF00) {
-      data=0xFF00;
-    } else if(arg == 0){
-      data=0x0000;
+    let data = null,
+      err = null;
+    if (arg == 1 || arg == 0xff00) {
+      // записуємо 0xff00 для увімкнення і 0x0000 для вимкнення
+      data = 0xff00;
+    } else if (arg == 0) {
+      data = 0x0000;
     } else {
-      //let err = new apiError()
-    };
-    
-    return readOnly(this);
-  },
+      // invalid value
+      err = new Error(
+        ln + `Invalid value=${arg} for startStop register! Should be 0 or 1`
+      );
+      return { err, data };
+    }
+
+    let req = _getFC3(this);
+    if (trace) {
+      console.log(ln + `_getFC3()::req=`);
+      console.dir(req, { depth: 1 });
+    }
+    req.data.FC = 5; // функція
+    req.data.data = data; // значення для запису
+    if (trace) {
+      console.log(ln + `req=`);
+      console.dir(req, { depth: 1 });
+    }
+    return req;
+  }, //_set
+
   set_: function (arg) {
-    return readOnly(this);
-  },
+    if (Buffer.isBuffer(arg)) {
+      arg = arg.readUInt16BE();
+
+      if (arg == 0xff00) {
+        return { err: null, data: { value: 1, note: "Started" } };
+      }
+      if (arg == 0x00) {
+        return { err: null, data: { value: 0, note: "Stopped" } };
+      }
+    }
+  }, //set_
 }); // addRegister(startStop)
 
+driver.addRegister({
+  id: "program",
+  addr: 0x0100,
+  header: { ua: `Программа`, en: `Program`, ru: `Программа` },
+  note: `read / write program`,
+  units: { ua: ``, en: ``, ru: `` },
+  _get: function (arg) {
+    let data = {
+        addr: this.addr,
+        FC: 3,
+        data: 21,
+      },
+      err = null;
+    return { err, data };
+  }, //_get
+  get_: function (arg) {
+    // положення крапки
+    let timeScale = arg.slice(0, 2).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
+
+    let value = arg.readUInt16BE(),
+      err = null;
+    return { err, data: { value, note: this.note } };
+  }, //get_
+  _set: function (arg = 1) {
+    let data = {
+        addr: this.addr,
+        FC: 6,
+        data: arg,
+      },
+      err = null;
+    return { err, data };
+  },
+  set_: function (arg) {
+    let value = arg.readUInt16BE(),
+      err = null;
+    return { err, data: { value, note: this.note } };
+  },
+}); // addRegister()
 
 function getNote(code) {
   const offsetStatusCode = 0x0f00;

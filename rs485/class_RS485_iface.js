@@ -500,13 +500,25 @@ function calculateResponseLength(fc, data) {
   //log('length='+length);
   switch (fc) {
     case 3:
-      // функция 3
+    case 4:
+      // функция 3 та 4 читання регістрів
+      // FC3 (Read Holding Registers): Читає регістри, які зазвичай доступні як для читання, так і для запису
+      // FC4 (Read Input Registers): Читає регістри, які зазвичай доступні лише для читання
+      // довжина відповіді залежить від кількості запитаних регістрів
+      // кожен регістр - 2 байти
       length = 1 + 1 + 1 + Number(data) * 2 + 2; //[адрес]+[функция]+[кол.запрошенных байт]+ответ*2+CRC
       //log('length='+length);
       break;
+
+    case 5:
     case 6:
+      // FC5 (Write Single Coil): Записує одиночний біт (котушку)
+      // FC6 (Write Single Register): Записує одиночний регістр
       length = 8; //ответ = эхо запроса
+      break;
+
     case 10:
+      // FC10 (Write Multiple Registers): Записує кілька регістрів (registerNumber) одразу починаючи з startRegister
       //[адрес]+[функция]+[startRegister_H]+[startRegister_L]+[registerNumber_H]+[registerNumber_L]+CRC_H+CRC_L
       length = 1 + 1 + 2 + 2 + 2; //8
   }

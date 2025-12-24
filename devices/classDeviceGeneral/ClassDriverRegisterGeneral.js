@@ -43,17 +43,39 @@ function testFunction(func) {
   };
 }
 
+/**
+ * @typedef {Object} ifaceSendArgs
+ * @property {Number} FC - функція Modbus
+ * @property {Number} addr - адреса регістра в приладі
+ * @property {Number|Buffer} data - дані для запису в прилад або кількість байт для читання з приладу
+ */
+
+/**
+ * @typedef {Object} driverAnswerObject
+ * @property {Error|null} err - помилка або null
+ * @property {Object|null} data - дані або null
+ * @property {Number|String} data.value - значення регістру, що запамятовується в менеджері
+ * @property {String} data.note - примітки до значення регістру
+ * можливі інші поля в data в залежності від реалізації
+ */
+
+/**
+ * @typedef {Object} ClassDriverRegisterGeneral
+ * @property {String|Number} addr - адреса регістра в приладі
+ * @property {Object} units - { ua: ``, en: ``, ru: ``} одиниці виміру
+ * @property {String} note - примітки до опису регістру (наприлад:"Вхід DI1")
+ * @property {function(number=0):{ifaceSendArgs}} _get - читання перед-обробка number = дані що передаються функції Modbus
+ * @property {function(Buffer):{driverAnswerObject}} get_ - читання пост-обробка Buffer = чисті дані що отримані по rs485
+ * функція інтерпретує їх в зрозумілу для драйвера форму (наприклад приходить т-ре в форматі BCD:[0x1,0x0,0x1,0x5", а драйвер повертає число 1015)
+ * @property {function(number=0):{ifaceSendArgs}} _set - запис перед-обробка number = дані що передаються функції Modbus
+ * @property {function(Buffer):{driverAnswerObject}} set_ - читання пост-обробка Buffer = чисті що отримані по rs485
+ * функція інтерпретує їх в зрозумілу для драйвера форму (наприклад приходить час в форматі HH:MM =[0x1,0x0,0x1,0x5", а драйвер повертає число хвилин 10*60+15)
+ */
+
 module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
   /**
    *
-   * @param {*} props
-   * @param {String|Number} props.addr - адреса регістра в приладі
-   * @param {Object} props.units - { ua: ``, en: ``, ru: ``} одиниці виміру
-   * @param {String} props.note - примітки до опису регістру (наприлад:"Вхід DI1")
-   * @param {Function} props._get(arg={}) = {err:null,data:args} - читання перед-обробка, data - набір даних для iface.send(data)
-   * @param {Function} props.get_(arg={}) = {err:null,data:args} - читання пост-обробка, data - інтерпретація відповіді iface.send(data)
-   * @param {Function} props._set(arg={}) = {err:null,data:args} - запис перед-обробка, data - набір даних для iface.send(data)
-   * @param {Function} props.set_(arg={}) = {err:null,data:args} - запис пост-обробка, data - інтерпретація відповіді iface.send(data)
+   * @param {ClassDriverRegisterGeneral} props
    */
   constructor(props) {
     super(props);
