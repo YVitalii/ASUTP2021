@@ -90,7 +90,7 @@ for (let i = 1; i < 3; i++) {
     _get: function (arg) {
       let req = _getFC3(this),
         ln = "_get::",
-        trace = 1;
+        trace = 0;
       if (trace) {
         console.log(ln + `req=`);
         console.dir(req);
@@ -150,7 +150,7 @@ driver.addRegister({
   note: `Current set point`,
   units: degC,
   _get: function (arg) {
-    let trace = 1,
+    let trace = 0,
       ln = this.id + `::_get(${arg})::`;
     let req = _getFC3(this);
     req.data.data = 1;
@@ -161,7 +161,7 @@ driver.addRegister({
     return req;
   }, //_get
   get_: function (arg) {
-    let trace = 1,
+    let trace = 0,
       ln = this.id + `::get_(${arg})::`;
 
     // поточна уставка
@@ -189,7 +189,7 @@ driver.addRegister({
   note: `Working mode`,
   units: { ua: ``, en: ``, ru: `` },
   _get: function (arg = 0) {
-    let trace = 1,
+    let trace = 0,
       ln = this.id + `::_get(${arg})::`;
     let req = _getFC3(this);
     req.data.data = 1;
@@ -200,7 +200,7 @@ driver.addRegister({
     return req;
   }, //_get
   get_: function (arg) {
-    let trace = 1,
+    let trace = 0,
       ln = this.id + `::get_(${arg})::`;
     let note = this.note;
     err = null;

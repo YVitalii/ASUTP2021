@@ -102,7 +102,7 @@ let units = { ua: `°C`, en: `°C`, ru: `°C` };
 
 // ---- додаємо регістр для логування + його опис
 logger.addReg({
-  id: "Tf",
+  id: "T1",
   units,
   header: {
     ua: `Піч`,
@@ -140,113 +140,31 @@ logger.addReg({
     // повинна повертати числове значення регістру
     let t = await entity.devicesManager.getDevice("furnace").getRegister("tT"); //TRM251
     // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
+    t = t == null ? 0:t;
     return t;
   },
 }); //logger.addReg(
-
-// ----------------2025-10-01 ---------------
 // // ---- додаємо регістр для логування + його опис
 // logger.addReg({
-//   id: "T0",
+//   id: "mode",
 //   units,
 //   header: {
-//     ua: `T0`,
-//     en: `T0`,
-//     ru: `T0`,
+//     ua: `Стан`,
+//     en: `Mode`,
+//     ru: `Состояние`,
 //   },
 //   comment: {
-//     ua: `Температура в точці N0`,
-//     en: `Current temperature in point N0`,
-//     ru: `Текущая температура в точке N0`,
+//     ua: `Стан приладу`,
+//     en: `Device's mode`,
+//     ru: `Состояние прибора`,
 //   },
 //   getValue: async () => {
 //     // повинна повертати числове значення регістру
-//     return await entity.devicesManager.getDevice("trp08n2").getT();
+//     let t = await entity.devicesManager.getDevice("furnace").getRegister("mode"); //TRM251
+//     // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
+//     return t;
 //   },
 // }); //logger.addReg(
-
-// // ---- додаємо регістр для логування + його опис
-// for (let i = 1; i < 9; i++) {
-//   let reg = {
-//     id: `T${i}`,
-//     units,
-//     header: {
-//       ua: `T${i}`,
-//       en: `T${i}`,
-//       ru: `T${i}`,
-//     },
-//     comment: {
-//       ua: `AI0${i}`,
-//       en: `AI0${i}`,
-//       ru: `AI0${i}`,
-//     },
-//     getValue: async () => {
-//       let ln = this.id + "::getValue()::";
-//       let res;
-//       try {
-//         res = await entity.devicesManager
-//           .getDevice("mb110")
-//           .getRegister(`T${i}`);
-//       } catch (error) {
-//         log("e", ln, error);
-//         throw error;
-//       }
-//       if (res != null) {
-//         res = res.toFixed(1);
-//       }
-//       // let baseT = await entity.devicesManager.getDevice("trp08n2").getT();
-//       return res; // повертаємо результат
-//     },
-//   };
-//   if (i === 0) {
-//     reg.getValue = async () => {
-//       return await entity.devicesManager.getDevice("trp08n2").getT();
-//     };
-//   }
-//   logger.addReg(reg);
-// } // for
-
-// console.log("logger=");
-// console.dir(logger);
-
-// logger.addReg({
-//   id: "T0",
-//   units,
-//   header: {
-//     ua: `T0`,
-//     en: `T0`,
-//     ru: `T0`,
-//   },
-//   comment: {
-//     ua: `Поточна температура в точці печі`,
-//     en: `Current temperature in furnace`,
-//     ru: `Текущая температура в печи`,
-//   },
-//   getValue: async () => {
-//     // повинна повертати числове значення регістру
-//     return await entity.devicesManager.getDevice("trp08furnace").getT();
-//   },
-// });
-
-// ---- додаємо регістр для логування + його опис
-// logger.addReg({
-//   id: "T2",
-//   units: { ua: `C`, en: `C`, ru: `C` },
-//   header: {
-//     ua: `T2`,
-//     en: `T2`,
-//     ru: `T2`,
-//   },
-//   comment: {
-//     ua: `Поточна температура в зоні №2`,
-//     en: `Current temperature in zone 2`,
-//     ru: `Текущая температура в зоне №2`,
-//   },
-//   getValue: async () => {
-//     // повинна повертати числове значення регістру
-//     return await entity.devicesManager.getDevice("trp08n2").getT();
-//   },
-// });
 
 entity.processManager.afterAll = async function () {
   // функція, що викликається після завершення всієї програми
@@ -283,15 +201,18 @@ if (!module.parent) {
     await dummy(5000);
     let regs = entity.loggerManager.regs;
     while (true) {
-      regs["Tf"].getValue().then((res) => {
-        console.log("T0=", res);
+      regs["T1"].getValue().then((res) => {
+        console.log("T1=", res);
       });
-      // regs["mode"].getValue().then((res) => {
-      //   console.log("T1=", res);
-      // });
       regs["tT"].getValue().then((res) => {
-        console.log("T2=", res);
+        console.log("tT=", res);
       });
+      // regs["T2"].getValue().then((res) => {
+      //   console.log("T2=", res);
+      // });
+      // regs["mode"].getValue().then((res) => {
+      //   console.log("mode=", res);
+      // });
       await dummy(4000);
     } // while
   })();

@@ -1,5 +1,0 @@
-ignoredBuiltDependencies:
-  - '@serialport/bindings'
-  - bcrypt
-  - core-js
-  - esbuild

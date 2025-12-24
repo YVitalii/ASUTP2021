@@ -72,7 +72,9 @@ class ClassManager extends ClassDevManagerGeneral {
       readonly: true,
       obsolescence: 10,
       driverRegName: `mode`,
-      modesDescription: [
+
+    }); // addRegister
+    this.regs["mode"].modesDescription=[
         { value: 0, comment: { ua: `Вимкнено`, en: `Off`, ru: `Выключено` } },
         { value: 1, comment: { ua: `Робота`, en: `Working`, ru: `Работа` } },
         {
@@ -93,9 +95,7 @@ class ClassManager extends ClassDevManagerGeneral {
           value: 7,
           comment: { ua: `Налаштування`, en: `Setup`, ru: `Настройка` },
         },
-      ],
-    }); // addRegister
-
+      ];
     log("w", this.ln, ` ==> Device was created`);
     if (trace) {
       console.log(ln + `this=`);
@@ -103,6 +103,7 @@ class ClassManager extends ClassDevManagerGeneral {
     }
   } // constructor
   async getRegister(regName) {
+    let trace=0,ln=this.ln+"getRegister("+regName+")::"
     // якщо режим null,0,3,7 - то tT недоступний
     if (regName == "tT") {
       let mode = this.regs["mode"].value;
@@ -113,9 +114,14 @@ class ClassManager extends ClassDevManagerGeneral {
 
     try {
       res = await super.getRegister(regName);
-      if (regName == "mode") {
+      if (regName == "mode") { 
         let reg = this.regs["mode"];
+        
         reg.value = res;
+        if (trace) {
+          console.log(ln+"reg=")
+          console.dir(reg);
+        }
         reg.comment =
           reg.modesDescription[reg.value].comment &&
           reg.modesDescription[reg.value].comment.ua
