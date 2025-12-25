@@ -4,17 +4,38 @@ const log = require("../../tools/log");
 
 /* Заготовка для опису регістру
  
-  driver.addRegister({
-    id: "",
-    addr: 0x0000,
-    header: { ua: ``, en: ``, ru: `` },
-    units: { ua: ``, en: ``, ru: `` },
-    note: ``,
-    _get: function (arg) {}, 
-    get_: function (arg) {},
-    _set: function (arg) {},
-    set_: function (arg) {},
-    });
+ driver.addRegister({
+  id: "state",
+  addr: 0x0000,
+  header: { ua: ``, en: ``, ru: `` },
+  note: ``,
+  units: { ua: ``, en: ``, ru: `` },
+  _get: function (arg) {
+    let data= {
+      addr: this.addr,
+      FC: 3,
+      data: 1,
+    }, err=null;
+    return {err,data};
+  }, //_get
+  get_: function (arg) {
+    let value = arg.readUInt16BE(),err=null;
+    return {err,data:{value,note:this.note}};
+  }, //get_
+  _set: function (arg=1) {
+   let data= {
+      addr: this.addr,
+      FC: 6,
+      data: arg,
+    }, err=null;
+    return {err,data};
+  },
+  set_: function (arg) {
+    let value = arg.readUInt16BE(),err=null;
+    return {err,data:{value,note:this.note}};
+  },
+}); // addRegister()
+
 */
 
 /**
@@ -71,6 +92,9 @@ function testFunction(func) {
  * @property {function(Buffer):{driverAnswerObject}} set_ - читання пост-обробка Buffer = чисті що отримані по rs485
  * функція інтерпретує їх в зрозумілу для драйвера форму (наприклад приходить час в форматі HH:MM =[0x1,0x0,0x1,0x5", а драйвер повертає число хвилин 10*60+15)
  */
+
+// Типовий регістр драйвера
+
 
 module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
   /**
