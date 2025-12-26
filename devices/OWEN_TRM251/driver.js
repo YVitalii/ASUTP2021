@@ -22,7 +22,7 @@ const _getFC3 = function (env) {
  *
  * @param {Object} env - The environment object containing register details (env=this).
  * @param {string} env.id - The identifier of the register.
- * @throws {Error} Throws an error indicating that the register is read-only.
+ * @return {err:Error,data:null} return an error indicating that the register is read-only.
  */
 let readOnly = function (env) {
   let err = new Error(`Register "${env.id}" is readonly !`);
@@ -287,7 +287,8 @@ driver.addRegister({
   header: { ua: `Программа`, en: `Program`, ru: `Программа` },
   note: `read / write program`,
   units: { ua: ``, en: ``, ru: `` },
-  _get: function (arg) {
+  _get: function (arg = 1) {
+    /** arg - номер програми */
     let data = {
         addr: this.addr,
         FC: 3,
@@ -297,12 +298,34 @@ driver.addRegister({
     return { err, data };
   }, //_get
   get_: function (arg) {
-    // положення крапки
+    let trace = 0,
+      ln = this.id + `::get_::`,
+      txt = "";
+    if (trace) {
+      log("i", ln, `Started with arg=`);
+      console.dir(arg);
+    }
+    // // положення крапки
     let timeScale = arg.slice(0, 2).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
+    txt += trace ? `timeSlace=${timeScale}` : "";
+    let programSteps = 5; // кількість кроків у програмі
+    let program = [{ id: "program1", timeScale: timeScale }];
+    for (let step = 0; step < programSteps; step++) {
+      let addr = 2 + step * 8;
+      let point = arg.slice(addr + 2, addr + 4).readUInt16BE();
+      let SP =
+        arg.slice(addr, addr + 2).readUInt16BE() /
+        (point == 0 ? 1 : point * 10);
+      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE() / 60);
+      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE() / 60);
 
-    let value = arg.readUInt16BE(),
-      err = null;
-    return { err, data: { value, note: this.note } };
+      program.push({ tT: SP, H: H, Y: Y });
+      if (trace) {
+        console.log(ln + `step[${step + 1} (addr=${addr})=`);
+        console.dir(program[step + 1]);
+      }
+    }
+    return { err, data: { value: program, note: this.note } };
   }, //get_
   _set: function (arg = 1) {
     let data = {

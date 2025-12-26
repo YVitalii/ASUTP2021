@@ -56,7 +56,7 @@ describe("Driver's registers test:", () => {
     let reg = driver.regs.get(regName);
     it("_get()", () => {
       let res = driver.regs.get(regName)._get();
-      console.dir(res, { depth: 2 });
+      // console.dir(res, { depth: 2 });
       notEqual(res.err, null, "err != null");
       match(
         res.err.message,
@@ -66,6 +66,7 @@ describe("Driver's registers test:", () => {
     });
     it("get_()", () => {
       let res = driver.regs.get(regName)._get();
+
       notEqual(res.err, null, "err != null");
       match(
         res.err.message,
@@ -98,6 +99,77 @@ describe("Driver's registers test:", () => {
       equal(res.data.value, 0, "Should be res.data.value=0");
     });
   });
+});
+
+describe("program:", () => {
+  // ---------------- example of  program getted from rs485 ---------------------------
+  // prettier-ignore
+  let res = Buffer.from([
+    0x00, 0x00, // масштаб часу 0 - HH:MM
+    // -------- крок 1 --------
+    0x00, 0x64, // SP1 = 100 -уставка
+    0x00, 0x00, // p = 0 - положення десяткової точки SP1=SP1/(p==0? 1:p*10)  
+    0x00, 0xB4, // H = 600 - час нагрівання, сек
+    0x00, 0xB4, // Y = 306 - час витримки, сек
+    // -------- крок 2 --------
+    0x00, 0xc8, // SP1 = 200-уставка
+    0x00, 0x00, // p = 0 
+    0x01, 0x3c, // H = 180
+    0x01, 0x3c, // Y = 180
+    // -------- крок 3 --------
+    0x00, 0xfa, // SP1 = 250-уставка
+    0x00, 0x00, // p = 0 
+    0x00, 0xf0, // H = 240 - час нагрівання, сек
+    0x00, 0xf0, // Y = 240
+    // -------- крок 4 --------
+    0x01, 0x2c, // SP1 = 300-уставка
+    0x00, 0x00, //  p = 0 
+    0x01, 0x2c, // H = 300 - час нагрівання, сек
+    0x01, 0x2c, // Y = 300
+    // -------- крок 5 --------
+    0x01, 0x5e, // SP1 = 350-уставка
+    0x00, 0x00, //  p = 0 
+    0x01, 0x3c, // H = 300
+    0x01, 0x3c, // Y = 300
+  ]);
+  it("_get()", () => {
+    let regName = "program";
+    let resGet = driver.regs.get(regName)._get();
+    equal(resGet.err, null, "err = null");
+    equal(
+      resGet.data.addr,
+      0x0100,
+      "Program address should be 0x0100=" + 0x0100
+    );
+    equal(resGet.data.FC, 3, "Function should be FC3");
+    equal(resGet.data.data, 21, "Bytes quantity should be 20");
+  }); // it _get
+
+  it("get_()", () => {
+    let regName = "program";
+    let resGet = driver.regs.get(regName).get_(res);
+    // traceLog("get_()::resGet.data.value=", resGet.data.value);
+    equal(resGet.err, null, "err = null");
+    equal(
+      resGet.data.value.length,
+      6,
+      "Length of programm massive should be 1+5=6 items in program"
+    );
+    for (let i = 0; i < resGet.data.value.length - 1; i++) {
+      const step = resGet.data.value[i + 1];
+      let addr = 2 + i * 8;
+      let point = res.slice(addr + 2, addr + 4).readUInt16BE();
+      let tT =
+        res.slice(addr + 0, addr + 2).readUInt16BE() /
+        (point == 0 ? 1 : point * 10);
+      let H = parseInt(res.slice(addr + 4, addr + 6).readUInt16BE() / 60);
+      let Y = parseInt(res.slice(addr + 6, addr + 8).readUInt16BE() / 60);
+      // traceLog(` Step ${i + 1}:`, { tT, H, Y });
+      equal(step.tT, tT, `Step ${i + 1}. step.tT=${step.tT}; tT=${tT}`);
+      equal(step.H, H, `Step ${i + 1}. step.H=${step.H}; H=${H}`);
+      equal(step.Y, Y, `Step ${i + 1}. step.Y=${step.Y}; Y=${Y}`);
+    }
+  }); // it get_
 });
 
 function traceLog(msg = "traceLog::", item, depth = 2) {
