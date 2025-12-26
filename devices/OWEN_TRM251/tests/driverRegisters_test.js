@@ -148,7 +148,7 @@ describe("program:", () => {
   it("get_()", () => {
     let regName = "program";
     let resGet = driver.regs.get(regName).get_(res);
-    // traceLog("get_()::resGet.data.value=", resGet.data.value);
+    traceLog("get_()::resGet.data.value=", resGet.data.value);
     equal(resGet.err, null, "err = null");
     equal(
       resGet.data.value.length,
