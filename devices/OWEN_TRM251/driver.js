@@ -309,7 +309,17 @@ driver.addRegister({
     let timeScale = arg.slice(0, 2).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
     txt += trace ? `timeSlace=${timeScale}` : "";
     let programSteps = 5; // кількість кроків у програмі
-    let program = [{ id: "program1", timeScale: timeScale, note: { ua: "Завантажено з приладу", en: "Downloaded from device", ru: "Загружено с прибора" } }];
+    let program = [
+      {
+        id: "program1",
+        timeScale: timeScale,
+        note: {
+          ua: "Завантажено з приладу",
+          en: "Downloaded from device",
+          ru: "Загружено с прибора",
+        },
+      },
+    ];
     for (let step = 0; step < programSteps; step++) {
       let addr = 2 + step * 8;
       let point = arg.slice(addr + 2, addr + 4).readUInt16BE();
@@ -327,39 +337,39 @@ driver.addRegister({
     }
     return { err, data: { value: program, note: this.note } };
   }, //get_
-  /** масив з кроками програми 
+  /** масив з кроками програми
    * arg=[
    * // елемент 0 інформація про програму
-   * {id: string, timeScale: string "HH:MM" || "MM:SS"; note:""}, 
+   * {id: string, timeScale: string "HH:MM" || "MM:SS"; note:""},
    * // tT - уставка,°C; H - час нагрівання, хв; Y - час утримання, хв
-   * {tT: number, H: number, Y: number}, // крок 1 
+   * {tT: number, H: number, Y: number}, // крок 1
    * {tT: number, H: number, Y: number}, // крок 2
    * {tT: number, H: number, Y: number}, // крок 3
    * {tT: number, H: number, Y: number}, // крок 4
    * {tT: number, H: number, Y: number}, // крок 5
    * ]
    */
-  _set: function (arg ) {
-    let data= {
+  _set: function (arg) {
+    let data = {
         addr: this.addr,
         FC: 6,
-      }, err = null;
+      },
+      err = null;
     let buf = Buffer.alloc(2 + 5 * 8);
     if (arg[0].timeScale == "HH:MM") {
       buf.writeUInt16BE(0, 0); // формат часу HH:MM
     } else {
       buf.writeUInt16BE(1, 0); // формат часу MM:SS
     }
-    for (let step =1; step < 6; step++) {
-      let addr = 2 + (step-1) * 8;
-      
-      let stepObj = arg[step + 1];
-      let tT = Math.round(stepObj.tT * 10);
-
-
-    
-     
-    return { err, data: };
+    for (let step = 1; step < 6; step++) {
+      let addr = 2 + (step - 1) * 8;
+      let sp = arg[i].tT.parseInt(16);
+      buf.writeUInt16BE(sp, addr);
+      buf.writeUInt16BE(0, addr + 2);
+      buf.writeUInt16BE(arg[i].H * 60, addr + 4);
+      buf.writeUInt16BE(arg[i].Y * 60, addr + 6);
+    } // for (let step =1; step < 6; step++)
+    return { err, data: { value: buf, note: "program" } };
   },
   set_: function (arg) {
     let value = arg.readUInt16BE(),
