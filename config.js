@@ -12,6 +12,7 @@ let title = "config.js::"; // загальний підпис
 let ln = title;
 
 config.units = {
+  empty: { ua: ``, en: ``, ru: `` },
   degC: { ua: `°C`, en: `°C`, ru: `°C` },
   lpm: { ua: `л/хв`, en: `l/m`, ru: `л/мин` },
   m3ph: { ua: `м3/год`, en: `m3/h`, ru: `м3/ч` },

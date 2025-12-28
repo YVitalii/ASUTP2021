@@ -65,10 +65,13 @@ function testFunction(func) {
 }
 
 /**
+ * дані що передаються функції iface.send() = {err,data:{FC,addr,data}}
  * @typedef {Object} ifaceSendArgs
- * @property {Number} FC - функція Modbus
- * @property {Number} addr - адреса регістра в приладі
- * @property {Number|Buffer} data - дані для запису в прилад або кількість байт для читання з приладу
+ * @property {Error} err - помилка або null
+ * @property {Object} data - дані або null
+ * @property {Number} data.FC - функція Modbus
+ * @property {Number} data.addr - адреса регістра в приладі
+ * @property {Number|Buffer} data.data - дані для запису в прилад або кількість байт для читання з приладу
  */
 
 /**
@@ -94,7 +97,6 @@ function testFunction(func) {
  */
 
 // Типовий регістр драйвера
-
 
 module.exports = class ClassDriverRegisterGeneral extends ClassGeneral {
   /**

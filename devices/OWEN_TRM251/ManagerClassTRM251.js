@@ -72,38 +72,57 @@ class ClassManager extends ClassDevManagerGeneral {
       readonly: true,
       obsolescence: 10,
       driverRegName: `mode`,
-
     }); // addRegister
-    this.regs["mode"].modesDescription=[
-        { value: 0, comment: { ua: `Вимкнено`, en: `Off`, ru: `Выключено` } },
-        { value: 1, comment: { ua: `Робота`, en: `Working`, ru: `Работа` } },
-        {
-          value: 2,
-          comment: { ua: `Аварія`, en: `Critical error`, ru: `Авария` },
-        },
-        { value: 3, comment: { ua: `Завершено`, en: ``, ru: `` } },
-        { value: 4, comment: { ua: `Автоналаштування`, en: ``, ru: `` } },
-        {
-          value: 5,
-          comment: { ua: `Очікування автоналаштування`, en: ``, ru: `` },
-        },
-        {
-          value: 6,
-          comment: { ua: `Автоналаштування завершено`, en: ``, ru: `` },
-        },
-        {
-          value: 7,
-          comment: { ua: `Налаштування`, en: `Setup`, ru: `Настройка` },
-        },
-      ];
+    this.regs["mode"].modesDescription = [
+      { value: 0, comment: { ua: `Вимкнено`, en: `Off`, ru: `Выключено` } },
+      { value: 1, comment: { ua: `Робота`, en: `Working`, ru: `Работа` } },
+      {
+        value: 2,
+        comment: { ua: `Аварія`, en: `Critical error`, ru: `Авария` },
+      },
+      { value: 3, comment: { ua: `Завершено`, en: ``, ru: `` } },
+      { value: 4, comment: { ua: `Автоналаштування`, en: ``, ru: `` } },
+      {
+        value: 5,
+        comment: { ua: `Очікування автоналаштування`, en: ``, ru: `` },
+      },
+      {
+        value: 6,
+        comment: { ua: `Автоналаштування завершено`, en: ``, ru: `` },
+      },
+      {
+        value: 7,
+        comment: { ua: `Налаштування`, en: `Setup`, ru: `Настройка` },
+      },
+    ];
+    // ------- step ----------
+    this.addRegister({
+      id: `step`,
+      comment: {
+        ua: `Поточний крок`,
+        en: `Current step`,
+        ru: `Текущий шаг`,
+      },
+      units: units.empty,
+      type: "number",
+      min: 1,
+      max: 5,
+      readonly: true,
+      obsolescence: 5,
+      driverRegName: `step`,
+    }); // addRegister
+
     log("w", this.ln, ` ==> Device was created`);
+
     if (trace) {
       console.log(ln + `this=`);
       console.dir(this, { depth: 1 });
     }
   } // constructor
+
   async getRegister(regName) {
-    let trace=0,ln=this.ln+"getRegister("+regName+")::"
+    let trace = 0,
+      ln = this.ln + "getRegister(" + regName + ")::";
     // якщо режим null,0,3,7 - то tT недоступний
     if (regName == "tT") {
       let mode = this.regs["mode"].value;
@@ -114,12 +133,12 @@ class ClassManager extends ClassDevManagerGeneral {
 
     try {
       res = await super.getRegister(regName);
-      if (regName == "mode") { 
+      if (regName == "mode") {
         let reg = this.regs["mode"];
-        
+
         reg.value = res;
         if (trace) {
-          console.log(ln+"reg=")
+          console.log(ln + "reg=");
           console.dir(reg);
         }
         reg.comment =

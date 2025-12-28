@@ -339,7 +339,7 @@ driver.addRegister({
   }, //get_
   /** масив з кроками програми
    * arg=[
-   * // елемент 0 інформація про програму
+   * // елемент 0 = інформація про програму
    * {id: string, timeScale: string "HH:MM" || "MM:SS"; note:""},
    * // tT - уставка,°C; H - час нагрівання, хв; Y - час утримання, хв
    * {tT: number, H: number, Y: number}, // крок 1
@@ -352,7 +352,7 @@ driver.addRegister({
   _set: function (arg) {
     let data = {
         addr: this.addr,
-        FC: 6,
+        FC: 0x10,
       },
       err = null;
     let buf = Buffer.alloc(2 + 5 * 8);
@@ -361,15 +361,60 @@ driver.addRegister({
     } else {
       buf.writeUInt16BE(1, 0); // формат часу MM:SS
     }
-    for (let step = 1; step < 6; step++) {
-      let addr = 2 + (step - 1) * 8;
-      let sp = arg[i].tT.parseInt(16);
+    for (let i = 1; i < 6; i++) {
+      let addr = 2 + (i - 1) * 8;
+      let sp = arg[i].tT;
       buf.writeUInt16BE(sp, addr);
       buf.writeUInt16BE(0, addr + 2);
       buf.writeUInt16BE(arg[i].H * 60, addr + 4);
       buf.writeUInt16BE(arg[i].Y * 60, addr + 6);
     } // for (let step =1; step < 6; step++)
-    return { err, data: { value: buf, note: "program" } };
+    data.data = buf;
+    return { err, data };
+  },
+  set_: function (arg) {
+    let value = arg.readUInt16BE(),
+      err = null;
+    return { err, data: { value, note: this.note } };
+  },
+}); // addRegister()
+
+// ------------ current step  ---------
+driver.addRegister({
+  id: "step",
+  addr: 0x0010,
+  header: { ua: `Поточний крок`, en: `Current step`, ru: `Текущий шаг` },
+  note: `Current step`,
+  units: { ua: ``, en: ``, ru: `` },
+  _get: function (arg) {
+    let data = {
+        addr: this.addr,
+        FC: 3,
+        data: 1,
+      },
+      err = null;
+    return { err, data };
+  }, //_get
+  get_: function (arg) {
+    let value = arg.readUInt16BE(),
+      err = null;
+    return { err, data: { value, note: this.note } };
+  }, //get_
+  _set: function (arg = 1) {
+    // якщо крок поза межами 1..5 то помилка
+    if (arg < 1 || arg > 5) {
+      let err = new Error(
+        `Invalid value=${arg} for step register! Should be 1..5`
+      );
+      return { err, data: null };
+    }
+    let data = {
+        addr: this.addr,
+        FC: 6,
+        data: arg,
+      },
+      err = null;
+    return { err, data };
   },
   set_: function (arg) {
     let value = arg.readUInt16BE(),
