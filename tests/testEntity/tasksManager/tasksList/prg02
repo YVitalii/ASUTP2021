@@ -1,0 +1,19 @@
+[
+	{
+		"id": "description",
+		"name": "prg02",
+		"note": "Опис програми №3"
+	},
+	{
+		"id": "taskThermalTRM251",
+		"tT": 200,
+		"H": 10,
+		"Y": 10
+	},
+	{
+		"id": "taskThermalTRM251",
+		"tT": 400,
+		"H": 20,
+		"Y": 20
+	}
+]

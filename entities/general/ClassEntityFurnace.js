@@ -1,5 +1,6 @@
 const ClassEntityGeneral = require("./ClassEntityGeneral");
 const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermal.js");
+
 const test = require("../../config.js").test;
 const gLn = "ClassEntityFurnace::";
 module.exports = class ClassEntityFurnace extends ClassEntityGeneral {
@@ -24,5 +25,12 @@ module.exports = class ClassEntityFurnace extends ClassEntityGeneral {
       },
     });
     this.tasksManager.addType(taskThermal);
+
+    // для TRM251
+    const ClassTaskTRM251 = require("../../devices/OWEN_TRM251/ClassTaskTRM251.js");
+    let taskThermalTRM251 = new ClassTaskTRM251({
+      maxT: this.maxT,
+    });
+    this.tasksManager.addType(taskThermalTRM251);
   }
 };

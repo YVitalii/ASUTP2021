@@ -3,6 +3,7 @@
 
 // ----------- приклад опису сутності ----------------
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
+
 const dummy = require("../../tools/dummy.js").dummyPromise;
 const log = require("../../tools/log.js");
 let trace = 0,
@@ -140,7 +141,7 @@ logger.addReg({
     // повинна повертати числове значення регістру
     let t = await entity.devicesManager.getDevice("furnace").getRegister("tT"); //TRM251
     // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
-    t = t == null ? 0:t;
+    t = t == null ? 0 : t;
     return t;
   },
 }); //logger.addReg(

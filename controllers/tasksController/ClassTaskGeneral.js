@@ -14,7 +14,7 @@ class ClassTaskGeneral extends ClassReg_regsList {
     this.ln = this.ln ? this.ln : "Class_Task_general()::";
     let trace = 0,
       ln = this.ln + "constructor()::";
-
+    this.devices = [];
     if (trace) {
       log("i", ln, `this=`);
       console.dir(this, { depth: 3 });

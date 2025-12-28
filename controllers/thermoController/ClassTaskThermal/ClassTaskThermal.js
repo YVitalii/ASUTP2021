@@ -101,7 +101,7 @@ class ClassTaskThermal extends ClassTaskGeneral {
       header: { ua: "wT,°C", en: "wT,°C", ru: "wT,°C" },
       value: props.wT ? props.wT : -0, //від'ємні значення
       comment: {
-        ua: `Закінчення швидrого нагрівання (0=вимкн)`,
+        ua: `Закінчення швидкого нагрівання (0=вимкн)`,
         en: `Limit for quick heating (0=disable)`,
         ru: `Окончание быстрого нагрева (0=выкл)`,
       },

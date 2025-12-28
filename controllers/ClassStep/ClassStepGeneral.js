@@ -134,11 +134,11 @@ class ClassStep {
     this.setChanged();
 
     return new Promise(async (resolve, reject) => {
-      let test = this.testState();
+      let test = await this.testState();
       while (!test) {
         //log("test=", test);
         await dummy(this.checkTime);
-        test = this.testState();
+        test = await this.testState();
       }
       try {
         await this.afterAll();
@@ -238,8 +238,14 @@ class ClassStep {
     this.setChanged();
   }
 
-  testState() {
-    let trace = 0,
+  /** async Перевіряє стан кроку
+   * Повертає:
+   * 0 - крок триває
+   * 1 - крок завершено (успішно або з помилкою)
+   * потребує реалізації в нащадках
+   */
+  async testState() {
+    let trace = 1,
       ln = "testState()::";
     trace ? log("", ln, `this.state._id=`, this.state._id) : null;
     this.duration();
