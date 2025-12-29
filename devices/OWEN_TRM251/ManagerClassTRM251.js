@@ -118,41 +118,52 @@ class ClassManager extends ClassDevManagerGeneral {
       console.log(ln + `this=`);
       console.dir(this, { depth: 1 });
     }
+    // запуск опитування стану приладу
+    this.getMode();
   } // constructor
 
-  async start() {
-    let trace = 1,
-      ln = this.ln + `Start()::`;
-    let res;
-    try {
-      res = this.driver.setRegPromise({
-        iface: this.iface,
-        devAddr: this.addr,
-        regName: "startStop",
-        value: 1,
-      });
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  } // start()
+  // async start() {
+  //   let trace = 1,
+  //     ln = this.ln + `Start()::`;
+  //   let res;
+  //   try {
+  //     res = this.driver.setRegPromise({
+  //       iface: this.iface,
+  //       devAddr: this.addr,
+  //       regName: "startStop",
+  //       value: 1,
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw error;
+  //   }
+  // } // start()
 
-  async stop() {
-    let trace = 1,
-      ln = this.ln + `Stop()::`;
-    let res;
-    try {
-      res = this.driver.setRegPromise({
-        iface: this.iface,
-        devAddr: this.addr,
-        regName: "startStop",
-        value: 0,
-      });
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  } // start()
+  // async stop() {
+  //   let trace = 1,
+  //     ln = this.ln + `Stop()::`;
+  //   let res;
+  //   try {
+  //     res = this.driver.setRegPromise({
+  //       iface: this.iface,
+  //       devAddr: this.addr,
+  //       regName: "startStop",
+  //       value: 0,
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw error;
+  //   }
+  // } // start()
+
+  async getMode() {
+    let m = await this.getRegister("mode");
+    let trace=1, ln=this.ln+"getMode()::";
+    trace ? console.log(ln+"mode=",m) : null;
+    setTimeout( () => {
+      this.getMode();
+    },5000);
+  }// getMode()
 
   async getRegister(regName) {
     let trace = 0,
