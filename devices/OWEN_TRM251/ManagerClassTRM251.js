@@ -15,7 +15,7 @@ class ClassManager extends ClassDevManagerGeneral {
     props.header = props.header
       ? props.header
       : { ua: `ТРМ251` + addr, en: `TRM251` + addr, ru: `ТРМ251` + addr };
-    let trace = 1,
+    let trace = 0,
       ln = props.ln + "constructor()::";
     if (trace) {
       console.log(ln + `props=`);
@@ -111,7 +111,19 @@ class ClassManager extends ClassDevManagerGeneral {
       obsolescence: 5,
       driverRegName: `step`,
     }); // addRegister
-
+     // ------- step ----------
+    this.addRegister({
+      id: `program`,
+      comment: {
+        ua: `Поточна програма`,
+        en: `Current program`,
+        ru: `Текущая программа`,
+      },
+      units: units.empty,
+      readonly: true,
+      obsolescence: 60,
+      driverRegName: `program`,
+    }); // addRegister
     log("w", this.ln, ` ==> Device was created`);
 
     if (trace) {
@@ -158,7 +170,7 @@ class ClassManager extends ClassDevManagerGeneral {
 
   async getMode() {
     let m = await this.getRegister("mode");
-    let trace=1, ln=this.ln+"getMode()::";
+    let trace=0, ln=this.ln+"getMode()::";
     trace ? console.log(ln+"mode=",m) : null;
     setTimeout( () => {
       this.getMode();

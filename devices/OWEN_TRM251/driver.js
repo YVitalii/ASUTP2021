@@ -292,13 +292,13 @@ driver.addRegister({
     let data = {
         addr: this.addr,
         FC: 3,
-        data: 21,
+        data: 22,
       },
       err = null;
     return { err, data };
   }, //_get
   get_: function (arg) {
-    let trace = 0,
+    let trace = 1,
       ln = this.id + `::get_::`,
       txt = "";
     if (trace) {
@@ -307,7 +307,8 @@ driver.addRegister({
     }
     // // положення крапки
     let timeScale = arg.slice(0, 2).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
-    txt += trace ? `timeSlace=${timeScale}` : "";
+    trace ? console.log("Time scale=",timeScale):null;
+
     let programSteps = 5; // кількість кроків у програмі
     let program = [
       {
@@ -321,17 +322,23 @@ driver.addRegister({
       },
     ];
     for (let step = 0; step < programSteps; step++) {
-      let addr = 2 + step * 8;
+      // 2025-12-29 уставка починається не з 2 байта а з 4, 
+      // уставка1 =  0x0102 і т.д. ймовірно помилка 
+      // при зміщенні на 2  - програма читається коректно
+      // тому поки буде так, при нагоді розібратися
+      let addr = 2+2 + step * 8;
       let point = arg.slice(addr + 2, addr + 4).readUInt16BE();
       let SP =
         arg.slice(addr, addr + 2).readUInt16BE() /
         (point == 0 ? 1 : point * 10);
-      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE() / 60);
-      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE() / 60);
+      // 2025-12-29 В описі вказано, що час зберігається та передається в секундах, але схоже що 
+      // все-таки: для "ГГ:ХХ" в хвилинах, можливо для "ХХ:СС" - в секундах   -потребує уточненя
+      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE() );
+      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE() );
 
       program.push({ tT: SP, H: H, Y: Y });
       if (trace) {
-        console.log(ln + `step[${step + 1} (addr=${addr})=`);
+        console.log(ln + `step[${step + 1} (addr=${addr}, pointPos=${point})=`);
         console.dir(program[step + 1]);
       }
     }
@@ -362,7 +369,9 @@ driver.addRegister({
       buf.writeUInt16BE(1, 0); // формат часу MM:SS
     }
     for (let i = 1; i < 6; i++) {
-      let addr = 2 + (i - 1) * 8;
+      //схоже невірно вказані адреси в описі див. примітки до get_
+      //
+      let addr = 2+2 + (i - 1) * 8; 
       let sp = arg[i].tT;
       buf.writeUInt16BE(sp, addr);
       buf.writeUInt16BE(0, addr + 2);

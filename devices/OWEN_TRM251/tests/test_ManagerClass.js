@@ -41,6 +41,9 @@ let dev = new ManagerClass(props);
 
 (async () => {
   let line = "";
+  let program = await dev.getRegister("program");
+  console.log("program=");
+  console.dir(program);
   while (true) {
     line = new Date().toTimeString().substring(0, 8) + "-> ";
     // let res2 = await dev.driver.getRegPromise({
@@ -50,6 +53,7 @@ let dev = new ManagerClass(props);
     // });
     // console.log("====== res2=");
     // console.dir(res2);
+
     let regs = ["T1", "T2", "tT", "mode"];
     for (let i = 0; i < regs.length; i++) {
       let regName = regs[i];
