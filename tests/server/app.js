@@ -54,7 +54,10 @@ app.use((req, res, next) => {
 });
 
 app.use(function (req, res, next) {
-  res.set("Acess-Control-Allow-Origin", myAddress);
+  if (myAddress != "127.0.0.1") {
+    // log("w", "External interfaces found");
+    res.set("Access-Control-Allow-Origin", myAddress);
+  }
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type");
   // console.log('------req.query-------');

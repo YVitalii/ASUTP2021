@@ -9,18 +9,38 @@ let trace = 0,
 const os = require("os");
 
 function getPublicIpAddress() {
+  let trace = 1,
+    ln = `getPublicIpAddress()::`;
   const interfaces = os.networkInterfaces();
+  if (trace) {
+    console.log(ln + `interfaces=`);
+    console.dir(interfaces, { depth: 2 });
+  }
+  let ip = "127.0.0.1";
 
+  // шукаємо зовнішній інтерфейс
+  trace ? log("i", ln, `==== Start looking for external interfaces ===`) : null;
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
       // Пропускаємо внутрішні та IPv6 адреси
       if (iface.family === "IPv4" && !iface.internal) {
-        return iface.address;
+        if (
+          name == "Ethernet" ||
+          name == "eth0" ||
+          name == "Wi-Fi" ||
+          name == "wlan0"
+        ) {
+          ip = iface.address;
+          trace
+            ? console.log(ln + `found interface : name=${name}; ip=${ip}`)
+            : null;
+          return ip;
+        }
       }
     }
   }
-
-  return "IP-адресу не знайдено";
+  // зовнішніх інтерфейсів не знайдено, повертаємо 127.0.0.1
+  return ip;
 }
 
 ifaces.ipAddr = getPublicIpAddress();
