@@ -26,7 +26,7 @@ const processManagerRouter = require("../../processes/processManager/routes/inde
 const devicesManagerRouter = require("../../devices/devicesManager/routes/devicesRouter.js");
 const loggerManagerRouter = require("../../controllers/loggerManager/routes/loggerRouter.js");
 const entityRouter = require("../../entities/general/routes/entityRouter.js");
-let myAddress = `http://${iface.ipAddr}:3033`;
+let myAddress = `http://${iface.ipAddr}:3043`;
 console.log(
   `---------------- ${myAddress} server started at ${new Date().toLocaleTimeString()} --------`
 );

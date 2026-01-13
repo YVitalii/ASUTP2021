@@ -12,26 +12,26 @@ let trace = 0,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
 let props = {
-  id: "SNO-6-6-4)6_2025",
+  id: "SNO-6-6-4)12_2025",
   homeDir: __dirname,
 };
 
 // -- коротке імя печі
 props.shortName = {
-  ua: "СНО-6.6.4/4ГЦ",
-  en: "SNO-6.6.4/4GC",
-  ru: "СНО-6.6.4/4ГЦ",
+  ua: "СНО-6.6.4/12ВЦ",
+  en: "SNO-6.6.4/12VC",
+  ru: "СНО-6.6.4/12ВЦ",
 };
 
 // -- повне імя печі, якщо не вказано  props.fullName = props.shortName
 props.fullName = {
-  ua: "Електропіч СНО-6.6.4/4ГЦ",
-  en: "Furnace SNO-6.6.4/4GC",
-  ru: "Електропечь СНО-6.6.4/4ГЦ",
+  ua: "Електропіч СНО-6.6.4/12ВЦ",
+  en: "Furnace SNO-6.6.4/12VC",
+  ru: "Електропечь СНО-6.6.4/12ВЦ",
 };
 
 // -- максимальна температура в печі required {Number}
-props.maxT = 400;
+props.maxT = 1200;
 
 // -------- створюємо та повертаємо об'єкт печі
 let entity = new classEntityFurnace(props);
@@ -43,7 +43,7 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 
 // ----------------------------- прилади -----------------
 // --- менеджери
-const TRP08 = require("../../devices/trp08/manager.js");
+// const TRP08 = require("../../devices/trp08/manager.js");
 const TRM251 = require("../../devices/OWEN_TRM251/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
 // let furnace = new TRP08(ifaceW2, 1, { id: "furnace", addT: 0 });
