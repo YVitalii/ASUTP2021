@@ -10,6 +10,13 @@ window.addEventListener("beforeprint", async (event) => {
   chartColumn.classList.add("col-12");
   reportHeader.classList.remove("d-none");
   reportSignature.classList.remove("d-none");
+  // ------ коригування на вимогу замовника -----------
+  description___description.getElementsByTagName("label")[0].innerHTML =
+    `<i>Назва програми: <b>${tasksName.innerHTML}</b></i>`;
+  programHeader
+    .getElementsByClassName("col-3")[0]
+    .firstChild.classList.add("d-none");
+
   // chartRow.style.width = "280mm";
   // chartRow.style.height = "120mm";
 
@@ -29,6 +36,13 @@ window.addEventListener("afterprint", (event) => {
   bodyRow.classList.add("h-100");
   fileManager.container.style.display = "";
   header.style.display = "";
+  // ----------
+  description___description.getElementsByTagName("label")[0].innerHTML =
+    `<i>Примітки:</i>`;
+  programHeader
+    .getElementsByClassName("col-3")[0]
+    .firstChild.classList.remove("d-none");
+
   reportHeader.classList.add("d-none");
   reportSignature.classList.add("d-none");
   chartContainerId.style.width = "100%";
