@@ -1,3 +1,6 @@
+// cd ./devices/trp08
+// supervisor  --extensions 'js,pug' --timestamp --no-restart-on exit ./driverOld.js
+
 /* -------------- драйвер прибора ТРП-08ТП
 
   function getReg(iface,id,regName,cb) - (err,data) где data -  массив объектов
@@ -42,6 +45,20 @@
   потрібно додати функцію, яка буде виводити дані  про регістри, опис, адресу, формат даних в консоль при запуску driver.js
   ----- 2024-03-29 --------------------------------------------------------
   розширив опис регістрів, додавши в деякі поля: header:{ua,en}
+*/
+
+/*
+INFO: reg={"name":"state","header":{"ua":"Стан приладу","en":"State of device","ru":"Состояние прибора"},"description":"Стан приладу: ","units":"","type":"states"} 
+INFO: reg={"name":"T","header":{"ua":"Поточна температура","en":"Current temperature","ru":"Текущая температура"},"description":"Поточна температура","units":"°C","type":"integer"} 
+INFO: reg={"name":"timer","description":"Час що пройшов від початку кроку","units":"хв","type":"clock"} 
+INFO: reg={"name":"regMode","description":"Закон регулювання:","units":"","type":"integer"} 
+INFO: reg={"name":"tT","header":{"ua":"Цільова температура","en":"Goal temperature","ru":""},"description":"Цільова температура","units":"°C","type":"integer"} 
+INFO: reg={"name":"H","description":"Час розігрівання","units":"хв","type":"clock"} 
+INFO: reg={"name":"Y","description":"Час витримки","units":"хв","type":"clock"} 
+INFO: reg={"name":"o","description":"при РЕГ=1 коеф.підсилення / при РЕГ=2 гістерезис","units":"","type":"integer"} 
+INFO: reg={"name":"ti","description":"рег ПІД. Час інтегрування","units":"","type":"integer"} 
+INFO: reg={"name":"td","description":"рег ПІД. Час диференціювання","units":"","type":"integer"} 
+INFO: reg={"name":"u","description":"рег ПІД. Зміщення","units":"","type":"integer"} 
 */
 
 // ----- стандартні позначення, щоб міняти в одному місці  -------
@@ -219,7 +236,7 @@ regs.set(
         err: null,
       };
     },
-  }
+  },
 );
 
 /*  ------------------ 00 01 T поточна температура, тільки читання
@@ -921,7 +938,7 @@ function setReg(iface, id, regName, value, cb) {
                 "error in (send) err=",
                 err.message,
                 "; code=",
-                err.code
+                err.code,
               )
             : null;
           //res['note']=err.msg;

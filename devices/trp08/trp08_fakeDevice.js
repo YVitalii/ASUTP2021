@@ -73,28 +73,33 @@ class ClassFakeTRP extends ClassGeneral {
       },
     }; //
     this.pid = new ClassPIDregulator(pidProps);
-    this.regs = [];
+    // ------------- емуляція регістрів позиція в масиві = адресі регістру---------------
+    this.regs = new Map();
     // ---- state ----
-    this.regs[0] = {
+    this.regs.set(0, {
       id: "state",
+      parent: this,
+      addr: 0,
       set value(value) {
+        console.log("this=");
+        console.dir(this);
+        // let reg = this.regs.get(0);
         if (value == 17) {
-          this.pid.start();
-          this.regs[0]._value = 23;
+          this.parent.pid.start();
+          this._value = 23;
         }
         if (value == 1) {
-          this.pid.stop();
-          this.regs[0]._value = 7;
+          this.parent.pid.stop();
+          this._value = 7;
         }
-        this.regs[0]._value = value;
       },
       get value() {
-        let val = toBCD(this.regs[0]._value);
+        let val = toBCD(this._value);
         val = crc16.toTetrad(val);
         return val;
       },
       _value: 1,
-    };
+    });
   }
   /**
    * імітує запит в прилад
@@ -103,19 +108,22 @@ class ClassFakeTRP extends ClassGeneral {
    * @return {callback} cb = function (err,data) = return  data ={note,value}
    */
   send(req, cb) {
-    if (!this.regs[req.addr]) {
-      cb(this.ln + "ILLEGAL DATA ADDRESS", null);
+    // ---- якщо регістра за цією адресою немає - помилка
+    if (!this.regs.has(req.addr)) {
+      cb(new Error(this.ln + "ILLEGAL DATA ADDRESS"), null);
     }
+    let reg = this.regs.get(req.addr);
     // повертаємо буфер з результатом [Hi,Lo]
     switch (req.FC) {
       case 3:
-        cb(null, this.regs[req.addr]);
+        cb(null, reg.value);
         return;
       case 6:
-        cb(null, crc16.toTetrad((this.regs[req.addr] = req.data)));
+        reg.value = req.data;
+        cb(null, crc16.toTetrad(reg.value));
         return;
       default:
-        cb(this.ln + "ILLEGAL FUNCTION", null);
+        cb(new Error(this.ln + "ILLEGAL FUNCTION"), null);
         return;
     }
   }
