@@ -61,7 +61,7 @@ describe("Driver's registers test:", () => {
       match(
         res.err.message,
         /readonly/,
-        "Message should contain word 'readonly'"
+        "Message should contain word 'readonly'",
       );
     });
     it("get_()", () => {
@@ -71,7 +71,7 @@ describe("Driver's registers test:", () => {
       match(
         res.err.message,
         /readonly/,
-        "Message should contain word 'readonly'"
+        "Message should contain word 'readonly'",
       );
     });
     it("_set()", () => {
@@ -137,7 +137,7 @@ describe("Driver's registers test:", () => {
       equal(
         resGet.data.addr,
         0x0100,
-        "Program address should be 0x0100=" + 0x0100
+        "Program address should be 0x0100=" + 0x0100,
       );
       equal(resGet.data.FC, 3, "Function should be FC3");
       equal(resGet.data.data, 21, "Bytes quantity should be 20");
@@ -151,7 +151,7 @@ describe("Driver's registers test:", () => {
       equal(
         resGet.data.value.length,
         6,
-        "Length of programm massive should be 1+5=6 items in program"
+        "Length of programm massive should be 1+5=6 items in program",
       );
       for (let i = 0; i < resGet.data.value.length - 1; i++) {
         const step = resGet.data.value[i + 1];
@@ -171,7 +171,7 @@ describe("Driver's registers test:", () => {
     it("_set()", () => {
       let regName = "program";
       let prg = [
-        { id: "program:1", timeScale: "HH:MM" },
+        { id: "prg01", timeScale: "HH:MM" },
         { tT: 100, H: 5, Y: 5 },
         { tT: 200, H: 10, Y: 10 },
         { tT: 250, H: 15, Y: 15 },
