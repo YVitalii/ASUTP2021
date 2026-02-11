@@ -1,13 +1,25 @@
 /**
+ * 2026-02-11 Додав емуляцію порту RS485 для можливості розробки та тестування без фізичного приладу
+ *
  * 2023-10-20 Оновлена версія interfece RS485.
  * В попередній версії використовувався модуль, котрий брав налаштування з конфіг-файлу
  * iface_config.js, використання модуля унеможливлює використання двох інтерфейсів одночасно в 1 програмі
  * тому для виправлення цього положення була розроблена оновлена версія iface на базі класу
  * кожний інтерфейс буде обєктом зі своїми налаштуваннями
  */
+
+/**
+ * @typedef {Buffer} ModBusMessage
+ * @property {Int8} ModBusMessage[0] - адреса пристрою в мережі [1..254]
+ * @property {Int8} ModBusMessage[1] - код функції, що виконується
+ *
+ */
+
 const ClassGeneral = require("../ClassGeneral");
 
-const SerialPort = require("serialport");
+//  завантажуємо реальний/емулятор послідовного порту, якщо він увімкнений в конфігурації config.emulateRS485 = 1
+const SerialPort = require("./serialPortFabric.js")();
+
 const pug = require("pug");
 // функція для перевірки вхідного буфера на помилки
 const checkBuffer = require("./checkBuffer.js");
@@ -133,8 +145,8 @@ class IfaceRS485 extends ClassGeneral {
     this.timeOutErrorsCounterMax = props.timeOutErrorsCounterMax
       ? props.timeOutErrorsCounterMax
       : gTest
-      ? 5
-      : 20;
+        ? 5
+        : 20;
     this.timeOutErrorsCounter = 0; // лічильник помилок
 
     this.isOpened = false;
@@ -219,7 +231,7 @@ class IfaceRS485 extends ClassGeneral {
       ln =
         this.ln +
         `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
-          req.data
+          req.data,
         )})::`;
     //trace ? log(ln, `Started!`) : null;
     if (
@@ -390,7 +402,7 @@ class IfaceRS485 extends ClassGeneral {
           ? log(
               "w",
               ln,
-              `Timeout error! timeOutErrorsCounter=${this.timeOutErrorsCounter}`
+              `Timeout error! timeOutErrorsCounter=${this.timeOutErrorsCounter}`,
             )
           : null;
         if (this.timeOutErrorsCounter > this.timeOutErrorsCounterMax) {
@@ -415,8 +427,8 @@ class IfaceRS485 extends ClassGeneral {
       ? log(
           ln,
           `response=${parseBuf(task.res)}; data=${parseBuf(
-            task.data
-          )}; duration=${duration} s`
+            task.data,
+          )}; duration=${duration} s`,
         )
       : null;
     // посилка успішна, отже інтерфейс працює

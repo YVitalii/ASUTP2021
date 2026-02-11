@@ -1,8 +1,14 @@
-const parseBuf = require("../../tools/parseBuf");
+// cd ./rs485
+// supervisor --no-restart-on exit ./tests/test_class_RS485_iface.js
+
+const parseBuf = require("../../tools/parseBuf.js");
 // const Iface = require("../class_RS485_iface");
 //let iface = new Iface("COM3", { baudRate: 2400 });
 
 let iface = require("../../conf_iface.js").w2;
+
+console.log(`iface=`);
+console.dir(iface, { depth: 2 });
 
 let req = { id: 1, FC: 3, addr: 0x1, data: 0x1, timeout: 1500 };
 
