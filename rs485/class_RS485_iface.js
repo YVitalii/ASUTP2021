@@ -20,7 +20,9 @@ const ClassGeneral = require("../ClassGeneral");
 //  завантажуємо реальний/емулятор послідовного порту, якщо він увімкнений в конфігурації config.emulateRS485 = 1
 const SerialPort = require("./serialPortFabric.js")();
 
+// шаблонізатор
 const pug = require("pug");
+
 // функція для перевірки вхідного буфера на помилки
 const checkBuffer = require("./checkBuffer.js");
 
@@ -529,7 +531,7 @@ function calculateResponseLength(fc, data) {
       length = 8; //ответ = эхо запроса
       break;
 
-    case 10:
+    case (10, 16):
       // FC10 (Write Multiple Registers): Записує кілька регістрів (registerNumber) одразу починаючи з startRegister
       //[адрес]+[функция]+[startRegister_H]+[startRegister_L]+[registerNumber_H]+[registerNumber_L]+CRC_H+CRC_L
       length = 1 + 1 + 2 + 2 + 2; //8

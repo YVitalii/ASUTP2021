@@ -2,12 +2,11 @@
 const crc = require("crc");
 
 /**
- *
+ * преобразовывает число в буфер из двух байт
  * @param {*} addr
- * @returns
+ * @returns {Buffer} [high,low]
  */
 function toTetrad(addr) {
-  // преобразовывает число в буфер из двух байт
   var h = Math.floor(addr / 256); //HI byte
   var l = addr - h * 256; //LO byte
   var arr = Buffer.from([h, l]);
@@ -15,8 +14,12 @@ function toTetrad(addr) {
   return arr;
 }
 
+/**
+ * рассчитывает CRC для буфера buf и возвращает в виде буфера
+ * @param {Buffer} buf
+ * @returns {Buffer} [LO,HI]
+ */
 function getCRC(buf) {
-  // рассчитывает CRC для буфера buf и возвращает в виде буфера [LO,HI]
   let crc16 = crc.crc16modbus(buf);
   let arr = [];
   crc16 = toTetrad(crc16);

@@ -1,0 +1,271 @@
+// cd ./rs485
+// supervisor --no-restart-on exit ./tests/GeneralRS485deviceEmulatorClass_test.js
+const GeneralDeviceEmulatorClass = require("../GeneralRS485deviceEmulatorClass");
+const dev = new GeneralDeviceEmulatorClass({ id: "test" });
+const CRC = require("../../tools/CRC");
+const parseBuf = require("../../tools/parseBuf");
+const { equal, ifError } = require("assert");
+const { test, describe, it } = require("node:test");
+
+dev.addReg({
+  addr: 0x23,
+  _value: 42,
+  set value(val) {
+    this._value = val;
+  },
+  get value() {
+    return this._value;
+  },
+});
+dev.addReg({
+  addr: 0x24,
+  _value: 43,
+  set value(val) {
+    if (val == 8) {
+      throw new Error("Error value");
+    }
+    this._value = val;
+  },
+  get value() {
+    return this._value;
+  },
+});
+dev.addReg({
+  addr: 0x25,
+  _value: 44,
+  set value(val) {
+    this._value = val;
+  },
+  get value() {
+    return this._value;
+  },
+});
+
+// console.log(`dev=`);
+// console.dir(dev, { depth: 2 });
+
+describe("test Device creation", () => {
+  try {
+    regAddr = 0x23;
+    equal(
+      dev instanceof GeneralDeviceEmulatorClass,
+      true,
+      "Помилка: об'єкт не є екземпляром GeneralDeviceEmulatorClass",
+    );
+    equal(dev.id, "test", "Помилка: не встановлено id пристрою");
+
+    equal(
+      dev.getReg(regAddr).value,
+      42,
+      "Помилка: неправильне значення регістра після додавання",
+    );
+    dev.getReg(regAddr).value = 100;
+    equal(
+      dev.getReg(regAddr).value,
+      100,
+      "Помилка: неправильне значення регістра після встановлення нового значення",
+    );
+    ifError(
+      dev.getReg(999),
+      "Помилка: getReg має повертати null для неіснуючого регістра",
+    );
+  } catch (error) {
+    console.error(error.message);
+  }
+});
+
+describe("test FC3", () => {
+  test("FC3; right request; single register", () => {
+    let regAddr = 0x23,
+      req = Buffer.from([1, 3, 0, regAddr, 0, 1]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC3(req);
+    equal(res.readInt8(0), 3, "Функція повинна бути 03");
+    equal(res.readInt8(1), 2, "Кількість байт відповіді повинна бути 2");
+    equal(
+      res.readInt16BE(2),
+      dev.getReg(regAddr).value,
+      `Значення регістру повинно бути ${dev.getReg(regAddr).value}`,
+    );
+  }); //test
+  test("FC3; right request; multiple register", () => {
+    let regsCount = 3,
+      startReg = 0x23;
+    let req = Buffer.from([1, 3, 0, startReg, 0, regsCount]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC3(req);
+    equal(
+      res.readInt8(1),
+      regsCount * 2,
+      "Кількість байт відповіді повинна бути 2",
+    );
+    for (let i = 0; i < regsCount; i++) {
+      equal(
+        res.readInt16BE(2 + i * 2),
+        dev.getReg(startReg + i).value,
+        `Значення регістру повинно бути ${dev.getReg(startReg + i).value}`,
+      );
+    }
+  }); // test
+  test("FC3; unsuported register", () => {
+    let regsCount = 3,
+      startReg = 0x25;
+    let req = Buffer.from([1, 3, 0, startReg, 0, regsCount]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC3(req);
+    equal(
+      res.readUInt8(0),
+      0b10000000 + 3,
+      "Номер функції повинен бути 128+3=130",
+    );
+    equal(res.readInt16BE(1), 2, "Error code must be 2");
+  }); // test
+}); // describe FC3 test
+
+describe("test FC6", () => {
+  test("unsuported register", () => {
+    let regValue = 5,
+      startReg = 0x55;
+    let req = Buffer.from([1, 6, 0, startReg, 0, regValue]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC6(req);
+    equal(
+      res.readUInt8(0),
+      0b10000000 + 6,
+      "Номер функції повинен бути 128+6=134",
+    );
+    equal(res.readInt16BE(1), 2, "Error code must be 2");
+  }); // test
+
+  test("unsuported data", () => {
+    let regValue = 8,
+      startReg = 0x24;
+    let req = Buffer.from([1, 6, 0, startReg, 0, regValue]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC6(req);
+    equal(
+      res.readUInt8(0),
+      0b10000000 + 6,
+      "Номер функції повинен бути 128+6=134",
+    );
+    equal(res.readInt16BE(1), 3, "Error code must be 3 - unsuported data");
+  }); // test
+
+  test("right request; write single register", () => {
+    let regAddr = 0x23,
+      val = 5;
+    req = Buffer.from([1, 6, 0, regAddr, 0, val]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC6(req);
+    let str = ` but [${parseBuf(res)}]`;
+    equal(res.readUInt8(0), 6, `Функція повинна бути 0x06` + str);
+    equal(
+      res.readUint16BE(1),
+      req.readUint16BE(2),
+      "Адреса регістру повинна співпадати з запитом" + str,
+    );
+    equal(
+      res.readInt16BE(3),
+      dev.getReg(regAddr).value,
+      `Значення регістру повинно бути ${dev.getReg(regAddr).value}`,
+    );
+  }); //test
+});
+
+describe("test FC16", () => {
+  test("unsuported register", () => {
+    let regValue = 5,
+      startReg = 0x55;
+
+    // prettier-ignore
+    let req = Buffer.from([
+      1, // 0 device address
+      16, // 1 function code
+      0, startReg, //2,3 start register
+      0,2, //4,5 quantity registers
+      4, //6 quantity data bytes
+      0x00, 0x01, //7,8 data
+      0x00, 0x02, //9,10
+    ]);
+
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC16(req);
+    equal(
+      res.readUInt8(0),
+      0b10000000 + 16,
+      "Номер функції повинен бути 128+16=144",
+    );
+    equal(res.readInt16BE(1), 2, "Error code must be 2");
+  }); // test
+  test("right request, set multiple regs", () => {
+    let startRegValue = 5,
+      startReg = 0x23,
+      regsQuantity = 2;
+    // prettier-ignore
+    let req = Buffer.from([
+      1, // 0 device address
+      16, // 1 function code
+      0, startReg, //2,3 start register
+      0,regsQuantity, //4,5 quantity registers
+      4, //6 quantity data bytes
+      0x00, startRegValue, //7,8 data
+      0x00, startRegValue+1, //9,10
+    ]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC16(req);
+    let str = ` but res=[${parseBuf(res)}]`;
+    equal(res.readUInt8(0), 0x10, "Function must be 0x10" + str);
+    equal(
+      res.readUInt16BE(1),
+      startReg,
+      "Address for the start register must be equivalent to request" + str,
+    );
+    equal(
+      res.readUInt16BE(3),
+      regsQuantity,
+      "Quantity of regs must be 2" + str,
+    );
+    // console.dir(dev);
+    for (let i = 0; i < regsQuantity; i++) {
+      equal(
+        req.readInt16BE(7 + i * 2),
+        dev.getReg(startReg + i).value,
+        `Must be: reg [${startReg + 1}] = ${req.readInt16BE(7 + i * 2)}, but ${dev.getReg(startReg + i).value}`,
+      );
+    }
+  }); // test("right request, set multiple regs"
+  test("right request, wrong data", () => {
+    let startRegValue = 7,
+      startReg = 0x23,
+      regsQuantity = 2;
+    // prettier-ignore
+    let req = Buffer.from([
+      1, // 0 device address
+      16, // 1 function code
+      0, startReg, //2,3 start register
+      0,regsQuantity, //4,5 quantity registers
+      4, //6 quantity data bytes
+      0x00, startRegValue, //7,8 data
+      0x00, startRegValue+1, //9,10
+    ]);
+    let crc = CRC.getCRC(req);
+    req = Buffer.concat([req, crc], req.length + 2);
+    let res = dev.FC16(req);
+    let str = ` but res=[${parseBuf(res)}]`;
+    // console.dir(dev);
+    equal(
+      res.readUInt8(0),
+      0b10000000 + 16,
+      "Номер функції повинен бути 128+16=144" + str,
+    );
+    equal(res.readInt16BE(1), 3, "Error code must be 3" + str);
+  }); // test("right request, set multiple regs"
+});
