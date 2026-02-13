@@ -1,6 +1,7 @@
 const parseBuf = require("../tools/parseBuf");
 const dummy = require("../tools/dummy").dummyPromise;
 const CRC = require("../tools/CRC");
+const DeviceEmulatorRegisterClass = require("./DeviceEmulatorRegisterClass");
 
 /**
  * @typedef {Object} GeneralDeviceEmulator
@@ -35,28 +36,35 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
 
   /**
    * Реєструє новий регістр у емуляторі пристрою.
-   * @param {DeviceEmulatorRegister} reg
+   * @param {Object} reg - параметри для створення DeviceEmulatorRegisterClass
+   *
    */
 
   addReg(reg = {}) {
-    let trace = 1,
-      ln = this.ln + `addReg(${reg})::`;
-    trace ? console.log(ln + `Started`) : null;
     if (reg.addr === undefined) {
       throw new Error(
         this.ln + "addReg():: reg object with 'addr' property is required",
       );
     }
+    let trace = 1,
+      ln = this.ln + `addReg(${reg.addr}${reg.id ? "[" + reg.id + "]" : ""})::`;
+    trace ? console.log(ln + `Started`) : null;
+
     if (this.hasReg(reg.addr)) {
       throw new Error(
         this.ln +
           `addReg():: Register with address ${reg.addr} already exists!`,
       );
     }
-    this.regs.set(reg.addr, reg);
-  }
 
-  async write(data) {
+    this.regs.set(reg.addr, new DeviceEmulatorRegisterClass(this, reg));
+  }
+  /**
+   * Функція приймає повідомлення від інтерфейсу та відповідає на нього
+   * @param {Buffer} data  - повідомлення rs485, яке надсилається в лінію
+   * @returns
+   */
+  async write(data, props = {}) {
     let trace = 1,
       ln = this.ln + `write(${parseBuf(data)})::`;
     let FC = data.readUInt8(1),
