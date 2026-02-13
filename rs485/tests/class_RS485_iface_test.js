@@ -1,11 +1,9 @@
 // cd ./rs485
 // supervisor --no-restart-on exit ./tests/test_class_RS485_iface.js
-const config = require("config");
-config.emulateRS485 = true;
 
+const { all } = require("core-js/fn/promise");
 const parseBuf = require("../../tools/parseBuf.js");
-//const Iface = require("../class_RS485_iface");
-//let iface = new Iface("COM3", { baudRate: 2400 });
+const GeneralRS485deviceEmulatorClass = require("../GeneralRS485deviceEmulatorClass.js");
 
 let iface = require("../../conf_iface.js").w2;
 
