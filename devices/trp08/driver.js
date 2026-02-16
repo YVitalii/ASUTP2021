@@ -988,6 +988,7 @@ function getRegDescription(regName = null) {
   if (!has(regName)) return null;
   let res = regs.get(regName);
   return {
+    addr: res.addr,
     name: regName,
     header: res.header ? res.header : undefined,
     states: res.states ? res.states : undefined,
@@ -1110,10 +1111,13 @@ if (!module.parent) {
 */
 
   console.log("----------------------- \n regs.keys = ");
+  let table = [];
   for (let key of regs.keys()) {
     let reg = getRegDescription(key);
-    log("i", "reg=", reg); //+ " -> "
+    table.push(reg);
+    // log("i", "reg=", reg); //+ " -> "
   }
+  console.table(table);
   // console.log("----------------------- \n regs = ");
   // console.dir(regs, { depth: 4 });
 }

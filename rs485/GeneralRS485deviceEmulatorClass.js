@@ -24,10 +24,18 @@ class GeneralRS485deviceEmulator extends require("../ClassGeneral") {
     props.id = props.id || "GeneralRS485deviceEmulator";
     super(props);
     this.regs = new Map();
+    this.ids = {};
   } // сonstructor
 
   getReg(addr) {
     return this.hasReg(addr) ? this.regs.get(addr) : null;
+  }
+
+  getRegById(id) {
+    if (this.ids[id] != undefined) {
+      return this.getReg(this.ids[id]);
+    }
+    return null;
   }
 
   hasReg(addr) {
@@ -37,9 +45,14 @@ class GeneralRS485deviceEmulator extends require("../ClassGeneral") {
   /**
    * Реєструє новий регістр у емуляторі пристрою.
    * @param {Object} reg - параметри для створення DeviceEmulatorRegisterClass
-   *
+   * @param {Number} reg.addr - адреса регістру
+   * @param {Number} reg.value - стартове значення регістру
+   * @param {String} reg.id="r"+props.addr - ідентифікатор регістру (для людини)
+   * @param {String} reg.note - короткий опис регістру (для людини)
+   * @param {Function} reg.getR = function() {return this._value} - функція що повинна повертати поточне значення регістра
+   * @param {Function} reg.setR(val) = function(val) {return this._value} or throw Error - функція що повинна встановлювати поточне значення регістра,
+   *                                при неприйнятному значенні повинна викидати помилку
    */
-
   addReg(reg = {}) {
     if (reg.addr === undefined) {
       throw new Error(
@@ -58,7 +71,14 @@ class GeneralRS485deviceEmulator extends require("../ClassGeneral") {
       );
     }
 
+    if (this.ids[reg.id] != undefined) {
+      throw new Error(
+        this.ln + `addReg():: Register with id ${reg.id} already exists!`,
+      );
+    }
+
     this.regs.set(reg.addr, new DeviceEmulatorRegisterClass(this, reg));
+    this.ids[reg.id] = reg.addr;
   }
 
   /**

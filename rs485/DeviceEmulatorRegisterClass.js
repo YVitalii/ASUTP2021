@@ -17,7 +17,7 @@ class DeviceEmulatorRegister {
    * @param {String} props.id="r"+props.addr - ідентифікатор регістру (для людини)
    * @param {String} props.note - короткий опис регістру (для людини)
    * @param {Function} props.getR = function() {return this._value} - функція що повинна повертати поточне значення регістра
-   * @param {Function} props.setR(val) = function(val) {return ._value} or throw Error - функція що повинна встановлювати поточне значення регістра,
+   * @param {Function} props.setR(val) = function(val) {return this._value} or throw Error - функція що повинна встановлювати поточне значення регістра,
    *                                при неприйнятному значенні повинна викидати помилку
    */
   constructor(parent, props = {}) {
