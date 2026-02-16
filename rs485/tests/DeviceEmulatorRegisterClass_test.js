@@ -59,3 +59,5 @@ describe("testing: DeviceEmulatorRegisterClass.js", () => {
     equal(dev.counter, 1, "Should be 1");
   });
 });
+
+

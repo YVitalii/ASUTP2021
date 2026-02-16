@@ -1,3 +1,5 @@
+// cd ./devices/trp08
+
 /* -------------- драйвер прибора ТРП-08ТП
 
   function getReg(iface,id,regName,cb) - (err,data) где data -  массив объектов
@@ -219,7 +221,7 @@ regs.set(
         err: null,
       };
     },
-  }
+  },
 );
 
 /*  ------------------ 00 01 T поточна температура, тільки читання
@@ -921,7 +923,7 @@ function setReg(iface, id, regName, value, cb) {
                 "error in (send) err=",
                 err.message,
                 "; code=",
-                err.code
+                err.code,
               )
             : null;
           //res['note']=err.msg;

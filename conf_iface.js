@@ -9,7 +9,7 @@ let trace = 0,
 const os = require("os");
 
 function getPublicIpAddress() {
-  let trace = 1,
+  let trace = 0,
     ln = `getPublicIpAddress()::`;
   const interfaces = os.networkInterfaces();
   if (trace) {
@@ -97,7 +97,7 @@ if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
 } else {
-  comId = comName = "COM4";
+  comId = comName = "COM3";
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");

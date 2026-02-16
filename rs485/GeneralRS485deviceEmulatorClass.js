@@ -4,7 +4,7 @@ const CRC = require("../tools/CRC");
 const DeviceEmulatorRegisterClass = require("./DeviceEmulatorRegisterClass");
 
 /**
- * @typedef {Object} GeneralDeviceEmulator
+ * @typedef {Object} GeneralRS485deviceEmulator
  * @property {Map} regs - Карта регістрів пристрою, де ключ - адреса регістра, а значення - його поточне значення.
  * @property {function} getReg - Метод для отримання значення регістра за його адресою.
  * @property {function} hasReg - Метод для перевірки наявності регістра за його адресою.
@@ -14,14 +14,14 @@ const DeviceEmulatorRegisterClass = require("./DeviceEmulatorRegisterClass");
 /**
  * Description placeholder
  *
- * @class GeneralDeviceEmulator
- * @typedef {GeneralDeviceEmulator}
+ * @class GeneralRS485deviceEmulator
+ * @typedef {GeneralRS485deviceEmulator}
  * @extends {require("../ClassGeneral")}
  */
 
-class GeneralDeviceEmulator extends require("../ClassGeneral") {
+class GeneralRS485deviceEmulator extends require("../ClassGeneral") {
   constructor(props = {}) {
-    props.id = props.id || "GeneralDeviceEmulator";
+    props.id = props.id || "GeneralRS485deviceEmulator";
     super(props);
     this.regs = new Map();
   } // сonstructor
@@ -46,6 +46,7 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
         this.ln + "addReg():: reg object with 'addr' property is required",
       );
     }
+
     let trace = 1,
       ln = this.ln + `addReg(${reg.addr}${reg.id ? "[" + reg.id + "]" : ""})::`;
     trace ? console.log(ln + `Started`) : null;
@@ -59,13 +60,14 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
 
     this.regs.set(reg.addr, new DeviceEmulatorRegisterClass(this, reg));
   }
+
   /**
-   * Функція приймає повідомлення від інтерфейсу та відповідає на нього
+   * Асинхронна функція приймає повідомлення від інтерфейсу та відповідає на нього
    * @param {Buffer} data  - повідомлення rs485, яке надсилається в лінію
-   * @returns
+   * @returns {Buffer} відповідь пристрою по rs485
    */
   async write(data, props = {}) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `write(${parseBuf(data)})::`;
     let FC = data.readUInt8(1),
       resData;
@@ -74,6 +76,9 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
     if (FC == 3) {
       resData = this.FC3(data);
     }
+    if (FC == 6) {
+      resData = this.FC6(data);
+    }
     let res = Buffer.concat(
       [Buffer.from([data[0]]), resData],
       resData.length + 1,
@@ -81,7 +86,6 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
     res = Buffer.concat([res, CRC.getCRC(res)], res.length + 2);
     trace ? console.log(ln + `res=${parseBuf(res)}`) : null;
     return res;
-
     // throw new Error(ln + `write() method not implemented!`);
   }
 
@@ -146,7 +150,9 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
     let addr = data.readUInt16BE(2);
     let value = data.readInt16BE(4);
     trace
-      ? console.log(ln + `Start writing reg [${addr.toString(16)}] = ${value}`)
+      ? console.log(
+          ln + `Start writing reg [0x${addr.toString(16)}] = ${value}`,
+        )
       : null;
     let reg = this.getReg(addr),
       res;
@@ -162,6 +168,7 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
       res = Buffer.copyBytesFrom(data, 1, 5);
     } catch (error) {
       // unsupported data
+      console.error(ln + "ERROR::" + error.message);
       res = this.ModBusError(data, 3);
     }
     trace ? console.log(ln + `res=${parseBuf(res)}`) : null;
@@ -219,4 +226,4 @@ class GeneralDeviceEmulator extends require("../ClassGeneral") {
   }
 } // class
 
-module.exports = GeneralDeviceEmulator;
+module.exports = GeneralRS485deviceEmulator;

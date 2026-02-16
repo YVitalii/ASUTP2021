@@ -26,6 +26,7 @@ dev.addReg({
       throw new Error("Error value");
     }
     this._value = val;
+    return val;
   },
 });
 
@@ -268,4 +269,24 @@ describe("test FC16", () => {
     );
     equal(res.readInt16BE(1), 3, "Error code must be 3" + str);
   }); // test("right request, set multiple regs"
+});
+
+describe("testing dev.write() function", (t) => {
+  let value = 55;
+  test("FC6 write [01-06-00-startReg-00-55]", async (t) => {
+    let req = Buffer.from([1, 6, 0, startReg, 0, value]);
+    let res = await dev.write(req);
+    try {
+      equal(dev.getReg(startReg).value, value, `Should be equal ${value}`);
+    } catch (error) {
+      console.dir(res);
+      console.error("ERROR::" + error.message);
+      throw new Error(error);
+    }
+  });
+  test("FC3 read [01-03-00-startReg-00-01]", async () => {
+    let req = Buffer.from([1, 3, 0, startReg, 0, 1]);
+    let res = await dev.write(req);
+    equal(dev.getReg(startReg).value, value, `Should be equal ${value}`);
+  });
 });

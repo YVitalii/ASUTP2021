@@ -1,7 +1,7 @@
 const config = {};
 
 // вмикає/вимикає емулятор послідовного порту  RS485
-config.emulateRS485 = 1; //емуляція rs485;
+config.emulateRS485 = 0; //емуляція rs485;
 
 // режим розробки всі періоди опитування зменшені
 config.test = true; //false; //true;

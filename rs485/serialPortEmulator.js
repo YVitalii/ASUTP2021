@@ -5,21 +5,17 @@ const parseBuf = require("../tools/parseBuf");
 class SerialEmulator extends EventEmitter {
   constructor(portName, options = {}) {
     super();
-    this.ln = "[SerialEmulator]::";
-    this.portName = portName;
+    this.ln = "[SerialPortEmulator]::";
+    this.portName = "fake" + portName;
     this.baudRate = options.baudRate || 9600;
     this.isOpen = false;
     // Список емуляторів приладів
     this.devices = new Map();
-    this.name = "SerialEmulator";
+    this.name = "SerialPortEmulator";
     // Список емуляторів приладів, де номер в масиві = адресу приладу на шині RS485
     this.devices = [];
+  } // c
 
-    this.deviceState = {
-      concentration: 12.5,
-      status: "IDLE",
-    };
-  }
   // Метод для додавання емулятора приладу
   addDevice(address, deviceEmulator) {
     if (address < 0 || address > 255) {
@@ -54,7 +50,7 @@ class SerialEmulator extends EventEmitter {
 
   // Запис даних у "порт"
   write(data) {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `write()::`;
     if (trace) {
       console.log(ln + `started with data=` + parseBuf(data));
@@ -76,16 +72,15 @@ class SerialEmulator extends EventEmitter {
     }
 
     // Імітуємо обробку команди залізом
-    this._processCommand(data);
+    this._processCommand(addr, data);
   }
 
-  _processCommand(command) {
+  async _processCommand(addr, data) {
     // Емуляція відповіді датчика через 50мс
     let trace = 1,
       ln = this.ln + `_processCommand::`;
-    setTimeout(() => {
-      this.emit("data", command);
-    }, 50);
+    let res = await this.devices[addr].write(data);
+    this.emit("data", res);
   }
 
   close() {
