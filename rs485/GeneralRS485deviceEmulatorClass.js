@@ -60,7 +60,7 @@ class GeneralRS485deviceEmulator extends require("../ClassGeneral") {
       );
     }
 
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `addReg(${reg.addr}${reg.id ? "[" + reg.id + "]" : ""})::`;
     trace ? console.log(ln + `Started`) : null;
 

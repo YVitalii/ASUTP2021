@@ -49,6 +49,13 @@
 // ----- стандартні позначення, щоб міняти в одному місці  -------
 let degC = "\u00b0C"; // °C - позначення градуса
 
+const {
+  fromBCD,
+  toBCD,
+  fromClock,
+  toClock,
+} = require("./driver_generalFunctions.js");
+
 const { dummyPromise } = require("../../tools/dummy.js");
 const log = require("../../tools/log.js");
 //log.setName("TRP08.js");
@@ -56,50 +63,6 @@ const ln = "driver.js::";
 const timeout = 2000; //таймаут запроса
 var buzy = false; // ознака активного процесу запису / читання
 //var values=[];// хранит текущие значения  регистров, номер элемента массива = адрес прибора в сети RS485 (id)
-
-function fromBCD(buf) {
-  //console.log(buf);
-  let str = buf.toString("hex");
-  //console.log(str);
-  let n1000 = str[0] * 1000;
-  let n100 = str[1] * 100;
-  let n10 = str[2] * 10;
-  let n1 = str[3] * 1;
-  let res = n1000 + n100 + n10 + n1;
-  //console.log("T="+res+"C");
-  return res;
-}
-
-function toBCD(val) {
-  let line = ("0000" + String(val)).slice(-4);
-  let arr;
-  try {
-    arr = parseInt(line, 16);
-  } catch (error) {
-    arr = null;
-  }
-
-  //console.log("toBCD:"+line);
-  return arr;
-}
-
-function fromClock(buf) {
-  //  преобразует Buffer ([hours,minutes]) ->  минуты
-  let val = fromBCD(buf);
-  let hrs = parseInt(val / 100);
-  let mins = val - hrs * 100;
-  return hrs * 60 + mins;
-}
-
-function toClock(val) {
-  // преобразует минуты -> Buffer ([hours,minutes]) например 01:22 = [0x01,0x22]
-  let hrs = parseInt(val / 60);
-  let mins = val - hrs * 60;
-  let b = toBCD(hrs * 100 + mins); // преобразуем в десятичное число , где часы - сотни, минуты -десятки и единицы
-  //console.log("toClock input=",val,", output=",b,", buffer",new Buffer([b]));
-  // ------------- нужно ВОЗВРАЩАТЬ ЧИСЛО ----------------
-  return b;
-}
 
 const regs = new Map(); //список регистров прибора
 /* _get(),_set(val) - функции предобработки: принимают данные, преобразовывают их в формат,
