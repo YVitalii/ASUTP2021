@@ -17,6 +17,7 @@ class PID extends ClassGeneral {
    *
    * @constructor
    * @param {Object} [params={}] - The params for the PID regulator.
+   * @param {Object} [params.entity] - link to object for regulation (інколи втрачається посилання на об'єкт з якого береться PV та задається Output)
    * @param {Object} [params.inputRange={min: 0, max: 100}] - The input range for normalization.
    * @param {number} [params.inputRange.min=0] - The minimum input value.
    * @param {number} [params.inputRange.max=100] - The maximum input value.
@@ -39,7 +40,7 @@ class PID extends ClassGeneral {
     let trace = 0,
       ln = params.ln + `constructor()::`;
     super(params);
-
+    this.entity = typeof params.entity == "object" ? params.entity : null;
     this.manual = false; //
     this.realSetPoint = 0; //  цільова точка в одиницях процесу (не переведена в %)
     this.period = params.period ? params.period * 1000 : 1000; //ms
@@ -92,6 +93,14 @@ class PID extends ClassGeneral {
     if (setPoint != undefined) {
       this.setPoint = setPoint;
     }
+    if (this.going) {
+      log(
+        "e",
+        this.ln +
+          "PID regulator is already working. But command start received!!",
+      );
+      return;
+    }
 
     this.errorPrev = 0;
     this.errorSum = 0;
@@ -121,7 +130,7 @@ class PID extends ClassGeneral {
   }
 
   async calculate() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `calculate()::`;
     if (this.going === 0) {
       await this.setOutput(0);

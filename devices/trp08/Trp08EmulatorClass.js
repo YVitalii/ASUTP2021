@@ -31,16 +31,20 @@ class Trp08EmulatorClass extends GeneralRS485deviceEmulatorClass {
 
     // ------ PID-regulator creation --------------
     let pid = props.pid ? props.pid : {};
+
     pid.id = pid.id ? pid.id : this.id + "_pid";
+    pid.entity = this.furnace;
     pid.inputRange =
       pid.inputRange && pid.inputRange.max
         ? pid.inputRange
         : { min: 0, max: 500 };
     pid.getPV = async function () {
-      return this.furnace.getTSync();
+      // console.log("device.furnace.getPV():: this=");
+      // console.dir(this, { depth: 2 });
+      return this.entity.getTSync();
     };
     pid.setOutput = async function (pow) {
-      await this.furnace.setPower(pow);
+      await this.entity.setPower(pow);
       return pow;
     };
     this.pid = new ClassPIDregulator(pid);
@@ -77,6 +81,10 @@ class Trp08EmulatorClass extends GeneralRS485deviceEmulatorClass {
         return toClock(val);
       },
       setR: function (val) {
+        if (val == null) {
+          this._value = null;
+          return 0;
+        }
         // для запуску таймера потрібно викликати reg.value=0;
         if (val != 0) {
           throw new TypeError("Read only register");
@@ -213,8 +221,12 @@ class Trp08EmulatorClass extends GeneralRS485deviceEmulatorClass {
           pid.kd = dad.getRegById("td").value;
           pid.ki = dad.getRegById("ti").value;
           // pid.SP = dad.getRegById("tT").value;
-          pid.start(dad.getRegById("tT").value);
+          pid.start(dad.getRegById("tT")._value);
+          // скидаємо таймер
+          dad.getRegById("timer").value = 0;
+          // встановлюэмо власне значення 23
           this._value = 23;
+
           trace ? console.log(ln + `Completed`) : null;
           return;
         }
@@ -222,6 +234,7 @@ class Trp08EmulatorClass extends GeneralRS485deviceEmulatorClass {
         if (val == 1 && this._value != 7) {
           pid.stop();
           this._value = 7;
+          dad.getRegById("timer").value = null;
         }
       },
     });

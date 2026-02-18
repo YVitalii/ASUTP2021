@@ -61,14 +61,14 @@ class Furnace {
    * Оновлює температуру печі на основі потужності нагрівача та тепловтрат
    */
   updateTemperature() {
-    let trace = 0;
+    let trace = 1;
     let msg = "furnaceModel::";
     let deltaTime = this.deltaTime;
 
     // Енегія що приходить в нагрівач
     let energyToHeater = this.heatingPower * deltaTime;
     msg += ` power=${this.heatingPower.toFixed(
-      2
+      2,
     )}W; energyToHeater=${energyToHeater.toFixed(2)}W; `;
     // Енегія що передається від нагрівача до печі
     let heatLostToFurnace =
@@ -76,7 +76,7 @@ class Furnace {
       (this.heater.temperature - this.currentTemperature) *
       deltaTime;
 
-    msg += ` heatLostToFurnace=${heatLostToFurnace.toFixed(2)}W; `;
+    msg += ` heater→Furnace=${heatLostToFurnace.toFixed(2)}W; `;
     let dQ = energyToHeater - heatLostToFurnace;
     // Оновлюємо накопичену енергію нагрівача
     this.heater.accumulatedEnergy += dQ; // reset accumulated energy
@@ -113,20 +113,19 @@ class Furnace {
     }, deltaTime * 1000);
   }
   /**
-   *
+   * синхронна функція
    * @param {Number} power - потужність нагрівача в %
    */
   setHeatingPower(power, trace = 0) {
     let ln = this.ln + `setHeatingPower(${power})::`;
     power = power < 0 ? 0 : power;
     power = power > 100 ? 100 : power;
-
     this.heatingPower = (power / 100) * this.power;
     trace
       ? log(
           "i",
           ln,
-          `power set to ${power}% this.heatingPower=${this.heatingPower}W`
+          `power set to ${power}% this.heatingPower=${this.heatingPower}W`,
         )
       : null;
     // console.log("Heating power set to: ", this.heatingPower);
@@ -148,6 +147,7 @@ class Furnace {
   getT() {
     return Promise.resolve(this.currentTemperature);
   }
+
   getTSync() {
     return this.currentTemperature;
   }
@@ -167,7 +167,7 @@ if (!module.parent) {
   for (let i = 0; i < 10; i++) {
     furnace.updateTemperature(1);
     console.log(
-      `Time: ${i + 1}s, Temperature: ${furnace.currentTemperature.toFixed(2)}°C`
+      `Time: ${i + 1}s, Temperature: ${furnace.currentTemperature.toFixed(2)}°C`,
     );
   }
 }

@@ -56,6 +56,7 @@ describe("test registers", () => {
     test("Reading", () => {
       let t = reg.value;
       equal(reg.value, 0x0020, ln + `Shoud be 0x0020`);
+      equal(reg._value, 20, "Should be 20 C");
     });
     test("Writing", () => {
       try {
@@ -86,7 +87,10 @@ describe("test registers", () => {
         "Should be error. timer is read only",
       );
       reg.value = 0;
-      equal(typeof reg.value, "number", "Shoud be number");
+      equal(typeof reg.value, "number", "When started, shoud be number");
+
+      reg.value = null;
+      equal(reg._value, null, "When stoped, shoud be reg._value=null");
     });
   }); //describe("register timer (0x0002)"
 
@@ -247,13 +251,18 @@ describe("test registers", () => {
       }
       equal(pid.going, true, "the PID regulation must be started");
       equal(reg.value, 23, "the TRP08 must be started");
+      equal(
+        typeof reg.parent.getRegById("timer").value,
+        "number",
+        "timer must be started",
+      );
     }); //test("Set Start Mode (send 17)"
 
     test("Set Stop Mode (send 1)", () => {
       reg.value = 1;
-
       equal(pid.going, false, "the PID regulation must be stoped");
       equal(reg.value, 7, "the TRP08 must be stoped");
+      equal(reg.parent.getRegById("timer").value, 0, "timer must be stoped");
     }); //test("Set Stop Mode (send 1)"
   }); //describe(" register state (0)"
 });
