@@ -8,10 +8,12 @@ const pug = require("pug");
 const path = require("path");
 const { dummyPromise } = require("../../tools/dummy.js");
 
+// console.log("===========================================");
+// console.log(__dirname);
+
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор
  */
-
 class Manager {
   /**
    * Конструктор
@@ -26,7 +28,7 @@ class Manager {
   constructor(iface, addr, params = {}) {
     this.trace = 0; // дозвіл трасування
     this.ln = `managerTRP08(addr=${addr}):`; // заголовок трасування
-
+    this.__dirname = __dirname;
     // -------- інтерфейс -----------
     this.iface = iface;
     // ознака поточного циклу запису
@@ -268,14 +270,14 @@ class Manager {
               ln +
                 "Device is offLine! ErrorCounter=" +
                 this.errorCounter.value +
-                ". Please check connection!"
+                ". Please check connection!",
             );
           }
 
           log(
             "",
             ln +
-              `errCounter=${this.errorCounter.value}.Try again.. ${i} after ${this.period}s`
+              `errCounter=${this.errorCounter.value}.Try again.. ${i} after ${this.period}s`,
           );
           i++;
           await dummyPromise(this.period * 1000);

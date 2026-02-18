@@ -4,7 +4,7 @@ const ClassDevicesManager = require("../../devices/devicesManager/ClassDevicesMa
 const ClassLoggerManager = require("../../controllers/loggerManager/ClassLoggerManager.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
 
-const test = require("../../config.js").test;
+const test = require("../../config.js").emulateRS485;
 
 class ClassEntityGeneral {
   constructor(props) {
@@ -13,7 +13,7 @@ class ClassEntityGeneral {
       this.id = props.id;
     } else {
       throw new Error(
-        "Field 'id' must be defined! \n ===> id = {String}. Using like: local folder name + entity.baseUrl"
+        "Field 'id' must be defined! \n ===> id = {String}. Using like: local folder name + entity.baseUrl",
       );
     }
     // заголовок для логування
@@ -42,7 +42,10 @@ class ClassEntityGeneral {
     this.homeUrl = (props.baseUrl ? props.baseUrl : "") + "/entity/" + this.id;
 
     // ------  менеджер приладів ----------
-    this.devicesManager = new ClassDevicesManager({ baseUrl: this.homeUrl });
+    this.devicesManager = new ClassDevicesManager({
+      baseUrl: this.homeUrl,
+      emulate: test,
+    });
 
     // ------  менеджер логування ----------
     this.loggerManager = new ClassLoggerManager({

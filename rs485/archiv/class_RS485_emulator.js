@@ -1,6 +1,6 @@
-const ClassIface = require("./class_RS485_iface");
-const ClassGeneral = require("../ClassGeneral");
-const dummy = require("../tools/dummy.js").dummyPromise;
+const ClassIface = require("../class_RS485_iface.js");
+const ClassGeneral = require("../../ClassGeneral.js");
+const dummy = require("../../tools/dummy.js").dummyPromise;
 
 class ClassRS485Emulator extends ClassGeneral {
   constructor(path, props) {
@@ -31,7 +31,7 @@ class ClassRS485Emulator extends ClassGeneral {
       ln =
         this.ln +
         `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
-          req.data
+          req.data,
         )})::`;
     trace ? log(ln, `Started!`) : null;
     setTimeout(() => {

@@ -43,11 +43,11 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 
 // ----------------------------- прилади -----------------
 // --- менеджери
-// const TRP08 = require("../../devices/trp08/manager.js");
-const TRM251 = require("../../devices/OWEN_TRM251/manager.js");
+const TRP08 = require("../../devices/trp08/manager.js");
+// const TRM251 = require("../../devices/OWEN_TRM251/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
-// let furnace = new TRP08(ifaceW2, 1, { id: "furnace", addT: 0 });
-let furnace = new TRM251({ iface: ifaceW2, addr: 1, id: "furnace", addT: 0 });
+let furnace = new TRP08(ifaceW2, 1, { id: "furnace", addT: 0 });
+// let furnace = new TRM251({ iface: ifaceW2, addr: 1, id: "furnace", addT: 0 });
 
 entity.devicesManager.addDevice(furnace.id, furnace);
 
@@ -116,8 +116,9 @@ logger.addReg({
   },
   getValue: async () => {
     // повинна повертати числове значення регістру
-    let t = await entity.devicesManager.getDevice("furnace").getRegister("T1"); //TRM251
-    // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
+    // let t = await entity.devicesManager.getDevice("furnace").getTRegister("T1"); //TRM251
+    let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
+
     return t;
   },
 }); //logger.addReg(
@@ -138,9 +139,10 @@ logger.addReg({
   },
   getValue: async () => {
     // повинна повертати числове значення регістру
-    let t = await entity.devicesManager.getDevice("furnace").getRegister("tT"); //TRM251
+    // let t = await entity.devicesManager.getDevice("furnace").getRegister("tT"); //TRM251
     // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
-    t = t == null ? 0:t;
+    let t = (await entity.devicesManager.getDevice("furnace").getParams("tT"))
+      .tT.value; //TRP08
     return t;
   },
 }); //logger.addReg(

@@ -29,7 +29,7 @@ class PID extends ClassGeneral {
    * @param {number} params.kiError=(100/kp)*0.9 - величина помилки PV, при якій інтегральна складова не рахується
    * @param {number} [params.kd=0] - The derivative gain.
    * @param {number} [params.setPoint=0] - The desired set point.
-   * @param {number} [params.period=1000] - ms, period between calculation
+   * @param {number} [params.period=2000] - ms, period between calculation
    * @param {async Function} params.getPV - async функція для отримання поточного Process Value
    * @param {async Function} params.setOutput - async функція для встановлення поточної потужності
    *

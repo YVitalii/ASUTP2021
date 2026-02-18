@@ -1,6 +1,7 @@
 let comName = "";
 let platform = process.platform;
 let ifaces = {};
+
 const log = require("./tools/log.js");
 let trace = 0,
   ln = __filename + "::";
@@ -91,9 +92,12 @@ console.log(`Поточна публічна IP-адреса сервера: ${i
 // }
 
 let comId;
-
+const { emulateRS485 } = require("./config.js");
 // -------------  w2 two wire RS485 ------------------------
-if (platform != "win32") {
+if (emulateRS485) {
+  comName = "fakeCOM";
+  comId = "fCOM";
+} else if (platform != "win32") {
   comName = "/dev/ttyUSB0";
   comId = comName.split("/")[2];
 } else {
@@ -101,6 +105,7 @@ if (platform != "win32") {
 }
 
 const Iface = require("./rs485/class_RS485_iface.js");
+
 let portId = "w2",
   portHeader = `${portId}(${comId})`;
 // module.exports.path = comName;
