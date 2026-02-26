@@ -11,12 +11,18 @@ class SerialEmulator extends EventEmitter {
     this.isOpen = false;
     // Список емуляторів приладів
     this.devices = new Map();
-    this.name = "SerialPortEmulator";
+    this.name = "SerialPortEmulator"
+    this.isEmulator = true;
     // Список емуляторів приладів, де номер в масиві = адресу приладу на шині RS485
     this.devices = [];
   } // c
 
-  // Метод для додавання емулятора приладу
+  /**
+   * Метод для додавання емулятора приладу
+   * @param {Number} address - адреса приладу в iface
+   * @param {Instance of GeneralRS485deviceEmulatorClass} deviceEmulator 
+   * @returns {null} 
+  */  
   addDevice(address, deviceEmulator) {
     if (address < 0 || address > 255) {
       throw new Error(this.ln + "Address must be between 0 and 255");

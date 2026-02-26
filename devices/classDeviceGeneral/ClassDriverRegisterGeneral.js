@@ -80,7 +80,7 @@ function testFunction(func) {
  * @property {Object|null} data - дані або null
  * @property {Number|String} data.value - значення регістру, що запамятовується в менеджері
  * @property {String} data.note - примітки до значення регістру
- * можливі інші поля в data в залежності від реалізації
+ * можливі інші поля в data в залежності від реалізації : {err:Error,data:{value,[note],[other fields]} }
  */
 
 /**

@@ -469,6 +469,21 @@ class IfaceRS485 extends ClassGeneral {
     });
     return html;
   }
+
+  /**
+   * додає емулятор до емулятора інтерфейсу
+   * @param {Number} devAddress - адреса приладу в мережі iface 
+   * @param {GeneralRS485deviceEmulatorClass} device - емулятор приладу нащадок GeneralRS485deviceEmulatorClass
+   */
+  addEmulator(devAddress,device){
+    if (this.serial.isEmulator){
+      this.serial.addDevice(devAddress,device)
+    } else {
+      let msg=`Emulation is off`
+      throw new Error(msg);
+    }
+  } // addEmulator
+  
 } // class
 
 /**
@@ -538,6 +553,8 @@ function calculateResponseLength(fc, data) {
   }
   return length;
 }
+
+
 
 function checkModbusError(task) {}
 module.exports = IfaceRS485;

@@ -61,7 +61,7 @@ class Furnace {
    * Оновлює температуру печі на основі потужності нагрівача та тепловтрат
    */
   updateTemperature() {
-    let trace = 1;
+    let trace = 0;
     let msg = "furnaceModel::";
     let deltaTime = this.deltaTime;
 

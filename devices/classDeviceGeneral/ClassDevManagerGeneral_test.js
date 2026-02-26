@@ -1,3 +1,7 @@
+// запуск тестів
+// cd ./devices/classDeviceGeneral/
+// mocha  ./ClassDevManagerGeneral_test.js -w
+
 const chai = require("chai");
 const sinon = require("sinon");
 const ClassDevManagerGeneral = require("./ClassDevManagerGeneral.js");
@@ -74,16 +78,26 @@ describe("ClassDevManagerGeneral", function () {
       reg1: { value: 10, isActual: () => true },
       reg2: { value: 20, isActual: () => true },
     };
-    const values = manager.getRegsValues();
+    const values = await manager.getRegsValues();
+    
     expect(values).to.deep.equal({ reg1: 10, reg2: 20, offLine: false });
   });
 
   it("should set register value", async function () {
     const manager = new ClassDevManagerGeneral(props);
     manager.regs = { reg1: { value: 10, isActual: () => true } };
-    props.driver.setRegPromise.resolves({ value: 30 });
-    const result = await manager.setRegister("reg1", 30);
-    expect(result).to.equal("reg1=30; ");
+    props.driver.setRegPromise.resolves({ regName: "reg1", value: 30 });
+    let result
+    try {
+      result = await manager.setRegister("reg1", 30);
+    } catch (error) {
+      console.error(error);
+    }
+ 
+    console.log("-----------------------------------")
+    console.log(`result= `);
+    console.dir(result);
+    expect(result).to.equal("reg1=30;");
     expect(manager.regs["reg1"].value).to.equal(30);
   });
 

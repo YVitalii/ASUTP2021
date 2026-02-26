@@ -11,21 +11,28 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
   /**
    * Конструктор
    * @param {Object} props - додаткові налаштування конкретного приладу
+   * @param {Boolean} props.emulate - true = підключити емулятор а не реальний прилад
+   * @param {Object} props.emulatoProps - додаткові налаштування емулятора (За потреби)
    * @param {Object} props.iface - об'єкт інтерфейсу до якого підключено цей прилад, повинен мати функцію send()
    * @param {Integer} props.addr - адреса приладу в iface
    * @param {Object} props.driver - драйвер приладу
    * @param {Object} props.period.if - визначає затримки між запитами для різних ситуацій
-   * @param {Integer} props.period.if.portNotOpened=5 - якщо порт не відкрито
-   * @param {Integer} props.period.if.timeOut=5 - якщо прилад не відповідає
-   * @param {Integer} props.period.if.error=10 - помилка
-   * @param {Integer} props.period.if.deviceBusy=2 - прилад зайнятий
+   * @param {Integer} props.period.if.portNotOpened=5 - сек, якщо порт не відкрито
+   * @param {Integer} props.period.if.timeOut=5 - сек, якщо прилад не відповідає
+   * @param {Integer} props.period.if.error=10 - сек, помилка
+   * @param {Integer} props.period.if.deviceBusy=2 - сек, прилад зайнятий
    */
 
   constructor(props) {
+
     super(props);
 
     let trace = 0,
-      ln = "constructor::";
+      ln = this.ln+"constructor::";
+    
+    // ----------- emulate -------------
+    
+    this.emulate = props.emulate ? props.emulate : false;
 
     // ----------- iface -------------
     if (!props.iface || typeof props.iface.send != "function") {
@@ -44,11 +51,11 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
       );
     }
     this.addr = props.addr;
+
     // settings for tracing
-    let addr = "" + this.addr;
-    addr = addr.length > 10 ? ".." + addr.slice(-10) : addr;
-    // this.ln += ``;
-    ln = this.ln + ln;
+    let addr = "00" + this.addr;
+    addr = addr.length > 3 ? ".." + addr.slice(-3) : addr;
+    ln=this.ln += `[${addr}]::`;
 
     // ----------- driver -------------
     if (!props.driver || typeof props.driver.getRegPromise != "function") {

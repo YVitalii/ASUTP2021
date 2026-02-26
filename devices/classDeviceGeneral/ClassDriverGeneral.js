@@ -1,5 +1,22 @@
 /** типовий драйвер приладу */
 
+/**
+ * @typedef ClassDriver_getRegPromise
+ * @prop {Object} iface - об'єкт інтерфейсу
+ * @prop {Number} devAddr - адрес приладу в мережі iface
+ * @prop {String} regName - ідентифікатор регістра
+ */
+
+/**
+ * @typedef ClassDriver_setRegPromise
+ * @prop {Object} iface - об'єкт інтерфейсу
+ * @prop {Number} devAddr - адрес приладу в мережі iface
+ * @prop {String} regName - ідентифікатор регістра
+ * @prop {Number || String} value - значення регістра
+ */
+
+
+
 // запуск тестів
 // mocha  ../tests/t_createDriverGeneral.js -w
 const log = require("../../tools/log");
@@ -61,10 +78,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
   /**
    * Функція перевіряє корректність запитів до getReg та setReg
    * Наразі це:  iface та regName
-   * @param {Object} args
-   * @param {Object} args.iface - instance of iface (must has method send())
-   * @param {String} args.regName - valid regName
-   * @param {String} args.addr - valid address device in rs485
+   * @param {ClassDriver_getRegPromise} args
    * @returns {instance of DriverRegGeneral | Error} - this.regs.get(regName) / Error()
    */
   testRequest(args) {
@@ -97,7 +111,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
    * @param iface {module} -  налаштований та підготовлений об'єкт, який займається взаємодією з фізичними приладами має містити функції send = addTask (див RS485_v200.js)
    * @param addr {integer} - адрес приладу в iface
    * @param regName {String} - назва регистру, як визначено в regs
-   * @return cb {callback} (err,data), де data = Array [{regName, value, note, detail:{request,response,afterGet}},...]
+   * @return cb {callback} {err,data}, де data = Array [{regName, value, note, detail:{request,response,afterGet}},...]
    */
   getReg(iface, addr, regName, cb) {
     let trace = 0,
@@ -136,13 +150,25 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
       res.detail.afterGet = afterGet.data;
       res.value = afterGet.data.value;
       res.note = afterGet.data.note;
+      res.detail.duration = (new Date().getTime() - req.timestamp) / 1000;
       return cb(null, [res]);
     });
   } //getReg(iface, addr, regName, cb)
 
+/**
+ * @typedef getRegPromise_Response
+ * @prop {String} regName  - назва регістра
+ * @prop {String | Number} value - значення регістра
+ * @prop {String} note - короткий опис регістра
+ * @prop {Object} detail - деталі обробки запиту
+ * @prop {Number} detail.duration - тривалість запиту в сек 
+ * @prop {Buffer} detail.request - необроблений запит 
+ * @prop {Buffer} detail.response - необроблена відповідь
+ */
+
   /** Промісифікована функція getReg() - див. її опис
-   * @prop {Object} props - об'єкт з даними, що потрібні асинхронній функції props={iface,devAddr,regName}
-   * @returns {Ppomise} [{regName,value,note,detail:{duration,request,response,afterSet}},...] array of objects
+   * @prop {ClassDriver_getRegPromise} props - об'єкт з даними, що потрібні асинхронній функції props={iface,devAddr,regName}
+   * @returns {Array of getRegPromise_Response} [{regName,value,note,detail:{duration,request,response,afterSet}},...] array of objects
    */
   getRegPromise(props = undefined) {
     let environ = this;
@@ -151,7 +177,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     // console.log("props=");
     // console.dir(props);
     return new Promise(function (resolve, reject) {
-      let trace = 0,
+      let trace = 1,
         ln = environ.ln + `getRegPromise`;
       // if (trace) {
       //   log("i", ln, `::environ=`);

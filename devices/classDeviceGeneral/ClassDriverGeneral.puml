@@ -1,25 +1,53 @@
 @startuml ClassDriverGeneral
-
-
-class "ClassDriverGeneral" as ClassDriverGeneral {
-    -- constructor --
-    +**timeout**=1000: Number - ms період очікування відповіді від приладу 
-    -- this.properties --
-    +**regs**: Map - список регістрів
-    -- this.methods --
-    +**addRegister**(instance of ClassDriverRegisterGeneral) - додає новий регістр до переліку регістрів
-    +**has(regName)** - перевіряє наявність regName в списку зареєстрованих регістрів
-    +**getReg(iface,addr,regName,cb(err,data))** - отримує дані з приладу по інтерфейсу iface
-    +**setReg(iface,addr,regName,value,cb(err,data))** - записує дані в прилад по інтерфейсу iface
-    +**getRegPromise({iface,devAddr,regName})** return Error | data - промісифікований варіант getReg
-    +**setRegPromise({iface,devAddr,regName,value})** return Error | data- промісифікований варіант setReg
-    +**printRegsDescription()** - друкує в консоль перелік регістрів
-}  
-
-ClassGeneral --|> ClassDriverGeneral
-ClassDriverRegisterGeneral o--o ClassDriverGeneral
+skinparam classAttributeIconSize 0
 
 !include ../../ClassGeneral.puml
 !include ./ClassDriverRegisterGeneral.puml
+
+class ClassDriverGeneral extends ClassGeneral {
+  ' --- Властивості ---
+  +timeout: Number - ms період очікування відповіді від приладу
+  +regs: Map<String, ClassDriverRegisterGeneral> - список регістрів
+
+  ' --- Конструктор ---
+  +ClassDriverGeneral(props: Object) <<constructor>>
+
+  ' --- Методи перевірки ---
+  +has(regName: String): boolean - true якщо regName є в regs
+  +testRequest(args: {iface, regName, addr}): ClassDriverRegisterGeneral | Error - валідація запитів до getReg/setReg
+
+  ' --- Реєстрація регістрів ---
+  +addRegister(props: Object | Array): ClassDriverRegisterGeneral | Array - додає регістр(и) до regs
+
+  ' --- Читання регістра (callback) ---
+  +getReg(iface, addr, regName, cb(err, data)): void
+
+  ' --- Читання регістра (Promise) ---
+  +getRegPromise(props: {iface, devAddr, regName}): Promise<Array>
+
+  ' --- Запис регістра (callback) ---
+  +setReg(iface, addr, regName, value, cb(err, data)): void
+
+  ' --- Запис регістра (Promise) ---
+  +setRegPromise(props: {iface, devAddr, regName, value}): Promise<Object>
+
+  ' --- Інформація про регістри ---
+  +getRegInfo(regName: String, headers: Array): Object | undefined
+  +printRegsDescription(): void - друкує таблицю регістрів у консоль
+}
+
+note right of ClassDriverGeneral::getReg
+  **iface** - об'єкт з методом send()
+  **addr** - адреса приладу (0-254)
+  **regName** - id регістру з regs
+  **data** = [{regName, value, note, detail:{request, response, afterGet}}]
+end note
+
+note right of ClassDriverGeneral::setReg
+  **value** - значення для запису
+  **data** = {regName, value, note, detail:{duration, request, response, afterSet}}
+end note
+
+ClassDriverGeneral o-- "*" ClassDriverRegisterGeneral : regs
 
 @enduml
