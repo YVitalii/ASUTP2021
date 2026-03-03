@@ -15,8 +15,6 @@
  * @prop {Number || String} value - значення регістра
  */
 
-
-
 // запуск тестів
 // mocha  ../tests/t_createDriverGeneral.js -w
 const log = require("../../tools/log");
@@ -68,7 +66,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     let reg = new ClassDriverRegisterGeneral(props);
     if (this.has(reg.id)) {
       throw new Error(
-        `Register ${reg.id} alredy was declared! Try different "id".`
+        `Register ${reg.id} alredy was declared! Try different "id".`,
       );
     }
     this.regs.set(reg.id, reg);
@@ -151,20 +149,24 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
       res.value = afterGet.data.value;
       res.note = afterGet.data.note;
       res.detail.duration = (new Date().getTime() - req.timestamp) / 1000;
+      if (trace) {
+        console.log(ln + `res=`);
+        console.dir(res, { depth: 1 });
+      }
       return cb(null, [res]);
     });
   } //getReg(iface, addr, regName, cb)
 
-/**
- * @typedef getRegPromise_Response
- * @prop {String} regName  - назва регістра
- * @prop {String | Number} value - значення регістра
- * @prop {String} note - короткий опис регістра
- * @prop {Object} detail - деталі обробки запиту
- * @prop {Number} detail.duration - тривалість запиту в сек 
- * @prop {Buffer} detail.request - необроблений запит 
- * @prop {Buffer} detail.response - необроблена відповідь
- */
+  /**
+   * @typedef getRegPromise_Response
+   * @prop {String} regName  - назва регістра
+   * @prop {String | Number} value - значення регістра
+   * @prop {String} note - короткий опис регістра
+   * @prop {Object} detail - деталі обробки запиту
+   * @prop {Number} detail.duration - тривалість запиту в сек
+   * @prop {Buffer} detail.request - необроблений запит
+   * @prop {Buffer} detail.response - необроблена відповідь
+   */
 
   /** Промісифікована функція getReg() - див. її опис
    * @prop {ClassDriver_getRegPromise} props - об'єкт з даними, що потрібні асинхронній функції props={iface,devAddr,regName}
@@ -177,7 +179,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     // console.log("props=");
     // console.dir(props);
     return new Promise(function (resolve, reject) {
-      let trace = 1,
+      let trace = 0,
         ln = environ.ln + `getRegPromise`;
       // if (trace) {
       //   log("i", ln, `::environ=`);
@@ -243,6 +245,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
         request: req,
       },
     };
+
     iface.send(req, function (err, data) {
       if (err) {
         return cb(err, res);
@@ -285,7 +288,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
             return;
           }
           resolve(data);
-        }
+        },
       ); //this.setReg
     });
   } //async setRegPromise

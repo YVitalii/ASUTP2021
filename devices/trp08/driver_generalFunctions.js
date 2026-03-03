@@ -10,7 +10,7 @@ function fromBCD(buf) {
   } else if (typeof buf == "number") {
     str = ("0000" + buf.toString(16)).slice(-4);
   } else {
-    throw new RangeError("Argument should be buffer or number");
+    return null;
   }
   let n1000 = str[0] * 1000;
   let n100 = str[1] * 100;
@@ -44,7 +44,7 @@ function toBCD(val) {
 /**
  * Перетворює з Clock формату в кількість хвилини 0xHHMM => 0x0120 => 60+20=80 minutes
  * @param {Buffer || Number } buf
- * @returns {Number} - кількість хвилин
+ * @returns {Number||Null} - кількість хвилин
  */
 function fromClock(buf) {
   //  преобразует Buffer ([hours,minutes]) ->  минуты

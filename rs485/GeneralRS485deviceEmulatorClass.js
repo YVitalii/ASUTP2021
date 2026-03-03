@@ -165,7 +165,7 @@ class GeneralRS485deviceEmulator extends require("../ClassGeneral") {
   } // FC3
 
   FC6(data) {
-    let trace = 0,
+    let trace = 1,
       ln = this.ln + `FC6(${parseBuf(data)})::`;
     let addr = data.readUInt16BE(2);
     let value = data.readInt16BE(4);
