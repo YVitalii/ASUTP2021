@@ -20,6 +20,7 @@ function parseProgram(program) {
 }
 
 if (!module.parent) {
+  const util = require("util");
   let data = parseProgram(program);
-  console.dir(data);
+  onsole.log(util.inspect(buf, { colors: true, maxArrayLength: 32 }));
 }
