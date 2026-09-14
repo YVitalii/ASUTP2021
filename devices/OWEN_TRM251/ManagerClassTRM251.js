@@ -111,7 +111,7 @@ class ClassManager extends ClassDevManagerGeneral {
       obsolescence: 5,
       driverRegName: `step`,
     }); // addRegister
-     // ------- step ----------
+    // ------- step ----------
     this.addRegister({
       id: `program`,
       comment: {
@@ -170,12 +170,13 @@ class ClassManager extends ClassDevManagerGeneral {
 
   async getMode() {
     let m = await this.getRegister("mode");
-    let trace=0, ln=this.ln+"getMode()::";
-    trace ? console.log(ln+"mode=",m) : null;
-    setTimeout( () => {
+    let trace = 0,
+      ln = this.ln + "getMode()::";
+    trace ? console.log(ln + "mode=", m) : null;
+    setTimeout(() => {
       this.getMode();
-    },5000);
-  }// getMode()
+    }, 5000);
+  } // getMode()
 
   async getRegister(regName) {
     let trace = 0,
@@ -220,7 +221,6 @@ class ClassManager extends ClassDevManagerGeneral {
       log("i", ln, `props=`);
       console.dir(props);
     }
-
     let res = this.getAll();
     res.baseUrl = props.baseUrl + this.id + "/getRegs";
     res.regs = this.getRegsForHtml();

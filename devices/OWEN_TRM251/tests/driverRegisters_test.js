@@ -61,7 +61,7 @@ describe("Driver's registers test:", () => {
       match(
         res.err.message,
         /readonly/,
-        "Message should contain word 'readonly'"
+        "Message should contain word 'readonly'",
       );
     });
     it("get_()", () => {
@@ -71,7 +71,7 @@ describe("Driver's registers test:", () => {
       match(
         res.err.message,
         /readonly/,
-        "Message should contain word 'readonly'"
+        "Message should contain word 'readonly'",
       );
     });
     it("_set()", () => {
@@ -137,10 +137,14 @@ describe("Driver's registers test:", () => {
       equal(
         resGet.data.addr,
         0x0100,
-        "Program address should be 0x0100=" + 0x0100
+        "Program address should be 0x0100=" + 0x0100,
       );
       equal(resGet.data.FC, 3, "Function should be FC3");
-      equal(resGet.data.data, 21, "Bytes quantity should be 20");
+      console.log(
+        "=============================\nprogram _get()::resGet.data=",
+      );
+      console.dir(resGet.data, { depth: 2 });
+      equal(resGet.data.data, 21, "Bytes quantity should be 21");
     }); // it _get
 
     it("get_()", () => {
@@ -151,7 +155,7 @@ describe("Driver's registers test:", () => {
       equal(
         resGet.data.value.length,
         6,
-        "Length of programm massive should be 1+5=6 items in program"
+        "Length of programm massive should be 1+5=6 items in program",
       );
       for (let i = 0; i < resGet.data.value.length - 1; i++) {
         const step = resGet.data.value[i + 1];
