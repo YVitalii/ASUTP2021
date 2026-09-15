@@ -257,15 +257,21 @@ module.exports = ClassManager;
 
 if (!module.parent) {
   // якщо запущено як окремий модуль
-  let w2 = require("../../conf_iface.js").w2;
+
+  let w2 = {
+    send: (val) => {
+      return val;
+    },
+  };
   let entity = new ClassManager({ iface: w2, id: "TRM251", addr: 1 });
   // console.dir(entity, { depth: 2 });
-  console.dir(entity.getCompactHtml({ baseUrl: "/devices/OWEN_TRM251/" }));
-  async function read() {
-    let res = await entity.getParams("T1;T2;T3;T4;T5;T6;T7;T8");
-    console.dir(res);
-    setTimeout(read, 2000);
-  }
+  console.dir(entity);
+  // console.dir(entity.getCompactHtml({ baseUrl: "/devices/OWEN_TRM251/" }));
+  // async function read() {
+  //   let res = await entity.getParams("T1;T2;T3;T4;T5;T6;T7;T8");
+  //   console.dir(res);
+  //   setTimeout(read, 2000);
+  // }
 
   //read();
   //console.log(entity.getFullHtml());

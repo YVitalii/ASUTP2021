@@ -133,8 +133,8 @@ class IfaceRS485 extends ClassGeneral {
     this.timeOutErrorsCounterMax = props.timeOutErrorsCounterMax
       ? props.timeOutErrorsCounterMax
       : gTest
-      ? 5
-      : 20;
+        ? 5
+        : 20;
     this.timeOutErrorsCounter = 0; // лічильник помилок
 
     this.isOpened = false;
@@ -219,7 +219,7 @@ class IfaceRS485 extends ClassGeneral {
       ln =
         this.ln +
         `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
-          req.data
+          req.data,
         )})::`;
     //trace ? log(ln, `Started!`) : null;
     if (
@@ -390,7 +390,7 @@ class IfaceRS485 extends ClassGeneral {
           ? log(
               "w",
               ln,
-              `Timeout error! timeOutErrorsCounter=${this.timeOutErrorsCounter}`
+              `Timeout error! timeOutErrorsCounter=${this.timeOutErrorsCounter}`,
             )
           : null;
         if (this.timeOutErrorsCounter > this.timeOutErrorsCounterMax) {
@@ -415,8 +415,8 @@ class IfaceRS485 extends ClassGeneral {
       ? log(
           ln,
           `response=${parseBuf(task.res)}; data=${parseBuf(
-            task.data
-          )}; duration=${duration} s`
+            task.data,
+          )}; duration=${duration} s`,
         )
       : null;
     // посилка успішна, отже інтерфейс працює
@@ -476,6 +476,9 @@ function extractData(buf) {
   switch (FC) {
     case 3:
       _data = new Buffer.from(buf.slice(3, buf.length - 2));
+      break;
+    case 5:
+      _data = new Buffer.from(buf.slice(4, buf.length - 2));
       break;
     case 6:
       _data = new Buffer.from(buf.slice(4, buf.length - 2));

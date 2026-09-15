@@ -1,6 +1,7 @@
 const ClassDriverGeneral = require("../classDeviceGeneral/ClassDriverGeneral");
 const { degC, lpm, m3ph, percent } = require("../../config.js").units;
 const log = require("../../tools/log.js"); // логер
+const gLn = "TRM251_driver::";
 /** Функція для скорочення записів
  * env = Object of ClassDriverRegisterGeneral
  */
@@ -98,7 +99,7 @@ for (let i = 1; i < 3; i++) {
     },
     get_: function (arg) {
       let trace = 0,
-        ln = `get_::`;
+        ln = gLn + this.id + `::get_::`;
       if (trace) {
         log("i", ln, `arg=`);
         console.dir(arg);
@@ -122,7 +123,7 @@ for (let i = 1; i < 3; i++) {
       trace
         ? console.log(
             ln +
-              `pointOffset=${pointOffset}; data=${data}; status=${status}; note=${note} `
+              `pointOffset=${pointOffset}; data=${data}; status=${status}; note=${note} `,
           )
         : null;
 
@@ -164,7 +165,7 @@ driver.addRegister({
       ln = this.id + `::get_(${arg})::`;
 
     // поточна уставка
-    let value = arg.readUInt16BE() / 10;
+    let value = arg.readInt16BE() / 10;
     let res = { err: null, data: { value, note: this.note } };
     if (trace) {
       console.log(ln + `res=`);
@@ -222,8 +223,9 @@ driver.addRegister({
 
 // ------------ startStop  ---------
 driver.addRegister({
+  // при стпробу запуску вже запущеного приладу або зупинки вже зупиненого отримуємо помилку ModBus
   id: "startStop",
-  addr: 0x0011,
+  addr: 0x0050,
   header: { ua: `Старт/Стоп`, en: `Start/Stop`, ru: `Старт/Стоп` },
   note: `Write coil`,
   units: { ua: ``, en: ``, ru: `` },
@@ -248,7 +250,7 @@ driver.addRegister({
     } else {
       // invalid value
       err = new Error(
-        ln + `Invalid value=${arg} for startStop register! Should be 0 or 1`
+        ln + `Invalid value=${arg} for startStop register! Should be 0 or 1`,
       );
       return { err, data };
     }
@@ -292,7 +294,7 @@ driver.addRegister({
     let data = {
         addr: this.addr,
         FC: 3,
-        data: 22,
+        data: 2 + 3 * 5 * 4 * 2,
       },
       err = null;
     return { err, data };
@@ -307,7 +309,7 @@ driver.addRegister({
     }
     // // положення крапки
     let timeScale = arg.slice(0, 2).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
-    trace ? console.log("Time scale=",timeScale):null;
+    trace ? console.log("Time scale=", timeScale) : null;
 
     let programSteps = 5; // кількість кроків у програмі
     let program = [
@@ -322,19 +324,19 @@ driver.addRegister({
       },
     ];
     for (let step = 0; step < programSteps; step++) {
-      // 2025-12-29 уставка починається не з 2 байта а з 4, 
-      // уставка1 =  0x0102 і т.д. ймовірно помилка 
+      // 2025-12-29 уставка починається не з 2 байта а з 4,
+      // уставка1 =  0x0102 і т.д. ймовірно помилка
       // при зміщенні на 2  - програма читається коректно
       // тому поки буде так, при нагоді розібратися
-      let addr = 2+2 + step * 8;
+      let addr = 2 + 2 + step * 8;
       let point = arg.slice(addr + 2, addr + 4).readUInt16BE();
       let SP =
         arg.slice(addr, addr + 2).readUInt16BE() /
         (point == 0 ? 1 : point * 10);
-      // 2025-12-29 В описі вказано, що час зберігається та передається в секундах, але схоже що 
+      // 2025-12-29 В описі вказано, що час зберігається та передається в секундах, але схоже що
       // все-таки: для "ГГ:ХХ" в хвилинах, можливо для "ХХ:СС" - в секундах   -потребує уточненя
-      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE() );
-      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE() );
+      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE());
+      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE());
 
       program.push({ tT: SP, H: H, Y: Y });
       if (trace) {
@@ -371,7 +373,7 @@ driver.addRegister({
     for (let i = 1; i < 6; i++) {
       //схоже невірно вказані адреси в описі див. примітки до get_
       //
-      let addr = 2+2 + (i - 1) * 8; 
+      let addr = 2 + 2 + (i - 1) * 8;
       let sp = arg[i].tT;
       buf.writeUInt16BE(sp, addr);
       buf.writeUInt16BE(0, addr + 2);
@@ -413,7 +415,7 @@ driver.addRegister({
     // якщо крок поза межами 1..5 то помилка
     if (arg < 1 || arg > 5) {
       let err = new Error(
-        `Invalid value=${arg} for step register! Should be 1..5`
+        `Invalid value=${arg} for step register! Should be 1..5`,
       );
       return { err, data: null };
     }
@@ -433,7 +435,7 @@ driver.addRegister({
 }); // addRegister()
 
 function getNote(code) {
-  const offsetStatusCode = 0x0f00;
+  const offsetStatusCode = 0xf000;
   let res;
   switch (code) {
     case 0:
