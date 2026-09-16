@@ -2,6 +2,7 @@ const ClassDriverGeneral = require("../classDeviceGeneral/ClassDriverGeneral");
 const { degC, lpm, m3ph, percent } = require("../../config.js").units;
 const log = require("../../tools/log.js"); // логер
 const gLn = "TRM251_driver::";
+const programmAllocation = 4;
 /** Функція для скорочення записів
  * env = Object of ClassDriverRegisterGeneral
  */
@@ -74,7 +75,7 @@ let driver = new ClassDriverGeneral({
     en: `PID-thermoregulator`,
     ru: `ПИД-терморегулятор`,
   },
-  timeout: 2000,
+  timeout: 5000,
 });
 
 // регістри зі значеннями аналогових входів
@@ -288,30 +289,32 @@ driver.addRegister({
   addr: 0x0100,
   header: { ua: `Программа`, en: `Program`, ru: `Программа` },
   note: `read / write program`,
-  units: { ua: ``, en: ``, ru: `` },
+  units: { ua: `nulls`, en: ``, ru: `` },
+  maxSteps: 14,
   _get: function (arg = 1) {
     /** arg - номер програми */
     let data = {
         addr: this.addr,
         FC: 3,
-        data: 2 + 3 * 5 * 4 * 2,
+        data: programmAllocation + 2 * 5 * 4,
       },
       err = null;
     return { err, data };
   }, //_get
   get_: function (arg) {
     let trace = 1,
-      ln = this.id + `::get_::`,
+      ln = gLn + this.id + `::get_::`,
       txt = "";
     if (trace) {
       log("i", ln, `Started with arg=`);
       console.dir(arg);
+      console.dir(this);
     }
     // // положення крапки
     let timeScale = arg.slice(0, 2).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
     trace ? console.log("Time scale=", timeScale) : null;
 
-    let programSteps = 5; // кількість кроків у програмі
+    let programSteps = this.maxSteps; // кількість кроків у програмі
     let program = [
       {
         id: "program1",
@@ -328,15 +331,16 @@ driver.addRegister({
       // уставка1 =  0x0102 і т.д. ймовірно помилка
       // при зміщенні на 2  - програма читається коректно
       // тому поки буде так, при нагоді розібратися
-      let addr = 2 + 2 + step * 8;
+      // 2026-09-16 При спробі прочитати 3*5*4+2=62 байти отримуємо помилку RS485, з цього можна зробити висновок, що
+      let addr = programmAllocation + step * 8;
       let point = arg.slice(addr + 2, addr + 4).readUInt16BE();
       let SP =
         arg.slice(addr, addr + 2).readUInt16BE() /
         (point == 0 ? 1 : point * 10);
       // 2025-12-29 В описі вказано, що час зберігається та передається в секундах, але схоже що
       // все-таки: для "ГГ:ХХ" в хвилинах, можливо для "ХХ:СС" - в секундах   -потребує уточненя
-      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE());
-      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE());
+      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE() / 60);
+      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE() / 60);
 
       program.push({ tT: SP, H: H, Y: Y });
       if (trace) {
@@ -363,24 +367,39 @@ driver.addRegister({
         addr: this.addr,
         FC: 0x10,
       },
-      err = null;
-    let buf = Buffer.alloc(2 + 5 * 8);
-    if (arg[0].timeScale == "HH:MM") {
-      buf.writeUInt16BE(0, 0); // формат часу HH:MM
-    } else {
-      buf.writeUInt16BE(1, 0); // формат часу MM:SS
+      err = null,
+      ln = gLn + this.id + "::_set()::",
+      trace = 1;
+    if (!Array.isArray(arg)) {
+      throw new Error(ln + "arg should be an Array");
     }
-    for (let i = 1; i < 6; i++) {
+
+    let buf = Buffer.alloc(programmAllocation + (arg.length - 1) * 4 * 2); // зміщення 4 потрібно перевірити чому має бути 2
+
+    if (arg[0].timeScale == "MM:SS") {
+      buf.writeUInt16BE(0, 1); // формат часу MM:SS
+    }
+    //по замовчуванню: формат часу HH:MM так як пустий буфер вже заповнено "0"
+
+    for (let i = 1; i < arg.length - 1; i++) {
       //схоже невірно вказані адреси в описі див. примітки до get_
       //
-      let addr = 2 + 2 + (i - 1) * 8;
+      let addr = programmAllocation + (i - 1) * 8;
       let sp = arg[i].tT;
-      buf.writeUInt16BE(sp, addr);
-      buf.writeUInt16BE(0, addr + 2);
-      buf.writeUInt16BE(arg[i].H * 60, addr + 4);
-      buf.writeUInt16BE(arg[i].Y * 60, addr + 6);
+      buf.writeUInt16BE(sp, addr); // set point
+      buf.writeUInt16BE(0, addr + 2); //decimal point position
+      buf.writeUInt16BE(arg[i].H * 60, addr + 4); // sec, heating time
+      buf.writeUInt16BE(arg[i].Y * 60, addr + 6); // sec, holding time
     } // for (let step =1; step < 6; step++)
     data.data = buf;
+    if (trace) {
+      console.log(ln + `buf=`);
+      programBufLog(buf);
+      // console.dir(buf, { depth: 1 });
+    }
+    // console.log("ParsedProgram::");
+    // console.dir(this.get_(buf));
+    // process.exit();
     return { err, data };
   },
   set_: function (arg) {
@@ -388,8 +407,9 @@ driver.addRegister({
       err = null;
     return { err, data: { value, note: this.note } };
   },
-}); // addRegister()
+}); // addRegister(program)
 
+driver.regs.get("program").maxSteps = 15;
 // ------------ current step  ---------
 driver.addRegister({
   id: "step",
@@ -524,3 +544,20 @@ function getNote(code) {
 
 // ------- state -------------
 module.exports = driver;
+// console.dir(driver);
+
+function programBufLog(buf) {
+  console.log("============================ program buffer =============");
+  console.log("Time scale:" + buf.readUInt16BE(2));
+  let out = [];
+  for (let i = 0; i < parseInt((buf.length - programmAllocation) / 8); i++) {
+    let row = [],
+      rowN = i * 8 + programmAllocation;
+    for (let j = 0; j < 4; j++) {
+      let res = buf.readUInt16BE(rowN + j * 2);
+      row.push("0x" + ("0000" + res.toString(16)).slice(-4) + `(${res})`);
+    }
+    out.push(row);
+  }
+  console.table(out);
+}

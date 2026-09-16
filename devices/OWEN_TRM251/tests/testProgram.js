@@ -6,7 +6,7 @@ const program = [
   },
 ];
 let trace = 1,
-  ln = this.ln + `ProgramExample::`;
+  ln = `testProgram.js::`;
 for (let i = 1; i <= 6; i++) {
   let step = {
     type: "taskThermal_TRM251",

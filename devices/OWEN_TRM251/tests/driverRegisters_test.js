@@ -130,6 +130,7 @@ describe("Driver's registers test:", () => {
     0x01, 0x3c, // H = 300
     0x01, 0x3c, // Y = 300
   ]);
+
     it("_get()", () => {
       let regName = "program";
       let resGet = driver.regs.get(regName)._get();

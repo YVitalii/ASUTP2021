@@ -9,7 +9,7 @@ let trace = 0,
 const os = require("os");
 
 function getPublicIpAddress() {
-  let trace = 1,
+  let trace = 0,
     ln = `getPublicIpAddress()::`;
   const interfaces = os.networkInterfaces();
   if (trace) {

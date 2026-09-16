@@ -14,7 +14,7 @@ const checkBuffer = require("./checkBuffer.js");
 
 // функції для перетворення та розрахунку CRC
 let { toTetrad, getCRC } = require("../tools/CRC.js");
-
+const getFC10data = require("./getFC10data.js");
 // функція для форматування виводу буфера в консоль
 const parseBuf = require("../tools/parseBuf.js");
 
@@ -215,10 +215,10 @@ class IfaceRS485 extends ClassGeneral {
    */
   send(req, cb) {
     // налаштування трасувальника
-    let trace = 0,
+    let trace = 1,
       ln =
         this.ln +
-        `send(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
+        `Incoming data:(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
           req.data,
         )})::`;
     //trace ? log(ln, `Started!`) : null;
@@ -267,6 +267,9 @@ class IfaceRS485 extends ClassGeneral {
     // формуємо буфер запиту
     let addr = toTetrad(req.addr);
     let arr = [req.id, req.FC, addr[0], addr[1]];
+    if (req.FC == 0x10) {
+      req.data = getFC10data(req.data);
+    }
     if (Buffer.isBuffer(req.data)) {
       // якщо дані на отримані у вигляді буферу - просто додаємо
       // console.log("req.data is a buffer");
@@ -278,6 +281,7 @@ class IfaceRS485 extends ClassGeneral {
       let data = toTetrad(req.data);
       arr.push(data[0], data[1]);
     }
+
     // формуємо з масиву буфер
     let buf = new Buffer.from(arr);
     // рахуємо та додаэмо CRC
