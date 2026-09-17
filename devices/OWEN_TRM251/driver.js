@@ -2,7 +2,7 @@ const ClassDriverGeneral = require("../classDeviceGeneral/ClassDriverGeneral");
 const { degC, lpm, m3ph, percent } = require("../../config.js").units;
 const log = require("../../tools/log.js"); // логер
 const gLn = "TRM251_driver::";
-const programmAllocation = 4;
+
 /** Функція для скорочення записів
  * env = Object of ClassDriverRegisterGeneral
  */
@@ -284,41 +284,44 @@ driver.addRegister({
   }, //set_
 }); // addRegister(startStop)
 
+const programmAllocation = 4; // Зміщення уставки відносно 0x0100
+
 driver.addRegister({
   id: "program",
-  addr: 0x0100,
+  addr: 0x0101,
   header: { ua: `Программа`, en: `Program`, ru: `Программа` },
   note: `read / write program`,
   units: { ua: `nulls`, en: ``, ru: `` },
-  maxSteps: 14,
   _get: function (arg = 1) {
     /** arg - номер програми */
     let data = {
         addr: this.addr,
         FC: 3,
-        data: programmAllocation + 2 * 5 * 4,
+        data: this.maxSteps * 4, // на кожний крок використовується 4 регістра х 2 байти
       },
       err = null;
     return { err, data };
   }, //_get
   get_: function (arg) {
-    let trace = 1,
+    let trace = 0,
       ln = gLn + this.id + `::get_::`,
       txt = "";
     if (trace) {
       log("i", ln, `Started with arg=`);
+      programBufLog(arg);
       console.dir(arg);
-      console.dir(this);
+      // console.dir(this);
     }
     // // положення крапки
-    let timeScale = arg.slice(0, 2).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
-    trace ? console.log("Time scale=", timeScale) : null;
 
+    // let timeScale = arg.slice(2, 0).readUInt16BE() == 0 ? "HH:MM" : "MM:SS";
+    // trace ? console.log("Time scale=", timeScale) : null;
+    // program.exit();
     let programSteps = this.maxSteps; // кількість кроків у програмі
     let program = [
       {
         id: "program1",
-        timeScale: timeScale,
+        // timeScale: timeScale,
         note: {
           ua: "Завантажено з приладу",
           en: "Downloaded from device",
@@ -326,29 +329,30 @@ driver.addRegister({
         },
       },
     ];
-    for (let step = 0; step < programSteps; step++) {
+    for (let step = 0; step < parseInt(arg.length / 8); step++) {
       // 2025-12-29 уставка починається не з 2 байта а з 4,
       // уставка1 =  0x0102 і т.д. ймовірно помилка
       // при зміщенні на 2  - програма читається коректно
       // тому поки буде так, при нагоді розібратися
       // 2026-09-16 При спробі прочитати 3*5*4+2=62 байти отримуємо помилку RS485, з цього можна зробити висновок, що
-      let addr = programmAllocation + step * 8;
-      let point = arg.slice(addr + 2, addr + 4).readUInt16BE();
-      let SP =
-        arg.slice(addr, addr + 2).readUInt16BE() /
-        (point == 0 ? 1 : point * 10);
+      // 2026-09-17 ВИрішив відмовитится від считування масштабу часу, бо при відповіді повертається замість 2-х байтів → 4
+      // чому так не зрозуміло, тому відмовисвся від считування цього параметру. Він const та задається в налаштуваннях
+      //
+      let addr = step * 8;
+      let point = 1 / 10 ** arg.readUInt16BE(addr + 2);
+      let SP = arg.readInt16BE(addr) * point;
       // 2025-12-29 В описі вказано, що час зберігається та передається в секундах, але схоже що
       // все-таки: для "ГГ:ХХ" в хвилинах, можливо для "ХХ:СС" - в секундах   -потребує уточненя
-      let H = parseInt(arg.slice(addr + 4, addr + 6).readUInt16BE() / 60);
-      let Y = parseInt(arg.slice(addr + 6, addr + 8).readUInt16BE() / 60);
+      let H = parseInt(arg.readUInt16BE(addr + 4));
+      let Y = parseInt(arg.readUInt16BE(addr + 6));
 
-      program.push({ tT: SP, H: H, Y: Y });
-      if (trace) {
-        console.log(ln + `step[${step + 1} (addr=${addr}, pointPos=${point})=`);
-        console.dir(program[step + 1]);
-      }
+      program.push({ type: "taskThermal_TRM251", tT: SP, H: H, Y: Y });
     }
-    return { err, data: { value: program, note: this.note } };
+    if (trace) {
+      console.dir(program[0]);
+      console.table(program.slice(1));
+    }
+    return { err: null, data: { value: program, note: this.note } };
   }, //get_
   /** масив з кроками програми
    * arg=[
@@ -370,36 +374,48 @@ driver.addRegister({
       err = null,
       ln = gLn + this.id + "::_set()::",
       trace = 1;
+
     if (!Array.isArray(arg)) {
       throw new Error(ln + "arg should be an Array");
     }
 
-    let buf = Buffer.alloc(programmAllocation + (arg.length - 1) * 4 * 2); // зміщення 4 потрібно перевірити чому має бути 2
-
-    if (arg[0].timeScale == "MM:SS") {
-      buf.writeUInt16BE(0, 1); // формат часу MM:SS
+    if (trace) {
+      console.log(ln + `Started with arg=`);
+      console.dir(arg, { depth: 1 });
     }
-    //по замовчуванню: формат часу HH:MM так як пустий буфер вже заповнено "0"
+    if (arg.length > this.maxLength + 1) {
+      throw new Error(ln + "Max steps quantity = 15!!");
+    }
+    let buf = Buffer.alloc(arg.length * 4 * 2); // зміщення 4 потрібно перевірити чому має бути 2
+    // робимо на 1 крок більше, що би гарантовано останній крок був 0,0,0,0 або кроком з даними
+    // 2026-09-17 масштаб часу задається в налаштуваннях приладу та незмінний,рахуємо що це ГГ:ХВ
+    // if (arg[0].timeScale == "MM:SS") {
+    //   buf.writeUInt16BE(0, 1); // формат часу MM:SS
+    // }
+    // //по замовчуванню: формат часу HH:MM так як пустий буфер вже заповнено "0"
 
-    for (let i = 1; i < arg.length - 1; i++) {
+    for (let i = 1; i < arg.length; i++) {
       //схоже невірно вказані адреси в описі див. примітки до get_
       //
-      let addr = programmAllocation + (i - 1) * 8;
+      let addr = (i - 1) * 8;
       let sp = arg[i].tT;
       buf.writeUInt16BE(sp, addr); // set point
       buf.writeUInt16BE(0, addr + 2); //decimal point position
-      buf.writeUInt16BE(arg[i].H * 60, addr + 4); // sec, heating time
-      buf.writeUInt16BE(arg[i].Y * 60, addr + 6); // sec, holding time
+      buf.writeUInt16BE(arg[i].H, addr + 4); // min, heating time
+      buf.writeUInt16BE(arg[i].Y, addr + 6); // min, holding time
     } // for (let step =1; step < 6; step++)
+
     data.data = buf;
+
     if (trace) {
-      console.log(ln + `buf=`);
+      console.log(ln + `Parsed to buffer program: buf=`);
       programBufLog(buf);
       // console.dir(buf, { depth: 1 });
+      console.log(ln + "deParsed Program from Buffer (for inspection)::");
+      console.dir(this.get_(buf), { depth: 3 });
     }
-    // console.log("ParsedProgram::");
-    // console.dir(this.get_(buf));
-    // process.exit();
+
+    //process.exit();
     return { err, data };
   },
   set_: function (arg) {
@@ -408,8 +424,8 @@ driver.addRegister({
     return { err, data: { value, note: this.note } };
   },
 }); // addRegister(program)
-
 driver.regs.get("program").maxSteps = 15;
+
 // ------------ current step  ---------
 driver.addRegister({
   id: "step",
@@ -434,7 +450,7 @@ driver.addRegister({
   _set: function (arg = 1) {
     // якщо крок поза межами 1..5 то помилка
     if (arg < 1 || arg > 5) {
-      let err = new Error(
+      let err = new RangeError(
         `Invalid value=${arg} for step register! Should be 1..5`,
       );
       return { err, data: null };
@@ -453,6 +469,104 @@ driver.addRegister({
     return { err, data: { value, note: this.note } };
   },
 }); // addRegister()
+
+// ------------ current ProgramN  ---------
+driver.addRegister({
+  id: "programN",
+  addr: 0x000f,
+  header: {
+    ua: `Поточний програма`,
+    en: `Current program`,
+    ru: `Текущиая программа`,
+  },
+  note: `Current program Number`,
+  units: { ua: ``, en: ``, ru: `` },
+  _get: function (arg) {
+    let data = {
+        addr: this.addr,
+        FC: 3,
+        data: 1,
+      },
+      err = null;
+    return { err, data };
+  }, //_get
+  get_: function (arg) {
+    let value = arg.readUInt16BE(),
+      err = null;
+    return { err, data: { value, note: this.note } };
+  }, //get_
+  _set: function (arg = 1) {
+    // якщо крок поза межами 1..5 то помилка
+    if (arg < 1 || arg > 3) {
+      let err = new RangeError(
+        `Invalid value=${arg} for programN register! Should be 1..3`,
+      );
+      return { err, data: null };
+    }
+    let data = {
+        addr: this.addr,
+        FC: 6,
+        data: arg,
+      },
+      err = null;
+    return { err, data };
+  },
+  set_: function (arg) {
+    let value = arg.readUInt16BE(),
+      err = null;
+    return { err, data: { value, note: this.note } };
+  },
+}); // addRegister()
+
+// ------------ program x step x tT---------
+// пряме читання/запис будь-якого регістра по адресі вказаній в
+//
+driver.addRegister({
+  id: "p1s1",
+  addr: 0x0109,
+  header: {
+    ua: `program x step x tT`,
+    en: `program x step x tT`,
+    ru: `program x step x tT`,
+  },
+  note: `program x step x tT`,
+  units: { ua: ``, en: ``, ru: `` },
+  _get: function (arg = 0) {
+    let trace = 1,
+      ln = this.id + `::_get(${arg})::`;
+    let req = _getFC3(this);
+    req.data.data = 4;
+    if (trace) {
+      console.log(ln + `req=`);
+      console.dir(req, { depth: 1 });
+    }
+    return req;
+  }, //_get
+  get_: function (arg) {
+    let trace = 1,
+      ln = this.id + `::get_(${arg})::`;
+
+    // поточна уставка
+    let value = {
+      tT: arg.readInt16BE(0),
+      point: arg.readInt16BE(2),
+      H: arg.readInt16BE(4),
+      Y: arg.readInt16BE(6),
+    };
+    let res = { err: null, data: { value, note: this.note } };
+    if (trace) {
+      console.log(ln + `res=`);
+      console.dir(res, { depth: 1 });
+    }
+    return res;
+  }, //get_
+  _set: function (arg) {
+    return readOnly(this);
+  },
+  set_: function (arg) {
+    return readOnly(this);
+  },
+}); // addRegister(tT)
 
 function getNote(code) {
   const offsetStatusCode = 0xf000;
@@ -548,14 +662,23 @@ module.exports = driver;
 
 function programBufLog(buf) {
   console.log("============================ program buffer =============");
-  console.log("Time scale:" + buf.readUInt16BE(2));
-  let out = [];
+  console.log(
+    `Time scale: ${buf.readUInt16BE(2).toString(16)}` + buf.readUInt16BE(2),
+  );
+  let out = [],
+    programmAllocation = 0;
   for (let i = 0; i < parseInt((buf.length - programmAllocation) / 8); i++) {
     let row = [],
       rowN = i * 8 + programmAllocation;
     for (let j = 0; j < 4; j++) {
       let res = buf.readUInt16BE(rowN + j * 2);
+      if (j == 0 && res == 0) {
+        break;
+      }
       row.push("0x" + ("0000" + res.toString(16)).slice(-4) + `(${res})`);
+    }
+    if (row.length == 0) {
+      continue;
     }
     out.push(row);
   }

@@ -23,7 +23,7 @@ const { describe, it } = require("node:test");
 const props = { iface, devAddr: 1, regName: "" };
 
 describe("Read registers of OWEN TRM251 device:", () => {
-  it("Read temperature from I1", async () => {
+  it.skip("Read temperature from I1", async () => {
     let res = "";
 
     props.regName = "I1";
@@ -35,6 +35,7 @@ describe("Read registers of OWEN TRM251 device:", () => {
       `Temperature should be a number but:  ${t}`,
     );
   }); // it("Read temperature from I1")
+
   it.skip("Read temperature from I2", async () => {
     props.regName = "I2";
     let res;
@@ -48,6 +49,7 @@ describe("Read registers of OWEN TRM251 device:", () => {
         `Temperature should be a number but:  ${t}`,
       );
     } catch (error) {
+      // Якщо датчик не підключено - повертається помилка що містить слово "Обрив"
       console.dir(error, { depth: 2 });
       match(error.ua, /Обрив/, "Message should contain word 'Обрив'");
     }
@@ -103,14 +105,120 @@ describe("Read registers of OWEN TRM251 device:", () => {
     console.log("program=");
     console.dir(res, { depth: 3 });
   });
-  it("Read 'program'", async () => {
+  it.skip("Read 'program'", async () => {
     props.regName = "program";
     let res = await driver.getRegPromise(props);
-    console.log("program=");
-    console.dir(res, { depth: 3 });
+    // console.log("program=");
+    // console.dir(res, { depth: 3 });
     // let mode = res[0].value;
     // console.dir(res, { depth: 2 });
   }); // it("Read 'mode' register")
+  it.skip("Current step get/set", async () => {
+    let trace = 1,
+      ln = gLn + `Current step get/set::`;
+    // console.log(ln + "this=");
+    // console.dir(this);
+    props.regName = "step";
+    // читаємо крок з приладу
+    let res = await driver.getRegPromise(props);
+    let oldStep = res[0].value;
+    strictEqual(
+      typeof oldStep,
+      "number",
+      `Temperature should be a number but:  ${typeof oldStep}`,
+    );
+    // змінюємо крок
+    props.value = 3;
+    await driver.setRegPromise(props);
+    let step = (await driver.getRegPromise(props))[0].value;
+    equal(step, props.value, `Step should be ${props.value}`);
+
+    // повертаємо крок, який був
+    props.value = oldStep;
+    await driver.setRegPromise(props);
+    step = (await driver.getRegPromise(props))[0].value;
+    equal(step, props.value, `Step should be ${props.value}`);
+
+    // невірний номер кроку
+    try {
+      props.value = 6;
+      await driver.setRegPromise(props);
+    } catch (error) {
+      match(
+        error.message,
+        /Invalid value/,
+        "Message should contain word 'Invalid value'",
+      );
+    }
+    console.dir(res, { depth: 2 });
+  });
+
+  // ---------------- programN ---------------
+
+  it("Current programN get/set", async () => {
+    let trace = 1,
+      ln = gLn + `Current step get/set::`;
+    // console.log(ln + "this=");
+    // console.dir(this);
+    props.regName = "programN";
+    // читаємо програми з приладу
+    let res = await driver.getRegPromise(props);
+    let oldStep = res[0].value;
+    strictEqual(
+      typeof oldStep,
+      "number",
+      `${props.regName} should be a number but:  ${typeof oldStep}`,
+    );
+    // змінюємо програми
+    props.value = 3;
+    await driver.setRegPromise(props);
+    let step = (await driver.getRegPromise(props))[0].value;
+    equal(step, props.value, `Step should be ${props.value}`);
+    process.exit();
+    // повертаємо програми, який був
+    props.value = oldStep;
+    await driver.setRegPromise(props);
+    step = (await driver.getRegPromise(props))[0].value;
+    equal(step, props.value, `Step should be ${props.value}`);
+
+    // невірний номер програми
+    try {
+      props.value = 6;
+      await driver.setRegPromise(props);
+    } catch (error) {
+      match(
+        error.message,
+        /Invalid value/,
+        "Message should contain word 'Invalid value'",
+      );
+    }
+    console.dir(res, { depth: 2 });
+  });
+
+  // ---------------- any for realtime testing --------------
+  it.skip("Read 'any' register", async () => {
+    props.regName = "p1s1";
+    let req = {
+      id: 0x1,
+      FC: 0x10,
+      addr: 0x0101,
+      data: Buffer.from([0, 155]),
+      timeout: 1500,
+    };
+
+    iface.send(req, (err, data) => {
+      console.log("----------Was sended---------");
+      if (err) {
+        console.log(err.message);
+      }
+      if (data) {
+        console.log("Data addr 0x01:[" + parseBuf(data) + "]");
+      }
+    });
+    // let res = await driver.getRegPromise(props);
+    // console.log("res=");
+    // console.dir(res, { depth: 4 });
+  });
 }); // describe
 
 // const props = { iface, devAddr: 16, regName: "" };

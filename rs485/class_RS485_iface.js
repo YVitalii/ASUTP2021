@@ -17,11 +17,12 @@ let { toTetrad, getCRC } = require("../tools/CRC.js");
 const getFC10data = require("./getFC10data.js");
 // функція для форматування виводу буфера в консоль
 const parseBuf = require("../tools/parseBuf.js");
-
+const gLn = "class_RS485_interface.js::";
 // завантаження логера
 const log = require("../tools/log.js");
 const dummy = require("../tools/dummy.js").dummyPromise;
 let gTest = 0;
+
 // --------------- Інтерфейс RS485 ------------------
 class IfaceRS485 extends ClassGeneral {
   /**
@@ -292,6 +293,13 @@ class IfaceRS485 extends ClassGeneral {
     msg.req = new Buffer.from(arr);
 
     trace ? log("i", ln, `Task created: msg=`, msg) : null;
+    if (trace) {
+      console.log(ln + `msg=`);
+      console.dir(msg, { depth: 3 });
+    }
+    trace ? log("i", ln, `Task created: msg.req=`, parseBuf(msg.req)) : null;
+
+    // process.exit();
     // ставимо запит в чергу
     this.queue.push(msg);
     trace ? log("i", ln, `this.queue.length=`, this.queue.length) : null;
@@ -470,8 +478,8 @@ function extractData(buf) {
   // принимает буфер
   // вырезает из него данные и возвращает их
   // в виде буфера
-  let trace = 0,
-    ln = " extractData(" + parseBuf(buf) + ")::";
+  let trace = 1,
+    ln = gLn + "extractData(" + parseBuf(buf) + ")::";
   trace ? log(ln, "Started!") : null;
 
   let FC = buf[1]; //номер функции
