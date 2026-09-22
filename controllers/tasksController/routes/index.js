@@ -103,10 +103,10 @@ router.get("/", async function (req, res, next) {
       pageTitle: {
         ua: `${req.entity.fullName.ua} <br> <small>Редагування програм</small>`,
         en: `${req.entity.fullName.en} <br> <small>Program editing.</small>`,
-        ru: `${req.entity.fullName.ru}<br> <small>Редактирование программ</small>`,
+        ru: `${req.entity.fullName.ru} <br> <small>Редактирование программ</small>`,
       },
       body: req.tasksManager.getFullHtml(req),
-    })
+    }),
   );
   //res.render("index", { title: req.tasksManager.ln });
   // res.send(ln);

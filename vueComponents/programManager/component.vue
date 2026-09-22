@@ -1,11 +1,11 @@
 <template>
     <div class="program-container">
-        <!-- Шапка програми: назва, опис, дата, ліміти -->
+        <!-- Шапка програми -->
         <div class="program-header" v-if="programData.length > 0">
             <div class="header-field-row">
                 <label class="field-label">Назва:</label>
                 <div class="field-control">
-                    <TextField v-model="programData[0].title" :disabled="isReadOnly"
+                    <FileNameField v-model="programData[0].title" :disabled="readOnly"
                         @update:modelValue="markAsModified" />
                 </div>
             </div>
@@ -13,7 +13,7 @@
             <div class="header-field-row">
                 <label class="field-label">Опис:</label>
                 <div class="field-control">
-                    <TextAreaField v-model="programData[0].description" :disabled="isReadOnly"
+                    <TextAreaField v-model="programData[0].description" :disabled="readOnly"
                         @update:modelValue="markAsModified" />
                 </div>
             </div>
@@ -25,34 +25,34 @@
                 </span>
                 <span v-if="isModified" class="modified-badge">⚠️ Є незбережені зміни</span>
             </div>
-
-            <button class="toggle-mode-btn" @click="isReadOnly = !isReadOnly">
-                Режим: {{ isReadOnly ? 'Тільки читання' : 'Редагування' }}
-            </button>
+            <!-- Кнопку ReadOnly видалено. Тепер режимом керує батьківський компонент через props -->
         </div>
 
-        <!-- Обгортка таблиці з відведеним місцем праворуч для джойстика -->
+        <!-- Обгортка таблиці -->
         <div class="table-wrapper" ref="tableWrapperRef">
             <table class="steps-table">
                 <thead>
                     <tr>
-                        <th class="col-index">№ Кроку</th>
-                        <th v-for="(regConfig, regKey) in programData[0]?.regs" :key="regKey">
-                            {{ regConfig.title }} ({{ regConfig.units }})
+                        <th class="col-index" title="Порядковий номер кроку виконання програми">№ Кроку</th>
+                        <th v-for="(regConfig, regKey) in programData[0]?.regs" :key="regKey"
+                            :title="regConfig.comment">
+                            <span class="header-title">{{ regConfig.title }}</span>
+                            <br>
+                            <small>[{{ regConfig.units }}]</small>
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(step, index) in stepsList" :key="index" :ref="el => setRowRef(el, index)"
-                        :class="{ 'active-row': activeStepIndex === index && !isReadOnly }" @click="selectRow(index)">
+                        :class="{ 'active-row': activeStepIndex === index && !readOnly }" @click="selectRow(index)">
                         <td class="col-index">{{ index + 1 }}</td>
 
-                        <!-- Динамічні поля відповідно до налаштувань конфігурації -->
+                        <!-- Динамічні поля кроку -->
                         <td v-for="(regConfig, regKey) in programData[0]?.regs" :key="regKey">
                             <TimeField v-if="regConfig.type === 'Time'" v-model="step[regKey]" :min="regConfig.min"
-                                :max="regConfig.max" :disabled="isReadOnly" @update:modelValue="markAsModified" />
+                                :max="regConfig.max" :disabled="readOnly" @update:modelValue="markAsModified" />
                             <NumberField v-else-if="regConfig.type === 'Number'" v-model="step[regKey]"
-                                :min="regConfig.min" :max="regConfig.max" :disabled="isReadOnly"
+                                :min="regConfig.min" :max="regConfig.max" :disabled="readOnly"
                                 @update:modelValue="markAsModified" />
                             <span v-else>{{ step[regKey] }}</span>
                         </td>
@@ -60,8 +60,8 @@
                 </tbody>
             </table>
 
-            <!-- Плаваючий джойстик праворуч від активного рядка -->
-            <div v-if="!isReadOnly && activeStepIndex !== null && rowElements.get(activeStepIndex)"
+            <!-- Плаваючий джойстик (ховається, якщовімкнено readOnly) -->
+            <div v-if="!readOnly && activeStepIndex !== null && rowElements.get(activeStepIndex)"
                 class="floating-joystick" :style="joystickStyle">
                 <MyJoystick :enable="true" :visible="true"
                     @command="(action) => handleJoystickCommand(action, activeStepIndex!)" />
@@ -74,9 +74,14 @@
 import { ref, computed } from 'vue';
 import TimeField from '../fields/TimeField.vue';
 import NumberField from '../fields/NumberField.vue';
-import TextField from '../fields/TextField.vue';
+import FileNameField from '../fields/FileNameField.vue';
 import TextAreaField from '../fields/TextAreaField.vue';
 import MyJoystick from '../joystick_upDownInsDel/joystick_upDownInsDel.vue';
+
+// Визначаємо вхідні параметри (props) від батьківського компонента
+const props = defineProps<{
+    readOnly?: boolean; // Керує режимом блокування ззовні
+}>();
 
 interface RegConfig {
     title: string;
@@ -100,7 +105,6 @@ interface ProgramStep {
     [key: string]: any;
 }
 
-const isReadOnly = ref<boolean>(false);
 const activeStepIndex = ref<number | null>(0);
 const isModified = ref<boolean>(false);
 
@@ -122,8 +126,8 @@ const programData = ref<[ProgramHeader, ...ProgramStep[]]>([
         maxStepsQuantity: 15,
         regs: {
             "tT": { title: "tT", units: "°C", type: "Number", min: 0, max: 1200, comment: "Цільова температура" },
-            "H": { title: "H", units: "хв", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість нагрівання" },
-            "Y": { title: "Y", units: "хв", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість витримки" }
+            "H": { title: "H", units: "ГГ:ХХ", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість нагрівання" },
+            "Y": { title: "Y", units: "ГГ:ХХ", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість витримки" }
         }
     },
     { "tT": 100, "H": 10, "Y": 20 },
@@ -142,7 +146,6 @@ const markAsModified = () => {
     programData.value[0].date = new Date();
 };
 
-// Обчислюємо вертикальну координату джойстика, щоб він був центрований навпроти вибраного рядка
 const joystickStyle = computed(() => {
     if (activeStepIndex.value === null) return {};
     const rowEl = rowElements.value.get(activeStepIndex.value);
@@ -150,7 +153,7 @@ const joystickStyle = computed(() => {
 
     const topPosition = rowEl.offsetTop;
     const rowHeight = rowEl.offsetHeight;
-    const joystickHeight = 60; // Висота джойстика
+    const joystickHeight = 60;
     const centeringOffset = (rowHeight - joystickHeight) / 2;
 
     return {
@@ -159,7 +162,7 @@ const joystickStyle = computed(() => {
 });
 
 const selectRow = (index: number) => {
-    if (isReadOnly.value) return;
+    if (props.readOnly) return;
     activeStepIndex.value = index;
 };
 
@@ -182,9 +185,7 @@ const addStepAfter = (index: number) => {
 };
 
 const removeStep = (index: number) => {
-    if (stepsList.value.length <= 1) {
-        return;
-    }
+    if (stepsList.value.length <= 1) return;
 
     programData.value.splice(index + 1, 1);
     markAsModified();
@@ -243,6 +244,13 @@ const handleJoystickCommand = (action: string, index: number) => {
     box-sizing: border-box;
 }
 
+/* Додаємо стиль для назви регістра замість застарілого тегу <big> */
+.header-title {
+    font-size: 1.1em;
+    /* Робить текст трохи більшим за стандартний */
+    font-weight: bold;
+}
+
 .program-header {
     margin-bottom: 16px;
     padding-bottom: 12px;
@@ -289,22 +297,6 @@ const handleJoystickCommand = (action: string, index: number) => {
     border: 1px solid #e67e22;
 }
 
-.toggle-mode-btn {
-    align-self: flex-start;
-    padding: 6px 12px;
-    background-color: #34495e;
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.toggle-mode-btn:hover {
-    background-color: #2c3e50;
-}
-
-/* Обгортка таблиці має внутрішній відступ праворуч для джойстика */
 .table-wrapper {
     position: relative;
     display: inline-block;
@@ -344,7 +336,6 @@ const handleJoystickCommand = (action: string, index: number) => {
     cursor: pointer;
 }
 
-/* Джойстик вирівняний абсолютно у виділеній зоні праворуч */
 .floating-joystick {
     position: absolute;
     right: 5px;

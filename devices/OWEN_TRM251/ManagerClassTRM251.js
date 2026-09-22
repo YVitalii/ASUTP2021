@@ -199,15 +199,23 @@ class ClassManager extends ClassDevManagerGeneral {
           console.log(ln + "reg=");
           console.dir(reg);
         }
-        reg.comment =
-          reg.modesDescription[reg.value].comment &&
-          reg.modesDescription[reg.value].comment.ua
-            ? reg.modesDescription[reg.value].comment
-            : {
-                ua: `mode=${reg.value}`,
-                en: `mode=${reg.value}`,
-                ru: `mode=${reg.value}`,
-              };
+        if (reg.value == null) {
+          reg.comment = {
+            ua: `Немає зв'язку!`,
+            en: `Not connected!`,
+            ru: `Нет связи!`,
+          };
+        } else {
+          reg.comment =
+            reg.modesDescription[reg.value].comment &&
+            reg.modesDescription[reg.value].comment.ua
+              ? reg.modesDescription[reg.value].comment
+              : {
+                  ua: `mode=${reg.value}`,
+                  en: `mode=${reg.value}`,
+                  ru: `mode=${reg.value}`,
+                };
+        }
       } // if mode
       return res;
     } catch (error) {
