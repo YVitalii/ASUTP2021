@@ -35,6 +35,14 @@ router.post("/stop", function (req, res, next) {
   res.json(data);
 });
 
+router.post("/state", function (req, res, next) {
+  let data = {
+    // 2026-09-23 Поки заглушка, потрібно дописати код
+    runningProgramName: null, // імя активної програми або null
+    activeSteps: null, // регістри опису активних кроків  або null
+  };
+  res.json(data);
+});
 /* main page  */
 router.get("/", function (req, res, next) {
   let user = req.user.username,

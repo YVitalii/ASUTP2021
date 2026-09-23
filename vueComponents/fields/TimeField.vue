@@ -13,49 +13,68 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 
+// 1. Приймаємо пропси, де modelValue, min та max можуть бути або рядком ("ГГ:ХХ"), або числом (хвилини)
 const props = defineProps<{
-    modelValue: number;
+    modelValue: string | number;
     min?: string | number;
     max?: string | number;
-    disabled?: boolean; // Додаємо пропс блокування
+    disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: number): void;
+    (e: 'update:modelValue', value: string): void;
 }>();
 
+// Універсальна функція для перетворення вхідних даних (String або Number) у загальну кількість хвилин
 const parseToMinutes = (val: string | number | undefined): number => {
-    if (typeof val === 'number') return val;
-    if (!val) return 0;
-    const parts = val.toString().split(':');
-    if (parts.length === 2) {
-        return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    if (typeof val === 'number') {
+        return isNaN(val) ? 0 : val;
     }
-    return parseInt(val, 10) || 0;
+    if (!val) return 0;
+
+    // Якщо це рядок у форматі "ГГ:ХХ"
+    const strVal = val.toString();
+    if (strVal.includes(':')) {
+        const parts = strVal.split(':');
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        return h * 60 + m;
+    }
+
+    // Якщо це просто рядок-число (наприклад, "90")
+    return parseInt(strVal, 10) || 0;
 };
 
-const maxTotalMinutes = parseToMinutes(props.max ?? 5999);
+// 2. Розраховуємо обмеження залежно від отриманого типу аргументу у max
+const maxTotalMinutes = parseToMinutes(props.max ?? "99:59");
 const maxHours = Math.floor(maxTotalMinutes / 60);
 
 const hours = ref<number>(0);
 const minutes = ref<number>(0);
 
-const setLocalValues = (totalMinutes: number) => {
-    if (isNaN(totalMinutes) || totalMinutes < 0) totalMinutes = 0;
-    if (totalMinutes > maxTotalMinutes) totalMinutes = maxTotalMinutes;
+// Локальна установка значень із підтримкою String та Number
+const setLocalValues = (val: string | number | undefined) => {
+    const totalMinutes = parseToMinutes(val);
 
-    hours.value = Math.floor(totalMinutes / 60);
-    minutes.value = totalMinutes % 60;
+    let clampedMinutes = totalMinutes;
+    if (isNaN(clampedMinutes) || clampedMinutes < 0) clampedMinutes = 0;
+    if (clampedMinutes > maxTotalMinutes) clampedMinutes = maxTotalMinutes;
+
+    hours.value = Math.floor(clampedMinutes / 60);
+    minutes.value = clampedMinutes % 60;
 };
 
+// Ініціалізуємо початкове значення
 setLocalValues(props.modelValue);
 
+// Слідкуємо за змінами modelValue ззовні
 watch(() => props.modelValue, (newVal) => {
     setLocalValues(newVal);
 });
 
+// Обробка зміни значень у полях введення
 const updateValue = () => {
-    if (props.disabled) return; // Захист від змін, якщо заблоковано
+    if (props.disabled) return;
 
     let h = hours.value || 0;
     let m = minutes.value || 0;
@@ -69,8 +88,12 @@ const updateValue = () => {
     hours.value = h;
     minutes.value = m;
 
-    const totalMinutes = h * 60 + m;
-    emit('update:modelValue', totalMinutes);
+    // Форматуємо у звичний рядок "ГГ:ХХ" для батьківського компонента
+    const formattedHours = h.toString().padStart(2, '0');
+    const formattedMinutes = m.toString().padStart(2, '0');
+    const timeString = `${formattedHours}:${formattedMinutes}`;
+
+    emit('update:modelValue', timeString);
 };
 </script>
 
@@ -91,7 +114,6 @@ const updateValue = () => {
     border-radius: 4px;
 }
 
-/* Робимо вигляд заблокованих інпутів більш помітним */
 .time-input:disabled {
     background-color: #f5f5f5;
     color: #888;

@@ -1,99 +1,158 @@
 <template>
-    <div :class="['program-editor-container', { 'sidebar-collapsed': isSidebarCollapsed }]">
+    <div class="program-editor-container">
 
-        <!-- Кнопка для згортання / розгортання бокової панелі -->
-        <button class="toggle-sidebar-btn" @click="toggleSidebar"
-            :title="isSidebarCollapsed ? 'Розгорнути панель' : 'Згорнути панель'">
-            {{ isSidebarCollapsed ? '▶' : '◀' }}
-        </button>
+        <!-- Заголовок сторінки із імпортованого об'єкта settings -->
+        <div class="editor-page-header">
+            <h2>{{ settings.header }}</h2>
+            <span v-if="state.programEdited" class="edited-badge">⚠️ Є зміни</span>
+        </div>
 
-        <!-- Ліва колонка (в альбомному) або Верхній рядок (у книжковому) -->
-        <div class="editor-sidebar" v-show="!isSidebarCollapsed || isPortraitMode">
-            <!-- Панель кнопок керування -->
-            <div class="action-buttons">
-                <button class="btn save-btn" @click="handleSave">Зберегти</button>
-                <button class="btn load-btn" @click="handleLoad">Завантажити</button>
-                <button class="btn reset-btn" @click="handleReset">Скинути</button>
-            </div>
+        <!-- Якщо список програм ще не завантажено — показуємо значок завантаження -->
+        <div v-if="state.programList === null" class="global-loading-container">
+            <div class="spinner"></div>
+            <p>Завантаження списку програм...</p>
+        </div>
 
-            <!-- Список програм для вибору -->
-            <div class="program-selector-wrapper">
-                <label class="selector-label">Вибір програми:</label>
+        <!-- Коли список завантажено — рендеримо весь інтерфейс -->
+        <template v-else>
+            <!-- Кнопка для згортання / розгортання бокової панелі -->
+            <button class="toggle-sidebar-btn" @click="toggleSidebar"
+                :title="isSidebarCollapsed ? 'Розгорнути панель' : 'Згорнути панель'">
+                {{ isSidebarCollapsed ? '▶' : '◀' }}
+            </button>
 
-                <!-- Випадаючий список для мобільних / книжкової орієнтації -->
-                <select class="program-select-dropdown" v-model="selectedProgramId" @change="onProgramSelect">
-                    <option v-for="prog in availablePrograms" :key="prog.id" :value="prog.id">
-                        {{ prog.title }}
-                    </option>
-                </select>
+            <!-- Ліва колонка / верхній рядок з управлінням та списком -->
+            <div :class="['editor-sidebar', { 'collapsed': isSidebarCollapsed }]"
+                v-show="!isSidebarCollapsed || isPortraitMode">
+                <div class="action-buttons">
+                    <BtnSave :disabled="!state.programEdited" @click="handleSave" />
 
-                <!-- Вертикальний список для альбомної орієнтації -->
-                <div class="program-list-box">
-                    <div v-for="prog in availablePrograms" :key="prog.id"
-                        :class="['program-list-item', { 'active': prog.id === selectedProgramId }]"
-                        @click="selectProgram(prog.id)">
-                        <span class="prog-title">{{ prog.title }}</span>
-                        <span class="prog-desc">{{ prog.description }}</span>
+                    <button class="btn load-btn" @click="handleLoad">Завантажити</button>
+                    <button class="btn delete-btn" @click="handleDelete">Видалити</button>
+                    <button class="btn reset-btn" @click="handleReset">Скинути</button>
+                </div>
+
+                <div class="program-selector-wrapper">
+                    <label class="selector-label">Вибір програми:</label>
+
+                    <!-- Випадаючий список для книжкової орієнтації -->
+                    <select class="program-select-dropdown" v-model="state.activeProgramName" @change="onProgramSelect">
+                        <option v-for="progName in state.programList" :key="progName" :value="progName">
+                            {{ progName }}
+                        </option>
+                    </select>
+
+                    <!-- Вертикальний список для альбомної орієнтації -->
+                    <div class="program-list-box">
+                        <div v-for="progName in state.programList" :key="progName"
+                            :class="['program-list-item', { 'active': progName === state.activeProgramName }]"
+                            @click="selectProgram(progName)">
+                            <span class="prog-title">{{ progName }}</span>
+                            <span v-if="state.runningProgramName === progName" class="running-badge">🟢
+                                Виконується</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Права колонка з таблицею редагування (вирівняна по центру) -->
-        <div class="editor-main-content">
-            <ProgramManager :read-only="isReadOnlyState" />
-        </div>
+            <!-- Права колонка з таблицею ProgramManager -->
+            <div :class="['editor-main-content', { 'full-width': isSidebarCollapsed }]">
+                <ProgramManager :program-data="state.programContent" :read-only="isReadOnlyState"
+                    @update:programData="markAsEdited" />
+            </div>
+        </template>
 
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-// Використовуємо наш зафіксований правильний шлях до ProgramManager
+import { reactive, ref, onMounted } from 'vue';
 import ProgramManager from '../programManager/component.vue';
+import BtnSave from './BtnSave.vue';
+import { settings } from './settings';
 
-interface ProgramSummary {
-    id: number;
-    title: string;
-    description: string;
-}
+const state = reactive({
+    activeProgramName: "",
+    programEdited: false,
+    programList: null as string[] | null,
+    programContent: null as any,
+    runningProgramName: null as string | null,
 
-const availablePrograms = ref<ProgramSummary[]>([
-    { id: 1, title: 'Program 1', description: 'Колеса чавунні. Відпуск.' },
-    { id: 2, title: 'Program 2', description: 'Гільзи циліндрів. Гартування.' },
-    { id: 3, title: 'Program 3', description: 'Пружини підвіски. Термообробка.' }
-]);
+});
 
-const selectedProgramId = ref<number>(1);
 const isReadOnlyState = ref<boolean>(false);
-
-// Стан для згортання бокової панелі
 const isSidebarCollapsed = ref<boolean>(false);
 const isPortraitMode = ref<boolean>(false);
+
+onMounted(() => {
+    setTimeout(() => {
+        state.programList = ["prg1", "prg2", "prg3"];
+        state.activeProgramName = state.programList[0];
+        state.runningProgramName = null;
+
+        state.programContent = [
+            {
+                id: 1,
+                title: state.activeProgramName,
+                description: 'Колеса чавунні. Відпуск.',
+                date: new Date(),
+                maxStepsQuantity: 15,
+                regs: {
+                    "tT": { title: "tT", units: "°C", type: "Number", min: 0, max: 1200, comment: "Цільова температура" },
+                    "H": { title: "H", units: "ГГ:ХХ", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість нагрівання" },
+                    "Y": { title: "Y", units: "ГГ:ХХ", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість витримки" }
+                }
+            },
+            { "tT": 100, "H": "00:10", "Y": "00:20" },
+            { "tT": 200, "H": "00:30", "Y": "00:40" }
+        ];
+
+        state.programEdited = false;
+    }, 1000);
+});
 
 const toggleSidebar = () => {
     isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
+const markAsEdited = () => {
+    console.log("programEditor.js::Program edited!")
+    state.programEdited = true;
+};
+
 const handleSave = () => {
-    console.log('Натиснуто: Зберегти програму ID:', selectedProgramId.value);
+    console.log(`Збереження файлу за адресою: ${settings.URLs.writeFile}, ім'я: ${state.activeProgramName}`);
+    state.programEdited = false;
 };
 
 const handleLoad = () => {
-    console.log('Натиснуто: Завантажити програму');
+    console.log(`Завантаження файлу за адресою: ${settings.URLs.readFile}`);
+};
+
+const handleDelete = () => {
+    if (!state.programList) return;
+    console.log(`Видалення файлу: ${state.activeProgramName} через ${settings.URLs.deleteFile}`);
+
+    state.programList = state.programList.filter(name => name !== state.activeProgramName);
+    if (state.programList.length > 0) {
+        state.activeProgramName = state.programList[0];
+    } else {
+        state.programContent = null;
+    }
 };
 
 const handleReset = () => {
-    console.log('Натиснуто: Скинути зміни');
+    console.log('Скинути зміни');
+    state.programEdited = false;
 };
 
-const selectProgram = (id: number) => {
-    selectedProgramId.value = id;
+const selectProgram = (name: string) => {
+    state.activeProgramName = name;
 };
 
 const onProgramSelect = (event: Event) => {
     const target = event.target as HTMLSelectElement;
-    selectedProgramId.value = Number(target.value);
+    selectProgram(target.value);
 };
 </script>
 
@@ -109,12 +168,73 @@ const onProgramSelect = (event: Event) => {
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
-    transition: grid-template-columns 0.3s ease;
+    min-height: 250px;
+}
+
+.editor-page-header {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-bottom: 2px solid #3498db;
+}
+
+.editor-page-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #2c3e50;
+}
+
+.edited-badge {
+    background-color: #e67e22;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.running-badge {
+    font-size: 10px;
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.global-loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px;
+    gap: 12px;
+    color: #666;
+    font-size: 14px;
+    grid-column: 1 / -1;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .toggle-sidebar-btn {
     position: absolute;
-    top: 16px;
+    top: 55px;
     left: 225px;
     z-index: 10;
     background-color: #34495e;
@@ -169,14 +289,6 @@ const onProgramSelect = (event: Event) => {
     text-align: center;
 }
 
-.save-btn {
-    background-color: #27ae60;
-}
-
-.save-btn:hover {
-    background-color: #219653;
-}
-
 .load-btn {
     background-color: #2980b9;
 }
@@ -185,12 +297,20 @@ const onProgramSelect = (event: Event) => {
     background-color: #2471a3;
 }
 
-.reset-btn {
+.delete-btn {
+    background-color: #e74c3c;
+}
+
+.delete-btn:hover {
     background-color: #c0392b;
 }
 
+.reset-btn {
+    background-color: #7f8c8d;
+}
+
 .reset-btn:hover {
-    background-color: #a93226;
+    background-color: #626567;
 }
 
 .program-selector-wrapper {
@@ -216,7 +336,7 @@ const onProgramSelect = (event: Event) => {
 }
 
 .program-list-box {
-    display: none;
+    display: flex;
     flex-direction: column;
     gap: 4px;
     max-height: 250px;
@@ -234,8 +354,8 @@ const onProgramSelect = (event: Event) => {
     background: #fff;
     border: 1px solid transparent;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .program-list-item:hover {
@@ -252,11 +372,6 @@ const onProgramSelect = (event: Event) => {
     font-weight: bold;
     font-size: 13px;
     color: #2c3e50;
-}
-
-.prog-desc {
-    font-size: 11px;
-    color: #666;
 }
 
 .editor-main-content {
