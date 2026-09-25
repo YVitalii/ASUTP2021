@@ -1,81 +1,96 @@
+// src/ProgramEditor/usePostJson.ts
+
 export interface PostOptions {
-  timeout?: number;   // Час очікування в мілісекундах (за замовчуванням 5000)
+  timeout?: number; // Час очікування в мілісекундах (за замовчуванням 5000)
   maxErrors?: number; // Максимальна кількість спроб при помилці зв'язку (за замовчуванням 3)
 }
 
+// Глобальні змінні для трасування
+const gLn = "usePostJson.ts::";
+const gTrace = true;
+
 export async function usePostJson<T = any>(
-  url: string = '',
+  url: string = "",
   body: Record<string, any> = {},
   headers: Record<string, string> = {},
-  options: PostOptions = {}
-):> Promise<T> {
-  // Встановлюємо значення за замовчуванням згідно з твоїми вимогами
+  options: PostOptions = {},
+): Promise<T> {
+  // Виправлено зайвий символ '>' у сигнатурі
+  const ln = gLn + "usePostJson::";
+  const trace = gTrace || true;
+
+  // Встановлюємо значення за замовчуванням
   const timeout = options.timeout ?? 5000;
   const maxErrors = options.maxErrors ?? 3;
 
   let attempt = 0;
 
+  if (trace)
+    console.log(
+      ln +
+        `Підготовка POST-запиту на ${url}. Максимум спроб: ${maxErrors}, Таймаут: ${timeout}мс`,
+    );
+
   while (attempt < maxErrors) {
     attempt++;
-    
-    // 1. Формуємо мінімально необхідні заголовки і додаємо/перезаписуємо їх переданими ззовні
+
+    // Формуємо заголовки
     const finalHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      "Content-Type": "application/json",
+      Accept: "application/json",
       ...headers,
     };
 
-    // Створюємо контролер для керування таймаутом запиту
+    // Створюємо контролер для таймауту
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
-      // Виконуємо POST-запит
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: finalHeaders,
         body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
         signal: controller.signal,
       });
 
-      // Очищуємо таймер, оскільки відповідь прийшла вчасно
       clearTimeout(timeoutId);
 
-      // Перевіряємо, чи успішний статус відповіді від сервера (наприклад, 200-299)
       if (!response.ok) {
         throw new Error(`Server returned status ${response.status}`);
       }
 
-      // 4. Намагаємося спарсити відповідь як JSON
       try {
         const jsonData = await response.json();
-        return jsonData as T; // 5. Повертаємо розпарсений JSON
+        if (trace)
+          console.log(ln + "Запит успішно виконано та спарсено.", jsonData);
+        return jsonData as T;
       } catch (parseError) {
-        throw new Error('Помилка парсингу JSON відповіді від сервера');
+        throw new Error("Помилка парсингу JSON відповіді від сервера");
       }
-
     } catch (error: any) {
       clearTimeout(timeoutId);
 
-      // Визначаємо, чи це помилка зв'язку або таймаут
-      const isNetworkOrTimeoutError = 
-        error.name === 'AbortError' || 
-        error.message.includes('Failed to fetch') ||
-        error.message.includes('NetworkError');
+      // Визначаємо, чи це помилка мережі або таймаут
+      const isNetworkOrTimeoutError =
+        error.name === "AbortError" ||
+        error.message.includes("Failed to fetch");
 
-      // Якщо це остання спроба або помилка не пов'язана з мережею/таймаутом (наприклад, помилка парсингу)
       if (attempt >= maxErrors || !isNetworkOrTimeoutError) {
         if (isNetworkOrTimeoutError && attempt >= maxErrors) {
-          throw new Error('Connection error');
+          if (trace)
+            console.error(ln + "Вичерпано всі спроби. Помилка з'єднання.");
+          throw new Error("Connection error");
         }
-        // Прокидуємо оригінальну помилку (наприклад, помилку парсингу JSON) далі
         throw error;
       }
 
-      // Якщо це не оставня спроба при помилці зв'язку — цикл продовжиться для наступної спроби
-      console.warn(`Спроба ${attempt} не вдалася. Повтор...`, error);
+      if (trace)
+        console.warn(
+          ln + `Спроба ${attempt} не вдалася. Повтор...`,
+          error.message,
+        );
     }
   }
 
-  throw new Error('Connection error');
+  throw new Error("Connection error");
 }

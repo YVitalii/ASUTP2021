@@ -58,7 +58,7 @@
             <!-- Права колонка з таблицею ProgramManager -->
             <div :class="['editor-main-content', { 'full-width': isSidebarCollapsed }]">
                 <ProgramManager :program-data="state.programContent" :read-only="isReadOnlyState"
-                    @update:programData="markAsEdited" />
+                    @update:programData="checkChanges" />
             </div>
         </template>
 
@@ -66,88 +66,35 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import ProgramManager from '../programManager/component.vue';
 import BtnSave from './BtnSave.vue';
 import { settings } from './settings';
+import { useProgramEditAgent } from './ProgramEditAgent';
 
-const state = reactive({
-    activeProgramName: "",
-    programEdited: false,
-    programList: null as string[] | null,
-    programContent: null as any,
-    runningProgramName: null as string | null,
-
-});
+// Викликаємо нашого агента даних
+const {
+    state,
+    loadInitialData,
+    checkChanges,
+    handleSave,
+    handleLoad,
+    handleDelete,
+    handleReset,
+    selectProgram,
+} = useProgramEditAgent();
 
 const isReadOnlyState = ref<boolean>(false);
 const isSidebarCollapsed = ref<boolean>(false);
 const isPortraitMode = ref<boolean>(false);
 
+// Завантажуємо дані при монтуванні через агента
 onMounted(() => {
-    setTimeout(() => {
-        state.programList = ["prg1", "prg2", "prg3"];
-        state.activeProgramName = state.programList[0];
-        state.runningProgramName = null;
-
-        state.programContent = [
-            {
-                id: 1,
-                title: state.activeProgramName,
-                description: 'Колеса чавунні. Відпуск.',
-                date: new Date(),
-                maxStepsQuantity: 15,
-                regs: {
-                    "tT": { title: "tT", units: "°C", type: "Number", min: 0, max: 1200, comment: "Цільова температура" },
-                    "H": { title: "H", units: "ГГ:ХХ", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість нагрівання" },
-                    "Y": { title: "Y", units: "ГГ:ХХ", type: "Time", min: "00:00", max: "99:59", comment: "Тривалість витримки" }
-                }
-            },
-            { "tT": 100, "H": "00:10", "Y": "00:20" },
-            { "tT": 200, "H": "00:30", "Y": "00:40" }
-        ];
-
-        state.programEdited = false;
-    }, 1000);
+    loadInitialData();
 });
 
 const toggleSidebar = () => {
     isSidebarCollapsed.value = !isSidebarCollapsed.value;
-};
-
-const markAsEdited = () => {
-    console.log("programEditor.js::Program edited!")
-    state.programEdited = true;
-};
-
-const handleSave = () => {
-    console.log(`Збереження файлу за адресою: ${settings.URLs.writeFile}, ім'я: ${state.activeProgramName}`);
-    state.programEdited = false;
-};
-
-const handleLoad = () => {
-    console.log(`Завантаження файлу за адресою: ${settings.URLs.readFile}`);
-};
-
-const handleDelete = () => {
-    if (!state.programList) return;
-    console.log(`Видалення файлу: ${state.activeProgramName} через ${settings.URLs.deleteFile}`);
-
-    state.programList = state.programList.filter(name => name !== state.activeProgramName);
-    if (state.programList.length > 0) {
-        state.activeProgramName = state.programList[0];
-    } else {
-        state.programContent = null;
-    }
-};
-
-const handleReset = () => {
-    console.log('Скинути зміни');
-    state.programEdited = false;
-};
-
-const selectProgram = (name: string) => {
-    state.activeProgramName = name;
 };
 
 const onProgramSelect = (event: Event) => {
@@ -157,6 +104,7 @@ const onProgramSelect = (event: Event) => {
 </script>
 
 <style scoped>
+/* Стилі залишаються без змін[cite: 2] */
 .program-editor-container {
     position: relative;
     display: grid;
@@ -253,10 +201,6 @@ const onProgramSelect = (event: Event) => {
 
 .toggle-sidebar-btn:hover {
     background-color: #2c3e50;
-}
-
-.program-editor-container.sidebar-collapsed .toggle-sidebar-btn {
-    left: 10px;
 }
 
 .editor-sidebar {
