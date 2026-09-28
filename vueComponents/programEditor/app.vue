@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import MyComponent from './component.vue'; // Шлях до  компонента 
+import MyComponent from './BaseGrid.vue'; 
 </script>
 
 <style scoped>

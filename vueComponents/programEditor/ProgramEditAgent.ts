@@ -1,290 +1,208 @@
-// src/ProgramEditor/ProgramEditAgent.ts
 import { reactive } from "vue";
-import { settings } from "./settings";
-import { usePostJson } from "../composables/usePostJson";
+import {
+  deleteProgram,
+  getProgramList,
+  getRunningProgramName,
+  readProgram,
+  writeProgram,
+} from "./programsApi";
+import { fromSnapshot, isDirty, toSnapshot } from "./programSnapshot";
+import { trace, traceError, traceWarn } from "./trace";
+import type { ProgramContent, ProgramEditorState } from "./types";
 
-// Глобальні змінні модуля для трасування
-const gLn = "ProgramEditAgent.ts::";
-const gTrace = true;
+const UNSAVED_CHANGES_MSG =
+  "Є незбережені зміни. Збережіть або скиньте їх перед зміною програми.";
+
+function errorText(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
 
 export function useProgramEditAgent() {
-  // Головний реактивний стан
-  const state = reactive({
+  const state = reactive<ProgramEditorState>({
     activeProgramName: "",
     programEdited: false,
-    programList: null as string[] | null,
-    programContent: null as any,
-    runningProgramName: null as string | null,
-    originalJson: "", // Еталонний сліпок для порівняння змін
+    programList: null,
+    programContent: null,
+    runningProgramName: null,
+    originalJson: "",
+    isLoading: false,
+    isSaving: false,
+    lastError: null,
   });
 
-  // Оновлення еталонного сліпка даних
-  const updateOriginalSnapshot = () => {
-    const ln = gLn + "updateOriginalSnapshot::";
-    const trace = gTrace || true;
-
-    if (state.programContent) {
-      state.originalJson = JSON.stringify(state.programContent);
-      if (trace) console.log(ln + "Оновлено еталонний сліпок програми.");
-    }
-  };
-
-  // Перевірка змін
-  const checkChanges = (updatedData: any) => {
-    const ln = gLn + "checkChanges::";
-    const trace = gTrace || true;
-
-    state.programContent = updatedData;
-    const currentJson = JSON.stringify(state.programContent);
-
-    if (currentJson === state.originalJson) {
-      state.programEdited = false;
-      if (trace) console.log(ln + "Змін немає. programEdited = false");
-    } else {
-      state.programEdited = true;
-      if (trace) console.log(ln + "Виявлено зміни! programEdited = true");
-    }
-  };
-
-  // 1. Завантаження списку програм через наш захищений usePostJson
-  const loadProgramList = async () => {
-    const ln = gLn + "loadProgramList::";
-    const trace = gTrace || true;
-
-    if (trace) console.log(ln + "Запит списку програм...");
-
-    try {
-      // Викликаємо usePostJson із параметрами за замовчуванням (або передаємо дію для сервера)
-      const response = await usePostJson(settings.URLs.readFile, {
-        action: "getProgramList",
-      });
-
-      if (response && response.programList) {
-        state.programList = response.programList;
-      } else {
-        // Демо-дані для розробки, якщо сервер ще не налаштований
-        state.programList = ["prg1", "prg2", "prg3"];
-      }
-
-      if (
-        state.programList &&
-        state.programList.length > 0 &&
-        !state.activeProgramName
-      ) {
-        state.activeProgramName = state.programList[0];
-      }
-
-      if (trace)
-        console.log(
-          ln + "Список програм успішно завантажено:",
-          state.programList,
-        );
-    } catch (error) {
-      if (trace)
-        console.warn(
-          ln +
-            "Не вдалося завантажити список з мережі, використовуємо демо-дані.",
-          error,
-        );
-      state.programList = ["prg1", "prg2", "prg3"];
-      if (!state.activeProgramName)
-        state.activeProgramName = state.programList[0];
-    }
-  };
-
-  // 2. Завантаження вмісту конкретної програми
-  const loadProgramContent = async (programName: string) => {
-    const ln = gLn + "loadProgramContent::";
-    const trace = gTrace || true;
-
-    if (trace)
-      console.log(ln + `Завантаження вмісту для програми: ${programName}`);
-
-    try {
-      const response = await usePostJson(settings.URLs.readFile, {
-        programName,
-      });
-
-      if (response && response.programContent) {
-        state.programContent = response.programContent;
-      } else {
-        throw new Error("Пуста відповідь або відсутній programContent");
-      }
-    } catch (error) {
-      if (trace)
-        console.warn(
-          ln + `Помилка мережі для ${programName}, завантажуємо демо-контент.`,
-          error,
-        );
-
-      // Демо-дані для розробки
-      state.programContent = [
-        {
-          id: 1,
-          title: programName,
-          description: `Програма ${programName}. Відпуск чавуну.`,
-          date: new Date(),
-          maxStepsQuantity: 15,
-          regs: {
-            tT: {
-              title: "tT",
-              units: "°C",
-              type: "Number",
-              min: 0,
-              max: 1200,
-              comment: "Цільова температура",
-            },
-            H: {
-              title: "H",
-              units: "ГГ:ХХ",
-              type: "Time",
-              min: "00:00",
-              max: "99:59",
-              comment: "Тривалість нагрівання",
-            },
-            Y: {
-              title: "Y",
-              units: "ГГ:ХХ",
-              type: "Time",
-              min: "00:00",
-              max: "99:59",
-              comment: "Тривалість витримки",
-            },
-          },
-        },
-        { tT: 100, H: "00:10", Y: "00:20" },
-        { tT: 200, H: "00:30", Y: "00:40" },
-      ];
-    }
-
-    updateOriginalSnapshot();
+  const markClean = (content: ProgramContent | null = state.programContent) => {
+    state.originalJson = toSnapshot(content);
     state.programEdited = false;
-    if (trace) console.log(ln + `Вміст програми ${programName} оновлено.`);
   };
 
-  // Загальна ініціалізація
-  const loadInitialData = async () => {
-    const ln = gLn + "loadInitialData::";
-    const trace = gTrace || true;
+  const checkChanges = (updatedData: ProgramContent) => {
+    state.programContent = updatedData;
+    state.programEdited = isDirty(state.programContent, state.originalJson);
+    trace(
+      "checkChanges",
+      state.programEdited
+        ? "Виявлено зміни! programEdited = true"
+        : "Змін немає. programEdited = false",
+    );
+  };
 
-    if (trace) console.log(ln + "Початок ініціалізації редактора...");
+  const loadProgramList = async () => {
+    trace("loadProgramList", "Запит списку програм...");
+    try {
+      state.programList = await getProgramList();
+      trace("loadProgramList", "Список програм успішно завантажено:", state.programList);
+    } catch (error) {
+      traceWarn("loadProgramList", "Не вдалося завантажити список програм.", error);
+      throw error;
+    }
+  };
 
-    await loadProgramList();
-    if (state.activeProgramName) {
-      await loadProgramContent(state.activeProgramName);
+  const loadRunningProgram = async () => {
+    try {
+      state.runningProgramName = await getRunningProgramName();
+    } catch (error) {
+      traceWarn("loadRunningProgram", "Не вдалося завантажити runningProgramName.", error);
+      state.runningProgramName = null;
+    }
+  };
+
+  const loadProgramContent = async (programName: string) => {
+    trace("loadProgramContent", `Завантаження вмісту для програми: ${programName}`);
+    try {
+      state.programContent = await readProgram(programName);
+    } catch (error) {
+      traceWarn("loadProgramContent", `Помилка читання програми ${programName}.`, error);
+      throw error;
     }
 
-    if (trace) console.log(ln + "Ініціалізація завершена.");
+    markClean();
+    trace("loadProgramContent", `Вміст програми ${programName} оновлено.`);
   };
 
-  // 3. Збереження програми на сервер
-  const handleSave = async () => {
-    const ln = gLn + "handleSave::";
-    const trace = gTrace || true;
-
-    if (trace)
-      console.log(
-        ln +
-          `Збереження програми "${state.activeProgramName}" на ${settings.URLs.writeFile}`,
-      );
-
-    const payload = {
-      programName: state.activeProgramName,
-      content: state.programContent,
-    };
+  const loadInitialData = async () => {
+    trace("loadInitialData", "Початок ініціалізації редактора...");
+    state.isLoading = true;
+    state.lastError = null;
 
     try {
-      // Використовуємо кастомний довший таймаут для збереження (наприклад, 10 секунд)
-      await usePostJson(
-        settings.URLs.writeFile,
-        payload,
-        {},
-        { timeout: 10000, maxErrors: 3 },
-      );
+      await Promise.all([loadProgramList(), loadRunningProgram()]);
 
-      updateOriginalSnapshot();
-      state.programEdited = false;
+      if (!state.activeProgramName && state.programList && state.programList.length > 0) {
+        state.activeProgramName = state.programList[0] ?? "";
+      }
 
-      if (trace) console.log(ln + "Програму успішно збережено на сервері!");
+      if (state.activeProgramName) {
+        await loadProgramContent(state.activeProgramName);
+      }
+
+      trace("loadInitialData", "Ініціалізація завершена.");
     } catch (error) {
-      if (trace)
-        console.error(
-          ln + "Помилка під час збереження програми на сервер:",
-          error,
-        );
-      alert("Не вдалося зберегти програму. Перевірте з'єднання з мережею.");
+      state.lastError = errorText(error, "Не вдалося завантажити дані редактора.");
+      throw error;
+    } finally {
+      state.isLoading = false;
     }
   };
 
-  // 4. Перезавантаження поточного файлу
+  const handleSave = async () => {
+    trace(
+      "handleSave",
+      `Збереження програми "${state.activeProgramName}"`,
+    );
+
+    if (!state.activeProgramName || !state.programContent) {
+      state.lastError = "Немає програми для збереження.";
+      return;
+    }
+
+    state.isSaving = true;
+    state.lastError = null;
+
+    try {
+      await writeProgram(state.activeProgramName, state.programContent);
+      markClean();
+      trace("handleSave", "Програму успішно збережено на сервері!");
+    } catch (error) {
+      traceError("handleSave", "Помилка під час збереження програми на сервер:", error);
+      state.lastError = errorText(
+        error,
+        "Не вдалося зберегти програму. Перевірте з'єднання з мережею.",
+      );
+    } finally {
+      state.isSaving = false;
+    }
+  };
+
   const handleLoad = async () => {
-    const ln = gLn + "handleLoad::";
-    const trace = gTrace || true;
+    trace("handleLoad", "Перезавантаження поточних даних...");
+    if (!state.activeProgramName) return;
 
-    if (trace) console.log(ln + "Перезавантаження поточних даних...");
-    if (state.activeProgramName) {
+    state.lastError = null;
+    try {
       await loadProgramContent(state.activeProgramName);
+    } catch (error) {
+      state.lastError = errorText(error, "Не вдалося завантажити програму.");
     }
   };
 
-  // 5. Видалення програми через сервер
   const handleDelete = async () => {
-    const ln = gLn + "handleDelete::";
-    const trace = gTrace || true;
-
     if (!state.activeProgramName || !state.programList) return;
 
-    if (trace)
-      console.log(
-        ln +
-          `Видалення програми: ${state.activeProgramName} через ${settings.URLs.deleteFile}`,
-      );
+    const deletedName = state.activeProgramName;
+    trace("handleDelete", `Видалення програми: ${deletedName}`);
+    state.lastError = null;
 
     try {
-      await usePostJson(settings.URLs.deleteFile, {
-        programName: state.activeProgramName,
-      });
-
-      state.programList = state.programList.filter(
-        (name) => name !== state.activeProgramName,
-      );
+      await deleteProgram(deletedName);
+      state.programList = state.programList.filter((name) => name !== deletedName);
 
       if (state.programList.length > 0) {
-        state.activeProgramName = state.programList[0];
+        state.activeProgramName = state.programList[0] ?? "";
         await loadProgramContent(state.activeProgramName);
       } else {
         state.programContent = null;
         state.activeProgramName = "";
+        markClean(null);
       }
-      state.programEdited = false;
 
-      if (trace) console.log(ln + "Програму успішно видалено.");
+      trace("handleDelete", "Програму успішно видалено.");
     } catch (error) {
-      if (trace)
-        console.error(ln + "Помилка під час видалення програми:", error);
-      alert("Не вдалося видалити програму через помилку мережі.");
+      traceError("handleDelete", "Помилка під час видалення програми:", error);
+      state.lastError = errorText(
+        error,
+        "Не вдалося видалити програму через помилку мережі.",
+      );
     }
   };
 
   const handleReset = () => {
-    const ln = gLn + "handleReset::";
-    const trace = gTrace || true;
-
-    if (trace) console.log(ln + "Скидання змін до початкового стану.");
-
-    if (state.originalJson) {
-      state.programContent = JSON.parse(state.originalJson);
-    }
+    trace("handleReset", "Скидання змін до початкового стану.");
+    state.programContent = fromSnapshot(state.originalJson);
     state.programEdited = false;
+    state.lastError = null;
   };
 
-  const selectProgram = async (name: string) => {
-    const ln = gLn + "selectProgram::";
-    const trace = gTrace || true;
+  const selectProgram = async (name: string): Promise<boolean> => {
+    trace("selectProgram", `Вибрано програму в списку: ${name}`);
 
-    if (trace) console.log(ln + `Вибрано програму в списку: ${name}`);
+    if (name === state.activeProgramName) return true;
+
+    if (state.programEdited) {
+      state.lastError = UNSAVED_CHANGES_MSG;
+      return false;
+    }
+
+    state.lastError = null;
     state.activeProgramName = name;
-    await loadProgramContent(name);
+
+    try {
+      await loadProgramContent(name);
+      return true;
+    } catch (error) {
+      state.lastError = errorText(error, "Не вдалося відкрити програму.");
+      return false;
+    }
   };
 
   return {

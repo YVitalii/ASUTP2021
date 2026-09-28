@@ -8,7 +8,7 @@ export default defineConfig({
     environment: "happy-dom", // або 'jsdom' для емуляції браузера у Vue
     // Вказуємо запускати тести ТІЛЬКИ всередині потрібної теки
     include: [
-      "./vueComponents/ProgramEditor/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "./vueComponents/programEditor/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
     ],
   },
 });
