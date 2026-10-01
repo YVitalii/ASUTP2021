@@ -1,8 +1,11 @@
 /** Збирає і налаштовує всі елементи сутності, та передає менеджеру сутностей */
+const path = require("path");
 const pug = require("pug");
 const TasksManager = require("../../controllers/tasksController/ClassTasksManager.js");
 const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermal.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
+const ClassDevicesManager = require("../../devices/devicesManager/ClassDevicesManager.js");
+const ClassLoggerManager = require("../../controllers/loggerManager/ClassLoggerManager.js");
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
 const log = require("../../tools/log.js");
 
@@ -26,7 +29,7 @@ entity.shortName = {
 
 // id печі має співпадати з назвою теки в якій вона розташована
 // TODO потрібно автоматизувати: використовувати в якості id імя батьківської теки
-entity.homeDir = __dirname + "\\";
+entity.homeDir = __dirname + path.sep;
 
 entity.id = "SDO-15.15.15)5_2023";
 
@@ -42,6 +45,18 @@ entity.homeUrl = entity.id + "/";
 // завантажуємо пристрої
 
 entity.devices = require("./devices/devices.js");
+
+entity.devicesManager = new ClassDevicesManager({
+  baseUrl: "/" + entity.homeUrl,
+});
+
+entity.loggerManager = new ClassLoggerManager({
+  ln: entity.id + "::loggerManager()::",
+  baseUrl: "/" + entity.homeUrl,
+  baseDir: entity.homeDir,
+  period: 10 * 1000,
+  regs: [],
+});
 
 // менеджер завдань
 entity.tasksManager = new TasksManager({
@@ -73,6 +88,8 @@ entity.processManager = new ClassProcessManager({
   homeDir: entity.homeDir,
   homeUrl: entity.homeUrl,
   tasksManager: entity.tasksManager,
+  loggerManager: entity.loggerManager,
+  devicesManager: entity.devicesManager,
   ln: entity.id + "::ProcessManager::",
 });
 
