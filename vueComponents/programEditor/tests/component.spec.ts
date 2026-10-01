@@ -60,20 +60,20 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
 
     expect(wrapper.text()).toContain("Редактор програми");
     expect(wrapper.findAll(".program-list-item").map((item) => item.text())).toEqual(
-      expect.arrayContaining(["prg1", "prg2", "prg3"]),
+      expect.arrayContaining(["Program 1", "Program 2", "Program 3"]),
     );
-    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("prg1");
+    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("Program 1");
     expect(wrapper.find(".stub-title").text()).toBe("Program 1");
     expect(wrapper.find(".stub-description").text()).toBe("Колеса чавунні. Відпуск.");
     expect(wrapper.find(".edited-badge").exists()).toBe(false);
   });
 
   it("показує бейдж виконуваної програми з processState", async () => {
-    mockServer.processState.runningProgramName = "prg2";
+    mockServer.processState.runningProgramName = "Program 2";
     const wrapper = await mountEditor();
 
     const running = wrapper.findAll(".program-list-item").find((item) =>
-      item.text().includes("prg2"),
+      item.text().includes("Program 2"),
     );
     expect(running?.find(".running-badge").exists()).toBe(true);
   });
@@ -81,13 +81,13 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
   it("перемикає програму кліком у списку", async () => {
     const wrapper = await mountEditor();
 
-    const prg2 = wrapper.findAll(".program-list-item").find((item) =>
-      item.find(".prog-title").text() === "prg2",
+    const secondProgram = wrapper.findAll(".program-list-item").find((item) =>
+      item.find(".prog-title").text() === "Program 2",
     );
-    await prg2!.trigger("click");
+    await secondProgram!.trigger("click");
     await flushPromises();
 
-    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("prg2");
+    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("Program 2");
     expect(wrapper.find(".stub-title").text()).toBe("Program 2");
     expect(wrapper.find(".stub-description").text()).toBe("Програма 2");
   });
@@ -106,7 +106,7 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     await flushPromises();
 
     expect(wrapper.find(".edited-badge").exists()).toBe(false);
-    expect(mockServer.files.get("prg1")?.[0]?.description).toBe("Зміна з UI");
+    expect(mockServer.files.get("Program 1")?.[0]?.description).toBe("Зміна з UI");
   });
 
   it("скидає локальні зміни кнопкою Скинути", async () => {
@@ -129,13 +129,13 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     await wrapper.find(".stub-edit").trigger("click");
     await flushPromises();
 
-    const prg2 = wrapper.findAll(".program-list-item").find((item) =>
-      item.find(".prog-title").text() === "prg2",
+    const secondProgram = wrapper.findAll(".program-list-item").find((item) =>
+      item.find(".prog-title").text() === "Program 2",
     );
-    await prg2!.trigger("click");
+    await secondProgram!.trigger("click");
     await flushPromises();
 
-    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("prg1");
+    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("Program 1");
     expect(wrapper.find(".error-banner").text()).toContain("незбережені зміни");
     expect(wrapper.find(".stub-description").text()).toBe("Зміна з UI");
   });
@@ -147,12 +147,12 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     await flushPromises();
 
     expect(wrapper.findAll(".prog-title").map((el) => el.text())).toEqual([
-      "prg2",
-      "prg3",
+      "Program 2",
+      "Program 3",
     ]);
-    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("prg2");
+    expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("Program 2");
     expect(wrapper.find(".stub-title").text()).toBe("Program 2");
-    expect(mockServer.files.has("prg1")).toBe(false);
+    expect(mockServer.files.has("Program 1")).toBe(false);
   });
 
   it("показує спінер, поки дані ще не завантажені", async () => {

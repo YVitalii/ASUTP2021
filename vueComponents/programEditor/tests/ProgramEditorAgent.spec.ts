@@ -7,7 +7,7 @@ function cloneContent(content: ProgramContent | null): ProgramContent {
   return JSON.parse(JSON.stringify(content)) as ProgramContent;
 }
 
-describe("ProgramEditor (через заглушку сервера)", () => {
+describe("ProgramEditAgent (через заглушку сервера)", () => {
   let agent: ReturnType<typeof useProgramEditAgent>;
   let mockServer: ReturnType<typeof setupMockServer>;
 
@@ -32,25 +32,25 @@ describe("ProgramEditor (через заглушку сервера)", () => {
   });
 
   it("повинен завантажувати список та вміст через loadInitialData", async () => {
-    mockServer.processState.runningProgramName = "prg2";
+    mockServer.processState.runningProgramName = "Program 2";
 
     await agent.loadInitialData();
 
-    expect(agent.state.programList).toEqual(["prg1", "prg2", "prg3"]);
-    expect(agent.state.activeProgramName).toBe("prg1");
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
+    expect(agent.state.activeProgramName).toBe("Program 1");
     expect(agent.state.programContent?.[0].title).toBe("Program 1");
     expect(agent.state.programContent?.[0].description).toBe(
       "Колеса чавунні. Відпуск.",
     );
     expect(agent.state.programEdited).toBe(false);
-    expect(agent.state.runningProgramName).toBe("prg2");
+    expect(agent.state.runningProgramName).toBe("Program 2");
     expect(agent.state.isLoading).toBe(false);
   });
 
   it("не повинен обирати активну програму всередині loadProgramList", async () => {
     await agent.loadProgramList();
 
-    expect(agent.state.programList).toEqual(["prg1", "prg2", "prg3"]);
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
     expect(agent.state.activeProgramName).toBe("");
     expect(agent.state.programContent).toBeNull();
   });
@@ -109,7 +109,7 @@ describe("ProgramEditor (через заглушку сервера)", () => {
 
     expect(agent.state.programEdited).toBe(false);
     expect(agent.state.lastError).toBeNull();
-    expect(mockServer.files.get("prg1")?.[0]?.description).toBe(
+    expect(mockServer.files.get("Program 1")?.[0]?.description).toBe(
       "Зміна перед збереженням",
     );
   });
@@ -117,10 +117,10 @@ describe("ProgramEditor (через заглушку сервера)", () => {
   it("повинен перемикати програму через selectProgram", async () => {
     await agent.loadInitialData();
 
-    const ok = await agent.selectProgram("prg2");
+    const ok = await agent.selectProgram("Program 2");
 
     expect(ok).toBe(true);
-    expect(agent.state.activeProgramName).toBe("prg2");
+    expect(agent.state.activeProgramName).toBe("Program 2");
     expect(agent.state.programContent?.[0].title).toBe("Program 2");
     expect(agent.state.programEdited).toBe(false);
   });
@@ -132,10 +132,10 @@ describe("ProgramEditor (через заглушку сервера)", () => {
     modifiedContent[0].description = "Не збережено";
     agent.checkChanges(modifiedContent);
 
-    const ok = await agent.selectProgram("prg2");
+    const ok = await agent.selectProgram("Program 2");
 
     expect(ok).toBe(false);
-    expect(agent.state.activeProgramName).toBe("prg1");
+    expect(agent.state.activeProgramName).toBe("Program 1");
     expect(agent.state.programContent?.[0].description).toBe("Не збережено");
     expect(agent.state.lastError).toContain("незбережені зміни");
   });
@@ -161,10 +161,10 @@ describe("ProgramEditor (через заглушку сервера)", () => {
 
     await agent.handleDelete();
 
-    expect(agent.state.programList).toEqual(["prg2", "prg3"]);
-    expect(agent.state.activeProgramName).toBe("prg2");
+    expect(agent.state.programList).toEqual(["Program 2", "Program 3"]);
+    expect(agent.state.activeProgramName).toBe("Program 2");
     expect(agent.state.programContent?.[0].title).toBe("Program 2");
-    expect(mockServer.files.has("prg1")).toBe(false);
+    expect(mockServer.files.has("Program 1")).toBe(false);
     expect(agent.state.lastError).toBeNull();
   });
 
@@ -185,6 +185,6 @@ describe("ProgramEditor (через заглушку сервера)", () => {
     await agent.handleDelete();
 
     expect(agent.state.lastError).toBe("Програму не знайдено!");
-    expect(agent.state.programList).toEqual(["prg1", "prg2", "prg3"]);
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
   });
 });

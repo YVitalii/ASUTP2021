@@ -1,25 +1,19 @@
 <template>
   <div class="parent-container">
-    <h2>Панель редагування програми</h2>
-    <MyComponent></MyComponent>
-
-
-
+    <ProgramEditWindow />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import MyComponent from './BaseGrid.vue'; 
+import ProgramEditWindow from "./ProgramEditWindow.vue";
 </script>
 
 <style scoped>
 .parent-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 80vh;
   font-family: Arial, sans-serif;
 }
 </style>

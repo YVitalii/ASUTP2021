@@ -11,7 +11,7 @@ export const programEditorContextKey: InjectionKey<ProgramEditorContext> =
 export function useProgramEditorContext(): ProgramEditorContext {
   const context = inject(programEditorContextKey);
   if (!context) {
-    throw new Error("useProgramEditorContext() лише всередині BaseGrid");
+    throw new Error("useProgramEditorContext() лише всередині ProgramEditWindow");
   }
   return context;
 }

@@ -15,6 +15,7 @@ describe("MockServer (settings.URLs)", () => {
   });
 
   afterEach(() => {
+    settings.develop = true;
     mockServer.restore();
   });
 
@@ -22,12 +23,12 @@ describe("MockServer (settings.URLs)", () => {
     const response = await usePostJson(settings.URLs.getFilesList, {});
 
     expect(response.err).toBeNull();
-    expect(response.data).toEqual(["prg1", "prg2", "prg3"]);
+    expect(response.data).toEqual(["Program 1", "Program 2", "Program 3"]);
   });
 
   it("POST readFile {fileName} повертає типову структуру програми", async () => {
     const response = await usePostJson(settings.URLs.readFile, {
-      fileName: "prg1",
+      fileName: "Program 1",
     });
 
     expect(response.err).toBeNull();
@@ -53,13 +54,13 @@ describe("MockServer (settings.URLs)", () => {
     });
 
     const writeResponse = await usePostJson(settings.URLs.writeFile, {
-      fileName: "prg1",
+      fileName: "Program 1",
       content: updated,
     });
     expect(writeResponse.err).toBeNull();
 
     const readResponse = await usePostJson(settings.URLs.readFile, {
-      fileName: "prg1",
+      fileName: "Program 1",
     });
     expect(readResponse.data[0].description).toBe("Оновлений опис");
   });
@@ -72,27 +73,55 @@ describe("MockServer (settings.URLs)", () => {
     });
 
     await usePostJson(settings.URLs.writeFile, {
-      fileName: "prg4",
       content: created,
     });
 
     const list = await usePostJson(settings.URLs.getFilesList, {});
-    expect(list.data).toContain("prg4");
+    expect(list.data).toContain("Program 4");
 
     const readResponse = await usePostJson(settings.URLs.readFile, {
-      fileName: "prg4",
+      fileName: "Program 4",
     });
     expect(readResponse.data[0].title).toBe("Program 4");
   });
 
+  it("POST writeFile створює програму з title, якщо його немає в списку", async () => {
+    const created = createTypicalProgram({
+      title: "Нова програма",
+      description: "Опис нової",
+    });
+
+    const writeResponse = await usePostJson(settings.URLs.writeFile, {
+      fileName: "Program 1",
+      content: created,
+    });
+    expect(writeResponse.err).toBeNull();
+
+    const list = await usePostJson(settings.URLs.getFilesList, {});
+    expect(list.data).toContain("Нова програма");
+    expect(list.data).toContain("Program 1");
+
+    const previous = await usePostJson(settings.URLs.readFile, {
+      fileName: "Program 1",
+    });
+    expect(previous.data[0].title).toBe("Program 1");
+    expect(previous.data[0].description).toBe("Колеса чавунні. Відпуск.");
+
+    const readResponse = await usePostJson(settings.URLs.readFile, {
+      fileName: "Нова програма",
+    });
+    expect(readResponse.data[0].title).toBe("Нова програма");
+    expect(readResponse.data[0].description).toBe("Опис нової");
+  });
+
   it("POST deleteFile видаляє існуючу програму", async () => {
     const deleteResponse = await usePostJson(settings.URLs.deleteFile, {
-      fileName: "prg2",
+      fileName: "Program 2",
     });
     expect(deleteResponse.err).toBeNull();
 
     const list = await usePostJson(settings.URLs.getFilesList, {});
-    expect(list.data).toEqual(["prg1", "prg3"]);
+    expect(list.data).toEqual(["Program 1", "Program 3"]);
   });
 
   it("POST deleteFile для неіснуючого fileName повертає помилку", async () => {
@@ -103,6 +132,28 @@ describe("MockServer (settings.URLs)", () => {
     expect(response.err).toEqual(programNotFoundErr);
     expect(response.err.ua).toBe("Програму не знайдено!");
     expect(response.data).toBeNull();
+  });
+
+  it("develop=true бере дані з mockServer і не викликає fetch", async () => {
+    settings.develop = true;
+    const fetchMock = globalThis.fetch as ReturnType<typeof import("vitest").vi.fn>;
+
+    const response = await usePostJson(settings.URLs.getFilesList, {});
+
+    expect(response.data).toEqual(["Program 1", "Program 2", "Program 3"]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("develop=false читає відповідь через fetch", async () => {
+    settings.develop = false;
+    const fetchMock = globalThis.fetch as ReturnType<typeof import("vitest").vi.fn>;
+
+    const response = await usePostJson(settings.URLs.readFile, {
+      fileName: "Program 1",
+    });
+
+    expect(fetchMock).toHaveBeenCalled();
+    expect(response.data[0].title).toBe("Program 1");
   });
 
   it("POST runningProgramName повертає стан процесу", async () => {

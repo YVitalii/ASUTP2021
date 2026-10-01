@@ -1,5 +1,8 @@
 // src/ProgramEditor/usePostJson.ts
 
+import { ensureMockServer } from "../programEditor/mockServer";
+import { settings } from "../programEditor/settings";
+
 export interface PostOptions {
   timeout?: number; // Час очікування в мілісекундах (за замовчуванням 5000)
   maxErrors?: number; // Максимальна кількість спроб при помилці зв'язку (за замовчуванням 3)
@@ -24,6 +27,15 @@ export async function usePostJson<T = any>(
   const maxErrors = options.maxErrors ?? 3;
 
   let attempt = 0;
+
+  if (settings.develop) {
+    const result = ensureMockServer().handle(url, body);
+    if (trace) console.log(ln + "Відповідь mockServer.", result.json);
+    if (result.status !== 200) {
+      throw new Error(`Server returned status ${result.status}`);
+    }
+    return result.json as T;
+  }
 
   if (trace)
     console.log(

@@ -120,7 +120,15 @@ export function useProgramEditAgent() {
     state.lastError = null;
 
     try {
-      await writeProgram(state.activeProgramName, state.programContent);
+      const previousName = state.activeProgramName;
+      const savedTitle = state.programContent[0]?.title;
+      await writeProgram(previousName, state.programContent);
+      if (savedTitle && savedTitle !== previousName) {
+        if (state.programList && !state.programList.includes(savedTitle)) {
+          state.programList = [...state.programList, savedTitle];
+        }
+        state.activeProgramName = savedTitle;
+      }
       markClean();
       trace("handleSave", "Програму успішно збережено на сервері!");
     } catch (error) {
