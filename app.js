@@ -36,6 +36,7 @@ var loginRouter = require("./routes/login");
 // const getRouter = require("./routes/getReg.js"); // получение оперативных данных
 // const logsRouter = require("./routes/getLog.js"); // получение оперативных данных
 const { session } = require("./tools/passport-loc.js");
+const addInfoToReq = require("./addInfoToReq.js");
 // const processRouter = require("./processes/thermprocess/routes"); // шлях для роботи з програмою
 const developing = true;
 
@@ -106,15 +107,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  let ln = "app.js::";
-  req.info = {};
-  req.info.homeDir = __dirname;
-  req.info.mainPug = req.info.homeDir + "\\views\\main.pug";
-  log("w", ln, `Request req.originalUrl = ${req.originalUrl}`);
-  // console.log(`-------- ${req.info.mainPug} ----------`);
-  next();
-});
+app.use(addInfoToReq);
 // початкова сторінка
 app.use("/", indexRouter);
 
