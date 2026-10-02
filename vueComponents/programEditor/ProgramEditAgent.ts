@@ -25,7 +25,8 @@ export function useProgramEditAgent() {
     programEdited: false,
     programList: null,
     programContent: null,
-    runningProgramName: null,
+    acceptedProgram: null,
+    programRunning: false,
     originalJson: "",
     isLoading: false,
     isSaving: false,
@@ -61,10 +62,12 @@ export function useProgramEditAgent() {
 
   const loadRunningProgram = async () => {
     try {
-      state.runningProgramName = await getRunningProgramName();
+      const name = await getRunningProgramName();
+      state.programRunning = Boolean(name);
+      if (name) state.acceptedProgram = name;
     } catch (error) {
-      traceWarn("loadRunningProgram", "Не вдалося завантажити runningProgramName.", error);
-      state.runningProgramName = null;
+      traceWarn("loadRunningProgram", "Не вдалося завантажити стан виконання.", error);
+      state.programRunning = false;
     }
   };
 
@@ -143,11 +146,17 @@ export function useProgramEditAgent() {
     }
   };
 
-  const handleActivate = async () => {
-    if (state.programEdited) return;
+  const handleAccept = async () => {
+    if (
+      state.acceptedProgram === state.activeProgramName ||
+      state.programEdited ||
+      state.programRunning
+    ) {
+      return;
+    }
 
     const fileName = state.programContent?.[0]?.title;
-    trace("handleActivate", `Активація програми "${fileName ?? ""}"`);
+    trace("handleAccept", `Завантаження програми "${fileName ?? ""}" у прилад`);
 
     if (!fileName) {
       alert("Немає програми для активації.");
@@ -155,12 +164,12 @@ export function useProgramEditAgent() {
     }
 
     try {
-      const activatedName = await activated(fileName);
-      state.runningProgramName = activatedName;
-      trace("handleActivate", `Програму "${activatedName}" встановлено на прилад.`);
+      const acceptedName = await activated(fileName);
+      state.acceptedProgram = acceptedName;
+      trace("handleAccept", `Програму "${acceptedName}" завантажено в прилад.`);
     } catch (error) {
       const message = errorText(error, "Не вдалося активувати програму.");
-      traceError("handleActivate", "Помилка активації програми:", error);
+      traceError("handleAccept", "Помилка завантаження програми в прилад:", error);
       alert(message);
     }
   };
@@ -231,7 +240,7 @@ export function useProgramEditAgent() {
     loadInitialData,
     checkChanges,
     handleSave,
-    handleActivate,
+    handleAccept,
     handleDelete,
     handleReset,
     selectProgram,

@@ -3,7 +3,7 @@
     <div class="action-buttons">
       <BtnSave :disabled="!state.programEdited || state.isSaving" @click="handleSave" />
 
-      <button class="btn activate-btn" :disabled="state.programEdited" @click="handleActivate">Активувати</button>
+      <button class="btn activate-btn" :disabled="acceptDisabled" @click="handleAccept">Активувати</button>
       <button class="btn delete-btn" @click="handleDelete">Видалити</button>
       <button class="btn reset-btn" @click="handleReset">Скинути</button>
     </div>
@@ -21,12 +21,17 @@
         <div v-for="progName in state.programList" :key="progName"
           :class="['program-list-item', {
             'active': progName === state.activeProgramName,
-            'running': progName === state.runningProgramName,
+            'accepted': progName === state.acceptedProgram && !state.programRunning,
+            'running': progName === state.acceptedProgram && state.programRunning,
           }]"
           @click="selectProgram(progName)">
           <span class="prog-title">{{ progName }}</span>
-          <span v-if="state.runningProgramName === progName" class="running-badge">🟢
-            Виконується</span>
+          <span v-if="progName === state.acceptedProgram && !state.programRunning" class="accepted-badge">
+            Завантажено
+          </span>
+          <span v-if="progName === state.acceptedProgram && state.programRunning" class="running-badge">
+            Виконується
+          </span>
         </div>
       </div>
     </div>
@@ -34,11 +39,19 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import BtnSave from "./BtnSave.vue";
 import { useProgramEditorContext } from "./editorContext";
 
-const { state, handleSave, handleActivate, handleDelete, handleReset, selectProgram } =
+const { state, handleSave, handleAccept, handleDelete, handleReset, selectProgram } =
   useProgramEditorContext();
+
+const acceptDisabled = computed(
+  () =>
+    state.acceptedProgram === state.activeProgramName ||
+    state.programEdited ||
+    state.programRunning,
+);
 
 const onProgramSelect = async (event: Event) => {
   const target = event.target as HTMLSelectElement;
@@ -160,15 +173,26 @@ const onProgramSelect = async (event: Event) => {
   border-color: #42b883;
 }
 
+.program-list-item.accepted {
+  background: #e8f1fd;
+  border-color: #2980b9;
+}
+
 .program-list-item.running {
-  background: #fff4cc;
-  border-color: #e6b800;
+  background: #e3fcef;
+  border-color: #27ae60;
 }
 
 .prog-title {
   font-weight: bold;
   font-size: 13px;
   color: #2c3e50;
+}
+
+.accepted-badge {
+  font-size: 10px;
+  color: #2980b9;
+  font-weight: bold;
 }
 
 .running-badge {

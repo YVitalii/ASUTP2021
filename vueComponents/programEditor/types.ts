@@ -41,7 +41,8 @@ export interface ProgramEditorState {
   programEdited: boolean;
   programList: string[] | null;
   programContent: ProgramContent | null;
-  runningProgramName: string | null;
+  acceptedProgram: string | null;
+  programRunning: boolean;
   originalJson: string;
   isLoading: boolean;
   isSaving: boolean;

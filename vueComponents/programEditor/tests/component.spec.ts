@@ -68,14 +68,25 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     expect(wrapper.find(".edited-badge").exists()).toBe(false);
   });
 
-  it("показує бейдж виконуваної програми з processState", async () => {
+  it("показує зелену позначку Виконується і блокує редагування цієї програми", async () => {
     mockServer.processState.runningProgramName = "Program 2";
     const wrapper = await mountEditor();
 
     const running = wrapper.findAll(".program-list-item").find((item) =>
-      item.text().includes("Program 2"),
+      item.find(".prog-title").text() === "Program 2",
     );
-    expect(running?.find(".running-badge").exists()).toBe(true);
+    expect(running?.find(".running-badge").text()).toBe("Виконується");
+    expect(running?.classes()).toContain("running");
+    expect(wrapper.find(".activate-btn").attributes("disabled")).toBeDefined();
+    expect(wrapper.findComponent({ name: "ProgramManagerStub" }).props("readOnly")).toBe(false);
+
+    const secondProgram = wrapper.findAll(".program-list-item").find((item) =>
+      item.find(".prog-title").text() === "Program 2",
+    );
+    await secondProgram!.trigger("click");
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: "ProgramManagerStub" }).props("readOnly")).toBe(true);
   });
 
   it("перемикає програму кліком у списку", async () => {
@@ -119,10 +130,20 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     await activateButton.trigger("click");
     await flushPromises();
     expect(mockServer.activation.fileName).toBe("Program 1");
-    const activatedItem = wrapper.findAll(".program-list-item").find((item) =>
+    const acceptedItem = wrapper.findAll(".program-list-item").find((item) =>
       item.find(".prog-title").text() === "Program 1",
     );
-    expect(activatedItem?.classes()).toContain("running");
+    expect(acceptedItem?.classes()).toContain("accepted");
+    expect(acceptedItem?.find(".accepted-badge").text()).toBe("Завантажено");
+    expect(wrapper.find(".activate-btn").attributes("disabled")).toBeDefined();
+    expect(wrapper.findComponent({ name: "ProgramManagerStub" }).props("readOnly")).toBe(false);
+
+    const secondProgram = wrapper.findAll(".program-list-item").find((item) =>
+      item.find(".prog-title").text() === "Program 2",
+    );
+    await secondProgram!.trigger("click");
+    await flushPromises();
+    expect(wrapper.find(".activate-btn").attributes("disabled")).toBeUndefined();
 
     await wrapper.find(".stub-edit").trigger("click");
     await flushPromises();

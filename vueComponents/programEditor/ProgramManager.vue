@@ -7,7 +7,7 @@
     <ProgramManagerTable
       v-else
       :program-data="state.programContent"
-      :read-only="false"
+      :read-only="state.activeProgramName === state.acceptedProgram && state.programRunning"
       @update:programData="checkChanges"
     />
   </div>

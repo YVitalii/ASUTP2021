@@ -28,7 +28,8 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     expect(agent.state.isLoading).toBe(false);
     expect(agent.state.isSaving).toBe(false);
     expect(agent.state.lastError).toBeNull();
-    expect(agent.state.runningProgramName).toBeNull();
+    expect(agent.state.acceptedProgram).toBeNull();
+    expect(agent.state.programRunning).toBe(false);
   });
 
   it("повинен завантажувати список та вміст через loadInitialData", async () => {
@@ -43,7 +44,8 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
       "Колеса чавунні. Відпуск.",
     );
     expect(agent.state.programEdited).toBe(false);
-    expect(agent.state.runningProgramName).toBe("Program 2");
+    expect(agent.state.acceptedProgram).toBe("Program 2");
+    expect(agent.state.programRunning).toBe(true);
     expect(agent.state.isLoading).toBe(false);
   });
 
@@ -143,14 +145,26 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
   it("активує збережену програму через POST /acceptFile", async () => {
     await agent.loadInitialData();
 
-    await agent.handleActivate();
+    await agent.handleAccept();
 
     expect(mockServer.activation.fileName).toBe("Program 1");
-    expect(agent.state.runningProgramName).toBe("Program 1");
+    expect(agent.state.acceptedProgram).toBe("Program 1");
+    expect(agent.state.programRunning).toBe(false);
     expect(agent.state.lastError).toBeNull();
     expect(agent.state.programContent?.[0].description).toBe(
       "Колеса чавунні. Відпуск.",
     );
+  });
+
+  it("не завантажує програму в прилад, поки вона виконується", async () => {
+    mockServer.processState.runningProgramName = "Program 2";
+    await agent.loadInitialData();
+
+    await agent.handleAccept();
+
+    expect(mockServer.activation.fileName).toBeNull();
+    expect(agent.state.acceptedProgram).toBe("Program 2");
+    expect(agent.state.programRunning).toBe(true);
   });
 
   it("не активує програму, поки є незбережені зміни", async () => {
@@ -160,7 +174,7 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     modifiedContent[0].description = "Локальна зміна";
     agent.checkChanges(modifiedContent);
 
-    await agent.handleActivate();
+    await agent.handleAccept();
 
     expect(mockServer.activation.fileName).toBeNull();
     expect(agent.state.programEdited).toBe(true);
@@ -169,16 +183,17 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
 
   it("при помилці активації показує alert і не змінює стан", async () => {
     await agent.loadInitialData();
-    agent.state.runningProgramName = "Program 2";
+    agent.state.acceptedProgram = "Program 2";
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     if (agent.state.programContent) {
       agent.state.programContent[0].title = "Немає такої";
     }
 
-    await agent.handleActivate();
+    await agent.handleAccept();
 
     expect(alertSpy).toHaveBeenCalledWith("Програму не знайдено!");
-    expect(agent.state.runningProgramName).toBe("Program 2");
+    expect(agent.state.acceptedProgram).toBe("Program 2");
+    expect(agent.state.programRunning).toBe(false);
     expect(agent.state.lastError).toBeNull();
     expect(agent.state.activeProgramName).toBe("Program 1");
     expect(mockServer.activation.fileName).toBeNull();
