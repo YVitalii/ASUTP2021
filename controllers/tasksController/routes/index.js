@@ -41,18 +41,22 @@ router.post("/acceptFile", async function (req, res, next) {
   try {
     await req.tasksManager.setCurrentValue(fileName);
     let answer = req.entity.processManager.setProgram();
+    if (answer && answer.err) {
+      res.send({ err: answer.err, error: answer.err, data: null });
+      return;
+    }
     log("w", `File "${fileName}" was set as current! `);
-    res.send(answer);
+    res.send({ err: null, error: null, data: { fileName } });
     return;
   } catch (error) {
     let msg = error.message;
-    err = {
+    let err = {
       ua: `Помилка завантаження файлу: '${msg}'`,
       en: `Error file accepting: '${msg}'`,
       ru: `Ошибка применения файла'${msg}'`,
     };
     log("e", ln + err.ua);
-    res.status(500).send({ err: err, data: null });
+    res.status(500).send({ err: err, error: err, data: null });
     return;
   }
 });

@@ -59,6 +59,7 @@ export type MockServer = {
   files: Map<string, ProgramContent>;
   processState: ProcessState;
   flags: { failGetFilesList: boolean };
+  activation: { fileName: string | null };
   handle: (url: string, body: Record<string, unknown>) => MockResponse;
 };
 
@@ -75,6 +76,7 @@ export function createMockServer(): MockServer {
     activeSteps: null,
   };
   const flags = { failGetFilesList: false };
+  const activation = { fileName: null as string | null };
 
   const storeProgram = (header: Record<string, unknown> = {}) => {
     const program = createTypicalProgram(header);
@@ -156,6 +158,17 @@ export function createMockServer(): MockServer {
       };
     }
 
+    if (url.includes(settings.URLs.activate)) {
+      if (!fileName || !files.has(fileName)) {
+        return { status: 200, json: { error: programNotFoundErr, data: null } };
+      }
+      activation.fileName = fileName;
+      return {
+        status: 200,
+        json: { error: null, data: { fileName } },
+      };
+    }
+
     if (url.includes(settings.URLs.runningProgramName)) {
       return { status: 200, json: processState };
     }
@@ -173,7 +186,7 @@ export function createMockServer(): MockServer {
     };
   };
 
-  return { files, processState, flags, handle };
+  return { files, processState, flags, activation, handle };
 }
 
 export function activateMockServer(server: MockServer) {

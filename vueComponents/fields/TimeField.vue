@@ -1,12 +1,12 @@
 <template>
     <div class="time-field-container">
         <!-- Поле для годин -->
-        <input type="number" v-model.number="hours" @input="updateValue" :min="0" :max="maxHours" :disabled="disabled"
-            placeholder="ГГ" class="time-input" />
+        <input type="text" inputmode="numeric" maxlength="2" v-model="hoursText" @blur="updateValue"
+            @keydown="onKeydown($event, 'hours')" :disabled="disabled" placeholder="ГГ" class="time-input" />
         <span class="separator">:</span>
         <!-- Поле для хвилин -->
-        <input type="number" v-model.number="minutes" @input="updateValue" :min="0" :max="59" :disabled="disabled"
-            placeholder="ХХ" class="time-input" />
+        <input type="text" inputmode="numeric" maxlength="2" v-model="minutesText" @blur="updateValue"
+            @keydown="onKeydown($event, 'minutes')" :disabled="disabled" placeholder="ХХ" class="time-input" />
     </div>
 </template>
 
@@ -49,8 +49,10 @@ const parseToMinutes = (val: string | number | undefined): number => {
 const maxTotalMinutes = parseToMinutes(props.max ?? "99:59");
 const maxHours = Math.floor(maxTotalMinutes / 60);
 
-const hours = ref<number>(0);
-const minutes = ref<number>(0);
+const hoursText = ref<string>("00");
+const minutesText = ref<string>("00");
+
+const pad2 = (value: number) => value.toString().padStart(2, "0");
 
 // Локальна установка значень із підтримкою String та Number
 const setLocalValues = (val: string | number | undefined) => {
@@ -60,8 +62,8 @@ const setLocalValues = (val: string | number | undefined) => {
     if (isNaN(clampedMinutes) || clampedMinutes < 0) clampedMinutes = 0;
     if (clampedMinutes > maxTotalMinutes) clampedMinutes = maxTotalMinutes;
 
-    hours.value = Math.floor(clampedMinutes / 60);
-    minutes.value = clampedMinutes % 60;
+    hoursText.value = pad2(Math.floor(clampedMinutes / 60));
+    minutesText.value = pad2(clampedMinutes % 60);
 };
 
 // Ініціалізуємо початкове значення
@@ -76,8 +78,8 @@ watch(() => props.modelValue, (newVal) => {
 const updateValue = () => {
     if (props.disabled) return;
 
-    let h = hours.value || 0;
-    let m = minutes.value || 0;
+    let h = parseInt(hoursText.value, 10) || 0;
+    let m = parseInt(minutesText.value, 10) || 0;
 
     if (h < 0) h = 0;
     if (h > maxHours) h = maxHours;
@@ -85,15 +87,43 @@ const updateValue = () => {
     if (m < 0) m = 0;
     if (m > 59) m = 59;
 
-    hours.value = h;
-    minutes.value = m;
+    const formattedHours = pad2(h);
+    const formattedMinutes = pad2(m);
+    hoursText.value = formattedHours;
+    minutesText.value = formattedMinutes;
 
-    // Форматуємо у звичний рядок "ГГ:ХХ" для батьківського компонента
-    const formattedHours = h.toString().padStart(2, '0');
-    const formattedMinutes = m.toString().padStart(2, '0');
     const timeString = `${formattedHours}:${formattedMinutes}`;
 
     emit('update:modelValue', timeString);
+};
+
+const onKeydown = (event: KeyboardEvent, part: "hours" | "minutes") => {
+    if (props.disabled) return;
+
+    if (event.key === "Enter") {
+        event.preventDefault();
+        (event.target as HTMLInputElement).blur();
+        return;
+    }
+
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+
+    event.preventDefault();
+    const delta = event.key === "ArrowUp" ? 1 : -1;
+    const wrap = (value: number, max: number) => {
+        const span = max + 1;
+        return ((value % span) + span) % span;
+    };
+
+    if (part === "hours") {
+        const h = wrap((parseInt(hoursText.value, 10) || 0) + delta, maxHours);
+        hoursText.value = pad2(h);
+    } else {
+        const m = wrap((parseInt(minutesText.value, 10) || 0) + delta, 59);
+        minutesText.value = pad2(m);
+    }
+
+    updateValue();
 };
 </script>
 

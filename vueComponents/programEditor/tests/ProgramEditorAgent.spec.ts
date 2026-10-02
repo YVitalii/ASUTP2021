@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { useProgramEditAgent } from "../ProgramEditAgent";
 import type { ProgramContent } from "../types";
 import { setupMockServer } from "./mockServer";
@@ -140,20 +140,49 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     expect(agent.state.lastError).toContain("незбережені зміни");
   });
 
-  it("повинен перезавантажувати поточну програму через handleLoad", async () => {
+  it("активує збережену програму через POST /acceptFile", async () => {
+    await agent.loadInitialData();
+
+    await agent.handleActivate();
+
+    expect(mockServer.activation.fileName).toBe("Program 1");
+    expect(agent.state.runningProgramName).toBe("Program 1");
+    expect(agent.state.lastError).toBeNull();
+    expect(agent.state.programContent?.[0].description).toBe(
+      "Колеса чавунні. Відпуск.",
+    );
+  });
+
+  it("не активує програму, поки є незбережені зміни", async () => {
     await agent.loadInitialData();
 
     const modifiedContent = cloneContent(agent.state.programContent);
     modifiedContent[0].description = "Локальна зміна";
     agent.checkChanges(modifiedContent);
+
+    await agent.handleActivate();
+
+    expect(mockServer.activation.fileName).toBeNull();
     expect(agent.state.programEdited).toBe(true);
+    expect(agent.state.programContent?.[0].description).toBe("Локальна зміна");
+  });
 
-    await agent.handleLoad();
+  it("при помилці активації показує alert і не змінює стан", async () => {
+    await agent.loadInitialData();
+    agent.state.runningProgramName = "Program 2";
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    if (agent.state.programContent) {
+      agent.state.programContent[0].title = "Немає такої";
+    }
 
-    expect(agent.state.programEdited).toBe(false);
-    expect(agent.state.programContent?.[0].description).toBe(
-      "Колеса чавунні. Відпуск.",
-    );
+    await agent.handleActivate();
+
+    expect(alertSpy).toHaveBeenCalledWith("Програму не знайдено!");
+    expect(agent.state.runningProgramName).toBe("Program 2");
+    expect(agent.state.lastError).toBeNull();
+    expect(agent.state.activeProgramName).toBe("Program 1");
+    expect(mockServer.activation.fileName).toBeNull();
+    alertSpy.mockRestore();
   });
 
   it("повинен видаляти програму через handleDelete і відкривати наступну", async () => {

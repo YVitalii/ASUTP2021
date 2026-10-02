@@ -3,7 +3,7 @@
     <div class="action-buttons">
       <BtnSave :disabled="!state.programEdited || state.isSaving" @click="handleSave" />
 
-      <button class="btn load-btn" @click="handleLoad">Завантажити</button>
+      <button class="btn activate-btn" :disabled="state.programEdited" @click="handleActivate">Активувати</button>
       <button class="btn delete-btn" @click="handleDelete">Видалити</button>
       <button class="btn reset-btn" @click="handleReset">Скинути</button>
     </div>
@@ -19,7 +19,10 @@
 
       <div class="program-list-box">
         <div v-for="progName in state.programList" :key="progName"
-          :class="['program-list-item', { 'active': progName === state.activeProgramName }]"
+          :class="['program-list-item', {
+            'active': progName === state.activeProgramName,
+            'running': progName === state.runningProgramName,
+          }]"
           @click="selectProgram(progName)">
           <span class="prog-title">{{ progName }}</span>
           <span v-if="state.runningProgramName === progName" class="running-badge">🟢
@@ -34,7 +37,7 @@
 import BtnSave from "./BtnSave.vue";
 import { useProgramEditorContext } from "./editorContext";
 
-const { state, handleSave, handleLoad, handleDelete, handleReset, selectProgram } =
+const { state, handleSave, handleActivate, handleDelete, handleReset, selectProgram } =
   useProgramEditorContext();
 
 const onProgramSelect = async (event: Event) => {
@@ -73,12 +76,17 @@ const onProgramSelect = async (event: Event) => {
   text-align: center;
 }
 
-.load-btn {
+.activate-btn {
   background-color: #2980b9;
 }
 
-.load-btn:hover {
+.activate-btn:hover:not(:disabled) {
   background-color: #2471a3;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .delete-btn {
@@ -150,6 +158,11 @@ const onProgramSelect = async (event: Event) => {
 .program-list-item.active {
   background: #e3fcef;
   border-color: #42b883;
+}
+
+.program-list-item.running {
+  background: #fff4cc;
+  border-color: #e6b800;
 }
 
 .prog-title {

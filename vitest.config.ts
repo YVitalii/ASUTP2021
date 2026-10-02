@@ -9,6 +9,7 @@ export default defineConfig({
     // Вказуємо запускати тести ТІЛЬКИ всередині потрібної теки
     include: [
       "./vueComponents/programEditor/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "./vueComponents/fields/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
     ],
   },
 });

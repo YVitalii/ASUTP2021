@@ -1,5 +1,6 @@
 import { reactive } from "vue";
 import {
+  activated,
   deleteProgram,
   getProgramList,
   getRunningProgramName,
@@ -142,15 +143,25 @@ export function useProgramEditAgent() {
     }
   };
 
-  const handleLoad = async () => {
-    trace("handleLoad", "Перезавантаження поточних даних...");
-    if (!state.activeProgramName) return;
+  const handleActivate = async () => {
+    if (state.programEdited) return;
 
-    state.lastError = null;
+    const fileName = state.programContent?.[0]?.title;
+    trace("handleActivate", `Активація програми "${fileName ?? ""}"`);
+
+    if (!fileName) {
+      alert("Немає програми для активації.");
+      return;
+    }
+
     try {
-      await loadProgramContent(state.activeProgramName);
+      const activatedName = await activated(fileName);
+      state.runningProgramName = activatedName;
+      trace("handleActivate", `Програму "${activatedName}" встановлено на прилад.`);
     } catch (error) {
-      state.lastError = errorText(error, "Не вдалося завантажити програму.");
+      const message = errorText(error, "Не вдалося активувати програму.");
+      traceError("handleActivate", "Помилка активації програми:", error);
+      alert(message);
     }
   };
 
@@ -220,7 +231,7 @@ export function useProgramEditAgent() {
     loadInitialData,
     checkChanges,
     handleSave,
-    handleLoad,
+    handleActivate,
     handleDelete,
     handleReset,
     selectProgram,

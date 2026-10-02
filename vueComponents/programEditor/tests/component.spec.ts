@@ -109,6 +109,27 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     expect(mockServer.files.get("Program 1")?.[0]?.description).toBe("Зміна з UI");
   });
 
+  it("активує збережену програму і блокує кнопку, поки є зміни", async () => {
+    const wrapper = await mountEditor();
+    const activateButton = wrapper.find(".activate-btn");
+
+    expect(activateButton.text()).toBe("Активувати");
+    expect(activateButton.attributes("disabled")).toBeUndefined();
+
+    await activateButton.trigger("click");
+    await flushPromises();
+    expect(mockServer.activation.fileName).toBe("Program 1");
+    const activatedItem = wrapper.findAll(".program-list-item").find((item) =>
+      item.find(".prog-title").text() === "Program 1",
+    );
+    expect(activatedItem?.classes()).toContain("running");
+
+    await wrapper.find(".stub-edit").trigger("click");
+    await flushPromises();
+
+    expect(wrapper.find(".activate-btn").attributes("disabled")).toBeDefined();
+  });
+
   it("скидає локальні зміни кнопкою Скинути", async () => {
     const wrapper = await mountEditor();
 

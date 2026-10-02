@@ -7,6 +7,7 @@ export const settings = {
     deleteFile: "/deleteFile", // POST body={fileName: program[0].title}
     writeFile: "/writeFile", // POST body={fileName: program[0].title, content}
     readFile: "/readFile", // POST body={fileName: program[0].title}
+    activate: "/acceptFile", // POST body={fileName: program[0].title}
     runningProgramName: "/process/state", // POST body={}
   },
   header: "Редактор програми", // заголовок сторінки

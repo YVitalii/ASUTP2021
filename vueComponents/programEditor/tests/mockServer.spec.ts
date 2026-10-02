@@ -156,6 +156,16 @@ describe("MockServer (settings.URLs)", () => {
     expect(response.data[0].title).toBe("Program 1");
   });
 
+  it("POST activate встановлює програму за title", async () => {
+    const response = await usePostJson(settings.URLs.activate, {
+      fileName: "Program 2",
+    });
+
+    expect(response.error).toBeNull();
+    expect(response.data).toEqual({ fileName: "Program 2" });
+    expect(mockServer.activation.fileName).toBe("Program 2");
+  });
+
   it("POST runningProgramName повертає стан процесу", async () => {
     const response = await usePostJson(settings.URLs.runningProgramName, {});
 

@@ -71,6 +71,21 @@ export async function writeProgram(
   assertNoError(response, "writeFile error");
 }
 
+export async function activated(fileName: string): Promise<string> {
+  const response = await usePostJson<
+    ApiEnvelope<{ fileName?: string }> & {
+      error?: LocalizedMessage | string | null;
+    }
+  >(settings.URLs.activate, { fileName });
+
+  const error = response?.error ?? response?.err;
+  const activatedName = response?.data?.fileName;
+  if (error || typeof activatedName !== "string") {
+    throw new Error(errorMessage(error, "acceptFile error"));
+  }
+  return activatedName;
+}
+
 export async function deleteProgram(fileName: string): Promise<void> {
   const response = await usePostJson<ApiEnvelope<LocalizedMessage>>(
     settings.URLs.deleteFile,
