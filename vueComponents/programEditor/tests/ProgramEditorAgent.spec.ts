@@ -17,6 +17,8 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
   });
 
   afterEach(() => {
+    agent.stopProcessPolling();
+    vi.useRealTimers();
     mockServer.restore();
   });
 
@@ -33,7 +35,7 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
   });
 
   it("повинен завантажувати список та вміст через loadInitialData", async () => {
-    mockServer.processState.runningProgramName = "Program 2";
+    mockServer.processState.acceptedProgram = "Program 2";
 
     await agent.loadInitialData();
 
@@ -45,8 +47,42 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     );
     expect(agent.state.programEdited).toBe(false);
     expect(agent.state.acceptedProgram).toBe("Program 2");
-    expect(agent.state.programRunning).toBe(true);
+    expect(agent.state.programRunning).toBe(false);
     expect(agent.state.isLoading).toBe(false);
+  });
+
+  it("loadInitialData запитує getProcessState і повторює запит кожні 30 секунд", async () => {
+    vi.useFakeTimers();
+    mockServer.processState.acceptedProgram = "Program 2";
+    mockServer.processState.programRunning = false;
+
+    await agent.loadInitialData();
+    expect(agent.state.acceptedProgram).toBe("Program 2");
+    expect(agent.state.programRunning).toBe(false);
+
+    mockServer.processState.acceptedProgram = "Program 3";
+    mockServer.processState.programRunning = true;
+
+    await vi.advanceTimersByTimeAsync(29_000);
+    expect(agent.state.acceptedProgram).toBe("Program 2");
+    expect(agent.state.programRunning).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(agent.state.acceptedProgram).toBe("Program 3");
+    expect(agent.state.programRunning).toBe(true);
+  });
+
+  it("оновлює список програм із getFilesList кожні 30 секунд", async () => {
+    vi.useFakeTimers();
+    await agent.loadInitialData();
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
+
+    mockServer.files.delete("Program 3");
+    await vi.advanceTimersByTimeAsync(29_000);
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2"]);
   });
 
   it("не повинен обирати активну програму всередині loadProgramList", async () => {
@@ -157,7 +193,8 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
   });
 
   it("не завантажує програму в прилад, поки вона виконується", async () => {
-    mockServer.processState.runningProgramName = "Program 2";
+    mockServer.processState.acceptedProgram = "Program 2";
+    mockServer.processState.programRunning = true;
     await agent.loadInitialData();
 
     await agent.handleAccept();
@@ -200,16 +237,43 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     alertSpy.mockRestore();
   });
 
-  it("повинен видаляти програму через handleDelete і відкривати наступну", async () => {
+  it("після підтвердження видаляє програму і перечитує список із сервера", async () => {
     await agent.loadInitialData();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
 
     await agent.handleDelete();
 
+    expect(confirmSpy).toHaveBeenCalledWith("Ви точно хочете видалити програму Program 1?");
     expect(agent.state.programList).toEqual(["Program 2", "Program 3"]);
     expect(agent.state.activeProgramName).toBe("Program 2");
     expect(agent.state.programContent?.[0].title).toBe("Program 2");
     expect(mockServer.files.has("Program 1")).toBe(false);
     expect(agent.state.lastError).toBeNull();
+    confirmSpy.mockRestore();
+  });
+
+  it("не видаляє програму, якщо користувач відмовився", async () => {
+    await agent.loadInitialData();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+
+    await agent.handleDelete();
+
+    expect(mockServer.files.has("Program 1")).toBe(true);
+    expect(agent.state.activeProgramName).toBe("Program 1");
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
+    confirmSpy.mockRestore();
+  });
+
+  it("не видаляє програму, завантажену в прилад", async () => {
+    await agent.loadInitialData();
+    agent.state.acceptedProgram = "Program 1";
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    await agent.handleDelete();
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(mockServer.files.has("Program 1")).toBe(true);
+    confirmSpy.mockRestore();
   });
 
   it("повинен записувати lastError, якщо збереження не вдалося", async () => {
@@ -222,13 +286,18 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     expect(agent.state.programEdited).toBe(false);
   });
 
-  it("повинен записувати lastError, якщо видалення не вдалося", async () => {
+  it("при помилці видалення показує alert і не змінює список", async () => {
     await agent.loadInitialData();
     agent.state.activeProgramName = "missing";
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
 
     await agent.handleDelete();
 
-    expect(agent.state.lastError).toBe("Програму не знайдено!");
+    expect(alertSpy).toHaveBeenCalledWith("Програму не знайдено!");
+    expect(agent.state.lastError).toBeNull();
     expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
+    confirmSpy.mockRestore();
+    alertSpy.mockRestore();
   });
 });

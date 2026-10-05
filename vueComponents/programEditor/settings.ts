@@ -8,6 +8,7 @@ export const settings = {
     writeFile: "/writeFile", // POST body={fileName: program[0].title, content}
     readFile: "/readFile", // POST body={fileName: program[0].title}
     activate: "/acceptFile", // POST body={fileName: program[0].title}
+    getProcessState: "/getProcessState", // POST body={} → { err:null, data:{ acceptedProgram, programRunning } }
     runningProgramName: "/process/state", // POST body={}
   },
   header: "Редактор програми", // заголовок сторінки

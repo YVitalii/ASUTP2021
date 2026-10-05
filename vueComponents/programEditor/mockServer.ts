@@ -72,8 +72,8 @@ function clone<T>(value: T): T {
 export function createMockServer(): MockServer {
   const files = new Map<string, ProgramContent>();
   const processState: ProcessState = {
-    runningProgramName: null,
-    activeSteps: null,
+    acceptedProgram: "Program 2",
+    programRunning: false,
   };
   const flags = { failGetFilesList: false };
   const activation = { fileName: null as string | null };
@@ -163,14 +163,18 @@ export function createMockServer(): MockServer {
         return { status: 200, json: { error: programNotFoundErr, data: null } };
       }
       activation.fileName = fileName;
+      processState.acceptedProgram = fileName;
       return {
         status: 200,
         json: { error: null, data: { fileName } },
       };
     }
 
-    if (url.includes(settings.URLs.runningProgramName)) {
-      return { status: 200, json: processState };
+    if (url.includes(settings.URLs.getProcessState)) {
+      return {
+        status: 200,
+        json: { err: null, data: { ...processState } },
+      };
     }
 
     return {

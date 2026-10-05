@@ -12,6 +12,16 @@ export interface PostOptions {
 const gLn = "usePostJson.ts::";
 const gTrace = true;
 
+function logPost(url: string, body: unknown, response: unknown) {
+  if (url.includes(settings.URLs.getProcessState)) {
+    // console.log(`${url} →`, body);
+    // console.log(response);
+    return;
+  }
+  console.log(`${url} →`, body);
+  console.log(response);
+}
+
 export async function usePostJson<T = any>(
   url: string = "",
   body: Record<string, any> = {},
@@ -30,18 +40,22 @@ export async function usePostJson<T = any>(
 
   if (settings.develop) {
     const result = ensureMockServer().handle(url, body);
-    if (trace) console.log(ln + "Відповідь mockServer.", result.json);
+    // if (trace) console.log(ln + "Відповідь mockServer.", result.json);
+    logPost(url, body, result.json);
     if (result.status !== 200) {
       throw new Error(`Server returned status ${result.status}`);
     }
     return result.json as T;
   }
 
-  if (trace)
-    console.log(
-      ln +
-        `Підготовка POST-запиту на ${url}. Максимум спроб: ${maxErrors}, Таймаут: ${timeout}мс`,
-    );
+  // if (trace)
+  //   console.log(
+  //     ln +
+  //       `Підготовка POST-запиту на ${url}. Максимум спроб: ${maxErrors}, Таймаут: ${timeout}мс`,
+  //   );
+  if (!url.includes(settings.URLs.getProcessState)) {
+    console.log(`${url} →`, body);
+  }
 
   while (attempt < maxErrors) {
     attempt++;
@@ -73,8 +87,11 @@ export async function usePostJson<T = any>(
 
       try {
         const jsonData = await response.json();
-        if (trace)
-          console.log(ln + "Запит успішно виконано та спарсено.", jsonData);
+        // if (trace)
+        //   console.log(ln + "Запит успішно виконано та спарсено.", jsonData);
+        if (!url.includes(settings.URLs.getProcessState)) {
+          console.log(jsonData);
+        }
         return jsonData as T;
       } catch (parseError) {
         throw new Error("Помилка парсингу JSON відповіді від сервера");
@@ -89,18 +106,18 @@ export async function usePostJson<T = any>(
 
       if (attempt >= maxErrors || !isNetworkOrTimeoutError) {
         if (isNetworkOrTimeoutError && attempt >= maxErrors) {
-          if (trace)
-            console.error(ln + "Вичерпано всі спроби. Помилка з'єднання.");
+          // if (trace)
+          //   console.error(ln + "Вичерпано всі спроби. Помилка з'єднання.");
           throw new Error("Connection error");
         }
         throw error;
       }
 
-      if (trace)
-        console.warn(
-          ln + `Спроба ${attempt} не вдалася. Повтор...`,
-          error.message,
-        );
+      // if (trace)
+      //   console.warn(
+      //     ln + `Спроба ${attempt} не вдалася. Повтор...`,
+      //     error.message,
+      //   );
     }
   }
 

@@ -16,7 +16,7 @@ const emit = defineEmits<{
 }>();
 
 const handleClick = () => {
-    console.log(`BtnSave.vue clicked`)
+    // console.log(`BtnSave.vue clicked`)
     emit('click');
 };
 </script>

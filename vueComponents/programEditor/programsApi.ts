@@ -94,10 +94,14 @@ export async function deleteProgram(fileName: string): Promise<void> {
   assertNoError(response, "deleteFile error");
 }
 
-export async function getRunningProgramName(): Promise<string | null> {
-  const response = await usePostJson<ProcessState>(
-    settings.URLs.runningProgramName,
+export async function getProcessState(): Promise<ProcessState> {
+  const response = await usePostJson<ApiEnvelope<ProcessState>>(
+    settings.URLs.getProcessState,
     {},
   );
-  return response?.runningProgramName ?? null;
+  const data = unwrapData(response, "getProcessState error");
+  return {
+    acceptedProgram: data.acceptedProgram ?? null,
+    programRunning: Boolean(data.programRunning),
+  };
 }

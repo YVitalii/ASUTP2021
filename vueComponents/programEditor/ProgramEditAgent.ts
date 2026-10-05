@@ -1,9 +1,9 @@
-import { reactive } from "vue";
+import { getCurrentScope, onScopeDispose, reactive } from "vue";
 import {
   activated,
   deleteProgram,
   getProgramList,
-  getRunningProgramName,
+  getProcessState,
   readProgram,
   writeProgram,
 } from "./programsApi";
@@ -13,6 +13,7 @@ import type { ProgramContent, ProgramEditorState } from "./types";
 
 const UNSAVED_CHANGES_MSG =
   "Є незбережені зміни. Збережіть або скиньте їх перед зміною програми.";
+const PROCESS_STATE_POLL_MS = 30_000;
 
 function errorText(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message;
@@ -60,16 +61,43 @@ export function useProgramEditAgent() {
     }
   };
 
+  let processStatePoll: ReturnType<typeof setInterval> | null = null;
+
   const loadRunningProgram = async () => {
     try {
-      const name = await getRunningProgramName();
-      state.programRunning = Boolean(name);
-      if (name) state.acceptedProgram = name;
+      const processState = await getProcessState();
+      state.acceptedProgram = processState.acceptedProgram;
+      state.programRunning = processState.programRunning;
     } catch (error) {
-      traceWarn("loadRunningProgram", "Не вдалося завантажити стан виконання.", error);
-      state.programRunning = false;
+      traceWarn("loadRunningProgram", "Не вдалося завантажити стан процесу.", error);
     }
   };
+
+  const stopProcessPolling = () => {
+    if (processStatePoll == null) return;
+    clearInterval(processStatePoll);
+    processStatePoll = null;
+  };
+
+  const refreshProgramList = async () => {
+    try {
+      state.programList = await getProgramList();
+    } catch (error) {
+      traceWarn("refreshProgramList", "Не вдалося оновити список програм.", error);
+    }
+  };
+
+  const startProcessPolling = () => {
+    if (processStatePoll != null) return;
+    processStatePoll = setInterval(() => {
+      void loadRunningProgram();
+      void refreshProgramList();
+    }, PROCESS_STATE_POLL_MS);
+  };
+
+  if (getCurrentScope()) {
+    onScopeDispose(stopProcessPolling);
+  }
 
   const loadProgramContent = async (programName: string) => {
     trace("loadProgramContent", `Завантаження вмісту для програми: ${programName}`);
@@ -106,6 +134,7 @@ export function useProgramEditAgent() {
       throw error;
     } finally {
       state.isLoading = false;
+      startProcessPolling();
     }
   };
 
@@ -175,32 +204,37 @@ export function useProgramEditAgent() {
   };
 
   const handleDelete = async () => {
-    if (!state.activeProgramName || !state.programList) return;
+    if (!state.activeProgramName || state.activeProgramName === state.acceptedProgram) return;
 
     const deletedName = state.activeProgramName;
+    const confirmed = confirm(`Ви точно хочете видалити програму ${deletedName}?`);
+    if (!confirmed) return;
+
     trace("handleDelete", `Видалення програми: ${deletedName}`);
-    state.lastError = null;
 
     try {
       await deleteProgram(deletedName);
-      state.programList = state.programList.filter((name) => name !== deletedName);
+      state.programList = await getProgramList();
 
-      if (state.programList.length > 0) {
-        state.activeProgramName = state.programList[0] ?? "";
-        await loadProgramContent(state.activeProgramName);
-      } else {
-        state.programContent = null;
-        state.activeProgramName = "";
-        markClean(null);
+      if (!state.programList.includes(deletedName)) {
+        if (state.programList.length > 0) {
+          state.activeProgramName = state.programList[0] ?? "";
+          await loadProgramContent(state.activeProgramName);
+        } else {
+          state.programContent = null;
+          state.activeProgramName = "";
+          markClean(null);
+        }
       }
 
       trace("handleDelete", "Програму успішно видалено.");
     } catch (error) {
-      traceError("handleDelete", "Помилка під час видалення програми:", error);
-      state.lastError = errorText(
+      const message = errorText(
         error,
         "Не вдалося видалити програму через помилку мережі.",
       );
+      traceError("handleDelete", "Помилка під час видалення програми:", error);
+      alert(message);
     }
   };
 
@@ -238,6 +272,7 @@ export function useProgramEditAgent() {
     loadProgramList,
     loadProgramContent,
     loadInitialData,
+    stopProcessPolling,
     checkChanges,
     handleSave,
     handleAccept,

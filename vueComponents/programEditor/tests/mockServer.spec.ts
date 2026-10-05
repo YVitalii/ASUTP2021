@@ -166,10 +166,20 @@ describe("MockServer (settings.URLs)", () => {
     expect(mockServer.activation.fileName).toBe("Program 2");
   });
 
-  it("POST runningProgramName повертає стан процесу", async () => {
-    const response = await usePostJson(settings.URLs.runningProgramName, {});
+  it("POST getProcessState повертає acceptedProgram і programRunning", async () => {
+    const response = await usePostJson(settings.URLs.getProcessState, {});
 
-    expect(response.runningProgramName).toBeNull();
-    expect(response.activeSteps).toBeNull();
+    expect(response.err).toBeNull();
+    expect(response.data).toEqual({ acceptedProgram: "Program 2", programRunning: false });
+  });
+
+  it("POST activate змінює acceptedProgram у стані процесу", async () => {
+    await usePostJson(settings.URLs.activate, { fileName: "Program 2" });
+    const response = await usePostJson(settings.URLs.getProcessState, {});
+
+    expect(response.data).toEqual({
+      acceptedProgram: "Program 2",
+      programRunning: false,
+    });
   });
 });

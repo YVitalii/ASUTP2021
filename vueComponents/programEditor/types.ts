@@ -32,8 +32,8 @@ export type ProgramStep = Record<string, unknown>;
 export type ProgramContent = [ProgramHeader, ...ProgramStep[]];
 
 export interface ProcessState {
-  runningProgramName: string | null;
-  activeSteps: unknown;
+  acceptedProgram: string | null;
+  programRunning: boolean;
 }
 
 export interface ProgramEditorState {

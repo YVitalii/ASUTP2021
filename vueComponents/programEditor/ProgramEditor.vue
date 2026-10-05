@@ -4,7 +4,7 @@
       <BtnSave :disabled="!state.programEdited || state.isSaving" @click="handleSave" />
 
       <button class="btn activate-btn" :disabled="acceptDisabled" @click="handleAccept">Активувати</button>
-      <button class="btn delete-btn" @click="handleDelete">Видалити</button>
+      <button class="btn delete-btn" :disabled="state.activeProgramName === state.acceptedProgram" @click="handleDelete">Видалити</button>
       <button class="btn reset-btn" @click="handleReset">Скинути</button>
     </div>
 
@@ -21,7 +21,6 @@
         <div v-for="progName in state.programList" :key="progName"
           :class="['program-list-item', {
             'active': progName === state.activeProgramName,
-            'accepted': progName === state.acceptedProgram && !state.programRunning,
             'running': progName === state.acceptedProgram && state.programRunning,
           }]"
           @click="selectProgram(progName)">
@@ -106,7 +105,7 @@ const onProgramSelect = async (event: Event) => {
   background-color: #e74c3c;
 }
 
-.delete-btn:hover {
+.delete-btn:hover:not(:disabled) {
   background-color: #c0392b;
 }
 
@@ -171,11 +170,6 @@ const onProgramSelect = async (event: Event) => {
 .program-list-item.active {
   background: #e3fcef;
   border-color: #42b883;
-}
-
-.program-list-item.accepted {
-  background: #e8f1fd;
-  border-color: #2980b9;
 }
 
 .program-list-item.running {

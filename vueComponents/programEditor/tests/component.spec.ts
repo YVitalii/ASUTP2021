@@ -59,34 +59,34 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     const wrapper = await mountEditor();
 
     expect(wrapper.text()).toContain("Редактор програми");
-    expect(wrapper.findAll(".program-list-item").map((item) => item.text())).toEqual(
-      expect.arrayContaining(["Program 1", "Program 2", "Program 3"]),
-    );
+    expect(wrapper.findAll(".prog-title").map((item) => item.text())).toEqual([
+      "Program 1",
+      "Program 2",
+      "Program 3",
+    ]);
     expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("Program 1");
     expect(wrapper.find(".stub-title").text()).toBe("Program 1");
     expect(wrapper.find(".stub-description").text()).toBe("Колеса чавунні. Відпуск.");
     expect(wrapper.find(".edited-badge").exists()).toBe(false);
   });
 
-  it("показує зелену позначку Виконується і блокує редагування цієї програми", async () => {
-    mockServer.processState.runningProgramName = "Program 2";
+  it("показує синю позначку Завантажено для програми з processState", async () => {
+    mockServer.processState.acceptedProgram = "Program 2";
     const wrapper = await mountEditor();
 
-    const running = wrapper.findAll(".program-list-item").find((item) =>
+    const accepted = wrapper.findAll(".program-list-item").find((item) =>
       item.find(".prog-title").text() === "Program 2",
     );
-    expect(running?.find(".running-badge").text()).toBe("Виконується");
-    expect(running?.classes()).toContain("running");
-    expect(wrapper.find(".activate-btn").attributes("disabled")).toBeDefined();
+    expect(accepted?.find(".accepted-badge").text()).toBe("Завантажено");
+    expect(accepted?.classes()).not.toContain("accepted");
+    expect(wrapper.find(".activate-btn").attributes("disabled")).toBeUndefined();
     expect(wrapper.findComponent({ name: "ProgramManagerStub" }).props("readOnly")).toBe(false);
 
-    const secondProgram = wrapper.findAll(".program-list-item").find((item) =>
-      item.find(".prog-title").text() === "Program 2",
-    );
-    await secondProgram!.trigger("click");
+    await accepted!.trigger("click");
     await flushPromises();
 
-    expect(wrapper.findComponent({ name: "ProgramManagerStub" }).props("readOnly")).toBe(true);
+    expect(wrapper.find(".activate-btn").attributes("disabled")).toBeDefined();
+    expect(wrapper.findComponent({ name: "ProgramManagerStub" }).props("readOnly")).toBe(false);
   });
 
   it("перемикає програму кліком у списку", async () => {
@@ -133,8 +133,8 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     const acceptedItem = wrapper.findAll(".program-list-item").find((item) =>
       item.find(".prog-title").text() === "Program 1",
     );
-    expect(acceptedItem?.classes()).toContain("accepted");
     expect(acceptedItem?.find(".accepted-badge").text()).toBe("Завантажено");
+    expect(acceptedItem?.classes()).not.toContain("accepted");
     expect(wrapper.find(".activate-btn").attributes("disabled")).toBeDefined();
     expect(wrapper.findComponent({ name: "ProgramManagerStub" }).props("readOnly")).toBe(false);
 
@@ -182,11 +182,20 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     expect(wrapper.find(".stub-description").text()).toBe("Зміна з UI");
   });
 
+  it("вимикає Видалити для програми, завантаженої в прилад", async () => {
+    mockServer.processState.acceptedProgram = "Program 1";
+    const wrapper = await mountEditor();
+
+    expect(wrapper.find(".delete-btn").attributes("disabled")).toBeDefined();
+  });
+
   it("видаляє активну програму і відкриває наступну", async () => {
     const wrapper = await mountEditor();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
 
     await wrapper.find(".delete-btn").trigger("click");
     await flushPromises();
+    confirmSpy.mockRestore();
 
     expect(wrapper.findAll(".prog-title").map((el) => el.text())).toEqual([
       "Program 2",
