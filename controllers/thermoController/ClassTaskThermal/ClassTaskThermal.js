@@ -410,6 +410,6 @@ class ClassTaskThermal extends ClassTaskGeneral {
     res.taskPoints = stepTaskPoints;
     return res; //{ header: { ua: `123`, en: `123`, ru: `123` } };
   }
-} //class ClassThermoStep
+} // class ClassThermoStep
 
 module.exports = ClassTaskThermal;

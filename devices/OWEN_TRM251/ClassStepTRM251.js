@@ -6,9 +6,10 @@ const log = require("../../tools/log");
  * @extends ClassStepGeneral
  */
 
-class ClassThermoStepTRM251 extends ClassStepGeneral {
+class ClassTRM251 extends ClassStepGeneral {
   constructor(props = {}) {
     super(props);
+    
     if (!props.number) {
       throw new Error(this.ln + " props.number is required!");
     }

@@ -28,4 +28,5 @@ containers.forEach((container) => {
   }
 });
 
+
 console.log("Vue додаток запущено!");
