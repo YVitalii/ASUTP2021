@@ -6,8 +6,8 @@ const ClassRegister = require("../regsController/ClassRegister.js");
 // const ClassTaskGeneral = require("../tasksController/ClassTaskGeneral.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
 const pathNormalize = require("path").normalize;
-const pathResolve = require("path").resolve;
-//const { readFileSync, writeFile } = require("fs");
+const pathJoin = require("path").join;
+const fs = require("fs");
 const ClassTaskDescriptionStep = require("./ClassTaskDescriptionStep.js");
 // const { chdir } = require("process");
 /**
@@ -57,39 +57,33 @@ class ClassTasksManager extends ClassReg_select {
     if (!props.homeDir) {
       throw new Error(this.ln + "homeDir not defined! ");
     }
-    // домашня директорія
-    this.homeDir = pathResolve(props.homeDir, "tasksManager");
-    trace ? log("i", ln, `this.homeDir=`, this.homeDir) : null;
-    // кореневий URL
-    this.homeURL = props.homeURL ? props.homeURL + "/tasksManager/" : "/";
+    // усі шляхи менеджера задач
+    const homeDir = pathNormalize(props.homeDir + "/tasksManager/");
+    const homeURL = (props.homeURL ? props.homeURL : "") + "/tasksManager/";
+    this.path = {
+      homeDir,
+      homeURL,
+      programDir: pathNormalize(homeDir + "tasksList/"),
+      stateFile: pathNormalize(homeDir + "state.info"),
+    };
+    // аліаси для сторінок, які ще читають старі поля
+    this.homeDir = this.path.homeDir;
+    this.homeURL = this.path.homeURL;
+    trace ? log("i", ln, `this.path=`, this.path) : null;
+    // один раз при запуску: каталоги, state.info і this.value
+    this.getStateSync();
     // робота з файлом поточного стану
     this.lastState = new ClassFileManager({
-      homeDir: this.homeDir,
+      homeDir: this.path.homeDir,
       ln: this.ln + "lastState::",
     });
     this.lastState.fileName = "state.info";
-    if (!this.lastState.exist(this.lastState.fileName)) {
-      // якщо файлу зі збереженим станом немає - створюємо його
-      this.lastState.writeFile(
-        this.lastState.fileName,
-        JSON.stringify({ value: "default" })
-      );
-      this.value = "default";
-    } else {
-      // якщо файл існує - завантажуємо
-      let trace = 0,
-        ln = this.ln + "loadLastState::";
-      let data = this.lastState.readFileSync(this.lastState.fileName);
-      trace ? log(ln, `data=`, data) : null;
-      data = JSON.parse(data ? data : JSON.stringify({ value: "default" }));
-      this.value = data.value ? data.value : "default";
-    }
 
     // файловий менеджер, що відповідає за роботу з файлами завдань
     this.fileManager = new ClassFileManager({
-      homeDir: pathNormalize(this.homeDir + "/tasksList"),
+      homeDir: this.path.programDir,
       ln: this.ln,
-      homeURL: this.homeURL + "fileManager/",
+      homeURL: this.path.homeURL + "fileManager/",
     });
 
     // Опис для елементу DOM fileManager
@@ -164,6 +158,35 @@ class ClassTasksManager extends ClassReg_select {
       log("i", ln, `this=`);
       console.dir(this, { depth: 3 });
     }
+  }
+
+  /**
+   * Один раз при запуску готує каталоги і синхронно читає активну програму з state.info.
+   * Якщо state.info немає, створює його лише коли в каталозі програм є файл "default".
+   */
+  getStateSync() {
+    let ln = this.ln + "getStateSync()::";
+    if (!fs.existsSync(this.path.homeDir)) {
+      fs.mkdirSync(this.path.homeDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.path.programDir)) {
+      fs.mkdirSync(this.path.programDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.path.stateFile)) {
+      let defaultProgram = pathJoin(this.path.programDir, "default");
+      if (fs.existsSync(defaultProgram)) {
+        fs.writeFileSync(
+          this.path.stateFile,
+          JSON.stringify({ value: "default" })
+        );
+        this.value = "default";
+      } else {
+        throw new Error(ln + '"default" не знайдено');
+      }
+    }
+    let data = fs.readFileSync(this.path.stateFile, "utf8");
+    data = JSON.parse(data ? data : JSON.stringify({ value: "default" }));
+    this.value = data.value ? data.value : "default";
   }
 
   /** Встановлює поточний список задач для виконання */
@@ -324,7 +347,7 @@ class ClassTasksManager extends ClassReg_select {
       id: this.id,
       reg,
       list: this.list,
-      homeURL: this.homeURL,
+      homeURL: this.path.homeURL,
       value: this.value,
       fileManager: {
         filesList: this.fileManager.getFilesList(),
@@ -345,3 +368,4 @@ class ClassTasksManager extends ClassReg_select {
 } //class ClassTasksManager
 
 module.exports = ClassTasksManager;
+
