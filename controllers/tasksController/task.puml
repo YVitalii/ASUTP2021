@@ -1,0 +1,120 @@
+@startuml initSync
+
+title initSync() method
+start
+if (!fs.existsSync(this.path.programDir)) then (Yes)
+    :fs.mkdirSync(this.path.programDir, { recursive: true });
+else (No)
+    :this.tasksList = fs.readdirSync(this.path.programDir);
+endif
+
+if (!fs.existsSync(this.path.stateFile)) then (Yes)
+    if (!fs.existsSync(pathJoin(this.path.programDir, "default"))) then (Yes)
+        :Error: Default task file not found;
+        stop
+    endif
+    :fs.writeFileSync(this.path.stateFile,
+    { activeProgram: "default", lastChange: Date.now() });
+else (No)
+endif
+:state = JSON.parse(fs.readFileSync(this.path.stateFile, "utf8"));
+:this.activeTask.fileName = state.activeProgram;
+:this.activeTask.content = this.fileManager.readFileSync(this.activeTask.fileName);
+end
+@enduml
+
+@startuml loadTask
+
+title async loadTask(taskName=undefined)
+start
+if (!taskName) then (Yes)
+    :return this.activeTask.content;
+    stop
+endif
+:data = await this.fileManager.readFile(taskName);
+:return JSON.parse(data);
+end
+@enduml
+
+@startuml readTasksList
+
+title async readTasksList()
+start
+:this.tasksList = await fs.promises.readdir(this.path.programDir);
+:return this.tasksList;
+end
+@enduml
+
+@startuml getTasksList
+
+title getTasksList()
+start
+:return this.tasksList;
+end
+@enduml
+
+@startuml saveTask
+
+title async saveTask(taskName=undefined, content=undefined)
+start
+if (!taskName || content === undefined) then (Yes)
+    :Error: taskName and content are required;
+    stop
+endif
+:await this.fileManager.writeFile(taskName, content);
+note right
+  файл: programDir + taskName
+  створює / перезаписує
+end note
+if (!this.tasksList.includes(taskName)) then (Yes)
+    :this.tasksList.push(taskName);
+endif
+end
+@enduml
+
+@startuml deleteTask
+
+title async deleteTask(taskName)
+start
+if (!taskName) then (Yes)
+    :Error: taskName is required;
+    stop
+endif
+if (!this.fileManager.exist(taskName)) then (Yes)
+    :Error: Task file not found;
+    stop
+endif
+:await this.fileManager.deleteFile(taskName);
+:this.tasksList = this.tasksList.filter(name => name !== taskName);
+end
+@enduml
+
+@startuml getActiveTask
+
+title getActiveTask()
+start
+:return {
+  taskName: this.activeTask.fileName,
+  content: clone(this.activeTask.content)
+};
+end
+@enduml
+
+@startuml setActiveTask
+
+title async setActiveTask(taskName=undefined)
+start
+if (!taskName || !this.fileManager.exist(taskName)) then (Yes)
+    :Error: Task file not found;
+    stop
+endif
+:try;
+:content = await this.loadTask(taskName);
+:this.activeTask.fileName = taskName;
+:this.activeTask.content = content;
+:writeFile state.info
+{ activeProgram: taskName, lastChange: Date.now() };
+:except;
+:Error;
+end
+@enduml
