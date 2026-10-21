@@ -1,0 +1,13 @@
+1. Створюємо теку ./routes
+2. В ній пишемо роутер 
+ 
+POST /getFilesList, тіло {} — return {err,data:getTasksList} - data це масив назв програм  
+POST /readFile, тіло { fileName } — return {err,data:loadTask(fileName)} — data це вміст програми.
+POST /writeFile, тіло { fileName, content } - saveTask(fileName, content) - return {err,data:{fileName}})
+POST /deleteFile, тіло { fileName } - deleteTask(fileName) - return {err,data:{fileName}}
+POST /acceptFile, тіло { fileName } - setActiveTask(fileName) - return Успіх: { error: null, data: { fileName } }. Помилка: { error: { ua, en, ru }, data: null }.
+POST /getProcessState, тіло {} — data: { acceptedProgram: this.setActiveTask.fileName, programRunning:false }. acceptedProgram має бути назвою зі списку програм.
+POST /getTasksDescription  return {err,data:getTasksDescription()}
+
+
+Шаблон pug

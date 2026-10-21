@@ -48,6 +48,7 @@ class ClassTasksManager extends ClassRegister {
 
     this.activeTask = { fileName: null, content: null }; // активне завдання
     this.tasksList = []; // список завдань
+    this.availableTasksTypes = new Map(); // зареєстровані типи кроків
 
     // файловий менеджер, що відповідає за роботу з файлами завдань
     this.fileManager = new ClassFileManager({
@@ -57,6 +58,41 @@ class ClassTasksManager extends ClassRegister {
     });
 
     this.initSync();
+  }
+
+  /**
+   * Реєструє тип кроку. Повторний id заборонений.
+   * @param {Object} taskItem - опис типу кроку з полем id
+   */
+  addTaskType(taskItem) {
+    let ln = this.ln + "addTaskType()::";
+    if (!taskItem || !taskItem.id) {
+      throw new Error(ln + "taskItem.id is required");
+    }
+    if (this.availableTasksTypes.has(taskItem.id)) {
+      throw new Error(ln + "TaskType already exists: " + taskItem.id);
+    }
+    this.availableTasksTypes.set(taskItem.id, taskItem);
+  }
+
+  /**
+   * Повертає опис зареєстрованих типів кроків.
+   * @returns {Array} [availableTasksTypes.get(id).getDescription(), ...]
+   */
+  getTasksDescription() {
+    let list = [];
+    for (const id of this.availableTasksTypes.keys()) {
+      list.push(this.availableTasksTypes.get(id).getDescription());
+    }
+    return list;
+  }
+
+  /**
+   * Повертає зареєстрований тип кроку.
+   * @param {String} taskId
+   */
+  getTask(taskId) {
+    return this.availableTasksTypes.get(taskId);
   }
 
   /**
@@ -99,7 +135,7 @@ class ClassTasksManager extends ClassRegister {
    * @returns {Promise<String|Object|Array>} content активного або розпарсений файл
    */
   async loadTask(taskName = undefined) {
-    if (!taskName) {
+    if (!taskName || this.activeTask.fileName == taskName ) {
       return this.activeTask.content;
     }
     let data = await this.fileManager.readFile(taskName);
