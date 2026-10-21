@@ -16,8 +16,10 @@ function localizedError(msg) {
 }
 
 function sendErr(res, ln, error) {
-  let msg = error && error.message ? error.message : String(error);
-  let err = localizedError(msg);
+  let err =
+    error && error.msg
+      ? error.msg
+      : localizedError(error && error.message ? error.message : String(error));
   log("e", ln + err.ua);
   res.send({ err, data: null });
 }
@@ -86,8 +88,10 @@ router.post("/acceptFile", async function (req, res) {
     await req.tasksManager.setActiveTask(fileName);
     res.send({ error: null, data: { fileName } });
   } catch (error) {
-    let msg = error && error.message ? error.message : String(error);
-    let err = localizedError(msg);
+    let err =
+      error && error.msg
+        ? error.msg
+        : localizedError(error && error.message ? error.message : String(error));
     log("e", ln + err.ua);
     res.send({ error: err, data: null });
   }

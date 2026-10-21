@@ -105,7 +105,21 @@ class ClassProcessManager {
     let props = { ...list };
     props.id = prefix;
     // створюємо крок
-    let step = this.tasksManager.getType(list.id).getStep(props);
+    let taskType = this.tasksManager.getType(list.id);
+    if (!taskType || typeof taskType.getStep !== "function") {
+      throw new Error(
+        ln + `Unknown task type "${list.id}". Registered: [` +
+          (typeof this.tasksManager.getTasksList === "function"
+            ? Array.from(
+                this.tasksManager.availableTasksTypes
+                  ? this.tasksManager.availableTasksTypes.keys()
+                  : []
+              ).join(", ")
+            : "") +
+          "]"
+      );
+    }
+    let step = taskType.getStep(props);
     // if (trace) {
     //   log("i", ln, `step=`);
     //   console.dir(step);
@@ -134,8 +148,29 @@ class ClassProcessManager {
     }
 
     //копіюємо поточний список завдань
-    this.listSteps = clone(this.tasksManager.list);
-    //
+    this.listSteps = this.tasksManager.getActiveTask().content;
+    if (typeof this.listSteps === "string") {
+      try {
+        this.listSteps = JSON.parse(this.listSteps);
+      } catch (error) {
+        let err = {
+          ua: `Помилка розбору активної програми`,
+          en: `Failed to parse active program`,
+          ru: `Ошибка разбора активной программы`,
+        };
+        log("e", ln, err.ua, error.message || error);
+        return { err, data: null };
+      }
+    }
+    if (!Array.isArray(this.listSteps) || this.listSteps.length === 0) {
+      let err = {
+        ua: `Активна програма порожня або має невірний формат`,
+        en: `Active program is empty or has invalid format`,
+        ru: `Активная программа пуста или имеет неверный формат`,
+      };
+      log("e", ln, err.ua);
+      return { err, data: null };
+    }
 
     // трасувальник отриманого списку завдань
     trace = 0;
@@ -153,6 +188,15 @@ class ClassProcessManager {
     this.setStep("st", program, this.listSteps);
     // оскільки функція видає масив масивів, беремо перший елемент
     // це милиця але поки немає часу розбиратися
+    if (!Array.isArray(program[0]) || program[0].length === 0) {
+      let err = {
+        ua: `Не вдалося побудувати кроки програми`,
+        en: `Failed to build program steps`,
+        ru: `Не удалось построить шаги программы`,
+      };
+      log("e", ln, err.ua);
+      return { err, data: null };
+    }
     this.program = new ClassStepsSerial({
       id: this.id + ".program::",
       header: {

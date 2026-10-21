@@ -10,7 +10,10 @@ endif
 
 if (!fs.existsSync(this.path.stateFile)) then (Yes)
     if (!fs.existsSync(pathJoin(this.path.programDir, "default"))) then (Yes)
-        :Error: Default task file not found;
+        :APIerror msg:
+        {ua: "Файл шаблону програми (default) не знайдено",
+         en: "Default program template file not found",
+         ru: "Файл шаблона программы (default) не найден"};
         stop
     endif
     :fs.writeFileSync(this.path.stateFile,
@@ -19,7 +22,8 @@ else (No)
 endif
 :state = JSON.parse(fs.readFileSync(this.path.stateFile, "utf8"));
 :this.activeTask.fileName = state.activeProgram;
-:this.activeTask.content = this.fileManager.readFileSync(this.activeTask.fileName);
+:this.activeTask.content = parseProgramContent(
+  this.fileManager.readFileSync(activeProgram));
 end
 @enduml
 
@@ -58,7 +62,17 @@ end
 title async saveTask(taskName=undefined, content=undefined)
 start
 if (!taskName || content === undefined) then (Yes)
-    :Error: taskName and content are required;
+    :APIerror msg:
+    {ua: "Потрібно вказати taskName та content",
+     en: "taskName and content are required",
+     ru: "Необходимо указать taskName и content"};
+    stop
+endif
+if (taskName === "default") then (Yes)
+    :APIerror msg:
+    {ua: "Не можна змінювати шаблон програми",
+     en: "Cannot modify the program template",
+     ru: "Нельзя изменять шаблон программы"};
     stop
 endif
 :await this.fileManager.writeFile(taskName, content);
@@ -77,11 +91,29 @@ end
 title async deleteTask(taskName)
 start
 if (!taskName) then (Yes)
-    :Error: taskName is required;
+    :APIerror msg:
+    {ua: "Потрібно вказати taskName",
+     en: "taskName is required",
+     ru: "Необходимо указать taskName"};
+    stop
+endif
+if (taskName === "default") then (Yes)
+    :APIerror msg:
+    {ua: "Не можна видаляти шаблон програми",
+     en: "Cannot delete the program template",
+     ru: "Нельзя удалять шаблон программы"};
+    stop
+endif
+if (taskName === this.activeTask.fileName) then (Yes)
+    :APIerror msg:
+    {ua: "Не можна видаляти активну програму",
+     en: "Cannot delete the active program",
+     ru: "Нельзя удалять активную программу"};
     stop
 endif
 if (!this.fileManager.exist(taskName)) then (Yes)
-    :Error: Task file not found;
+    :APIerror msg:
+    {ua/en/ru: "Файл програми не знайдено: " + taskName};
     stop
 endif
 :await this.fileManager.deleteFile(taskName);
@@ -100,12 +132,25 @@ start
 end
 @enduml
 
+@startuml getFullHtml
+
+title getFullHtml()
+start
+:return pug.renderFile(views/editTasks.pug);
+note right
+  дані редактор бере по API,
+  manager не передається
+end note
+end
+@enduml
+
 @startuml setActiveTask
 
 title async setActiveTask(taskName=undefined)
 start
 if (!taskName || !this.fileManager.exist(taskName)) then (Yes)
-    :Error: Task file not found;
+    :APIerror msg:
+    {ua/en/ru: "Файл програми не знайдено: " + taskName};
     stop
 endif
 :try;
@@ -115,6 +160,6 @@ endif
 :writeFile state.info
 { activeProgram: taskName, lastChange: Date.now() };
 :except;
-:Error;
+:rethrow APIerror / wrap as APIerror;
 end
 @enduml

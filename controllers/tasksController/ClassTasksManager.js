@@ -1,9 +1,12 @@
 const fs = require("fs");
+const pug = require("pug");
 const clone = require("clone");
 const pathNormalize = require("path").normalize;
 const pathJoin = require("path").join;
 const ClassRegister = require("../regsController/ClassRegister.js");
 const ClassFileManager = require("../fileManager/ClassFileManager.js");
+const APIerror = require("../../tools/apiError.js");
+const ClassTaskDescriptionStep = require("./ClassTaskDescriptionStep.js");
 
 /**
  * Менеджер програм.
@@ -35,7 +38,11 @@ class ClassTasksManager extends ClassRegister {
       console.dir(props);
     }
     if (!props.homeDir) {
-      throw new Error(this.ln + "homeDir not defined! ");
+      throw new APIerror({
+        ua: "Не вказано домашню директорію (homeDir)",
+        en: "Home directory (homeDir) is not defined",
+        ru: "Не указана домашняя директория (homeDir)",
+      });
     }
     const homeDir = pathNormalize(props.homeDir + "/tasksManager/");
     const homeURL = (props.homeUrl ? props.homeUrl : "") + "/tasksManager/";
@@ -45,10 +52,13 @@ class ClassTasksManager extends ClassRegister {
       programDir: pathNormalize(homeDir + "tasksList/"),
       stateFile: pathNormalize(homeDir + "state.info"),
     };
-
+    this.homeURL = props.homeURL;
     this.activeTask = { fileName: null, content: null }; // активне завдання
     this.tasksList = []; // список завдань
     this.availableTasksTypes = new Map(); // зареєстровані типи кроків
+
+    // базовий крок опису програми (як у попередній реалізації)
+    this.addTaskType(new ClassTaskDescriptionStep());
 
     // файловий менеджер, що відповідає за роботу з файлами завдань
     this.fileManager = new ClassFileManager({
@@ -65,16 +75,28 @@ class ClassTasksManager extends ClassRegister {
    * @param {Object} taskItem - опис типу кроку з полем id
    */
   addTaskType(taskItem) {
-    let ln = this.ln + "addTaskType()::";
     if (!taskItem || !taskItem.id) {
-      throw new Error(ln + "taskItem.id is required");
+      throw new APIerror({
+        ua: "Не вказано id типу кроку",
+        en: "Task type id is required",
+        ru: "Не указан id типа шага",
+      });
     }
     if (this.availableTasksTypes.has(taskItem.id)) {
-      throw new Error(ln + "TaskType already exists: " + taskItem.id);
+      throw new APIerror({
+        ua: `Тип кроку вже існує: ${taskItem.id}`,
+        en: `Task type already exists: ${taskItem.id}`,
+        ru: `Тип шага уже существует: ${taskItem.id}`,
+      });
     }
     this.availableTasksTypes.set(taskItem.id, taskItem);
   }
 
+  /** для сумісності  */
+  addType(taskItem){
+    this.addTaskType(taskItem);
+  }
+  
   /**
    * Повертає опис зареєстрованих типів кроків.
    * @returns {Array} [availableTasksTypes.get(id).getDescription(), ...]
@@ -82,7 +104,16 @@ class ClassTasksManager extends ClassRegister {
   getTasksDescription() {
     let list = [];
     for (const id of this.availableTasksTypes.keys()) {
-      list.push(this.availableTasksTypes.get(id).getDescription());
+      let task = this.availableTasksTypes.get(id);
+      if (typeof task.getDescription === "function") {
+        list.push(task.getDescription());
+      } else {
+        list.push({
+          id: task.id,
+          header: task.header,
+          comment: task.comment,
+        });
+      }
     }
     return list;
   }
@@ -95,13 +126,15 @@ class ClassTasksManager extends ClassRegister {
     return this.availableTasksTypes.get(taskId);
   }
 
+  getType(taskId) {
+    return  this.getTask(taskId);
+  }
+
   /**
    * Синхронна ініціалізація: каталоги, state.info, активна програма.
    * Див. task.puml → initSync().
    */
   initSync() {
-    let ln = this.ln + "initSync()::";
-
     if (!fs.existsSync(this.path.programDir)) {
       fs.mkdirSync(this.path.programDir, { recursive: true });
     } else {
@@ -111,7 +144,11 @@ class ClassTasksManager extends ClassRegister {
     if (!fs.existsSync(this.path.stateFile)) {
       let defaultProgram = pathJoin(this.path.programDir, "default");
       if (!fs.existsSync(defaultProgram)) {
-        throw new Error(ln + "Default task file not found");
+        throw new APIerror({
+          ua: "Файл шаблону програми (default) не знайдено",
+          en: "Default program template file not found",
+          ru: "Файл шаблона программы (default) не найден",
+        });
       }
       fs.writeFileSync(
         this.path.stateFile,
@@ -123,23 +160,76 @@ class ClassTasksManager extends ClassRegister {
     }
 
     let state = JSON.parse(fs.readFileSync(this.path.stateFile, "utf8"));
-    this.activeTask.fileName = state.activeProgram;
-    this.activeTask.content = this.fileManager.readFileSync(
-      this.activeTask.fileName
+    // підтримка старого формату { value } і нового { activeProgram }
+    let activeProgram = state.activeProgram || state.value;
+    if (!activeProgram) {
+      throw new APIerror({
+        ua: "У state.info не вказано активну програму",
+        en: "Active program is not defined in state.info",
+        ru: "В state.info не указана активная программа",
+      });
+    }
+    if (!this.fileManager.exist(activeProgram)) {
+      throw new APIerror({
+        ua: `Файл активної програми не знайдено: ${activeProgram}`,
+        en: `Active program file not found: ${activeProgram}`,
+        ru: `Файл активной программы не найден: ${activeProgram}`,
+      });
+    }
+    this.activeTask.fileName = activeProgram;
+    this.activeTask.content = this.parseProgramContent(
+      this.fileManager.readFileSync(activeProgram)
     );
+
+    // міграція старого формату state.info → новий
+    if (!state.activeProgram || state.value !== undefined) {
+      fs.writeFileSync(
+        this.path.stateFile,
+        JSON.stringify({
+          activeProgram,
+          lastChange: state.lastChange || Date.now(),
+        })
+      );
+    }
+  }
+
+  /**
+   * Парсить вміст програми з файлу (рядок JSON → об'єкт/масив).
+   * @param {String|Object|Array} data
+   */
+  parseProgramContent(data) {
+    if (data === undefined || data === null || data === "") {
+      throw new APIerror({
+        ua: "Вміст програми порожній",
+        en: "Program content is empty",
+        ru: "Содержимое программы пустое",
+      });
+    }
+    if (typeof data !== "string") {
+      return data;
+    }
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      throw new APIerror({
+        ua: "Неможливо розпарсити вміст програми",
+        en: "Cannot parse program content",
+        ru: "Невозможно разобрать содержимое программы",
+      });
+    }
   }
 
   /**
    * Завантажує завдання.
    * @param {String} [taskName] - ім'я файлу програми; якщо не вказано — активне
-   * @returns {Promise<String|Object|Array>} content активного або розпарсений файл
+   * @returns {Promise<Object|Array>} content активного або розпарсений файл
    */
   async loadTask(taskName = undefined) {
-    if (!taskName || this.activeTask.fileName == taskName ) {
+    if (!taskName || this.activeTask.fileName == taskName) {
       return this.activeTask.content;
     }
     let data = await this.fileManager.readFile(taskName);
-    return JSON.parse(data);
+    return this.parseProgramContent(data);
   }
 
   /**
@@ -165,9 +255,19 @@ class ClassTasksManager extends ClassRegister {
    * @param {String|Object|Array} [content] - вміст файлу
    */
   async saveTask(taskName = undefined, content = undefined) {
-    let ln = this.ln + "saveTask()::";
     if (!taskName || content === undefined) {
-      throw new Error(ln + "taskName and content are required");
+      throw new APIerror({
+        ua: "Потрібно вказати taskName та content",
+        en: "taskName and content are required",
+        ru: "Необходимо указать taskName и content",
+      });
+    }
+    if (taskName === "default") {
+      throw new APIerror({
+        ua: "Не можна змінювати шаблон програми",
+        en: "Cannot modify the program template",
+        ru: "Нельзя изменять шаблон программы",
+      });
     }
     await this.fileManager.writeFile(taskName, content);
     if (!this.tasksList.includes(taskName)) {
@@ -180,12 +280,33 @@ class ClassTasksManager extends ClassRegister {
    * @param {String} taskName - ім'я файлу в programDir
    */
   async deleteTask(taskName) {
-    let ln = this.ln + "deleteTask()::";
     if (!taskName) {
-      throw new Error(ln + "taskName is required");
+      throw new APIerror({
+        ua: "Потрібно вказати taskName",
+        en: "taskName is required",
+        ru: "Необходимо указать taskName",
+      });
+    }
+    if (taskName === "default") {
+      throw new APIerror({
+        ua: "Не можна видаляти шаблон програми",
+        en: "Cannot delete the program template",
+        ru: "Нельзя удалять шаблон программы",
+      });
+    }
+    if (taskName === this.activeTask.fileName) {
+      throw new APIerror({
+        ua: "Не можна видаляти активну програму",
+        en: "Cannot delete the active program",
+        ru: "Нельзя удалять активную программу",
+      });
     }
     if (!this.fileManager.exist(taskName)) {
-      throw new Error(ln + "Task file not found: " + taskName);
+      throw new APIerror({
+        ua: `Файл програми не знайдено: ${taskName}`,
+        en: `Task file not found: ${taskName}`,
+        ru: `Файл программы не найден: ${taskName}`,
+      });
     }
     await this.fileManager.deleteFile(taskName);
     this.tasksList = this.tasksList.filter((name) => name !== taskName);
@@ -203,13 +324,25 @@ class ClassTasksManager extends ClassRegister {
   }
 
   /**
+   * Рендерить pug-шаблон редактора програм і повертає HTML.
+   * Дані редактор завантажує сам через API — шаблон не використовує manager.
+   * @returns {String} html
+   */
+  getFullHtml() {
+    return pug.renderFile(pathJoin(__dirname, "views", "editTasks.pug"));
+  }
+
+  /**
    * Встановлює активне завдання.
    * @param {String} [taskName] - ім'я файлу програми
    */
   async setActiveTask(taskName = undefined) {
-    let ln = this.ln + "setActiveTask()::";
     if (!taskName || !this.fileManager.exist(taskName)) {
-      throw new Error(ln + "Task file not found: " + taskName);
+      throw new APIerror({
+        ua: `Файл програми не знайдено: ${taskName}`,
+        en: `Task file not found: ${taskName}`,
+        ru: `Файл программы не найден: ${taskName}`,
+      });
     }
     try {
       let content = await this.loadTask(taskName);
@@ -223,7 +356,14 @@ class ClassTasksManager extends ClassRegister {
         })
       );
     } catch (error) {
-      throw new Error(ln + (error.message || error));
+      if (error && error.msg) {
+        throw error;
+      }
+      throw new APIerror({
+        ua: `Не вдалося встановити активну програму: ${error.message || error}`,
+        en: `Failed to set active program: ${error.message || error}`,
+        ru: `Не удалось установить активную программу: ${error.message || error}`,
+      });
     }
   }
 }

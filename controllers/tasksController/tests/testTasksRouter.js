@@ -192,7 +192,11 @@ describe("tasksController router", { concurrency: false }, () => {
     });
     const { json } = await post("/getTasksDescription", {});
     assert.equal(json.err, null);
-    assert.deepEqual(json.data, [{ id: "heat", title: "Нагрів" }]);
+    assert.ok(Array.isArray(json.data));
+    assert.ok(json.data.some((item) => item.id === "description"));
+    assert.ok(
+      json.data.some((item) => item.id === "heat" && item.title === "Нагрів")
+    );
   });
 
   it("без tasksManager повертає err і data null", async () => {

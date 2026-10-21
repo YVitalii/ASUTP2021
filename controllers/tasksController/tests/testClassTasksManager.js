@@ -36,9 +36,16 @@ function createManager(dir) {
   });
 }
 
-const programBody = JSON.stringify([
-  { id: "description", name: "test", note: "" },
-]);
+function assertApiError(err, expected) {
+  assert.ok(err && err.msg, "очікується APIerror з полем msg");
+  assert.equal(err.msg.ua, expected.ua);
+  assert.equal(err.msg.en, expected.en);
+  assert.equal(err.msg.ru, expected.ru);
+  return true;
+}
+
+const programSteps = [{ id: "description", name: "test", note: "" }];
+const programBody = JSON.stringify(programSteps);
 
 describe("ClassTasksManager", () => {
   after(async () => {
@@ -55,7 +62,15 @@ describe("ClassTasksManager", () => {
 
   describe("constructor", () => {
     it("кидає помилку, якщо homeDir не передано", () => {
-      assert.throws(() => new ClassTasksManager({}), /homeDir not defined/);
+      assert.throws(
+        () => new ClassTasksManager({}),
+        (err) =>
+          assertApiError(err, {
+            ua: "Не вказано домашню директорію (homeDir)",
+            en: "Home directory (homeDir) is not defined",
+            ru: "Не указана домашняя директория (homeDir)",
+          })
+      );
     });
 
     it("ініціалізує path, activeTask, tasksList і fileManager", () => {
@@ -71,7 +86,7 @@ describe("ClassTasksManager", () => {
       assert.equal(manager.path.homeURL, "/entity/test/tasksManager/");
       assert.ok(manager.fileManager);
       assert.equal(manager.activeTask.fileName, "default");
-      assert.equal(manager.activeTask.content, programBody);
+      assert.deepEqual(manager.activeTask.content, programSteps);
     });
   });
 
@@ -82,7 +97,12 @@ describe("ClassTasksManager", () => {
 
       assert.throws(
         () => createManager(dir),
-        /Default task file not found/
+        (err) =>
+          assertApiError(err, {
+            ua: "Файл шаблону програми (default) не знайдено",
+            en: "Default program template file not found",
+            ru: "Файл шаблона программы (default) не найден",
+          })
       );
       assert.equal(fs.existsSync(stateFile(dir)), false);
     });
@@ -102,7 +122,7 @@ describe("ClassTasksManager", () => {
       assert.ok(state.lastChange >= before && state.lastChange <= after);
 
       assert.equal(manager.activeTask.fileName, "default");
-      assert.equal(manager.activeTask.content, programBody);
+      assert.deepEqual(manager.activeTask.content, programSteps);
       assert.ok(manager.tasksList.includes("default"));
     });
 
@@ -118,12 +138,28 @@ describe("ClassTasksManager", () => {
       const manager = createManager(dir);
 
       assert.equal(manager.activeTask.fileName, "prg01");
-      assert.equal(manager.activeTask.content, programBody);
+      assert.deepEqual(manager.activeTask.content, programSteps);
       assert.deepEqual(JSON.parse(fs.readFileSync(stateFile(dir), "utf8")), {
         activeProgram: "prg01",
         lastChange: 123,
       });
       assert.ok(manager.tasksList.includes("prg01"));
+    });
+
+    it("читає старий формат state.info {value} і мігрує до activeProgram", () => {
+      const dir = caseDir("legacy-state");
+      fs.mkdirSync(programDir(dir), { recursive: true });
+      fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+      fs.writeFileSync(stateFile(dir), JSON.stringify({ value: "default" }));
+
+      const manager = createManager(dir);
+
+      assert.equal(manager.activeTask.fileName, "default");
+      assert.deepEqual(manager.activeTask.content, programSteps);
+      const state = JSON.parse(fs.readFileSync(stateFile(dir), "utf8"));
+      assert.equal(state.activeProgram, "default");
+      assert.equal(typeof state.lastChange, "number");
+      assert.equal(state.value, undefined);
     });
 
     it("заповнює tasksList зі списку файлів у programDir", () => {
@@ -169,7 +205,7 @@ describe("ClassTasksManager", () => {
       const content = await manager.loadTask();
 
       assert.equal(content, manager.activeTask.content);
-      assert.equal(content, programBody);
+      assert.deepEqual(content, programSteps);
     });
 
     it("з taskName читає файл і повертає JSON.parse", async () => {
@@ -231,14 +267,39 @@ describe("ClassTasksManager", () => {
       fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
       const manager = createManager(dir);
 
-      await assert.rejects(() => manager.saveTask(), /taskName and content are required/);
-      await assert.rejects(
-        () => manager.saveTask("prg01"),
-        /taskName and content are required/
+      const required = {
+        ua: "Потрібно вказати taskName та content",
+        en: "taskName and content are required",
+        ru: "Необходимо указать taskName и content",
+      };
+      await assert.rejects(() => manager.saveTask(), (err) =>
+        assertApiError(err, required)
+      );
+      await assert.rejects(() => manager.saveTask("prg01"), (err) =>
+        assertApiError(err, required)
       );
       await assert.rejects(
         () => manager.saveTask(undefined, programBody),
-        /taskName and content are required/
+        (err) => assertApiError(err, required)
+      );
+    });
+
+    it("не записує шаблон default", async () => {
+      const dir = caseDir("save-default");
+      const updated = [{ id: "description", name: "updated", note: "ok" }];
+      fs.mkdirSync(programDir(dir), { recursive: true });
+      fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+      const manager = createManager(dir);
+
+      await assert.rejects(() => manager.saveTask("default", updated), (err) =>
+        assertApiError(err, {
+          ua: "Не можна змінювати шаблон програми",
+          en: "Cannot modify the program template",
+          ru: "Нельзя изменять шаблон программы",
+        })
+      );      assert.equal(
+        fs.readFileSync(path.join(programDir(dir), "default"), "utf8"),
+        programBody
       );
     });
 
@@ -262,15 +323,16 @@ describe("ClassTasksManager", () => {
       const updated = [{ id: "description", name: "updated", note: "ok" }];
       fs.mkdirSync(programDir(dir), { recursive: true });
       fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+      fs.writeFileSync(path.join(programDir(dir), "prg01"), programBody);
       const manager = createManager(dir);
-      const beforeCount = manager.tasksList.filter((n) => n === "default").length;
+      const beforeCount = manager.tasksList.filter((n) => n === "prg01").length;
 
-      await manager.saveTask("default", updated);
+      await manager.saveTask("prg01", updated);
 
-      const saved = fs.readFileSync(path.join(programDir(dir), "default"), "utf8");
+      const saved = fs.readFileSync(path.join(programDir(dir), "prg01"), "utf8");
       assert.deepEqual(JSON.parse(saved), updated);
       assert.equal(
-        manager.tasksList.filter((n) => n === "default").length,
+        manager.tasksList.filter((n) => n === "prg01").length,
         beforeCount
       );
     });
@@ -283,7 +345,13 @@ describe("ClassTasksManager", () => {
       fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
       const manager = createManager(dir);
 
-      await assert.rejects(() => manager.deleteTask(), /taskName is required/);
+      await assert.rejects(() => manager.deleteTask(), (err) =>
+        assertApiError(err, {
+          ua: "Потрібно вказати taskName",
+          en: "taskName is required",
+          ru: "Необходимо указать taskName",
+        })
+      );
     });
 
     it("кидає помилку, якщо файл не існує", async () => {
@@ -292,10 +360,49 @@ describe("ClassTasksManager", () => {
       fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
       const manager = createManager(dir);
 
-      await assert.rejects(
-        () => manager.deleteTask("missing"),
-        /Task file not found/
+      await assert.rejects(() => manager.deleteTask("missing"), (err) =>
+        assertApiError(err, {
+          ua: "Файл програми не знайдено: missing",
+          en: "Task file not found: missing",
+          ru: "Файл программы не найден: missing",
+        })
       );
+    });
+
+    it("не видаляє шаблон default", async () => {
+      const dir = caseDir("delete-default");
+      fs.mkdirSync(programDir(dir), { recursive: true });
+      fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+      fs.writeFileSync(path.join(programDir(dir), "prg01"), programBody);
+      const manager = createManager(dir);
+      await manager.setActiveTask("prg01");
+
+      await assert.rejects(() => manager.deleteTask("default"), (err) =>
+        assertApiError(err, {
+          ua: "Не можна видаляти шаблон програми",
+          en: "Cannot delete the program template",
+          ru: "Нельзя удалять шаблон программы",
+        })
+      );
+      assert.equal(fs.existsSync(path.join(programDir(dir), "default")), true);
+    });
+
+    it("не видаляє активну програму", async () => {
+      const dir = caseDir("delete-active");
+      fs.mkdirSync(programDir(dir), { recursive: true });
+      fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+      fs.writeFileSync(path.join(programDir(dir), "prg01"), programBody);
+      const manager = createManager(dir);
+      await manager.setActiveTask("prg01");
+
+      await assert.rejects(() => manager.deleteTask("prg01"), (err) =>
+        assertApiError(err, {
+          ua: "Не можна видаляти активну програму",
+          en: "Cannot delete the active program",
+          ru: "Нельзя удалять активную программу",
+        })
+      );
+      assert.equal(fs.existsSync(path.join(programDir(dir), "prg01")), true);
     });
 
     it("видаляє файл і прибирає його з tasksList", async () => {
@@ -313,18 +420,39 @@ describe("ClassTasksManager", () => {
     });
   });
 
-  describe("getActiveTask()", () => {
-    it("повертає taskName і копію content", async () => {
-      const dir = caseDir("get-active");
+  describe("getFullHtml()", () => {
+    it("рендерить pug і повертає html з контейнером tasksManager", () => {
+      const dir = caseDir("get-html");
       fs.mkdirSync(programDir(dir), { recursive: true });
       fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
       const manager = createManager(dir);
-      await manager.setActiveTask("default");
+
+      const html = manager.getFullHtml();
+
+      assert.equal(typeof html, "string");
+      assert.match(html, /id="tasksManager"/);
+      assert.match(html, /tasksManager\.js/);
+      assert.match(html, /tasksManager\.css/);
+    });
+  });
+
+  describe("getActiveTask()", () => {
+    it("повертає taskName і копію content", async () => {
+      const dir = caseDir("get-active");
+      const otherBody = [{ id: "description", name: "test", note: "" }];
+      fs.mkdirSync(programDir(dir), { recursive: true });
+      fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+      fs.writeFileSync(
+        path.join(programDir(dir), "prg01"),
+        JSON.stringify(otherBody)
+      );
+      const manager = createManager(dir);
+      await manager.setActiveTask("prg01");
 
       const result = manager.getActiveTask();
 
-      assert.equal(result.taskName, "default");
-      assert.deepEqual(result.content, JSON.parse(programBody));
+      assert.equal(result.taskName, "prg01");
+      assert.deepEqual(result.content, otherBody);
       assert.notEqual(result.content, manager.activeTask.content);
       result.content[0].name = "mutated";
       assert.equal(manager.activeTask.content[0].name, "test");
@@ -338,13 +466,19 @@ describe("ClassTasksManager", () => {
       fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
       const manager = createManager(dir);
 
-      await assert.rejects(
-        () => manager.setActiveTask(),
-        /Task file not found/
+      await assert.rejects(() => manager.setActiveTask(), (err) =>
+        assertApiError(err, {
+          ua: "Файл програми не знайдено: undefined",
+          en: "Task file not found: undefined",
+          ru: "Файл программы не найден: undefined",
+        })
       );
-      await assert.rejects(
-        () => manager.setActiveTask("missing"),
-        /Task file not found/
+      await assert.rejects(() => manager.setActiveTask("missing"), (err) =>
+        assertApiError(err, {
+          ua: "Файл програми не знайдено: missing",
+          en: "Task file not found: missing",
+          ru: "Файл программы не найден: missing",
+        })
       );
     });
 

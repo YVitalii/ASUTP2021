@@ -146,7 +146,7 @@ class ClassFileManager {
       ln = this.ln + `readFileSync(${fName})::`;
     trace ? log("i", ln, `Started fName=`, fName) : null;
     if (fName == undefined) {
-      return Promise.reject(ln + "File name not defined!");
+      throw new Error(ln + "File name not defined!");
     }
     let path = pathJoin(this.homeDir, fName);
     let data = fs.readFileSync(path);
