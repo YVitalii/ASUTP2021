@@ -31,7 +31,7 @@ function createManager(dir) {
   );
   return new ClassTasksManager({
     homeDir: dir,
-    homeUrl: "/entity/test",
+    homeURL: "/entity/test",
   });
 }
 
@@ -52,6 +52,10 @@ describe("tasksController router", { concurrency: false }, () => {
     app.use(express.json());
     app.use((req, res, next) => {
       req.entity = manager ? { tasksManager: manager } : {};
+      req.user = { lang: "ua" };
+      req.info = {
+        mainPug: path.resolve(__dirname, "../../../views/main.pug"),
+      };
       next();
     });
     app.use(tasksRouter);
@@ -77,6 +81,14 @@ describe("tasksController router", { concurrency: false }, () => {
       }
     }
     fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it("GET / показує сторінку редагування програми", async () => {
+    const response = await fetch(baseUrl + "/");
+    const html = await response.text();
+    assert.equal(response.status, 200);
+    assert.match(html, /id="tasksManager"/);
+    assert.match(html, /\/src\/tasksManager\/tasksManager\.js/);
   });
 
   it("POST /getFilesList повертає назви програм", async () => {
@@ -147,18 +159,18 @@ describe("tasksController router", { concurrency: false }, () => {
       content: programBody,
     });
     const { json } = await post("/acceptFile", { fileName: "prg01" });
-    assert.equal(json.error, null);
+    assert.equal(json.err, null);
     assert.deepEqual(json.data, { fileName: "prg01" });
     assert.equal(manager.activeTask.fileName, "prg01");
   });
 
-  it("POST /acceptFile неіснуючого файлу повертає error {ua,en,ru}", async () => {
+  it("POST /acceptFile неіснуючого файлу повертає err {ua,en,ru}", async () => {
     const { json } = await post("/acceptFile", { fileName: "no-such" });
     assert.equal(json.data, null);
-    assert.equal(typeof json.error.ua, "string");
-    assert.equal(typeof json.error.en, "string");
-    assert.equal(typeof json.error.ru, "string");
-    assert.match(json.error.en, /not found/);
+    assert.equal(typeof json.err.ua, "string");
+    assert.equal(typeof json.err.en, "string");
+    assert.equal(typeof json.err.ru, "string");
+    assert.match(json.err.en, /not found/);
   });
 
   it("POST /getProcessState повертає прийняту програму зі списку", async () => {
@@ -192,11 +204,9 @@ describe("tasksController router", { concurrency: false }, () => {
     });
     const { json } = await post("/getTasksDescription", {});
     assert.equal(json.err, null);
-    assert.ok(Array.isArray(json.data));
-    assert.ok(json.data.some((item) => item.id === "description"));
-    assert.ok(
-      json.data.some((item) => item.id === "heat" && item.title === "Нагрів")
-    );
+    assert.equal(Array.isArray(json.data), false);
+    assert.ok(json.data.description);
+    assert.equal(json.data.heat.title, "Нагрів");
   });
 
   it("без tasksManager повертає err і data null", async () => {

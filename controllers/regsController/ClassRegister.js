@@ -20,8 +20,9 @@ class ClassRegister {
     /** Ідентифікатор  */
 
     if (!props.id) {
-      new Error("id регістру має бути вказаний");
-      return;
+      throw new Error(
+        "ClassRegister::constructor()::id регістру має бути вказаний"
+      );
     }
     // ідентифікатор
     this.id = props.id;
@@ -58,7 +59,7 @@ class ClassRegister {
     this.type = props.type;
 
     /** Поточне значення */
-    this.value = undefined;
+    this.value = null;
     if (props.value || props.value === 0 || props.value === "") {
       this.setValue(props.value);
     }
@@ -84,8 +85,6 @@ class ClassRegister {
   }
 
   setValue(val) {
-    let trace = 0,
-      ln = this.ln + `setValue(${val})`;
     this.value = val;
     return this.value;
   }

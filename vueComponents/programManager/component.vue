@@ -38,8 +38,8 @@
                     <thead>
                         <tr>
                             <th class="col-index" title="Порядковий номер кроку виконання програми">№ Кроку</th>
-                            <th v-for="(regConfig, regKey) in programData[0]?.regs" :key="regKey"
-                                :title="regConfig.comment">
+                            <th v-for="(regConfig, regKey) in registerColumns" :key="regKey"
+                                :title="regComment(regConfig)">
                                 <span class="header-title">{{ regConfig.title }}</span>
                                 <br>
                                 <small>[{{ regConfig.units }}]</small>
@@ -51,14 +51,16 @@
                             :class="{ 'active-row': activeStepIndex === index && !readOnly }" @click="selectRow(index)">
                             <td class="col-index">{{ index + 1 }}</td>
 
-                            <!-- Динамічні поля кроку -->
-                            <td v-for="(regConfig, regKey) in programData[0]?.regs" :key="regKey">
-                                <TimeField v-if="regConfig.type === 'Time'" v-model="step[regKey]" :min="regConfig.min"
-                                    :max="regConfig.max" :disabled="readOnly" @update:modelValue="notifyChanges" />
-                                <NumberField v-else-if="regConfig.type === 'Number'" v-model="step[regKey]"
-                                    :min="regConfig.min" :max="regConfig.max" :disabled="readOnly"
+                            <!-- Поля рядка беруться з headers.get(type) цього кроку -->
+                            <td v-for="(regConfig, regKey) in registerColumns" :key="regKey">
+                                <TimeField v-if="fieldKind(step, String(regKey)) === 'Time'" v-model="step[regKey]"
+                                    :min="regOf(step, String(regKey))?.min" :max="regOf(step, String(regKey))?.max"
+                                    :disabled="readOnly" @update:modelValue="notifyChanges" />
+                                <NumberField v-else-if="fieldKind(step, String(regKey)) === 'Number'"
+                                    v-model="step[regKey]" :min="regOf(step, String(regKey))?.min"
+                                    :max="regOf(step, String(regKey))?.max" :disabled="readOnly"
                                     @update:modelValue="notifyChanges" />
-                                <span v-else>{{ step[regKey] }}</span>
+                                <span v-else-if="fieldKind(step, String(regKey)) === 'text'">{{ step[regKey] }}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -83,7 +85,24 @@ import FileNameField from '../fields/FileNameField.vue';
 import TextAreaField from '../fields/TextAreaField.vue';
 import MyJoystick from '../joystick/MyJoystick.vue';
 
+interface LocalizedText {
+    ua?: string;
+    en?: string;
+    ru?: string;
+}
+
 interface RegConfig {
+    title?: string;
+    units?: string;
+    type?: string;
+    min?: number | string;
+    max?: number | string;
+    comment?: string | LocalizedText;
+    header?: LocalizedText;
+    unit?: LocalizedText;
+}
+
+interface RegView {
     title: string;
     units: string;
     type: string;
@@ -105,9 +124,16 @@ interface ProgramStep {
     [key: string]: any;
 }
 
+interface TaskTypeHeader {
+    id: string;
+    type?: string;
+    regs?: Record<string, RegConfig>;
+}
+
 // 1. Отримуємо дані програми та стан readOnly через props
 const props = defineProps<{
     programData?: [ProgramHeader, ...ProgramStep[]] | null;
+    headers?: Record<string, TaskTypeHeader> | null;
     readOnly?: boolean;
 }>();
 
@@ -129,9 +155,64 @@ const setRowRef = (el: any, index: number) => {
 };
 
 // Отримуємо список кроків (усі елементи масиву, починаючи з індексу 1)
+const textOf = (value: string | LocalizedText | undefined) => {
+    if (typeof value === "string") return value;
+    return value?.ua || value?.en || value?.ru || "";
+};
+
+const headersByType = computed(() => {
+    const map = new Map<string, TaskTypeHeader>();
+    for (const [id, task] of Object.entries(props.headers ?? {})) {
+        map.set(id, task);
+    }
+    return map;
+});
+
+const stepType = (step: ProgramStep) => {
+    if (typeof step.type === "string" && step.type) return step.type;
+    if (typeof step.id === "string" && step.id) return step.id;
+    return "";
+};
+
+const normalizeReg = (key: string, reg: RegConfig): RegView => ({
+    title: reg.title || textOf(reg.header) || key,
+    units: reg.units || textOf(reg.unit),
+    type: reg.type || "",
+    min: reg.min ?? 0,
+    max: reg.max ?? 0,
+    comment: textOf(reg.comment),
+});
+
+const regOf = (step: ProgramStep, key: string): RegView | null => {
+    const reg = headersByType.value.get(stepType(step))?.regs?.[key];
+    return reg ? normalizeReg(key, reg) : null;
+};
+
+const fieldKind = (step: ProgramStep, key: string) => {
+    const type = regOf(step, key)?.type;
+    if (type === "Time" || type === "timer") return "Time";
+    if (type === "Number" || type === "number") return "Number";
+    if (type) return "text";
+    return "";
+};
+
+const regComment = (reg: RegView) => reg.comment;
+
 const stepsList = computed(() => {
     if (!props.programData || props.programData.length <= 1) return [];
     return props.programData.slice(1) as ProgramStep[];
+});
+
+const registerColumns = computed(() => {
+    const columns: Record<string, RegView> = {};
+    for (const step of stepsList.value) {
+        const regs = headersByType.value.get(stepType(step))?.regs;
+        if (!regs) continue;
+        for (const key of Object.keys(regs)) {
+            if (!columns[key]) columns[key] = normalizeReg(key, regs[key]);
+        }
+    }
+    return columns;
 });
 
 const formatDate = (date: Date | string) => {
@@ -169,12 +250,22 @@ const selectRow = (index: number) => {
     activeStepIndex.value = index;
 };
 
-const createDefaultStep = (): ProgramStep => {
-    if (!props.programData || !props.programData[0]) return {};
+const createDefaultStep = (source?: ProgramStep): ProgramStep => {
+    const type = source ? stepType(source) : "";
+    const regs = type ? headersByType.value.get(type)?.regs : undefined;
     const newStep: ProgramStep = {};
-    for (const key in props.programData[0].regs) {
-        const reg = props.programData[0].regs[key];
-        newStep[key] = reg.type === 'Number' ? (Number(reg.min) || 0) : "00:00";
+    if (source && typeof source.type === "string" && source.type) newStep.type = source.type;
+    else if (type) newStep.id = type;
+    if (!regs) return newStep;
+    for (const key of Object.keys(regs)) {
+        const reg = normalizeReg(key, regs[key]);
+        if (reg.type === "Number" || reg.type === "number") {
+            newStep[key] = Number(reg.min) || 0;
+        } else if (reg.type === "Time" || reg.type === "timer") {
+            newStep[key] = 0;
+        } else {
+            newStep[key] = "";
+        }
     }
     return newStep;
 };
@@ -185,7 +276,7 @@ const addStepAfter = (index: number) => {
 
     const insertAt = index + 1;
     // Змінюємо масив напряму та сповіщаємо батька
-    props.programData.splice(insertAt + 1, 0, createDefaultStep());
+    props.programData.splice(insertAt + 1, 0, createDefaultStep(stepsList.value[index]));
     activeStepIndex.value = insertAt;
     notifyChanges();
 };

@@ -11,7 +11,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
     let response;
     trace ? console.log(ln + `Started`) : null;
     try {
-      response = await fetch(processMan.homeUrl + "getProgram", {
+      response = await fetch(processMan.homeURL + "getProgram", {
         method: "post",
         headers: {
           "Content-Type": "application/json;charset=utf-8",
@@ -230,9 +230,9 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
   }; //processMan.program.start)
 
   /**
-   * Функція посилає post запит за адресою homeUrl+url та з тілом body
+   * Функція посилає post запит за адресою homeURL+url та з тілом body
    * якщо запит не вдалий, повторює його кожні 2 сек до вдалого завершення
-   * @param {String} url - без слеша попереду! частина адреси, що має додаватися до homeUrl
+   * @param {String} url - без слеша попереду! частина адреси, що має додаватися до homeURL
    * @param {Object} body - тіло запиту JSON
    * @returns {Object} - результат запису
    */
@@ -243,7 +243,7 @@ processMan.program.startStepNumber = {}; // контейнер для елеме
       ln = processMan.program.ln + `post(${url}::`;
     let response;
     try {
-      response = await fetch(processMan.homeUrl + url, {
+      response = await fetch(processMan.homeURL + url, {
         method: "post",
         headers: {
           "Content-Type": "application/json;charset=utf-8",

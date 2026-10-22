@@ -13,7 +13,7 @@ module.exports = class ReportManagerClass {
     this.ln = props.loggerManager.ln + "ReportManagerClass()::";
     // this.loggerManager = props.loggerManager;
     this.baseDir = props.homeDir;
-    this.baseUrl = (props.homeUrl ? props.homeUrl : "") + "/reports";
+    this.baseUrl = (props.homeURL ? props.homeURL : "") + "/reports";
   }
 
   getPugTemplateDir(req) {
@@ -44,7 +44,7 @@ module.exports = class ReportManagerClass {
       logger: req.entity.loggerManager,
       entityHeader: req.entity.fullName,
       report: this,
-      homeUrl: this.baseUrl,
+      homeURL: this.baseUrl,
     });
     return html;
   }

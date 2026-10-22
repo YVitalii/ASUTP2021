@@ -39,15 +39,15 @@ class ClassEntityGeneral {
     this.homeDir = props.homeDir ? props.homeDir : __dirname;
 
     // домашня URL адреса виробу
-    this.homeUrl = (props.baseUrl ? props.baseUrl : "") + "/entity/" + this.id;
+    this.homeURL = (props.baseUrl ? props.baseUrl : "") + "/entity/" + this.id;
 
     // ------  менеджер приладів ----------
-    this.devicesManager = new ClassDevicesManager({ baseUrl: this.homeUrl });
+    this.devicesManager = new ClassDevicesManager({ baseUrl: this.homeURL });
 
     // ------  менеджер логування ----------
     this.loggerManager = new ClassLoggerManager({
       ln: this.id + "::loggerManager()::",
-      baseUrl: this.homeUrl,
+      baseUrl: this.homeURL,
       baseDir: this.homeDir,
       period: test ? 2 * 1000 : 10 * 1000,
       regs: [],
@@ -57,12 +57,12 @@ class ClassEntityGeneral {
     this.tasksManager = new TasksManager({
       ln: this.id + "::TasksManager::",
       homeDir: this.homeDir,
-      homeURL: this.homeUrl,
+      homeURL: this.homeURL,
     });
     // ------------- processManager -----------------
     this.processManager = new ClassProcessManager({
       homeDir: this.homeDir,
-      homeUrl: this.homeUrl,
+      homeURL: this.homeURL,
       tasksManager: this.tasksManager,
       loggerManager: this.loggerManager,
       devicesManager: this.devicesManager,

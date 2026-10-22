@@ -1,0 +1,70 @@
+@startuml ClassRegs
+title Нащадки ClassRegister
+
+class ClassRegister {
+  +id
+  +type
+  +value
+  +header
+  +comment
+  +editable
+  +getValue()
+  +setValue(val)
+}
+
+class ClassReg_number {
+  +step
+  +min
+  +max
+  +setValue(val)
+}
+
+class ClassReg_timer {
+  +setValue(val)
+}
+
+class ClassReg_regsList {
+  +regs
+}
+
+class ClassReg_select
+
+class ClassTaskGeneral
+
+class ClassTaskDescriptionStep {
+  +getState()
+  +getStep(regs)
+  +getRegForHtml()
+}
+
+class ClassControllerPID
+
+class ClassTaskThermal {
+  +addDevice(device)
+  +getRegForHtml()
+  +getStep(regs)
+}
+
+class ClassTaskTRM251
+
+class ClassTasksManager {
+  +addTaskType(taskItem)
+  +getTasksList()
+  +loadTask(taskName)
+  +saveTask(taskName, content)
+  +deleteTask(taskName)
+  +setActiveTask(taskName)
+}
+
+ClassRegister <|-- ClassReg_number
+ClassRegister <|-- ClassReg_regsList
+ClassRegister <|-- ClassTasksManager
+ClassReg_number <|-- ClassReg_timer
+ClassReg_regsList <|-- ClassReg_select
+ClassReg_regsList <|-- ClassTaskGeneral
+ClassReg_regsList <|-- ClassTaskDescriptionStep
+ClassReg_regsList <|-- ClassControllerPID
+ClassTaskGeneral <|-- ClassTaskThermal
+ClassTaskGeneral <|-- ClassTaskTRM251
+
+@enduml

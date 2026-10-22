@@ -120,7 +120,7 @@ app.use("/ping", (req, res, next) => {
   });
 });
 
-app.use("/entity/:id/tasksManager/", tasksManagerRouter);
+app.use("/entity/:id/tasksManager", tasksManagerRouter);
 
 app.use("/entity/:id/processManager/", processManagerRouter);
 

@@ -9,7 +9,7 @@ const dummy = require("../../tools/dummy.js").dummyPromise;
 
 class ClassProcessManager {
   constructor(props = {}) {
-    this.homeUrl = props.homeUrl ? props.homeUrl + "/processManager" : "/";
+    this.homeURL = props.homeURL ? props.homeURL + "/processManager" : "/";
     this.homeDir = normalizePath(
       props.homeDir ? props.homeDir + "processManager\\" : "/"
     );
@@ -20,7 +20,7 @@ class ClassProcessManager {
       en: `Process manager`,
       ru: `Менеджер процессов`,
     };
-    this.ln = props.ln ? props.ln : `ClassProcessManager(${this.homeUrl})::`;
+    this.ln = props.ln ? props.ln : `ClassProcessManager(${this.homeURL})::`;
     let trace = 0,
       ln = this.ln + "constructor()::";
     if (trace) {

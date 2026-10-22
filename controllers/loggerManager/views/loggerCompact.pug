@@ -15,10 +15,10 @@ script
 script.
   var chartMan={};
   chartMan.props =  {
-  logsUrl: "!{logger.homeUrl+"/logs"}",
-  regsUrl: "!{logger.homeUrl+"/getRegs"}",
-  tasksUrl: "!{logger.homeUrl+"/tasks"}",
-  pointsUrl: "!{logger.homeUrl+"/points"}",
+  logsUrl: "!{logger.homeURL+"/logs"}",
+  regsUrl: "!{logger.homeURL+"/getRegs"}",
+  tasksUrl: "!{logger.homeURL+"/tasks"}",
+  pointsUrl: "!{logger.homeURL+"/points"}",
   logFileName: "!{logger.fileName}",
 
   y:{min:0,max:!{entity.maxT}},

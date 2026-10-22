@@ -10,7 +10,7 @@ module.exports = class ClassLoggerManager {
    *
    * @param {*} props
    * @prop {String} props.ln="ClassLoggerManager::" - заголовок для логів
-   * @prop {String} props.baseUrl="" - базова адреса this.homeUrl=props.baseUrl + "/"+this.id
+   * @prop {String} props.baseUrl="" - базова адреса this.homeURL=props.baseUrl + "/"+this.id
    * @prop {String} props.baseDir=__dirname - базова адреса на локальному диску this.homeDir=props.baseDir + "/"+this.id
    * @prop {Number} props.period=10*1000 - мс, період опитування та запису стану регістрів
    * @prop {String} props.fileName="tmp" - імя поточного файлу логування
@@ -25,14 +25,14 @@ module.exports = class ClassLoggerManager {
     this.baseUrl = props.baseUrl ? props.baseUrl : "";
     this.baseDir = props.baseDir ? props.baseDir : __dirname;
     // локальні шляхи
-    this.homeUrl = this.baseUrl + "/" + this.id;
+    this.homeURL = this.baseUrl + "/" + this.id;
     this.homeDir = normalizePath(this.baseDir + "/" + this.id);
     // період між запитами
     this.period = props.period ? props.period : 10 * 1000;
     // файловий менеджер
     this.fileManager = new ClassFileManager({
       homeDir: this.homeDir,
-      homeUrl: this.homeUrl,
+      homeURL: this.homeURL,
     });
     this.tmpLogFileName = "tmp";
     // поточне імя файлу
@@ -473,7 +473,7 @@ module.exports = class ClassLoggerManager {
       {
         entity: req.entity,
         logger: req.entity.loggerManager,
-      } //homeUrl: req.entity.devicesManager.homeUrl, content
+      } //homeURL: req.entity.devicesManager.homeURL, content
     );
     return html;
   } //getCompactHtml (req){
@@ -490,7 +490,7 @@ module.exports = class ClassLoggerManager {
         entity: req.entity,
         logger: req.entity.loggerManager,
         chart: chart,
-      } //homeUrl: req.entity.devicesManager.homeUrl, content
+      } //homeURL: req.entity.devicesManager.homeURL, content
     );
     return html;
   } //getFullHtml (req)

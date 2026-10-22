@@ -36,11 +36,23 @@ export interface ProcessState {
   programRunning: boolean;
 }
 
+/** Опис типу кроку з POST /getTasksDescription. */
+export interface TaskTypeHeader {
+  id: string;
+  header: LocalizedMessage;
+  comment: LocalizedMessage;
+  type?: string;
+  value?: unknown;
+  editable?: boolean;
+  regs?: Record<string, RegConfig>;
+}
+
 export interface ProgramEditorState {
   activeProgramName: string;
   programEdited: boolean;
   programList: string[] | null;
   programContent: ProgramContent | null;
+  headers: Record<string, TaskTypeHeader> | null;
   acceptedProgram: string | null;
   programRunning: boolean;
   originalJson: string;

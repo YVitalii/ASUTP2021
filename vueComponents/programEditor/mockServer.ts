@@ -1,5 +1,5 @@
 import { settings } from "./settings";
-import type { ProcessState, ProgramContent } from "./types";
+import type { ProcessState, ProgramContent, TaskTypeHeader } from "./types";
 
 export const programNotFoundErr = {
   ua: "Програму не знайдено!",
@@ -47,9 +47,9 @@ export function createTypicalProgram(
       regs: typicalRegs,
       ...header,
     },
-    { tT: 100, H: "00:10", Y: "00:20" },
-    { tT: 200, H: "00:30", Y: "00:40" },
-    { tT: 300, H: 50, Y: 70 },
+    { type: "taskThermal", tT: 100, H: "00:10", Y: "00:20" },
+    { type: "taskThermal", tT: 200, H: "00:30", Y: "00:40" },
+    { type: "taskThermal", tT: 300, H: 50, Y: 70 },
   ];
 }
 
@@ -168,6 +168,35 @@ export function createMockServer(): MockServer {
         status: 200,
         json: { error: null, data: { fileName } },
       };
+    }
+
+    if (url.includes(settings.URLs.getTasksDescription)) {
+      const data: Record<string, TaskTypeHeader> = {
+        description: {
+          id: "description",
+          header: {
+            ua: "Загальний опис програми",
+            en: "General descriptiom of program",
+            ru: "Общее описание программы",
+          },
+          comment: { ua: "", en: "", ru: "" },
+        },
+        taskThermal: {
+          id: "taskThermal",
+          header: {
+            ua: "Термообробка",
+            en: "Heat Treatment",
+            ru: "Термообработка",
+          },
+          comment: {
+            ua: "Термообробка",
+            en: "HeatTreatment",
+            ru: "Термообработка",
+          },
+          regs: typicalRegs,
+        },
+      };
+      return { status: 200, json: { err: null, data } };
     }
 
     if (url.includes(settings.URLs.getProcessState)) {

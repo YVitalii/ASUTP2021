@@ -36,7 +36,7 @@ script.
   el.regs.state = JSON.parse('!{JSON.stringify(state)}');
   el.regs.state.value = undefined;
 
-  el.homeUrl = JSON.parse('!{JSON.stringify(baseUrl+device.id)}');
+  el.homeURL = JSON.parse('!{JSON.stringify(baseUrl+device.id)}');
   el.reqString = "";
   // основні скрипти  керування
 
@@ -54,7 +54,7 @@ script.
         `${this.prefix}::getState::` + new Date().toLocaleTimeString() + ":: ";
     let response, res,  err=false;
     try {
-      response = await fetch(this.homeUrl + "/getState", {
+      response = await fetch(this.homeURL + "/getState", {
       method: "POST",
       headers: { "Content-type": "application/json;charset=utf-8" },
       body: JSON.stringify({}),
@@ -152,7 +152,7 @@ script.
     //- debugger;
     let response, res,  err=false;
     try {
-      response = await fetch(this.homeUrl + "/getRegs", {
+      response = await fetch(this.homeURL + "/getRegs", {
       method: "POST",
       headers: { "Content-type": "application/json;charset=utf-8" },
       body: JSON.stringify({ regsList: this.reqString }),

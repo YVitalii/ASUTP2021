@@ -4,6 +4,7 @@ import {
   deleteProgram,
   getProgramList,
   getProcessState,
+  getTasksDescription,
   readProgram,
   writeProgram,
 } from "./programsApi";
@@ -26,6 +27,7 @@ export function useProgramEditAgent() {
     programEdited: false,
     programList: null,
     programContent: null,
+    headers: null,
     acceptedProgram: null,
     programRunning: false,
     originalJson: "",
@@ -62,6 +64,17 @@ export function useProgramEditAgent() {
   };
 
   let processStatePoll: ReturnType<typeof setInterval> | null = null;
+
+  const loadTaskHeaders = async () => {
+    trace("loadTaskHeaders", "Запит опису типів кроків...");
+    try {
+      state.headers = await getTasksDescription();
+      trace("loadTaskHeaders", "Опис типів кроків завантажено:", state.headers);
+    } catch (error) {
+      traceWarn("loadTaskHeaders", "Не вдалося завантажити опис типів кроків.", error);
+      throw error;
+    }
+  };
 
   const loadRunningProgram = async () => {
     try {
@@ -118,7 +131,11 @@ export function useProgramEditAgent() {
     state.lastError = null;
 
     try {
-      await Promise.all([loadProgramList(), loadRunningProgram()]);
+      await Promise.all([
+        loadProgramList(),
+        loadRunningProgram(),
+        loadTaskHeaders(),
+      ]);
 
       if (!state.activeProgramName && state.programList && state.programList.length > 0) {
         state.activeProgramName = state.programList[0] ?? "";

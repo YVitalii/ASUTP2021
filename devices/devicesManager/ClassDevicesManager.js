@@ -23,7 +23,7 @@ module.exports = class ClassDevicesManager {
       : (() => {
           throw new Error(ln + "baseUrl must be setted!");
         })();
-    this.homeUrl = this.baseUrl + "/devicesManager/";
+    this.homeURL = this.baseUrl + "/devicesManager/";
     // --------- devices ---------
     this.devices = {};
   } // constructor()
@@ -78,7 +78,7 @@ module.exports = class ClassDevicesManager {
     let content = "";
     for (let key in this.getAll()) {
       content += this.getDevice(key).getCompactHtml({
-        baseUrl: this.homeUrl,
+        baseUrl: this.homeURL,
         prefix: "devicesManager_",
       });
     }
@@ -88,7 +88,7 @@ module.exports = class ClassDevicesManager {
         req.locals.homeDir +
           "/devices/devicesManager/views/fullDevicesManager.pug"
       ),
-      { homeUrl: this.homeUrl, content }
+      { homeURL: this.homeURL, content }
     );
     return html;
   } // getCompactHtml(

@@ -5,6 +5,7 @@
 const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js");
 const dummy = require("../../tools/dummy.js").dummyPromise;
 const log = require("../../tools/log.js");
+const ClassThermalTaskSimple = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermalSimple.js");
 let trace = 0,
   gln = __filename + "::";
 
@@ -35,6 +36,8 @@ props.maxT = 1200;
 
 // -------- створюємо та повертаємо об'єкт печі
 let entity = new classEntityFurnace(props);
+
+entity.tasksManager.addTaskType(new ClassThermalTaskSimple({ maxT: props.maxT }));
 
 // -----------------  налаштування приладів, що входять до складу печі ------------
 

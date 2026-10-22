@@ -13,7 +13,7 @@ let viewsDir = require("path").normalize(__dirname + "\\views\\");
  * @param {*} regs - список регістрів
  * @param {*} props - список налаштувань
  * @property {String}  props.prefix - префікс для формування id елементу в DOM-tree
- * @property {String}  props.homeUrl - базова адреса для POST запиту стану регістрів використовується в скрипті авт. опитування
+ * @property {String}  props.homeURL - базова адреса для POST запиту стану регістрів використовується в скрипті авт. опитування
  * @returns
  */
 

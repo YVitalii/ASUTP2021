@@ -1,10 +1,11 @@
 import { usePostJson } from "../composables/usePostJson";
-import { settings } from "./settings";
+import { apiUrl, settings } from "./settings";
 import type {
   ApiEnvelope,
   LocalizedMessage,
   ProcessState,
   ProgramContent,
+  TaskTypeHeader,
 } from "./types";
 
 function errorMessage(
@@ -40,7 +41,7 @@ function assertNoError(
 
 export async function getProgramList(): Promise<string[]> {
   const response = await usePostJson<ApiEnvelope<string[]>>(
-    settings.URLs.getFilesList,
+    apiUrl(settings.URLs.getFilesList),
     {},
   );
   const data = unwrapData(response, "getFilesList error");
@@ -52,7 +53,7 @@ export async function getProgramList(): Promise<string[]> {
 
 export async function readProgram(fileName: string): Promise<ProgramContent> {
   const response = await usePostJson<ApiEnvelope<ProgramContent>>(
-    settings.URLs.readFile,
+    apiUrl(settings.URLs.readFile),
     { fileName },
   );
   return unwrapData(response, "readFile error");
@@ -63,7 +64,7 @@ export async function writeProgram(
   content: ProgramContent,
 ): Promise<void> {
   const response = await usePostJson<ApiEnvelope<LocalizedMessage>>(
-    settings.URLs.writeFile,
+    apiUrl(settings.URLs.writeFile),
     { fileName, content },
     {},
     { timeout: 10000, maxErrors: 3 },
@@ -76,7 +77,7 @@ export async function activated(fileName: string): Promise<string> {
     ApiEnvelope<{ fileName?: string }> & {
       error?: LocalizedMessage | string | null;
     }
-  >(settings.URLs.activate, { fileName });
+  >(apiUrl(settings.URLs.activate), { fileName });
 
   const error = response?.error ?? response?.err;
   const activatedName = response?.data?.fileName;
@@ -88,15 +89,28 @@ export async function activated(fileName: string): Promise<string> {
 
 export async function deleteProgram(fileName: string): Promise<void> {
   const response = await usePostJson<ApiEnvelope<LocalizedMessage>>(
-    settings.URLs.deleteFile,
+    apiUrl(settings.URLs.deleteFile),
     { fileName },
   );
   assertNoError(response, "deleteFile error");
 }
 
+export async function getTasksDescription(): Promise<
+  Record<string, TaskTypeHeader>
+> {
+  const response = await usePostJson<
+    ApiEnvelope<Record<string, TaskTypeHeader>>
+  >(apiUrl(settings.URLs.getTasksDescription), {});
+  const data = unwrapData(response, "getTasksDescription error");
+  if (data == null || Array.isArray(data) || typeof data !== "object") {
+    throw new Error("getTasksDescription: очікувався об'єкт у data");
+  }
+  return data;
+}
+
 export async function getProcessState(): Promise<ProcessState> {
   const response = await usePostJson<ApiEnvelope<ProcessState>>(
-    settings.URLs.getProcessState,
+    apiUrl(settings.URLs.getProcessState),
     {},
   );
   const data = unwrapData(response, "getProcessState error");

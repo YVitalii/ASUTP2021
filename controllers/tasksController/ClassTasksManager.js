@@ -16,7 +16,7 @@ class ClassTasksManager extends ClassRegister {
   /**
    * @param {Object} props
    * @property {String} props.homeDir - домашня директорія сутності
-   * @property {String} props.homeUrl - базова адреса сутності
+   * @property {String} props.homeURL - базова адреса сутності
    */
   constructor(props = {}) {
     props.header = {
@@ -45,14 +45,18 @@ class ClassTasksManager extends ClassRegister {
       });
     }
     const homeDir = pathNormalize(props.homeDir + "/tasksManager/");
-    const homeURL = (props.homeUrl ? props.homeUrl : "") + "/tasksManager/";
+    const entityUrl = (props.homeURL || "").replace(
+      /\/$/,
+      ""
+    );
+    const homeURL = entityUrl + "/tasksManager/";
     this.path = {
       homeDir,
       homeURL,
       programDir: pathNormalize(homeDir + "tasksList/"),
       stateFile: pathNormalize(homeDir + "state.info"),
     };
-    this.homeURL = props.homeURL;
+    this.homeURL = homeURL;
     this.activeTask = { fileName: null, content: null }; // активне завдання
     this.tasksList = []; // список завдань
     this.availableTasksTypes = new Map(); // зареєстровані типи кроків
@@ -76,6 +80,7 @@ class ClassTasksManager extends ClassRegister {
    */
   addTaskType(taskItem) {
     if (!taskItem || !taskItem.id) {
+      console.dir(taskItem);
       throw new APIerror({
         ua: "Не вказано id типу кроку",
         en: "Task type id is required",
@@ -99,23 +104,26 @@ class ClassTasksManager extends ClassRegister {
   
   /**
    * Повертає опис зареєстрованих типів кроків.
-   * @returns {Array} [availableTasksTypes.get(id).getDescription(), ...]
+   * @returns {Object} { [id]: getDescription() }
    */
   getTasksDescription() {
-    let list = [];
+    const descriptions = {};
     for (const id of this.availableTasksTypes.keys()) {
-      let task = this.availableTasksTypes.get(id);
-      if (typeof task.getDescription === "function") {
-        list.push(task.getDescription());
-      } else {
-        list.push({
+      const task = this.availableTasksTypes.get(id);
+      let description = task.getDescription;
+      if (typeof description === "function") {
+        description = description.call(task);
+      }
+      if (description == null) {
+        description = {
           id: task.id,
           header: task.header,
           comment: task.comment,
-        });
+        };
       }
+      descriptions[id] = description;
     }
-    return list;
+    return descriptions;
   }
 
   /**

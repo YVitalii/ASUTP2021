@@ -32,7 +32,7 @@ function stateFile(dir) {
 function createManager(dir) {
   return new ClassTasksManager({
     homeDir: dir,
-    homeUrl: "/entity/test",
+    homeURL: "/entity/test",
   });
 }
 
@@ -84,9 +84,30 @@ describe("ClassTasksManager", () => {
       assert.match(manager.path.programDir, /tasksList/);
       assert.match(manager.path.stateFile, /state\.info$/);
       assert.equal(manager.path.homeURL, "/entity/test/tasksManager/");
+      assert.equal(manager.homeURL, "/entity/test/tasksManager/");
       assert.ok(manager.fileManager);
       assert.equal(manager.activeTask.fileName, "default");
       assert.deepEqual(manager.activeTask.content, programSteps);
+    });
+
+    it("додає /tasksManager/ до homeURL, який передає сутність", () => {
+      const dir = caseDir("ctor-homeURL");
+      fs.mkdirSync(programDir(dir), { recursive: true });
+      fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+
+      const manager = new ClassTasksManager({
+        homeDir: dir,
+        homeURL: "/entity/SNO-6-6-4)12_2025",
+      });
+
+      assert.equal(
+        manager.homeURL,
+        "/entity/SNO-6-6-4)12_2025/tasksManager/"
+      );
+      assert.equal(
+        manager.homeURL.slice(0, -1),
+        "/entity/SNO-6-6-4)12_2025/tasksManager"
+      );
     });
   });
 

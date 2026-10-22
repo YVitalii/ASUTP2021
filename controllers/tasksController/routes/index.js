@@ -4,6 +4,7 @@
  */
 const express = require("express");
 const router = express.Router();
+const pug = require("pug");
 const log = require("../../../tools/log");
 const getFileName = require("../../../tools/reqTools.js").reqGetFileName;
 
@@ -35,6 +36,21 @@ router.use(function (req, res, next) {
   }
   next();
 });
+
+function renderTasksPage(req, res) {
+  let html = pug.renderFile(req.info.mainPug, {
+    lang: req.user && req.user.lang ? req.user.lang : "ua",
+    pageTitle: {
+      ua: "Редагування програми",
+      en: "Program editing",
+      ru: "Редактирование программы",
+    },
+    body: req.tasksManager.getFullHtml(),
+  });
+  res.send(html);
+}
+
+router.get(/^\/?$/, renderTasksPage);
 
 router.post("/getFilesList", function (req, res) {
   let ln = req.tasksManager.ln + "post(/getFilesList)::";
@@ -86,14 +102,14 @@ router.post("/acceptFile", async function (req, res) {
   let fileName = getFileName(req);
   try {
     await req.tasksManager.setActiveTask(fileName);
-    res.send({ error: null, data: { fileName } });
+    res.send({ err: null, data: { fileName } });
   } catch (error) {
     let err =
       error && error.msg
         ? error.msg
         : localizedError(error && error.message ? error.message : String(error));
     log("e", ln + err.ua);
-    res.send({ error: err, data: null });
+    res.send({ err, data: null });
   }
 });
 

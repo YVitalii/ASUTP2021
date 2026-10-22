@@ -17,7 +17,7 @@ let trace = 1,
 // maximum
 entity.maxT = 700;
 
-entity.homeUrl = entity.id + "/";
+entity.homeURL = entity.id + "/";
 
 // пристрої
 entity.devices = devices;
@@ -60,7 +60,7 @@ entity.htmlFull = () => {
   let html = pug.renderFile(__dirname + "/views/full.pug", {
     entity,
     controllersButton: {
-      href: entity.homeUrl,
+      href: entity.homeURL,
       title: { ua: `Контролери`, en: `Controllers`, ru: `Контроллеры` },
     },
   });

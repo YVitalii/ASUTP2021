@@ -15,7 +15,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
    * @property {Number} props.regs.ti=0 - для regMode="pid" - інтегральний коєф-т, для regMode="pos" немає значення
    * @property {Number} props.regs.td=0 - для regMode="pid" - пропорційний коєф-т, для regMode="pos" немає значення
    * @property {async Function} props.getT - async функція запиту поточної температури
-   * @property {async Function} props.checkPeriod=5 - сек, період між опитуваннями поточної температури
+   * @property {Number} props.checkPeriod=5 - сек, період між опитуваннями поточної температури
    * @property {Object} props.device - обєкт приладу, що має async функції start(regs), addT() та getT
    */
 
@@ -28,7 +28,7 @@ class ClassThermoStepGeneral extends ClassStepGeneral {
       console.dir(props);
     }
     super(props);
-
+    
     this.header = {
       ua: `ClassThermoStepGeneral`,
       en: `ClassThermoStepGeneral`,

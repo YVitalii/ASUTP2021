@@ -88,7 +88,7 @@ router.get("/", function (req, res, next) {
   let html = req.entity.devicesManager.getCompactHtml(req);
   // for (let key in req.entity.devicesManager.getAll()) {
   //   content += req.entity.devicesManager.getDevice(key).getCompactHtml({
-  //     baseUrl: req.entity.devicesManager.homeUrl,
+  //     baseUrl: req.entity.devicesManager.homeURL,
   //     prefix: "devicesManager_",
   //   });
   // }
@@ -98,7 +98,7 @@ router.get("/", function (req, res, next) {
   //     req.locals.homeDir +
   //       "/devices/devicesManager/views/fullDevicesManager.pug"
   //   ),
-  //   { homeUrl: req.entity.devicesManager.homeUrl, content }
+  //   { homeURL: req.entity.devicesManager.homeURL, content }
   // );
 
   res.send(pug.renderFile(req.locals.mainPug, { pageTitle, body: html }));

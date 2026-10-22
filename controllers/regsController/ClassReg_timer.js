@@ -1,17 +1,46 @@
-const ClassRegister = require("./ClassRegister.js");
+const ClassReg_number = require("./ClassReg_number.js");
 
-module.exports = class ClassReg_timer extends ClassRegister {
+/**
+ * Число або "ГГ:ХХ" → цілі хвилини.
+ * Непридатне значення, наприклад "badValue", повертає undefined.
+ */
+function toMinutes(val) {
+  if (typeof val === "number" && Number.isFinite(val)) return Math.round(val);
+  if (typeof val !== "string") return undefined;
+
+  const text = val.trim();
+  const time = /^(\d+):(\d{1,2})$/.exec(text);
+  if (time) return parseInt(time[1], 10) * 60 + parseInt(time[2], 10);
+
+  if (/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(text)) {
+    const num = Number(text);
+    if (Number.isFinite(num)) return Math.round(num);
+  }
+  return undefined;
+}
+
+module.exports = class ClassReg_timer extends ClassReg_number {
   constructor(props = {}) {
-    props.type = "timer";
-    super(props);
+    super({
+      ...props,
+      ln: "ClassReg_timer(" + props.id + ")::",
+      min: props.min === undefined ? 0 : props.min,
+      max: props.max === undefined ? 99 * 60 : props.max,
+      unit: props.unit ? props.unit : {ua:"хв", en:"min", ru:"мин"},
+    });
+    this.type = "timer";
     this.ln = "ClassReg_timer(" + this.id + ")::";
-    let trace = 1,
-      ln = this.ln + "constructor()::";
-    /** хв, мінімальне значення регістра */
-    this.min = props.min || props.min === 0 ? props.min : 0;
-    /** хв, максимальне значення регістра */
-    this.max = props.max || props.max === 0 ? props.max : 99 * 60; //99годин
-    /** хв, Значення */
-    this.value = this.setValue(props.value);
-  } // constructor
+  }
+
+  setValue(val) {
+    const minutes = toMinutes(val);
+    if (minutes === undefined) {
+      this.log(
+        "e",
+        ` ${this.ln}setValue():: Value = ${val} is badValue !! Value was not changed `
+      );
+      return this.value;
+    }
+    return super.setValue(minutes);
+  }
 };

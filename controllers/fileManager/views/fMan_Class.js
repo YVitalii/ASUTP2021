@@ -8,7 +8,7 @@ const ClassFileManager = class FileManager {
    * @prop {ClassButtonGroup} props.buttons - об'єкт з описом кнопок керування типу ClassButton
    * @prop {selectGeneral} props.filesList - елемент вибору назви файлу
    * @prop {async Function} props.getFilesList - елемент вибору назви файлу
-   * @prop {async Function} props.homeUrl - адреса за якою виконуються запити
+   * @prop {async Function} props.homeURL - адреса за якою виконуються запити
    */
 
   constructor(props) {
@@ -26,7 +26,7 @@ const ClassFileManager = class FileManager {
     // list of types
     this.types = props.types;
     //
-    this.homeUrl = (props.homeUrl ? props.homeUrl : "") + "/fileManager";
+    this.homeURL = (props.homeURL ? props.homeURL : "") + "/fileManager";
     // container
     this.container = props.container
       ? props.container
@@ -79,7 +79,7 @@ const ClassFileManager = class FileManager {
       ln = this.ln + `::post(${path})::`;
 
     // адреса для запиту
-    let baseUrl = this.homeUrl;
+    let baseUrl = this.homeURL;
     trace ? console.log(ln + `path=${path};; baseUrl=${baseUrl}`) : null;
     // імя файлу
     let fileName = addData.fileName

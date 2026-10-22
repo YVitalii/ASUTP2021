@@ -35,8 +35,8 @@ describe("MockServer (settings.URLs)", () => {
     expect(response.data).toEqual(createTypicalProgram());
     expect(response.data[0].maxStepsQuantity).toBe(15);
     expect(response.data[0].regs.tT.units).toBe("°C");
-    expect(response.data[1]).toEqual({ tT: 100, H: "00:10", Y: "00:20" });
-    expect(response.data[3]).toEqual({ tT: 300, H: 50, Y: 70 });
+    expect(response.data[1]).toEqual({ type: "taskThermal", tT: 100, H: "00:10", Y: "00:20" });
+    expect(response.data[3]).toEqual({ type: "taskThermal", tT: 300, H: 50, Y: 70 });
   });
 
   it("POST readFile для неіснуючого fileName повертає помилку", async () => {

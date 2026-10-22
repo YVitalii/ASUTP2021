@@ -22,7 +22,7 @@ router.get("/", function (req, res, next) {
     },
     body: pug.renderFile(resolvePath("./views/index.pug"), {
       entity: req.entity,
-      homeUrl: req.entity.homeUrl,
+      homeURL: req.entity.homeURL,
     }),
     lang: req.user.lang,
   });

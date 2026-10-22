@@ -18,6 +18,7 @@ vi.mock("../../programManager/component.vue", () => ({
     name: "ProgramManagerStub",
     props: {
       programData: { type: Array, default: null },
+      headers: { type: Object, default: null },
       readOnly: { type: Boolean, default: false },
     },
     emits: ["update:programData"],

@@ -9,7 +9,7 @@ props.container = document.getElementById("fileManagerContainer");
 props.types = myElementsRender;
 
 props.id = "fileManager";
-props.homeUrl = logMan.homeUrl;
+props.homeURL = logMan.homeURL;
 //- props.reg ={
 //-   id:"fileManager",
 //-   header:{ua:"",en:"",ry:""},

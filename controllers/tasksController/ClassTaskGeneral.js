@@ -20,6 +20,18 @@ class ClassTaskGeneral extends ClassReg_regsList {
       console.dir(this, { depth: 3 });
     }
   } //constructor
+  get getDescription() {
+    let description = {
+      id: this.id,
+      type: this.type,
+      value: this.value,
+      header: this.header,
+      comment: this.comment,
+      editable: this.editable,
+      regs: {...this.regs},
+    };
+    return description;
+  }
 } //class ClassTask
 
 module.exports = ClassTaskGeneral;

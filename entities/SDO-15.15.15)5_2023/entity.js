@@ -37,7 +37,7 @@ let trace = 1,
 entity.maxT = 500 + 50;
 
 // URL адреса гілки
-entity.homeUrl = entity.id + "/";
+entity.homeURL = entity.id + "/";
 
 // завантажуємо пристрої
 
@@ -47,7 +47,7 @@ entity.devices = require("./devices/devices.js");
 entity.tasksManager = new TasksManager({
   ln: entity.id + "::TasksManager::",
   homeDir: entity.homeDir,
-  homeURL: entity.homeUrl,
+  homeURL: entity.homeURL,
 });
 // -- термічний процесс
 let thermalProcess = new ClassTaskThermal({
@@ -71,7 +71,7 @@ entity.tasksManager.addType(thermalProcess);
 
 entity.processManager = new ClassProcessManager({
   homeDir: entity.homeDir,
-  homeUrl: entity.homeUrl,
+  homeURL: entity.homeURL,
   tasksManager: entity.tasksManager,
   ln: entity.id + "::ProcessManager::",
 });
@@ -115,7 +115,7 @@ entity.htmlFull = (lang = "ua") => {
   let html = pug.renderFile(__dirname + "/views/full.pug", {
     entity: this,
     controllersButton: {
-      href: entity.homeUrl,
+      href: entity.homeURL,
       title: { ua: `Контролери`, en: `Controllers`, ru: `Контроллеры` },
       lang,
     },

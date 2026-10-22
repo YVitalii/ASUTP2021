@@ -88,7 +88,7 @@ el.getRegs = async function () {
     res,
     err = false;
   try {
-    response = await fetch(this.homeUrl + "/getRegs", {
+    response = await fetch(this.homeURL + "/getRegs", {
       method: "POST",
       headers: { "Content-type": "application/json;charset=utf-8" },
       body: JSON.stringify({ regsList: this.reqString }),

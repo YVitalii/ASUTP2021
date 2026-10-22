@@ -1,22 +1,19 @@
 const ClassRegister = require("./ClassRegister.js");
 /**
- * Створює регістр в якому є вкладений список регістрів
+ * Регістр із вкладеним списком регістрів.
  */
 
 module.exports = class ClassReg_regsList extends ClassRegister {
   /**
-   *
    * @param {Object} props
-   * @property {String} props.regs={} - список регістрів
+   * @property {Object} [props.regs={}] - вкладені регістри за ключем
    */
 
   constructor(props = {}) {
-    props.type = "regsList";
-    super(props);
-    //this.ln = this.ln ? this.ln :"ClassReg_regsList(" + this.id + ")::";
-    let trace = 1,
-      ln = this.ln + "constructor()::";
-    /** список регістрів для вибору */
-    this.regs = props.regs ? props.regs : {};
+    props.type = props.type ? props.type : "regsList";
+    super({ ...props });
+    this.ln = props.ln ? props.ln : "ClassReg_regsList(" + this.id + ")::";
+    const regs = props.regs;
+    this.regs = regs && typeof regs === "object" ? { ...regs } : {};
   }
 };

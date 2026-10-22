@@ -3,13 +3,13 @@
 
 let headerManager = {};
 headerManager.container = document.getElementById("header");
-headerManager.homeUrl = "/ping";
+headerManager.homeURL = "/ping";
 headerManager.connected = undefined;
 headerManager.ln = "headerManager::";
 headerManager.testConnection = async () => {
   let result;
   try {
-    let response = await fetch(headerManager.homeUrl, {
+    let response = await fetch(headerManager.homeURL, {
       method: "POST",
       headers: { "Content-type": "application/json;charset=utf-8" },
       body: JSON.stringify({}), //  ,

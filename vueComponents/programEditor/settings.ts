@@ -9,10 +9,17 @@ export const settings = {
     readFile: "/readFile", // POST body={fileName: program[0].title}
     activate: "/acceptFile", // POST body={fileName: program[0].title}
     getProcessState: "/getProcessState", // POST body={} → { err:null, data:{ acceptedProgram, programRunning } }
+    getTasksDescription: "/getTasksDescription", // POST body={} → { err:null, data:{ [id]: getDescription() } }
     runningProgramName: "/process/state", // POST body={}
   },
   header: "Редактор програми", // заголовок сторінки
-  develop: true, // true — usePostJson читає mockServer; false — реальний fetch
+  develop: false, // true — usePostJson читає mockServer; false — реальний fetch
   minScreenWidth: 900, // нижче цього — зони одна під одною
   minControlAreaWidth: 300, // ширина ControlArea у горизонтальному режимі
 };
+
+/** /getFilesList на сторінці /entity/.../tasksManager → /entity/.../tasksManager/getFilesList */
+export function apiUrl(path: string) {
+  const page = window.location.pathname.replace(/\/+$/, "");
+  return `${page}${path}`;
+}

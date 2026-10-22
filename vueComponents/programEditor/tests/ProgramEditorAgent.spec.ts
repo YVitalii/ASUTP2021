@@ -27,6 +27,7 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     expect(agent.state.programEdited).toBe(false);
     expect(agent.state.programList).toBeNull();
     expect(agent.state.programContent).toBeNull();
+    expect(agent.state.headers).toBeNull();
     expect(agent.state.isLoading).toBe(false);
     expect(agent.state.isSaving).toBe(false);
     expect(agent.state.lastError).toBeNull();
@@ -41,6 +42,10 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
 
     expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
     expect(agent.state.activeProgramName).toBe("Program 1");
+    expect(Object.keys(agent.state.headers ?? {})).toEqual([
+      "description",
+      "taskThermal",
+    ]);
     expect(agent.state.programContent?.[0].title).toBe("Program 1");
     expect(agent.state.programContent?.[0].description).toBe(
       "Колеса чавунні. Відпуск.",

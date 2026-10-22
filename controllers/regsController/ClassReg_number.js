@@ -2,33 +2,35 @@ const ClassRegister = require("./ClassRegister.js");
 
 class ClassReg_number extends ClassRegister {
   constructor(props = {}) {
-    props.type = "number";
-    super(props);
+    const initialValue = props.value;
+    // value застосується після min/max, інакше setValue у базі ще не бачить меж
+    super({ ...props, type: "number", value: undefined });
     this.step = props.step;
-    this.ln = "ClassReg_number(" + this.id + ")::";
-    let trace = 1,
-      ln = this.ln + "constructor()::";
-    /** мінімальне значення регістра */
-    this.min = props.min | (props.min === 0) ? props.min : 0;
-    /** максимальне значення регістра */
-    this.max = props.max | (props.max === 0) ? props.max : 100;
-    this.value === undefined ? this.min : this.value;
+    this.ln = props.ln ? props.ln : "ClassReg_number(" + this.id + ")::";
+    /** null — величина з цього боку не обмежена */
+    this.min = props.min === undefined ? null : props.min;
+    this.max = props.max === undefined ? null : props.max;
+    this.unit = props.unit ? props.unit : {ua:"", en:"", ru:""};
+    const hasValue = initialValue !== undefined && initialValue !== null;
+    this.setValue(hasValue ? initialValue : this.min);
   }
   setValue(val) {
     let ln = this.ln + `setValue():: Value = ${val}`;
-    if (val > this.max) {
+    if (this.max !== null && val > this.max) {
       this.log(
         "e",
         ` ${ln} is greater then max = ${this.max} !! Was setted val=this.max `
       );
+      val = this.max;
     }
-    if (val < this.min) {
+    if (this.min !== null && val < this.min) {
       this.log(
         "e",
         ` ${ln} is lower then min = ${this.min} !! Was setted val=this.min `
       );
+      val = this.min;
     }
-    super.setValue(val);
+    return super.setValue(val);
   }
 }
 module.exports = ClassReg_number;
