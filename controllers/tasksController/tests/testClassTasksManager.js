@@ -467,7 +467,9 @@ describe("ClassTasksManager", () => {
       fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
       const manager = createManager(dir);
 
-      const html = manager.getFullHtml();
+      const html = manager.getFullHtml({
+        entity: { header: { ua: "Піч", en: "Furnace", ru: "Печь" } },
+      });
 
       assert.equal(typeof html, "string");
       assert.match(html, /id="tasksManager"/);

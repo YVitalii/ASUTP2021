@@ -21,20 +21,8 @@ html(class="h-100")
     //-   include ../tools/createReport.js
 
   body(class="h-100"  )
+    include header.pug
     div(class="container-fluid h-100 d-flex flex-column" ) 
-      //- header
-      //- div(class="row")#header
-      header.row#header
-        div(class="col-2")
-          img(src="/img/logo_bortek.png", alt="Бортек" id="logo")
-        div(class="col my-auto mx-auto" )
-          div(class="h2 " id="pageTitle") !{_pageTitle}
-        div.col-1#connectionsContainer
-          include ../rs485/views/compact.pug
-        div(class="col-1 d-flex justify-content-center align-items-center")
-          div( class="h5 text-center" id="timedisplay" )
-        script
-          include ./js/headerManager.js
       //- pageBody 
       div(class="row h-100" )
         div(class="col h-100")

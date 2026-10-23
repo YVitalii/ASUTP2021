@@ -27,6 +27,61 @@
 a {
   color: #00B7FF;
 }
+
+#header.site-header {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+#header .header-logo {
+  flex: 0 0 150px;
+  width: 150px;
+  height: 90px;
+}
+
+#header .header-logo img {
+  display: block;
+  width: 150px;
+  height: 90px;
+  object-fit: contain;
+}
+
+#header .header-main {
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+#header .header-main .naviButtons {
+  margin-top: auto;
+}
+
+#header .header-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+#header .header-side {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#header .header-clock {
+  min-width: 7rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
 /* #timedisplay {
   position: fixed;
   font-size: x-large;

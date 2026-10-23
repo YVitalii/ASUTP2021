@@ -1,0 +1,19 @@
+//- Шапка сторінки: на всю ширину, п'ять колонок.
+//- _pageTitle задається в main.pug. userLogo можна перевизначити.
+-var _userLogo = typeof userLogo !== "undefined" && userLogo ? userLogo : "/img/logo.png"
+header#header.site-header
+  .header-logo
+    img#bortekLogo(src="/img/logo_bortek.png" alt="Бортек" width="150" height="90")
+  .header-logo
+    img#userLogo(src=_userLogo alt="Логотип" width="150" height="90")
+  .header-main
+    #pageTitle.header-title !{_pageTitle}
+    .naviButtons
+  .header-side.header-rs485
+    include ../rs485/views/compact.pug
+  .header-side.header-clock
+    #timedisplay
+script
+  include ./js/headerManager.js
+link(rel="stylesheet" href="/src/naviButtons/naviButtons.css")
+script(type="module" src="/src/naviButtons/naviButtons.js")

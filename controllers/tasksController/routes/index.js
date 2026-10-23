@@ -45,7 +45,7 @@ function renderTasksPage(req, res) {
       en: "Program editing",
       ru: "Редактирование программы",
     },
-    body: req.tasksManager.getFullHtml(),
+    body: req.tasksManager.getFullHtml(req),
   });
   res.send(html);
 }

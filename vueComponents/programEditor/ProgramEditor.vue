@@ -1,6 +1,5 @@
 <template>
   <div class="program-editor-panel">
-    <div class="naviButtons"></div>
     <div class="action-buttons">
       <BtnSave :disabled="!state.programEdited || state.isSaving" @click="handleSave" />
 

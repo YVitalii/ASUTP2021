@@ -1,1 +1,20 @@
-[{"id":"description","fName":"prg05","description":"Колеса чавунні. Відпуск.","date":"2026-10-23T13:13:19.069Z"},{"type":"thermalTaskSimple","tT":330,"H":50,"Y":"01:10"},{"type":"thermalTaskSimple","tT":110,"H":10,"Y":20}]
+[
+	{
+		"id": "description",
+		"fName": "prg05",
+		"description": "Колеса чавунні. Відпуск.",
+		"date": "2026-10-23T13:13:19.069Z"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 330,
+		"H": 50,
+		"Y": "01:10"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 110,
+		"H": 10,
+		"Y": 20
+	}
+]

@@ -398,11 +398,15 @@ class ClassTasksManager extends ClassRegister {
 
   /**
    * Рендерить pug-шаблон редактора програм і повертає HTML.
-   * Дані редактор завантажує сам через API — шаблон не використовує manager.
+   * У шаблон передається req, щоб був доступний entity.header.
+   * @param {Object} req - об'єкт запиту
    * @returns {String} html
    */
-  getFullHtml() {
-    return pug.renderFile(pathJoin(__dirname, "views", "editTasks.pug"));
+  getFullHtml(req) {
+    let html = pug.renderFile(__dirname + "/views/editTasks.pug", {
+      req,
+    });
+    return html;
   }
 
   /**
