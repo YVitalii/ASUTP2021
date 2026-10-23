@@ -4,6 +4,7 @@ import {
   deleteProgram,
   getProgramList,
   getProcessState,
+  sortProgramNames,
   getTasksDescription,
   readProgram,
   writeProgram,
@@ -13,7 +14,7 @@ import { trace, traceError, traceWarn } from "./trace";
 import type { ProgramContent, ProgramEditorState } from "./types";
 
 const UNSAVED_CHANGES_MSG =
-  "Є незбережені зміни. Збережіть або скиньте їх перед зміною програми.";
+  "Є незбережені зміни. Відмініть або збережіть зміни";
 const PROCESS_STATE_POLL_MS = 30_000;
 
 function errorText(error: unknown, fallback: string) {
@@ -166,19 +167,23 @@ export function useProgramEditAgent() {
       return;
     }
 
+    const savedName = state.programContent[0]?.fName?.trim() ?? "";
+    if (!savedName) {
+      state.lastError = "Вкажіть назву програми.";
+      return;
+    }
+    state.programContent[0].fName = savedName;
+
     state.isSaving = true;
     state.lastError = null;
 
     try {
-      const previousName = state.activeProgramName;
-      const savedTitle = state.programContent[0]?.title;
-      await writeProgram(previousName, state.programContent);
-      if (savedTitle && savedTitle !== previousName) {
-        if (state.programList && !state.programList.includes(savedTitle)) {
-          state.programList = [...state.programList, savedTitle];
-        }
-        state.activeProgramName = savedTitle;
+      await writeProgram(savedName, state.programContent);
+      state.programList = await getProgramList();
+      if (!state.programList.includes(savedName)) {
+        state.programList = sortProgramNames([...state.programList, savedName]);
       }
+      state.activeProgramName = savedName;
       markClean();
       trace("handleSave", "Програму успішно збережено на сервері!");
     } catch (error) {
@@ -201,7 +206,7 @@ export function useProgramEditAgent() {
       return;
     }
 
-    const fileName = state.programContent?.[0]?.title;
+    const fileName = state.programContent?.[0]?.fName;
     trace("handleAccept", `Завантаження програми "${fileName ?? ""}" у прилад`);
 
     if (!fileName) {
@@ -268,7 +273,7 @@ export function useProgramEditAgent() {
     if (name === state.activeProgramName) return true;
 
     if (state.programEdited) {
-      state.lastError = UNSAVED_CHANGES_MSG;
+      alert(UNSAVED_CHANGES_MSG);
       return false;
     }
 

@@ -258,6 +258,61 @@ class ClassTasksManager extends ClassRegister {
   }
 
   /**
+   * Ім'я програми для списку вибору: заголовок [0].fName, інакше ім'я файлу.
+   * @param {*} content
+   * @param {String} fileName
+   * @returns {String}
+   */
+  programFName(content, fileName) {
+    const header = Array.isArray(content) ? content[0] : null;
+    if (header && typeof header === "object") {
+      const name = header.fName || header.title;
+      if (typeof name === "string" && name.trim()) return name.trim();
+    }
+    return fileName;
+  }
+
+  /**
+   * fName програми у файлі. Якщо файл не читається — ім'я файлу.
+   * @param {String} fileName
+   * @returns {String}
+   */
+  fNameOfFile(fileName) {
+    try {
+      const content = this.parseProgramContent(
+        this.fileManager.readFileSync(fileName)
+      );
+      return this.programFName(content, fileName);
+    } catch (error) {
+      return fileName;
+    }
+  }
+
+  /**
+   * Список fName для вибору програми.
+   * @returns {String[]}
+   */
+  getProgramFNames() {
+    return this.tasksList
+      .map((fileName) => this.fNameOfFile(fileName))
+      .sort((a, b) => a.localeCompare(b, "uk", { numeric: true }));
+  }
+
+  /**
+   * Знаходить файл за fName. Якщо окремого файлу з таким ім'ям немає,
+   * шукає програму, у заголовку якої записаний цей fName.
+   * @param {String} fName
+   * @returns {String}
+   */
+  resolveTaskFile(fName) {
+    if (!fName || this.fileManager.exist(fName)) return fName;
+    const found = this.tasksList.find(
+      (fileName) => this.fNameOfFile(fileName) === fName
+    );
+    return found || fName;
+  }
+
+  /**
    * Створює або перезаписує файл програми.
    * @param {String} [taskName] - ім'я файлу в programDir
    * @param {String|Object|Array} [content] - вміст файлу
@@ -277,7 +332,17 @@ class ClassTasksManager extends ClassRegister {
         ru: "Нельзя изменять шаблон программы",
       });
     }
-    await this.fileManager.writeFile(taskName, content);
+    let data = content;
+    if (typeof data === "string") {
+      data = JSON.parse(data);
+    }
+    if (Array.isArray(data) && data[0] && typeof data[0] === "object") {
+      data[0].fName = taskName;
+    }
+    await this.fileManager.writeFile(taskName, data);
+    if (this.activeTask.fileName === taskName) {
+      this.activeTask.content = clone(data);
+    }
     if (!this.tasksList.includes(taskName)) {
       this.tasksList.push(taskName);
     }

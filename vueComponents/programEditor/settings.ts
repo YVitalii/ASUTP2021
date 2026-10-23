@@ -3,11 +3,11 @@
 export const settings = {
   URLs: {
     baseUrl: window.location.pathname, // базова адреса сторінки
-    getFilesList: "/getFilesList", // POST body={}
-    deleteFile: "/deleteFile", // POST body={fileName: program[0].title}
-    writeFile: "/writeFile", // POST body={fileName: program[0].title, content}
-    readFile: "/readFile", // POST body={fileName: program[0].title}
-    activate: "/acceptFile", // POST body={fileName: program[0].title}
+    getFilesList: "/getFilesList", // POST body={} → { err:null, data:fName[] }
+    deleteFile: "/deleteFile", // POST body={fName}
+    writeFile: "/writeFile", // POST body={fName, content}
+    readFile: "/readFile", // POST body={fName}
+    activate: "/acceptFile", // POST body={fName}
     getProcessState: "/getProcessState", // POST body={} → { err:null, data:{ acceptedProgram, programRunning } }
     getTasksDescription: "/getTasksDescription", // POST body={} → { err:null, data:{ [id]: getDescription() } }
     runningProgramName: "/process/state", // POST body={}

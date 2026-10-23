@@ -35,17 +35,16 @@ const typicalRegs = {
 };
 
 export function createTypicalProgram(
-  header: Record<string, unknown> = {},
+  patch: Partial<ProgramContent[0]> = {},
 ): ProgramContent {
   return [
     {
       id: 1,
-      title: "Program 1",
+      fName: "Program 1",
       description: "Колеса чавунні. Відпуск.",
       date: "2023-05-03T11:04:49.715Z",
       maxStepsQuantity: 15,
-      regs: typicalRegs,
-      ...header,
+      ...patch,
     },
     { type: "taskThermal", tT: 100, H: "00:10", Y: "00:20" },
     { type: "taskThermal", tT: 200, H: "00:30", Y: "00:40" },
@@ -78,24 +77,24 @@ export function createMockServer(): MockServer {
   const flags = { failGetFilesList: false };
   const activation = { fileName: null as string | null };
 
-  const storeProgram = (header: Record<string, unknown> = {}) => {
-    const program = createTypicalProgram(header);
-    files.set(program[0].title, program);
+  const storeProgram = (patch: Partial<ProgramContent[0]> = {}) => {
+    const program = createTypicalProgram(patch);
+    files.set(program[0].fName, program);
   };
   storeProgram();
   storeProgram({
     id: 2,
-    title: "Program 2",
+    fName: "Program 2",
     description: "Програма 2",
   });
   storeProgram({
     id: 3,
-    title: "Program 3",
+    fName: "Program 3",
     description: "Програма 3",
   });
 
   const handle = (url: string, body: Record<string, unknown>): MockResponse => {
-    const fileName = body.fileName as string | undefined;
+    const fileName = body.fName as string | undefined;
     const program = (body.content ?? body.program) as ProgramContent | undefined;
 
     if (url.includes(settings.URLs.getFilesList)) {
@@ -113,21 +112,28 @@ export function createMockServer(): MockServer {
 
     if (url.includes(settings.URLs.writeFile)) {
       const stored = program ? clone(program) : undefined;
-      const title = typeof stored?.[0]?.title === "string" ? stored[0].title.trim() : "";
-      if (!stored || !title) {
+      const fName = typeof stored?.[0]?.fName === "string" ? stored[0].fName.trim() : "";
+      if (!stored || !fName) {
         return { status: 200, json: { err: programNotFoundErr, data: null } };
       }
+      const raw = stored[0] as ProgramContent[0] & {
+        regs?: unknown;
+        header?: unknown;
+      };
+      delete raw.regs;
+      delete raw.header;
+      raw.fName = fName;
 
-      files.set(title, clone(stored));
+      files.set(fName, clone(stored));
 
       return {
         status: 200,
         json: {
           err: null,
           data: {
-            ua: `Файл ${title} збережено!`,
-            en: `File ${title} was saved!`,
-            ru: `Файл ${title} сохранен!`,
+            ua: `Файл ${fName} збережено!`,
+            en: `File ${fName} was saved!`,
+            ru: `Файл ${fName} сохранен!`,
           },
         },
       };
@@ -166,7 +172,7 @@ export function createMockServer(): MockServer {
       processState.acceptedProgram = fileName;
       return {
         status: 200,
-        json: { error: null, data: { fileName } },
+        json: { error: null, data: { fName: fileName } },
       };
     }
 

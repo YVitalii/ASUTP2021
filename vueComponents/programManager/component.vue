@@ -11,7 +11,7 @@
                 <div class="header-field-row">
                     <label class="field-label">Назва:</label>
                     <div class="field-control">
-                        <FileNameField v-model="programData[0].title" :disabled="readOnly"
+                        <FileNameField v-model="programData[0].fName" :disabled="readOnly"
                             @update:modelValue="notifyChanges" />
                     </div>
                 </div>
@@ -27,7 +27,7 @@
                 <div class="meta-info-row">
                     <span class="date-info">Змінено: {{ formatDate(programData[0].date) }}</span>
                     <span class="limit-info">
-                        Кроки: {{ stepsList.length }} / {{ programData[0].maxStepsQuantity }}
+                        Кроків: {{ stepsList.length }}
                     </span>
                 </div>
             </div>
@@ -113,11 +113,10 @@ interface RegView {
 
 interface ProgramHeader {
     id: number;
-    title: string;
+    fName: string;
     description: string;
     date: Date | string;
     maxStepsQuantity: number;
-    regs: Record<string, RegConfig>;
 }
 
 interface ProgramStep {
@@ -270,13 +269,17 @@ const createDefaultStep = (source?: ProgramStep): ProgramStep => {
     return newStep;
 };
 
+const copyStep = (source: ProgramStep): ProgramStep =>
+    JSON.parse(JSON.stringify(source));
+
 const addStepAfter = (index: number) => {
     if (!props.programData) return;
     if (stepsList.value.length >= props.programData[0].maxStepsQuantity) return;
 
     const insertAt = index + 1;
-    // Змінюємо масив напряму та сповіщаємо батька
-    props.programData.splice(insertAt + 1, 0, createDefaultStep(stepsList.value[index]));
+    const source = stepsList.value[index];
+    const nextStep = source ? copyStep(source) : createDefaultStep();
+    props.programData.splice(insertAt + 1, 0, nextStep);
     activeStepIndex.value = insertAt;
     notifyChanges();
 };
@@ -332,8 +335,8 @@ const handleJoystickCommand = (action: string, index: number) => {
 <style scoped>
 .program-container {
     display: inline-block;
-    min-width: 480px;
-    max-width: 650px;
+    min-width: 600px;
+    max-width: 750px;
     padding: 16px;
     font-family: Arial, sans-serif;
     background: #ffffff;

@@ -46,7 +46,7 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
       "description",
       "taskThermal",
     ]);
-    expect(agent.state.programContent?.[0].title).toBe("Program 1");
+    expect(agent.state.programContent?.[0].fName).toBe("Program 1");
     expect(agent.state.programContent?.[0].description).toBe(
       "Колеса чавунні. Відпуск.",
     );
@@ -88,6 +88,18 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
 
     await vi.advanceTimersByTimeAsync(1_000);
     expect(agent.state.programList).toEqual(["Program 1", "Program 2"]);
+  });
+
+  it("сортує список програм за зростанням", async () => {
+    const sample = mockServer.files.get("Program 1");
+    mockServer.files.clear();
+    for (const name of ["Program 10", "Program 2", "Program 1"]) {
+      mockServer.files.set(name, sample!);
+    }
+
+    await agent.loadProgramList();
+
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 10"]);
   });
 
   it("не повинен обирати активну програму всередині loadProgramList", async () => {
@@ -157,6 +169,52 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     );
   });
 
+  it("при зміні назви writeFile створює нову програму і залишає стару", async () => {
+    await agent.loadInitialData();
+
+    const modifiedContent = cloneContent(agent.state.programContent);
+    modifiedContent[0].fName = "prg05";
+    agent.checkChanges(modifiedContent);
+
+    await agent.handleSave();
+
+    const calls = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls;
+    const writeCall = calls.find(([url]) => String(url).includes("writeFile"));
+    const body = JSON.parse(String(writeCall?.[1]?.body));
+    const deleted = calls.some(([url]) => String(url).includes("deleteFile"));
+
+    expect(body.fName).toBe("prg05");
+    expect(body.content[0].fName).toBe("prg05");
+    expect(deleted).toBe(false);
+    expect(mockServer.files.has("prg05")).toBe(true);
+    expect(mockServer.files.get("Program 1")?.[0]?.fName).toBe("Program 1");
+    expect(agent.state.activeProgramName).toBe("prg05");
+    expect(agent.state.programList).toEqual(
+      expect.arrayContaining(["Program 1", "prg05"]),
+    );
+    expect(agent.state.programEdited).toBe(false);
+    expect(agent.state.lastError).toBeNull();
+  });
+
+  it("якщо назва вже є в списку, writeFile перезаписує її вміст", async () => {
+    await agent.loadInitialData();
+
+    const modifiedContent = cloneContent(agent.state.programContent);
+    modifiedContent[0].fName = "Program 2";
+    modifiedContent[0].description = "Новий вміст Program 2";
+    agent.checkChanges(modifiedContent);
+
+    await agent.handleSave();
+
+    expect(mockServer.files.get("Program 2")?.[0]?.description).toBe(
+      "Новий вміст Program 2",
+    );
+    expect(mockServer.files.get("Program 1")?.[0]?.fName).toBe("Program 1");
+    expect(agent.state.activeProgramName).toBe("Program 2");
+    expect(agent.state.programList).toEqual(["Program 1", "Program 2", "Program 3"]);
+    expect(agent.state.lastError).toBeNull();
+  });
+
   it("повинен перемикати програму через selectProgram", async () => {
     await agent.loadInitialData();
 
@@ -164,7 +222,7 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
 
     expect(ok).toBe(true);
     expect(agent.state.activeProgramName).toBe("Program 2");
-    expect(agent.state.programContent?.[0].title).toBe("Program 2");
+    expect(agent.state.programContent?.[0].fName).toBe("Program 2");
     expect(agent.state.programEdited).toBe(false);
   });
 
@@ -175,12 +233,16 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     modifiedContent[0].description = "Не збережено";
     agent.checkChanges(modifiedContent);
 
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     const ok = await agent.selectProgram("Program 2");
 
     expect(ok).toBe(false);
     expect(agent.state.activeProgramName).toBe("Program 1");
     expect(agent.state.programContent?.[0].description).toBe("Не збережено");
-    expect(agent.state.lastError).toContain("незбережені зміни");
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Є незбережені зміни. Відмініть або збережіть зміни",
+    );
+    alertSpy.mockRestore();
   });
 
   it("активує збережену програму через POST /acceptFile", async () => {
@@ -228,7 +290,7 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     agent.state.acceptedProgram = "Program 2";
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     if (agent.state.programContent) {
-      agent.state.programContent[0].title = "Немає такої";
+      agent.state.programContent[0].fName = "Немає такої";
     }
 
     await agent.handleAccept();
@@ -251,7 +313,7 @@ describe("ProgramEditAgent (через заглушку сервера)", () => 
     expect(confirmSpy).toHaveBeenCalledWith("Ви точно хочете видалити програму Program 1?");
     expect(agent.state.programList).toEqual(["Program 2", "Program 3"]);
     expect(agent.state.activeProgramName).toBe("Program 2");
-    expect(agent.state.programContent?.[0].title).toBe("Program 2");
+    expect(agent.state.programContent?.[0].fName).toBe("Program 2");
     expect(mockServer.files.has("Program 1")).toBe(false);
     expect(agent.state.lastError).toBeNull();
     confirmSpy.mockRestore();

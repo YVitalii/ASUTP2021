@@ -1,0 +1,32 @@
+[
+	{
+		"id": "description",
+		"type": "description",
+		"fName": "default",
+		"description": "Короткий опис програми"
+	},
+	{
+		"type": "taskThermal",
+		"tT": 400,
+		"wT": 0,
+		"errTmin": -15,
+		"errTmax": 15,
+		"H": 0,
+		"errH": 0,
+		"Y": 0,
+		"regMode": "pos",
+		"o": -2
+	},
+	{
+		"type": "taskThermal",
+		"tT": 500,
+		"wT": 0,
+		"errTmin": -15,
+		"errTmax": 15,
+		"H": 0,
+		"errH": 0,
+		"Y": 0,
+		"regMode": "pos",
+		"o": -2
+	}
+]

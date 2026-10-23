@@ -24,7 +24,7 @@ vi.mock("../../programManager/component.vue", () => ({
     emits: ["update:programData"],
     template: `
       <div class="program-manager-stub">
-        <p class="stub-title">{{ programData?.[0]?.title }}</p>
+        <p class="stub-title">{{ programData?.[0]?.fName }}</p>
         <p class="stub-description">{{ programData?.[0]?.description }}</p>
       </div>
     `,

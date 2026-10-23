@@ -91,6 +91,17 @@ describe("tasksController router", { concurrency: false }, () => {
     assert.match(html, /\/src\/tasksManager\/tasksManager\.js/);
   });
 
+  it("POST /getFilesList сортує назви за зростанням", async () => {
+    await post("/writeFile", { fName: "prg10", content: [{ fName: "prg10" }] });
+    await post("/writeFile", { fName: "prg2", content: [{ fName: "prg2" }] });
+
+    const { json } = await post("/getFilesList", {});
+    const names = json.data.filter((name) =>
+      ["default", "prg2", "prg10"].includes(name),
+    );
+    assert.deepEqual(names, ["default", "prg2", "prg10"]);
+  });
+
   it("POST /getFilesList повертає назви програм", async () => {
     const { json } = await post("/getFilesList", {});
     assert.equal(json.err, null);
@@ -98,14 +109,27 @@ describe("tasksController router", { concurrency: false }, () => {
     assert.ok(json.data.includes("default"));
   });
 
+  it("POST /getFilesList і readFile використовують fName із заголовка", async () => {
+    const content = [{ fName: "Показана назва", description: "опис" }];
+    await post("/writeFile", { fName: "disk-name", content });
+
+    const { json } = await post("/getFilesList", {});
+    assert.ok(json.data.includes("Показана назва"));
+    assert.equal(json.data.includes("disk-name"), false);
+
+    const read = await post("/readFile", { fName: "Показана назва" });
+    assert.equal(read.json.err, null);
+    assert.deepEqual(read.json.data, content);
+  });
+
   it("POST /readFile повертає розібраний вміст програми", async () => {
-    const { json } = await post("/readFile", { fileName: "default" });
+    const { json } = await post("/readFile", { fName: "default" });
     assert.equal(json.err, null);
     assert.deepEqual(json.data, programBody);
   });
 
   it("POST /readFile без файлу повертає err", async () => {
-    const { json } = await post("/readFile", { fileName: "missing" });
+    const { json } = await post("/readFile", { fName: "missing" });
     assert.equal(json.data, null);
     assert.equal(typeof json.err.ua, "string");
     assert.equal(typeof json.err.en, "string");
@@ -115,57 +139,57 @@ describe("tasksController router", { concurrency: false }, () => {
   it("POST /writeFile зберігає програму і повертає fileName", async () => {
     const content = [{ id: "description", name: "prg02", note: "new" }];
     const { json } = await post("/writeFile", {
-      fileName: "prg02",
+      fName: "prg02",
       content,
     });
     assert.equal(json.err, null);
-    assert.deepEqual(json.data, { fileName: "prg02" });
+    assert.deepEqual(json.data, { fName: "prg02" });
 
     const list = await post("/getFilesList", {});
     assert.ok(list.json.data.includes("prg02"));
 
-    const read = await post("/readFile", { fileName: "prg02" });
+    const read = await post("/readFile", { fName: "prg02" });
     assert.deepEqual(read.json.data, content);
   });
 
   it("POST /writeFile без content повертає err", async () => {
-    const { json } = await post("/writeFile", { fileName: "empty" });
+    const { json } = await post("/writeFile", { fName: "empty" });
     assert.equal(json.data, null);
     assert.match(json.err.en, /content are required/);
   });
 
   it("POST /deleteFile видаляє програму і повертає fileName", async () => {
     await post("/writeFile", {
-      fileName: "to-delete",
+      fName: "to-delete",
       content: programBody,
     });
-    const { json } = await post("/deleteFile", { fileName: "to-delete" });
+    const { json } = await post("/deleteFile", { fName: "to-delete" });
     assert.equal(json.err, null);
-    assert.deepEqual(json.data, { fileName: "to-delete" });
+    assert.deepEqual(json.data, { fName: "to-delete" });
 
     const list = await post("/getFilesList", {});
     assert.equal(list.json.data.includes("to-delete"), false);
   });
 
   it("POST /deleteFile неіснуючого файлу повертає err", async () => {
-    const { json } = await post("/deleteFile", { fileName: "absent" });
+    const { json } = await post("/deleteFile", { fName: "absent" });
     assert.equal(json.data, null);
     assert.match(json.err.en, /not found/);
   });
 
   it("POST /acceptFile встановлює активну програму", async () => {
     await post("/writeFile", {
-      fileName: "prg01",
+      fName: "prg01",
       content: programBody,
     });
-    const { json } = await post("/acceptFile", { fileName: "prg01" });
+    const { json } = await post("/acceptFile", { fName: "prg01" });
     assert.equal(json.err, null);
-    assert.deepEqual(json.data, { fileName: "prg01" });
+    assert.deepEqual(json.data, { fName: "prg01" });
     assert.equal(manager.activeTask.fileName, "prg01");
   });
 
   it("POST /acceptFile неіснуючого файлу повертає err {ua,en,ru}", async () => {
-    const { json } = await post("/acceptFile", { fileName: "no-such" });
+    const { json } = await post("/acceptFile", { fName: "no-such" });
     assert.equal(json.data, null);
     assert.equal(typeof json.err.ua, "string");
     assert.equal(typeof json.err.en, "string");

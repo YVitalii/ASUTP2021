@@ -24,7 +24,7 @@ vi.mock("../../programManager/component.vue", () => ({
     emits: ["update:programData"],
     template: `
       <div class="program-manager-stub">
-        <p class="stub-title">{{ programData?.[0]?.title }}</p>
+        <p class="stub-title">{{ programData?.[0]?.fName }}</p>
         <p class="stub-description">{{ programData?.[0]?.description }}</p>
         <button class="stub-edit" type="button" @click="emitDirty">Змінити опис</button>
       </div>
@@ -155,18 +155,23 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
   it("скидає локальні зміни кнопкою Скинути", async () => {
     const wrapper = await mountEditor();
 
+    expect(wrapper.find(".reset-btn").attributes("disabled")).toBeDefined();
+
     await wrapper.find(".stub-edit").trigger("click");
     await flushPromises();
     expect(wrapper.find(".stub-description").text()).toBe("Зміна з UI");
+    expect(wrapper.find(".reset-btn").attributes("disabled")).toBeUndefined();
 
     await wrapper.find(".reset-btn").trigger("click");
     await flushPromises();
 
     expect(wrapper.find(".edited-badge").exists()).toBe(false);
     expect(wrapper.find(".stub-description").text()).toBe("Колеса чавунні. Відпуск.");
+    expect(wrapper.find(".reset-btn").attributes("disabled")).toBeDefined();
   });
 
   it("не дає змінити програму при незбережених змінах", async () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
     const wrapper = await mountEditor();
 
     await wrapper.find(".stub-edit").trigger("click");
@@ -179,8 +184,11 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
     await flushPromises();
 
     expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("Program 1");
-    expect(wrapper.find(".error-banner").text()).toContain("незбережені зміни");
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Є незбережені зміни. Відмініть або збережіть зміни",
+    );
     expect(wrapper.find(".stub-description").text()).toBe("Зміна з UI");
+    alertSpy.mockRestore();
   });
 
   it("вимикає Видалити для програми, завантаженої в прилад", async () => {

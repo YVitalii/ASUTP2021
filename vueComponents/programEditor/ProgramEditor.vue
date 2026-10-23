@@ -1,34 +1,35 @@
 <template>
   <div class="program-editor-panel">
+    <div class="naviButtons"></div>
     <div class="action-buttons">
       <BtnSave :disabled="!state.programEdited || state.isSaving" @click="handleSave" />
 
       <button class="btn activate-btn" :disabled="acceptDisabled" @click="handleAccept">Активувати</button>
       <button class="btn delete-btn" :disabled="state.activeProgramName === state.acceptedProgram" @click="handleDelete">Видалити</button>
-      <button class="btn reset-btn" @click="handleReset">Скинути</button>
+      <button class="btn reset-btn" :disabled="!state.programEdited" @click="handleReset">Скинути</button>
     </div>
 
     <div class="program-selector-wrapper">
       <label class="selector-label">Вибір програми:</label>
 
       <select class="program-select-dropdown" :value="state.activeProgramName" @change="onProgramSelect">
-        <option v-for="progName in state.programList" :key="progName" :value="progName">
-          {{ progName }}
+        <option v-for="fName in state.programList" :key="fName" :value="fName">
+          {{ fName }}
         </option>
       </select>
 
       <div class="program-list-box">
-        <div v-for="progName in state.programList" :key="progName"
+        <div v-for="fName in state.programList" :key="fName"
           :class="['program-list-item', {
-            'active': progName === state.activeProgramName,
-            'running': progName === state.acceptedProgram && state.programRunning,
+            'active': fName === state.activeProgramName,
+            'running': fName === state.acceptedProgram && state.programRunning,
           }]"
-          @click="selectProgram(progName)">
-          <span class="prog-title">{{ progName }}</span>
-          <span v-if="progName === state.acceptedProgram && !state.programRunning" class="accepted-badge">
+          @click="selectProgram(fName)">
+          <span class="prog-title">{{ fName }}</span>
+          <span v-if="fName === state.acceptedProgram && !state.programRunning" class="accepted-badge">
             Завантажено
           </span>
-          <span v-if="progName === state.acceptedProgram && state.programRunning" class="running-badge">
+          <span v-if="fName === state.acceptedProgram && state.programRunning" class="running-badge">
             Виконується
           </span>
         </div>

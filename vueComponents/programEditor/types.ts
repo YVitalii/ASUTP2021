@@ -20,11 +20,10 @@ export interface RegConfig {
 
 export interface ProgramHeader {
   id: number;
-  title: string;
+  fName: string;
   description: string;
   date: Date | string;
   maxStepsQuantity: number;
-  regs: Record<string, RegConfig>;
 }
 
 export type ProgramStep = Record<string, unknown>;
@@ -50,6 +49,7 @@ export interface TaskTypeHeader {
 export interface ProgramEditorState {
   activeProgramName: string;
   programEdited: boolean;
+  /** fName програм із POST /getFilesList */
   programList: string[] | null;
   programContent: ProgramContent | null;
   headers: Record<string, TaskTypeHeader> | null;

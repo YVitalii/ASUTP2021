@@ -37,7 +37,9 @@ props.maxT = 1200;
 // -------- створюємо та повертаємо об'єкт печі
 let entity = new classEntityFurnace(props);
 
-entity.tasksManager.addTaskType(new ClassThermalTaskSimple({ maxT: props.maxT }));
+entity.tasksManager.addTaskType(
+  new ClassThermalTaskSimple({ maxT: props.maxT }),
+);
 
 // -----------------  налаштування приладів, що входять до складу печі ------------
 
@@ -143,7 +145,7 @@ logger.addReg({
     // повинна повертати числове значення регістру
     let t = await entity.devicesManager.getDevice("furnace").getRegister("tT"); //TRM251
     // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
-    t = t == null ? 0:t;
+    t = t == null ? 0 : t;
     return t;
   },
 }); //logger.addReg(

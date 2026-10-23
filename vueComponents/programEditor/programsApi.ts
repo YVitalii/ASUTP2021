@@ -5,6 +5,8 @@ import type {
   LocalizedMessage,
   ProcessState,
   ProgramContent,
+  ProgramHeader,
+  ProgramStep,
   TaskTypeHeader,
 } from "./types";
 
@@ -30,6 +32,18 @@ function unwrapData<T>(
   return response.data;
 }
 
+function contentForPost(content: ProgramContent): ProgramContent {
+  const header = content[0] as ProgramContent[0] & { title?: string };
+  if (!("title" in header)) return content;
+  const { title, ...rest } = header;
+  const headerForPost: ProgramHeader = {
+    ...rest,
+    fName: rest.fName || title || "",
+  };
+  const steps = content.slice(1) as ProgramStep[];
+  return [headerForPost, ...steps];
+}
+
 function assertNoError(
   response: ApiEnvelope<unknown> | undefined,
   fallback: string,
@@ -37,6 +51,12 @@ function assertNoError(
   if (response?.err) {
     throw new Error(errorMessage(response.err, fallback));
   }
+}
+
+export function sortProgramNames(names: string[]): string[] {
+  return [...names].sort((a, b) =>
+    a.localeCompare(b, "uk", { numeric: true }),
+  );
 }
 
 export async function getProgramList(): Promise<string[]> {
@@ -48,49 +68,49 @@ export async function getProgramList(): Promise<string[]> {
   if (!Array.isArray(data)) {
     throw new Error("getFilesList: очікувався масив у data");
   }
-  return data;
+  return sortProgramNames(data);
 }
 
-export async function readProgram(fileName: string): Promise<ProgramContent> {
+export async function readProgram(fName: string): Promise<ProgramContent> {
   const response = await usePostJson<ApiEnvelope<ProgramContent>>(
     apiUrl(settings.URLs.readFile),
-    { fileName },
+    { fName },
   );
   return unwrapData(response, "readFile error");
 }
 
 export async function writeProgram(
-  fileName: string,
+  fName: string,
   content: ProgramContent,
 ): Promise<void> {
   const response = await usePostJson<ApiEnvelope<LocalizedMessage>>(
     apiUrl(settings.URLs.writeFile),
-    { fileName, content },
+    { fName, content: contentForPost(content) },
     {},
     { timeout: 10000, maxErrors: 3 },
   );
   assertNoError(response, "writeFile error");
 }
 
-export async function activated(fileName: string): Promise<string> {
+export async function activated(fName: string): Promise<string> {
   const response = await usePostJson<
-    ApiEnvelope<{ fileName?: string }> & {
+    ApiEnvelope<{ fName?: string }> & {
       error?: LocalizedMessage | string | null;
     }
-  >(apiUrl(settings.URLs.activate), { fileName });
+  >(apiUrl(settings.URLs.activate), { fName });
 
   const error = response?.error ?? response?.err;
-  const activatedName = response?.data?.fileName;
+  const activatedName = response?.data?.fName;
   if (error || typeof activatedName !== "string") {
     throw new Error(errorMessage(error, "acceptFile error"));
   }
   return activatedName;
 }
 
-export async function deleteProgram(fileName: string): Promise<void> {
+export async function deleteProgram(fName: string): Promise<void> {
   const response = await usePostJson<ApiEnvelope<LocalizedMessage>>(
     apiUrl(settings.URLs.deleteFile),
-    { fileName },
+    { fName },
   );
   assertNoError(response, "deleteFile error");
 }

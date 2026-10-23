@@ -50,11 +50,10 @@ function program() {
   return [
     {
       id: 1,
-      title: "prg01",
+      fName: "prg01",
       description: "опис",
       date: "2023-05-03T11:04:49.715Z",
       maxStepsQuantity: 15,
-      regs: {},
     },
     { id: "taskThermal", tT: 400, H: 10 },
     { type: "thermalTaskSimple", tT: 80, Y: 15 },
@@ -82,5 +81,19 @@ describe("ProgramManager рядок за типом кроку", () => {
     expect(simple[1].find("input[type='number']").exists()).toBe(true);
     expect(simple[2].find("input").exists()).toBe(false);
     expect(simple[3].find(".time-field-container").exists()).toBe(true);
+  });
+
+  it("додає копію попереднього кроку", async () => {
+    const data = program();
+    const wrapper = mount(ProgramManager, {
+      props: { programData: data, headers, readOnly: false },
+    });
+
+    await wrapper.find("tbody tr").trigger("click");
+    await wrapper.find(".rightBottom").trigger("click");
+
+    expect(data[2]).toEqual({ id: "taskThermal", tT: 400, H: 10 });
+    expect(data[2]).not.toBe(data[1]);
+    expect(data[3]).toEqual({ type: "thermalTaskSimple", tT: 80, Y: 15 });
   });
 });

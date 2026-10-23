@@ -335,6 +335,7 @@ describe("ClassTasksManager", () => {
       await manager.saveTask("prg01", body);
 
       const saved = fs.readFileSync(path.join(programDir(dir), "prg01"), "utf8");
+      assert.equal(body[0].fName, "prg01");
       assert.deepEqual(JSON.parse(saved), body);
       assert.ok(manager.tasksList.includes("prg01"));
     });
@@ -351,11 +352,29 @@ describe("ClassTasksManager", () => {
       await manager.saveTask("prg01", updated);
 
       const saved = fs.readFileSync(path.join(programDir(dir), "prg01"), "utf8");
+      assert.equal(updated[0].fName, "prg01");
       assert.deepEqual(JSON.parse(saved), updated);
       assert.equal(
         manager.tasksList.filter((n) => n === "prg01").length,
         beforeCount
       );
+    });
+
+    it("оновлює вміст активної програми", async () => {
+      const dir = caseDir("save-active");
+      const updated = [{ id: "description", name: "saved", note: "new" }];
+      fs.mkdirSync(programDir(dir), { recursive: true });
+      fs.writeFileSync(path.join(programDir(dir), "default"), programBody);
+      fs.writeFileSync(path.join(programDir(dir), "prg01"), programBody);
+      const manager = createManager(dir);
+      await manager.setActiveTask("prg01");
+
+      await manager.saveTask("prg01", updated);
+
+      assert.equal(manager.activeTask.fileName, "prg01");
+      assert.equal(manager.activeTask.content[0].fName, "prg01");
+      assert.equal(manager.activeTask.content[0].name, "saved");
+      assert.deepEqual(await manager.loadTask("prg01"), manager.activeTask.content);
     });
   });
 

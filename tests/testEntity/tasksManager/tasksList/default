@@ -1,1 +1,33 @@
-[{"id":"description","name":"default","note":"Короткий опис програми"},{"id":"taskThermal","tT":400,"wT":0,"errTmin":-15,"errTmax":15,"H":0,"errH":0,"Y":0,"regMode":"pos","o":-2}]
+[
+	{
+		"id": "description",
+		"type" : "description",
+		"fName": "default",
+		"description": "Шаблон програми 2026",
+		"date": "2026-10-23T11:54:11.075Z"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 110,
+		"H": 10,
+		"Y": 20
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 220,
+		"H": 30,
+		"Y": 40
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 330,
+		"H": "00:50",
+		"Y": "01:00"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 440,
+		"H": 70,
+		"Y": 80
+	}
+]
