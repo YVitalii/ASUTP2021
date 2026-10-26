@@ -1,8 +1,7 @@
 <template>
   <div class="program-edit-window-host" :style="hostStyle">
-    <div class="editor-page-header">
-      <h2>{{ settings.header }}</h2>
-      <span v-if="state.programEdited" class="edited-badge">⚠️ Є зміни</span>
+    <div v-if="state.programEdited" class="editor-page-header">
+      <span class="edited-badge">⚠️ Є зміни</span>
     </div>
 
     <div v-if="state.lastError" class="error-banner" :class="{ 'load-error': loadFailed }">
@@ -125,12 +124,6 @@ onUnmounted(() => {
   align-items: center;
   padding: 4px 8px;
   border-bottom: 2px solid #3498db;
-}
-
-.editor-page-header h2 {
-  margin: 0;
-  font-size: 18px;
-  color: #2c3e50;
 }
 
 .edited-badge {

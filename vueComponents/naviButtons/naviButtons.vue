@@ -11,6 +11,7 @@
       class="btn navi-btn"
       :class="[button.style, { disabled: button.disabled }]"
       :href="button.href"
+      :title="button.hint"
       :aria-disabled="button.disabled ? 'true' : undefined"
       :tabindex="button.disabled ? -1 : undefined"
       @click="onClick($event, button)"
@@ -23,6 +24,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import {
+  buttonHint,
   buttonUrl,
   naviButtons,
   settings,
@@ -43,6 +45,7 @@ const items = computed(() =>
     .map((button) => ({
       ...button,
       href: buttonUrl(button.id, props.entityId),
+      hint: buttonHint(button),
     }))
     .filter((button) => !isCurrent(button.href)),
 );

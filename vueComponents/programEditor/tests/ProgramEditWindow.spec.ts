@@ -84,7 +84,7 @@ describe("ProgramEditWindow", () => {
     const wrapper = mountAt(settings.minScreenWidth);
     await flushPromises();
 
-    expect(wrapper.text()).toContain(settings.header);
+    expect(wrapper.text()).not.toContain("Редактор програми");
     expect(wrapper.find(".program-list-item.active .prog-title").text()).toBe("Program 1");
     expect(wrapper.find(".stub-title").text()).toBe("Program 1");
     expect(wrapper.find(".stub-description").text()).toBe("Колеса чавунні. Відпуск.");

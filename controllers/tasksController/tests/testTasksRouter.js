@@ -51,7 +51,16 @@ describe("tasksController router", { concurrency: false }, () => {
     const app = express();
     app.use(express.json());
     app.use((req, res, next) => {
-      req.entity = manager ? { tasksManager: manager } : {};
+      req.entity = manager
+        ? {
+            tasksManager: manager,
+            fullName: {
+              ua: "Електропіч СНО-6.6.4/12ВЦ",
+              en: "Furnace SNO-6.6.4/12VC",
+              ru: "Електропечь СНО-6.6.4/12ВЦ",
+            },
+          }
+        : {};
       req.user = { lang: "ua" };
       req.info = {
         mainPug: path.resolve(__dirname, "../../../views/main.pug"),
@@ -87,6 +96,8 @@ describe("tasksController router", { concurrency: false }, () => {
     const response = await fetch(baseUrl + "/");
     const html = await response.text();
     assert.equal(response.status, 200);
+    assert.match(html, /Електропіч СНО-6\.6\.4\/12ВЦ/);
+    assert.match(html, /Редагування програми/);
     assert.match(html, /id="tasksManager"/);
     assert.match(html, /\/src\/tasksManager\/tasksManager\.js/);
   });

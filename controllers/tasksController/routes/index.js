@@ -37,14 +37,33 @@ router.use(function (req, res, next) {
   next();
 });
 
+function localizedName(value, lang) {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return value[lang] || value.ua || value.en || value.ru || "";
+}
+
+/** Марка печі і назва розділу, як на головній сторінці та в архіві. */
+function tasksPageTitle(entity) {
+  const subtitle = {
+    ua: "Редагування програми",
+    en: "Program editing",
+    ru: "Редактирование программы",
+  };
+  const title = {};
+  for (const lang of ["ua", "en", "ru"]) {
+    const brand = localizedName(entity && entity.fullName, lang);
+    title[lang] = brand
+      ? `${brand} <br> <small>${subtitle[lang]}</small>`
+      : subtitle[lang];
+  }
+  return title;
+}
+
 function renderTasksPage(req, res) {
   let html = pug.renderFile(req.info.mainPug, {
     lang: req.user && req.user.lang ? req.user.lang : "ua",
-    pageTitle: {
-      ua: "Редагування програми",
-      en: "Program editing",
-      ru: "Редактирование программы",
-    },
+    pageTitle: tasksPageTitle(req.entity),
     body: req.tasksManager.getFullHtml(req),
   });
   res.send(html);

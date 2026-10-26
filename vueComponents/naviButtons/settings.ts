@@ -1,11 +1,19 @@
 // settings.ts — опис кнопок навігаційного меню.
 // Повна адреса кнопки: url = baseUrl + url цього id.
 
+export interface LocalizedText {
+  ua: string;
+  ru: string;
+  en: string;
+}
+
 export interface NaviButton {
   id: string;
   /** CSS-класи кнопки, наприклад btn-outline-primary */
   style: string;
   title: string;
+  /** Спливаюча підказка. */
+  hint: LocalizedText;
   /** Відносний шлях. Порожній рядок — сама базова адреса. */
   url: string;
   disabled: boolean;
@@ -23,6 +31,11 @@ export const naviButtons: NaviButton[] = [
     id: "buttonEntity",
     style: "btn-outline-primary",
     title: "Піч",
+    hint: {
+      ua: "Керування піччю",
+      ru: "Управление печью",
+      en: "Furnace control",
+    },
     url: "",
     disabled: false,
   },
@@ -30,6 +43,11 @@ export const naviButtons: NaviButton[] = [
     id: "buttonTasks",
     style: "btn-outline-primary",
     title: "Програма",
+    hint: {
+      ua: "Редагування програми",
+      ru: "Редактирование программы",
+      en: "Program editing",
+    },
     url: "tasksManager",
     disabled: false,
   },
@@ -37,6 +55,11 @@ export const naviButtons: NaviButton[] = [
     id: "buttonLogger",
     style: "btn-outline-primary",
     title: "Архів",
+    hint: {
+      ua: "Перегляд та формування звітів",
+      ru: "Просмотр и формирование отчетов",
+      en: "View and create reports",
+    },
     url: "loggerManager",
     disabled: false,
   },
@@ -53,6 +76,17 @@ export function resolveEntityId(entityId?: string): string {
 /** baseUrl = /entity/${entityId}/ */
 export function resolveBaseUrl(entityId?: string): string {
   return settings.baseUrl.replaceAll("${entityId}", resolveEntityId(entityId));
+}
+
+/** Мова сторінки з глобального lang (main.pug), інакше українська. */
+export function pageLang(): keyof LocalizedText {
+  const value = (globalThis as { lang?: string }).lang;
+  if (value === "ru" || value === "en") return value;
+  return "ua";
+}
+
+export function buttonHint(button: NaviButton, lang = pageLang()): string {
+  return button.hint[lang] || button.hint.ua;
 }
 
 /** url = baseUrl + settings[id].url */

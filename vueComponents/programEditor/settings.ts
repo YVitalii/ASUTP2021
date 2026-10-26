@@ -12,7 +12,6 @@ export const settings = {
     getTasksDescription: "/getTasksDescription", // POST body={} → { err:null, data:{ [id]: getDescription() } }
     runningProgramName: "/process/state", // POST body={}
   },
-  header: "Редактор програми", // заголовок сторінки
   develop: false, // true — usePostJson читає mockServer; false — реальний fetch
   minScreenWidth: 900, // нижче цього — зони одна під одною
   minControlAreaWidth: 300, // ширина ControlArea у горизонтальному режимі

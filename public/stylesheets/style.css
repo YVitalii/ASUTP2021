@@ -25,7 +25,7 @@
 } */
 
 a {
-  color: #00B7FF;
+  color: #00b7ff;
 }
 
 #header.site-header {
@@ -35,6 +35,8 @@ a {
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
+  border-bottom: 1px solid #ced4da;
+  margin-bottom: 7px;
 }
 
 #header .header-logo {
@@ -94,7 +96,7 @@ a {
   top: 21px;
   right: 50px;
 }
-.user-tools>h4 {
+.user-tools > h4 {
   margin-top: 3px;
   margin-right: 10px;
 }
@@ -103,13 +105,13 @@ a {
   top: 22px;
   right: 50px;
 } */
-#comment>p {
+#comment > p {
   font-size: large;
   white-space: pre-line;
 }
 
 .form-group {
-  margin-bottom:1rem;
+  margin-bottom: 1rem;
 }
 .login-form {
   width: 340px;
@@ -125,11 +127,12 @@ a {
 .login-form h2 {
   margin: 0 0 15px;
 }
-.form-control, .btn {
+.form-control,
+.btn {
   min-height: 38px;
   border-radius: 2px;
 }
-.btn {        
+.btn {
   font-size: 15px;
   font-weight: bold;
 }
@@ -139,6 +142,6 @@ table img:hover {
 }
 table img {
   margin-right: 5px;
-  transition: all .3s;
+  transition: all 0.3s;
   transform-origin: 50% 50%;
 }

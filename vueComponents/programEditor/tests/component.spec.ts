@@ -59,7 +59,7 @@ describe("ProgramEditor component (usePostJson → фейковий сервер
   it("після монтування завантажує список програм і показує першу", async () => {
     const wrapper = await mountEditor();
 
-    expect(wrapper.text()).toContain("Редактор програми");
+    expect(wrapper.text()).not.toContain("Редактор програми");
     expect(wrapper.findAll(".prog-title").map((item) => item.text())).toEqual([
       "Program 1",
       "Program 2",
