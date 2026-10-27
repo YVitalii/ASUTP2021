@@ -1,6 +1,17 @@
 const log = require("../../tools/log.js");
 const dummy = require("../../tools/dummy.js").dummyPromise;
 
+/** Мілісекунди → "ДДdГГ:ХХ:СС". Діб може бути більше двох цифр. */
+function formatDuration(ms) {
+  let totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+  let days = Math.floor(totalSeconds / 86400);
+  let hours = Math.floor((totalSeconds % 86400) / 3600);
+  let minutes = Math.floor((totalSeconds % 3600) / 60);
+  let seconds = totalSeconds % 60;
+  let pad = (n) => String(n).padStart(2, "0");
+  return `${pad(days)}d${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
 /** Загальний клас кроку програми, оcновна логіка та влаштування */
 class ClassStep {
   /**
@@ -28,7 +39,7 @@ class ClassStep {
     this.state._id = "waiting";
     this.state.note = { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` };
     this.state.startTime = undefined;
-    this.state.duration = "0"; // тривалість виконання кроку в вигляді "ГГ:ХХ:СС"
+    this.state.duration = "00d00:00:00"; // тривалість кроку "ДДdГГ:ХХ:СС"
     // зберігає опис помилки
     this.err = null;
     // тривалість виконання кроку в секундах
@@ -66,7 +77,7 @@ class ClassStep {
     if (typeof this.beforeStart != "function") {
       throw new Error(
         "props.beforeStart must be a function, but received: " +
-          typeof props.beforeStart
+          typeof props.beforeStart,
       );
     }
 
@@ -79,7 +90,7 @@ class ClassStep {
     if (typeof this.afterAll != "function") {
       throw new Error(
         "props.afterAll must be a function, but received: " +
-          typeof props.afterAll
+          typeof props.afterAll,
       );
     }
   } // constructor
@@ -99,7 +110,7 @@ class ClassStep {
       level,
       this.ln,
       "[",
-      now.toLocaleTimeString() + "]::" + `${msg.en ? msg.en : msg}`
+      now.toLocaleTimeString() + "]::" + `${msg.en ? msg.en : msg}`,
     );
   }
 
@@ -111,7 +122,7 @@ class ClassStep {
     this.state._id = "going";
     // скидаємо стан кроку
     this.state.startTime = new Date();
-    this.state.duration = "0"; // тривалість виконання кроку в вигляді "ГГ:ХХ:СС"
+    this.state.duration = "00d00:00:00"; // тривалість кроку "ДДdГГ:ХХ:СС"
     this.err = null; // зберігає опис помилки
     this.currentDuration = 0; // тривалість виконання кроку в секундах
     //  початкові налаштування
@@ -162,11 +173,12 @@ class ClassStep {
       this.logger(
         "e",
         ln +
-          `Received command stop() but step has state= ${this.state._id}. Command ignored!`
+          `Received command stop() but step has state= ${this.state._id}. Command ignored!`,
       );
       return;
     }
-    let duration = new Date(this.duration()).toISOString().slice(11, -2);
+    this.duration();
+    let duration = this.state.duration;
 
     msg =
       msg && msg.ua
@@ -182,14 +194,21 @@ class ClassStep {
     this.setChanged();
   }
 
-  /** Повертає поточну тривалість кроку
-   * @return с
+  /**
+   * Рахує тривалість від state.startTime.
+   * Повертає мілісекунди. У state.duration пише "ДДdГГ:ХХ:СС",
+   * у currentDuration — секунди. До пуску повертає 0.
    */
   duration() {
-    let now = new Date();
-    let dur = now.getTime() - this.state.startTime.getTime();
+    if (!this.state.startTime) {
+      this.currentDuration = 0;
+      this.state.duration = "00d00:00:00";
+      return 0;
+    }
+    let dur = Date.now() - this.state.startTime.getTime();
+    if (dur < 0) dur = 0;
     this.currentDuration = dur / 1000;
-    this.state.duration = new Date(dur).toISOString().slice(11, -5);
+    this.state.duration = formatDuration(dur);
     return dur;
   }
 
@@ -199,7 +218,7 @@ class ClassStep {
       this.logger(
         "e",
         ln +
-          `Received command finish() but step has state= ${this.state._id}. Command ignored!`
+          `Received command finish() but step has state= ${this.state._id}. Command ignored!`,
       );
       return;
     }
@@ -222,14 +241,27 @@ class ClassStep {
   }
 
   error(err) {
-    err =
-      err || err.ua
-        ? err
+    this.duration();
+    if (!(err && err.ua)) {
+      let text =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err.trim()
+            : "";
+      let duration = this.state.duration;
+      err = text
+        ? {
+            ua: `Сталася помилка! ${text}`,
+            en: `An error happened! ${text}`,
+            ru: `Случилась ошибка! ${text}`,
+          }
         : {
-            ua: `Сталася помилка!`,
-            en: `Happen en error!`,
-            ru: `Случилась ошибка!`,
+            ua: `Сталася помилка! Тривалість: ${duration}`,
+            en: `An error happened! Duration: ${duration}`,
+            ru: `Случилась ошибка! Длительность: ${duration}`,
           };
+    }
 
     this.logger("e", "Received command error(err)::" + err.ua);
     this.state._id = "error";

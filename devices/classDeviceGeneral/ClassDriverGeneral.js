@@ -203,6 +203,7 @@ module.exports = class ClassDriverGeneral extends ClassGeneral {
     let beforeSet = reg._set(value);
     if (beforeSet.err != null) {
       cb(beforeSet.err, null);
+      return;
     }
 
     let req = beforeSet.data;

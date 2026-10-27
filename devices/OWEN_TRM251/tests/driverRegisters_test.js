@@ -100,77 +100,48 @@ describe("Driver's registers test:", () => {
     });
   }); // describe startStop
   describe("program:", () => {
-    // ---------------- example of  program getted from rs485 ---------------------------
-    // prettier-ignore
-    let res = Buffer.from([
-    0x00, 0x00, // масштаб часу 0 - HH:MM
-    // -------- крок 1 --------
-    0x00, 0x64, // SP1 = 100 -уставка
-    0x00, 0x00, // p = 0 - положення десяткової точки SP1=SP1/(p==0? 1:p*10)  
-    0x00, 0xB4, // H = 600 - час нагрівання, сек
-    0x00, 0xB4, // Y = 306 - час витримки, сек
-    // -------- крок 2 --------
-    0x00, 0xc8, // SP1 = 200-уставка
-    0x00, 0x00, // p = 0 
-    0x01, 0x3c, // H = 180
-    0x01, 0x3c, // Y = 180
-    // -------- крок 3 --------
-    0x00, 0xfa, // SP1 = 250-уставка
-    0x00, 0x00, // p = 0 
-    0x00, 0xf0, // H = 240 - час нагрівання, сек
-    0x00, 0xf0, // Y = 240
-    // -------- крок 4 --------
-    0x01, 0x2c, // SP1 = 300-уставка
-    0x00, 0x00, //  p = 0 
-    0x01, 0x2c, // H = 300 - час нагрівання, сек
-    0x01, 0x2c, // Y = 300
-    // -------- крок 5 --------
-    0x01, 0x5e, // SP1 = 350-уставка
-    0x00, 0x00, //  p = 0 
-    0x01, 0x3c, // H = 300
-    0x01, 0x3c, // Y = 300
-  ]);
+    // Крок: уставка int16, положення крапки, H, Y. Час зберігається як є.
+    const steps = [
+      { rawT: 100, point: 0, H: 5, Y: 5, tT: 100 },
+      { rawT: 200, point: 0, H: 10, Y: 10, tT: 200 },
+      { rawT: 2500, point: 1, H: 15, Y: 15, tT: 250 },
+      { rawT: 300, point: 0, H: 20, Y: 20, tT: 300 },
+      { rawT: 350, point: 0, H: 25, Y: 25, tT: 350 },
+    ];
+    const buf = Buffer.alloc(steps.length * 8);
+    steps.forEach((step, i) => {
+      const addr = i * 8;
+      buf.writeInt16BE(step.rawT, addr);
+      buf.writeUInt16BE(step.point, addr + 2);
+      buf.writeUInt16BE(step.H, addr + 4);
+      buf.writeUInt16BE(step.Y, addr + 6);
+    });
 
     it("_get()", () => {
       let regName = "program";
       let resGet = driver.regs.get(regName)._get();
       equal(resGet.err, null, "err = null");
-      equal(
-        resGet.data.addr,
-        0x0100,
-        "Program address should be 0x0100=" + 0x0100,
-      );
+      equal(resGet.data.addr, 0x0101, "Program address should be 0x0101");
       equal(resGet.data.FC, 3, "Function should be FC3");
-      console.log(
-        "=============================\nprogram _get()::resGet.data=",
-      );
-      console.dir(resGet.data, { depth: 2 });
-      equal(resGet.data.data, 21, "Bytes quantity should be 21");
+      equal(resGet.data.data, 60, "Register count should be 15*4=60");
     }); // it _get
 
     it("get_()", () => {
       let regName = "program";
-      let resGet = driver.regs.get(regName).get_(res);
-      traceLog("get_()::resGet.data.value=", resGet.data.value);
+      let resGet = driver.regs.get(regName).get_(buf);
       equal(resGet.err, null, "err = null");
       equal(
         resGet.data.value.length,
-        6,
-        "Length of programm massive should be 1+5=6 items in program",
+        steps.length + 1,
+        "Length of programm massive should be header + steps",
       );
-      for (let i = 0; i < resGet.data.value.length - 1; i++) {
+      equal(resGet.data.value[0].id, "program1");
+      for (let i = 0; i < steps.length; i++) {
         const step = resGet.data.value[i + 1];
-        let addr = 2 + i * 8;
-        let point = res.slice(addr + 2, addr + 4).readUInt16BE();
-        let tT =
-          res.slice(addr + 0, addr + 2).readUInt16BE() /
-          (point == 0 ? 1 : point * 10);
-        let H = parseInt(res.slice(addr + 4, addr + 6).readUInt16BE() / 60);
-        let Y = parseInt(res.slice(addr + 6, addr + 8).readUInt16BE() / 60);
-        // traceLog(` Step ${i + 1}:`, { tT, H, Y });
-        equal(step.tT, tT, `Step ${i + 1}. step.tT=${step.tT}; tT=${tT}`);
-        equal(step.H, H, `Step ${i + 1}. step.H=${step.H}; H=${H}`);
-        equal(step.Y, Y, `Step ${i + 1}. step.Y=${step.Y}; Y=${Y}`);
+        equal(step.type, "taskThermal_TRM251", `Step ${i + 1} type`);
+        equal(step.tT, steps[i].tT, `Step ${i + 1}. tT`);
+        equal(step.H, steps[i].H, `Step ${i + 1}. H`);
+        equal(step.Y, steps[i].Y, `Step ${i + 1}. Y`);
       }
     }); // it get_
     it("_set()", () => {
@@ -184,19 +155,21 @@ describe("Driver's registers test:", () => {
         { tT: 350, H: 25, Y: 25 },
       ];
       let res = driver.regs.get(regName)._set(prg);
-      traceLog("_set()::res=", res);
       equal(res.err, null);
-      equal(res.data.data.length, 42);
+      equal(res.data.addr, 0x0101);
       equal(res.data.FC, 0x10);
-      let buf = res.data.data;
-      equal(buf.slice(0, 2).readUInt16BE(0), 0);
-      for (let i = 1; i < 6; i++) {
-        let addr = 2 + (i - 1) * 8;
-        equal(buf.slice(addr, addr + 2).readUInt16BE(0), prg[i].tT);
-        equal(buf.slice(addr + 2, addr + 4).readUInt16BE(0), 0);
-        equal(buf.slice(addr + 4, addr + 6).readUInt16BE(0), prg[i].H * 60);
-        equal(buf.slice(addr + 6, addr + 8).readUInt16BE(0), prg[i].Y * 60);
-      } // for (let i =1; i < 6; i++
+      equal(res.data.data.length, prg.length * 8);
+      let out = res.data.data;
+      for (let i = 1; i < prg.length; i++) {
+        let addr = (i - 1) * 8;
+        equal(out.readUInt16BE(addr), prg[i].tT, `Step ${i} tT`);
+        equal(out.readUInt16BE(addr + 2), 0, `Step ${i} point`);
+        equal(out.readUInt16BE(addr + 4), prg[i].H, `Step ${i} H`);
+        equal(out.readUInt16BE(addr + 6), prg[i].Y, `Step ${i} Y`);
+      }
+      equal(out.readUInt16BE((prg.length - 1) * 8), 0, "Tail step tT");
+      equal(out.readUInt16BE((prg.length - 1) * 8 + 4), 0, "Tail step H");
+      equal(out.readUInt16BE((prg.length - 1) * 8 + 6), 0, "Tail step Y");
     });
   }); // describe program
   describe("step", () => {
@@ -231,8 +204,39 @@ describe("Driver's registers test:", () => {
       equal(res.data.value, 2, "Value should be 2");
     }); // it _set
   }); // describe step
+  describe("currentState", () => {
+    let regName = "currentState";
+    it("_get()", () => {
+      let res = driver.regs.get(regName)._get();
+      equal(res.err, null, "err = null");
+      equal(res.data.addr, 0x000e, "currentState address should be 14");
+      equal(res.data.FC, 3, "Function should be FC3");
+      equal(res.data.data, 4, "Register count should be 4");
+    });
+    it("get_()", () => {
+      let buf = Buffer.alloc(8);
+      buf.writeInt16BE(1, 0);
+      buf.writeUInt16BE(3, 2);
+      buf.writeUInt16BE(2, 4);
+      buf.writeUInt16BE(1, 6);
+      let res = driver.regs.get(regName).get_(buf);
+      equal(res.err, null, "err = null");
+      equal(res.data.value.Alarm, 1);
+      equal(res.data.value.programN, 3);
+      equal(res.data.value.step, 2);
+      equal(res.data.value.mode, 1);
+    });
+    it("get_() invalid Alarm", () => {
+      let buf = Buffer.alloc(8);
+      buf.writeInt16BE(2, 0);
+      let res = driver.regs.get(regName).get_(buf);
+      equal(res.data, null);
+      match(res.err.message, /Invalid/, "Alarm should contain 'Invalid'");
+    });
+    it("_set()", () => {
+      let res = driver.regs.get(regName)._set(1);
+      equal(res.data, null);
+      match(res.err.message, /readonly/, "currentState should be readonly");
+    });
+  }); // describe currentState
 }); // describe driver's registers test
-function traceLog(msg = "traceLog::", item, depth = 2) {
-  console.log(msg);
-  console.dir(item, { depth });
-}

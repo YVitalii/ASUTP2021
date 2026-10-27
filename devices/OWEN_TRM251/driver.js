@@ -111,7 +111,7 @@ for (let i = 1; i < 3; i++) {
       // положення крапки
       let pointOffset = arg.slice(0, 2).readUInt16BE();
       // температура
-      data = arg.slice(2, 6).readUInt32BE() / (10 * pointOffset);
+      data = arg.slice(2, 6).readUInt32BE() / (10 ^ pointOffset);
       // статус
       let status = arg.slice(6).readUInt16BE();
       let statusMsg = getNote(status);
@@ -354,8 +354,8 @@ driver.addRegister({
     }
     return { err: null, data: { value: program, note: this.note } };
   }, //get_
-  /** масив з кроками програми
-   * arg=[
+  /** _set(arg) - обробка перед записом програми
+   * arg=[ //масив з кроками програми
    * // елемент 0 = інформація про програму
    * {id: string, timeScale: string "HH:MM" || "MM:SS"; note:""},
    * // tT - уставка,°C; H - час нагрівання, хв; Y - час утримання, хв
@@ -383,7 +383,7 @@ driver.addRegister({
       console.log(ln + `Started with arg=`);
       console.dir(arg, { depth: 1 });
     }
-    if (arg.length > this.maxLength + 1) {
+    if (arg.length > this.maxSteps + 1) {
       throw new Error(ln + "Max steps quantity = 15!!");
     }
     let buf = Buffer.alloc(arg.length * 4 * 2); // зміщення 4 потрібно перевірити чому має бути 2
@@ -475,9 +475,9 @@ driver.addRegister({
   id: "programN",
   addr: 0x000f,
   header: {
-    ua: `Поточний програма`,
+    ua: `Поточна програма`,
     en: `Current program`,
-    ru: `Текущиая программа`,
+    ru: `Текущая программа`,
   },
   note: `Current program Number`,
   units: { ua: ``, en: ``, ru: `` },
@@ -518,55 +518,64 @@ driver.addRegister({
   },
 }); // addRegister()
 
-// ------------ program x step x tT---------
-// пряме читання/запис будь-якого регістра по адресі вказаній в
-//
+// ------------ currentState: Alarm, programN, step, mode ---------
+// адреси 14..17: 0x000E Alarm, 0x000F programN, 0x0010 step, 0x0011 mode
 driver.addRegister({
-  id: "p1s1",
-  addr: 0x0109,
+  id: "currentState",
+  addr: 0x000e,
   header: {
-    ua: `program x step x tT`,
-    en: `program x step x tT`,
-    ru: `program x step x tT`,
+    ua: `Поточний стан`,
+    en: `Current state`,
+    ru: `Текущее состояние`,
   },
-  note: `program x step x tT`,
+  note: `Alarm, programN, step, mode`,
   units: { ua: ``, en: ``, ru: `` },
-  _get: function (arg = 0) {
-    let trace = 1,
-      ln = this.id + `::_get(${arg})::`;
-    let req = _getFC3(this);
-    req.data.data = 4;
-    if (trace) {
-      console.log(ln + `req=`);
-      console.dir(req, { depth: 1 });
-    }
-    return req;
-  }, //_get
-  get_: function (arg) {
-    let trace = 1,
-      ln = this.id + `::get_(${arg})::`;
-
-    // поточна уставка
-    let value = {
-      tT: arg.readInt16BE(0),
-      point: arg.readInt16BE(2),
-      H: arg.readInt16BE(4),
-      Y: arg.readInt16BE(6),
+  _get: function () {
+    return {
+      err: null,
+      data: {
+        addr: this.addr,
+        FC: 3,
+        data: 4,
+      },
     };
-    let res = { err: null, data: { value, note: this.note } };
-    if (trace) {
-      console.log(ln + `res=`);
-      console.dir(res, { depth: 1 });
+  },
+  get_: function (arg) {
+    let alarm = arg.readInt16BE(0);
+    if (alarm !== 0 && alarm !== 1) {
+      return {
+        err: new RangeError(
+          `Invalid value=${alarm} for Alarm register! Should be 0 or 1`,
+        ),
+        data: null,
+      };
     }
-    return res;
-  }, //get_
-  _set: function (arg) {
+    let programN = driver.regs.get("programN").get_(arg.slice(2, 4));
+    if (programN.err) return programN;
+    let step = driver.regs.get("step").get_(arg.slice(4, 6));
+    if (step.err) return step;
+    let mode = driver.regs.get("mode").get_(arg.slice(6, 8));
+    if (mode.err) return mode;
+    return {
+      err: null,
+      data: {
+        value: {
+          Alarm: alarm,
+          programN: programN.data.value,
+          step: step.data.value,
+          mode: mode.data.value,
+        },
+        note: this.note,
+      },
+    };
+  },
+  _set: function () {
     return readOnly(this);
   },
-  set_: function (arg) {
+  set_: function () {
     return readOnly(this);
   },
-}); // addRegister(tT)
+}); // addRegister(currentState)
 
 function getNote(code) {
   const offsetStatusCode = 0xf000;
@@ -631,7 +640,7 @@ function getNote(code) {
     case offsetStatusCode + 13:
       res = { ua: `Обрив датчика`, en: `Sensor break`, ru: `Обрыв датчика` };
       break;
-    case 14:
+    case offsetStatusCode + 14:
       res = {
         ua: `Відсутність зв'язку з АЦП `,
         en: `No communication with ADC`,
@@ -662,9 +671,9 @@ module.exports = driver;
 
 function programBufLog(buf) {
   console.log("============================ program buffer =============");
-  console.log(
-    `Time scale: ${buf.readUInt16BE(2).toString(16)}` + buf.readUInt16BE(2),
-  );
+  // console.log(
+  //   `Time scale: ${buf.readUInt16BE(2).toString(16)}` + buf.readUInt16BE(2),
+  // );
   let out = [],
     programmAllocation = 0;
   for (let i = 0; i < parseInt((buf.length - programmAllocation) / 8); i++) {

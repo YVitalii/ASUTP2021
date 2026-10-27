@@ -1,8 +1,12 @@
-let program = require("./tests/ProgramExample");
-
 const { Buffer } = require("node:buffer");
+const beforeProgramSet = require("./beforeProgramSet");
 
+/**
+ * Адаптує програму (Pr, St, час у хвилинах) і збирає буфер RS485.
+ * @returns {{ program: Array, buffer: Buffer }}
+ */
 function parseProgram(program) {
+  program = beforeProgramSet(program);
   let bufferLength = (program.length - 1) * 8 + 2; // кожний крок 8 байт + 2 байти Масштаб часу
   const data = Buffer.alloc(bufferLength); // программа
   if ((program[0].timescale === 0) | (program[0].timescale === undefined)) {
@@ -21,11 +25,14 @@ function parseProgram(program) {
     //   `Task ${i}: Temperature = ${task.tT} = ${data.readUInt16BE(offset).toString(16)}, Heating Time = ${task.H}, Holding Time = ${task.Y}`,
     // );
   }
-  return data;
+  return { program, buffer: data };
 }
 
+module.exports = parseProgram;
+
 if (!module.parent) {
-  const util = require("util");
+  const program = require("./tests/testProgram");
   let data = parseProgram(program);
-  console.log(data);
+  console.log(data.buffer);
+  console.dir(data.program);
 }

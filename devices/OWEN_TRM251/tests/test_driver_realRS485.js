@@ -12,22 +12,24 @@ const {
   match,
   equal,
   ok,
-  throws,
-  notEqual,
+  rejects,
   strictEqual,
 } = require("node:assert");
-const { describe, it } = require("node:test");
+const { after, describe, it } = require("node:test");
 
-// console.dir(driver);
+function devProps(extra = {}) {
+  return { iface, devAddr: 16, regName: "", ...extra };
+}
 
-const props = { iface, devAddr: 1, regName: "" };
+describe("Read registers of OWEN TRM251 device:", { concurrency: false }, () => {
+  after(() => {
+    iface.iterate = () => {};
+    if (iface.serial?.isOpen) iface.serial.close();
+  });
 
-describe("Read registers of OWEN TRM251 device:", () => {
-  it.skip("Read temperature from I1", async () => {
-    let res = "";
-
-    props.regName = "I1";
-    res = await driver.getRegPromise(props);
+  it("Read temperature from I1", async () => {
+    const props = devProps({ regName: "I1" });
+    let res = await driver.getRegPromise(props);
     let t = res[0].value;
     strictEqual(
       typeof t,
@@ -37,7 +39,7 @@ describe("Read registers of OWEN TRM251 device:", () => {
   }); // it("Read temperature from I1")
 
   it.skip("Read temperature from I2", async () => {
-    props.regName = "I2";
+    const props = devProps({ regName: "I2" });
     let res;
     try {
       res = await driver.getRegPromise(props);
@@ -55,7 +57,8 @@ describe("Read registers of OWEN TRM251 device:", () => {
     }
   }); // it("Read temperature from I2")
   it.skip("Testing read 'Mode' → set Start/stop", async () => {
-    props.regName = "mode";
+    const props = devProps({ regName: "mode" });
+    let res;
     let beforeMode = (await driver.getRegPromise(props))[0].value;
     strictEqual(
       typeof beforeMode,
@@ -99,14 +102,13 @@ describe("Read registers of OWEN TRM251 device:", () => {
   //   let tT = res[0].value;
   // }) // it ("Read taskTemperature from tT")
   it.skip("Write program", async () => {
-    props.regName = "program";
-    props.value = testProgram;
+    const props = devProps({ regName: "program", value: testProgram });
     let res = await driver.setRegPromise(props);
     console.log("program=");
     console.dir(res, { depth: 3 });
   });
   it.skip("Read 'program'", async () => {
-    props.regName = "program";
+    const props = devProps({ regName: "program" });
     let res = await driver.getRegPromise(props);
     // console.log("program=");
     // console.dir(res, { depth: 3 });
@@ -118,7 +120,7 @@ describe("Read registers of OWEN TRM251 device:", () => {
       ln = gLn + `Current step get/set::`;
     // console.log(ln + "this=");
     // console.dir(this);
-    props.regName = "step";
+    const props = devProps({ regName: "step" });
     // читаємо крок з приладу
     let res = await driver.getRegPromise(props);
     let oldStep = res[0].value;
@@ -156,48 +158,32 @@ describe("Read registers of OWEN TRM251 device:", () => {
   // ---------------- programN ---------------
 
   it("Current programN get/set", async () => {
-    let trace = 1,
-      ln = gLn + `Current step get/set::`;
-    // console.log(ln + "this=");
-    // console.dir(this);
-    props.regName = "programN";
-    // читаємо програми з приладу
+    const props = devProps({ regName: "programN" });
     let res = await driver.getRegPromise(props);
-    let oldStep = res[0].value;
+    let oldProgram = res[0].value;
     strictEqual(
-      typeof oldStep,
+      typeof oldProgram,
       "number",
-      `${props.regName} should be a number but:  ${typeof oldStep}`,
+      `${props.regName} should be a number but:  ${typeof oldProgram}`,
     );
-    // змінюємо програми
-    props.value = 3;
+    props.value = oldProgram === 1 ? 2 : 1;
     await driver.setRegPromise(props);
-    let step = (await driver.getRegPromise(props))[0].value;
-    equal(step, props.value, `Step should be ${props.value}`);
-    process.exit();
-    // повертаємо програми, який був
-    props.value = oldStep;
-    await driver.setRegPromise(props);
-    step = (await driver.getRegPromise(props))[0].value;
-    equal(step, props.value, `Step should be ${props.value}`);
+    let programN = (await driver.getRegPromise(props))[0].value;
+    equal(programN, props.value, `programN should be ${props.value}`);
 
-    // невірний номер програми
-    try {
-      props.value = 6;
-      await driver.setRegPromise(props);
-    } catch (error) {
-      match(
-        error.message,
-        /Invalid value/,
-        "Message should contain word 'Invalid value'",
-      );
-    }
-    console.dir(res, { depth: 2 });
+    props.value = oldProgram;
+    await driver.setRegPromise(props);
+    programN = (await driver.getRegPromise(props))[0].value;
+    equal(programN, props.value, `programN should be ${props.value}`);
+
+    await rejects(
+      () => driver.setRegPromise({ ...props, value: 6 }),
+      /Invalid value/,
+    );
   });
 
   // ---------------- any for realtime testing --------------
   it.skip("Read 'any' register", async () => {
-    props.regName = "p1s1";
     let req = {
       id: 0x1,
       FC: 0x10,

@@ -108,10 +108,10 @@ function checkError(req, res) {
     // неспівпадіння
     // перевіряємо чи це не помилка ModBus
     if (res[1] > 128) {
-      // маємо функцію з кодом помилки
-      if ((res[3] >= 1) && (res[3] <= 8)) {
-        // код помилки modBus
-        return res[3];
+      // кадр винятку: [адреса, функція|0x80, код, CRC, CRC]
+      const code = res[2];
+      if (code >= 1 && code <= 8) {
+        return code;
       }
       // невідома помилка ModBus
       return 9;

@@ -1,21 +1,66 @@
+const beforeProgramSet = require("../beforeProgramSet.js");
+
 const program = [
   {
-    id: "program1",
-    name: "Program Example",
-    description: "This is a program example for the OWEN_TRM251 device.",
+    id: "description",
+    fName: "prg02",
+    description: "Колеса чавунні. Відпуск.",
+    date: "2026-10-23T11:54:11.075Z",
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 110,
+    H: 10,
+    Y: 20,
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 330,
+    H: 50,
+    Y: 70,
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 450,
+    H: "00:59",
+    Y: "02:00",
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 550,
+    H: 30,
+    Y: 40,
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 600,
+    H: 20,
+    Y: 30,
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 200,
+    H: 15,
+    Y: 25,
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 400,
+    H: "01:00",
+    Y: "01:30",
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 500,
+    H: 40,
+    Y: 60,
+  },
+  {
+    type: "thermalTaskSimple",
+    tT: 250,
+    H: 10,
+    Y: 15,
   },
 ];
-let trace = 1,
-  ln = `testProgram.js::`;
-for (let i = 1; i <= 6; i++) {
-  let step = {
-    type: "taskThermal_TRM251",
-    tT: parseInt(i * 100), //task temperature
-    H: parseInt(i * 5), // heating time
-    Y: parseInt(i * 5), // holding time
-  };
-  program.push(step);
-  trace ? console.log(ln + `Step ${i}:`, step) : null;
-}
 
-module.exports = program;
+module.exports = beforeProgramSet(program);

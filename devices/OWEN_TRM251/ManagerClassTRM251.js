@@ -5,6 +5,30 @@ const pug = require("pug");
 const { dummyPromise } = require("../../tools/dummy.js");
 const units = require("../../config.js").units;
 const emulateDevices = require("../../config.js").emulateRS485;
+const APIerror = require("../../tools/apiError.js");
+
+function readStepField(step, name) {
+  const reg = step && step.regs && step.regs[name];
+  if (reg && reg.value !== undefined && reg.value !== null) return reg.value;
+  if (step && step[name] !== undefined && step[name] !== null) return step[name];
+  return undefined;
+}
+
+function programForDriver(program) {
+  if (!Array.isArray(program) || program.length < 2) {
+    throw new Error("програма має містити заголовок і хоча б один крок");
+  }
+  return program.map((step, index) => {
+    if (index === 0) return step;
+    const tT = Number(readStepField(step, "tT"));
+    const H = Number(readStepField(step, "H"));
+    const Y = Number(readStepField(step, "Y"));
+    if (![tT, H, Y].every(Number.isFinite)) {
+      throw new Error(`крок ${index}: tT, H і Y мають бути числами`);
+    }
+    return { tT, H, Y };
+  });
+}
 
 // driver.printRegsDescription();
 class ClassManager extends ClassDevManagerGeneral {
@@ -80,15 +104,29 @@ class ClassManager extends ClassDevManagerGeneral {
         value: 2,
         comment: { ua: `Аварія`, en: `Critical error`, ru: `Авария` },
       },
-      { value: 3, comment: { ua: `Завершено`, en: ``, ru: `` } },
-      { value: 4, comment: { ua: `Автоналаштування`, en: ``, ru: `` } },
+      {
+        value: 3,
+        comment: { ua: `Завершено`, en: `Finished`, ru: `Завершено` },
+      },
+      {
+        value: 4,
+        comment: { ua: `Автоналаштування`, en: `Autotune`, ru: `Автонастройка` },
+      },
       {
         value: 5,
-        comment: { ua: `Очікування автоналаштування`, en: ``, ru: `` },
+        comment: {
+          ua: `Очікування автоналаштування`,
+          en: `Waiting for autotune`,
+          ru: `Ожидание автонастройки`,
+        },
       },
       {
         value: 6,
-        comment: { ua: `Автоналаштування завершено`, en: ``, ru: `` },
+        comment: {
+          ua: `Автоналаштування завершено`,
+          en: `Autotune finished`,
+          ru: `Автонастройка завершена`,
+        },
       },
       {
         value: 7,
@@ -168,23 +206,44 @@ class ClassManager extends ClassDevManagerGeneral {
   //   }
   // } // start()
 
+  isTimeoutError(error) {
+    if (!error) return false;
+    if (error.code === 13) return true;
+    let text = [
+      error.message,
+      error.ua,
+      error.en,
+      error.messages && error.messages.ua,
+      error.messages && error.messages.en,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return /timeout/i.test(text);
+  }
+
   async getMode() {
-    let m = await this.getRegister("mode");
-    let trace = 0,
-      ln = this.ln + "getMode()::";
-    trace ? console.log(ln + "mode=", m) : null;
-    setTimeout(() => {
-      this.getMode();
-    }, 5000);
+    let ln = this.ln + "getMode()::";
+    let period = this.regs["mode"].obsolescence * 1000;
+    try {
+      await this.getRegister("mode");
+    } catch (error) {
+      if (!this.isTimeoutError(error)) {
+        log("e", ln, error && error.message ? error.message : error);
+      }
+    } finally {
+      setTimeout(() => {
+        this.getMode();
+      }, period);
+    }
   } // getMode()
 
   async getRegister(regName) {
     let trace = 0,
       ln = this.ln + "getRegister(" + regName + ")::";
-    // якщо режим null,0,3,7 - то tT недоступний
+    // у цих режимах прилад не віддає tT: читання дає помилку Modbus
     if (regName == "tT") {
       let mode = this.regs["mode"].value;
-      if (mode == null || mode == 0 || mode == 3 || mode == 7) return null;
+      if (mode == null || mode == 0 || mode == 3 || mode == 7) return 0;
     }
 
     let res;
@@ -206,10 +265,11 @@ class ClassManager extends ClassDevManagerGeneral {
             ru: `Нет связи!`,
           };
         } else {
+          let described = reg.modesDescription[reg.value];
+          let comment = described && described.comment;
           reg.comment =
-            reg.modesDescription[reg.value].comment &&
-            reg.modesDescription[reg.value].comment.ua
-              ? reg.modesDescription[reg.value].comment
+            comment && comment.ua
+              ? comment
               : {
                   ua: `mode=${reg.value}`,
                   en: `mode=${reg.value}`,
@@ -258,6 +318,28 @@ class ClassManager extends ClassDevManagerGeneral {
 
   async getT() {
     return this.getRegister("T1");
+  }
+
+  async setProgram(program) {
+    let ln = this.ln + "setProgram()::";
+    try {
+      const value = programForDriver(program);
+      return await this.driver.setRegPromise({
+        iface: this.iface,
+        devAddr: this.addr,
+        regName: "program",
+        value,
+      });
+    } catch (error) {
+      if (error && error.name === "apiError") throw error;
+      let reason = error && error.message ? error.message : String(error);
+      log("e", ln, reason);
+      throw new APIerror({
+        ua: `Не вдалося записати програму: ${reason}`,
+        en: `Failed to write the program: ${reason}`,
+        ru: `Не удалось записать программу: ${reason}`,
+      });
+    }
   }
 }
 

@@ -34,7 +34,14 @@ describe("beforeProgramSet", () => {
       { tT: 100, H: "01:10", Y: "01:15" },
     ]);
 
-    assert.deepEqual(result[1], { Pr: 1, St: 1, tT: 100, H: 70, Y: 75 });
+    assert.deepEqual(result[1], {
+      Pr: 1,
+      St: 1,
+      type: "TRM251stepThermal",
+      tT: 100,
+      H: 70,
+      Y: 75,
+    });
   });
 
   it("лишає числові хвилини і рядки, що не є часом", () => {
@@ -46,10 +53,10 @@ describe("beforeProgramSet", () => {
     assert.deepEqual(result[1], {
       Pr: 1,
       St: 1,
+      type: "TRM251stepThermal",
       tT: 250,
       H: 30,
       Y: 5,
-      type: "taskThermal_TRM251",
       note: "01",
     });
   });
@@ -75,24 +82,26 @@ describe("beforeProgramSet", () => {
       { Pr: result[5].Pr, St: result[5].St },
       { Pr: 1, St: 5 }
     );
+    assert.deepEqual(result[6], { type: "TRM251stepNextProgram", prgN: 2 });
     assert.deepEqual(
-      { Pr: result[6].Pr, St: result[6].St },
-      { Pr: 2, St: 1 }
-    );
-    assert.deepEqual(
-      { Pr: result[10].Pr, St: result[10].St },
-      { Pr: 2, St: 5 }
+      { Pr: result[7].Pr, St: result[7].St, type: result[7].type },
+      { Pr: 2, St: 1, type: "TRM251stepThermal" }
     );
     assert.deepEqual(
       { Pr: result[11].Pr, St: result[11].St },
+      { Pr: 2, St: 5 }
+    );
+    assert.deepEqual(result[12], { type: "TRM251stepNextProgram", prgN: 3 });
+    assert.deepEqual(
+      { Pr: result[13].Pr, St: result[13].St },
       { Pr: 3, St: 1 }
     );
     assert.deepEqual(
-      { Pr: result[15].Pr, St: result[15].St },
+      { Pr: result[17].Pr, St: result[17].St },
       { Pr: 3, St: 5 }
     );
-    assert.equal(result[15].H, 1);
-    assert.equal(result[15].Y, 2);
+    assert.equal(result[17].H, 1);
+    assert.equal(result[17].Y, 2);
   });
 
   it("перезаписує вже наявні Pr і St за позицією кроку", () => {
@@ -108,8 +117,9 @@ describe("beforeProgramSet", () => {
 
     assert.equal(result[1].Pr, 1);
     assert.equal(result[1].St, 1);
-    assert.equal(result[6].Pr, 2);
-    assert.equal(result[6].St, 1);
+    assert.deepEqual(result[6], { type: "TRM251stepNextProgram", prgN: 2 });
+    assert.equal(result[7].Pr, 2);
+    assert.equal(result[7].St, 1);
   });
 
   it("приймає програму лише із заголовка", () => {
@@ -122,7 +132,14 @@ describe("beforeProgramSet", () => {
     const result = beforeProgramSet(
       JSON.stringify([{ name: "Програма" }, { tT: 100, H: "01:10", Y: "01:15" }])
     );
-    assert.deepEqual(result[1], { Pr: 1, St: 1, tT: 100, H: 70, Y: 75 });
+    assert.deepEqual(result[1], {
+      Pr: 1,
+      St: 1,
+      type: "TRM251stepThermal",
+      tT: 100,
+      H: 70,
+      Y: 75,
+    });
   });
 
   it("кидає помилку на порожню програму, не масив і битий JSON", () => {
