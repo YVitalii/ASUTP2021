@@ -18,16 +18,23 @@ function programForDriver(program) {
   if (!Array.isArray(program) || program.length < 2) {
     throw new Error("програма має містити заголовок і хоча б один крок");
   }
-  return program.map((step, index) => {
-    if (index === 0) return step;
+  const steps = [program[0]];
+  for (let index = 1; index < program.length; index++) {
+    const step = program[index];
+    // Службовий перехід між програмами в регістр приладу не пишеться.
+    if (step && step.type === "TRM251stepNextProgram") continue;
     const tT = Number(readStepField(step, "tT"));
     const H = Number(readStepField(step, "H"));
     const Y = Number(readStepField(step, "Y"));
     if (![tT, H, Y].every(Number.isFinite)) {
       throw new Error(`крок ${index}: tT, H і Y мають бути числами`);
     }
-    return { tT, H, Y };
-  });
+    steps.push({ tT, H, Y });
+  }
+  if (steps.length < 2) {
+    throw new Error("програма має містити заголовок і хоча б один крок");
+  }
+  return steps;
 }
 
 // driver.printRegsDescription();
@@ -133,6 +140,39 @@ class ClassManager extends ClassDevManagerGeneral {
         comment: { ua: `Налаштування`, en: `Setup`, ru: `Настройка` },
       },
     ];
+    // ------- Alarm ----------
+    // окремого регістра Alarm у драйвері немає: його читає currentState
+    this.addRegister({
+      id: `Alarm`,
+      comment: {
+        ua: `Ознака аварії`,
+        en: `Alarm flag`,
+        ru: `Признак аварии`,
+      },
+      units: units.empty,
+      type: "number",
+      min: 0,
+      max: 1,
+      readonly: true,
+      obsolescence: 5,
+      driverRegName: `currentState`,
+    });
+    // ------- programN ----------
+    this.addRegister({
+      id: `programN`,
+      comment: {
+        ua: `Номер програми`,
+        en: `Program number`,
+        ru: `Номер программы`,
+      },
+      units: units.empty,
+      type: "number",
+      min: 1,
+      max: 3,
+      readonly: true,
+      obsolescence: 5,
+      driverRegName: `programN`,
+    });
     // ------- step ----------
     this.addRegister({
       id: `step`,
@@ -172,39 +212,98 @@ class ClassManager extends ClassDevManagerGeneral {
     this.getMode();
   } // constructor
 
-  // async start() {
-  //   let trace = 1,
-  //     ln = this.ln + `Start()::`;
-  //   let res;
-  //   try {
-  //     res = this.driver.setRegPromise({
-  //       iface: this.iface,
-  //       devAddr: this.addr,
-  //       regName: "startStop",
-  //       value: 1,
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // } // start()
+  /**
+   * Ставить номер програми і крок, потім запускає прилад.
+   * Якщо mode не Stop — спочатку stop(). prN і stN за замовчуванням 1.
+   * @param {{prN?: number, stN?: number}} arg
+   * @returns {Promise<true>}
+   */
+  async continueFrom(arg = {}) {
+    let ln = this.ln + "continueFrom()::";
+    const prN = arg.prN == null ? 1 : arg.prN;
+    const stN = arg.stN == null ? 1 : arg.stN;
+    try {
+      this.regs.mode.timestamp = 0;
+      const mode = await this.getRegister("mode");
+      if (mode != 0) await this.stop();
+      const placed = await this.setPrSt({ prgN: prN, stepN: stN });
+      if (placed !== true) throw placed;
+      await this.driver.setRegPromise({
+        iface: this.iface,
+        devAddr: this.addr,
+        regName: "startStop",
+        value: 1,
+      });
+      return true;
+    } catch (error) {
+      if (error && error.name === "apiError") throw error;
+      let reason = error && error.message ? error.message : String(error);
+      log("e", ln, reason);
+      throw new APIerror({
+        ua: `Не вдалося продовжити з програми ${prN} крок ${stN}: ${reason}`,
+        en: `Failed to continue from program ${prN} step ${stN}: ${reason}`,
+        ru: `Не удалось продолжить с программы ${prN} шаг ${stN}: ${reason}`,
+      });
+    }
+  }
 
-  // async stop() {
-  //   let trace = 1,
-  //     ln = this.ln + `Stop()::`;
-  //   let res;
-  //   try {
-  //     res = this.driver.setRegPromise({
-  //       iface: this.iface,
-  //       devAddr: this.addr,
-  //       regName: "startStop",
-  //       value: 0,
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // } // start()
+  /**
+   * Якщо прилад не зупинений — stop(), записує програму і продовжує з prN/stN.
+   * prN і stN за замовчуванням 1.
+   * @param {{program: Array, prN?: number, stN?: number}} arg
+   * @returns {Promise<true>}
+   */
+  async start(arg = {}) {
+    let ln = this.ln + "start()::";
+    const prN = arg.prN == null ? 1 : arg.prN;
+    const stN = arg.stN == null ? 1 : arg.stN;
+    try {
+      this.regs.mode.timestamp = 0;
+      const mode = await this.getRegister("mode");
+      if (mode != 0) await this.stop();
+      await this.setProgram(arg.program);
+      return await this.continueFrom({ prN, stN });
+    } catch (error) {
+      if (error && error.name === "apiError") throw error;
+      let reason = error && error.message ? error.message : String(error);
+      log("e", ln, reason);
+      throw new APIerror({
+        ua: `Не вдалося запустити програму ${prN} крок ${stN}: ${reason}`,
+        en: `Failed to start program ${prN} step ${stN}: ${reason}`,
+        ru: `Не удалось запустить программу ${prN} шаг ${stN}: ${reason}`,
+      });
+    }
+  }
+
+  /**
+   * Зупиняє прилад, якщо він не в режимі Stop.
+   * Повторна зупинка вже зупиненого приладу дає помилку Modbus, тому при mode = 0 запис не йде.
+   * @returns {Promise<true>}
+   */
+  async stop() {
+    let ln = this.ln + "stop()::";
+    try {
+      const mode = await this.getRegister("mode");
+      if (mode != 0) {
+        await this.driver.setRegPromise({
+          iface: this.iface,
+          devAddr: this.addr,
+          regName: "startStop",
+          value: 0,
+        });
+      }
+      return true;
+    } catch (error) {
+      if (error && error.name === "apiError") throw error;
+      let reason = error && error.message ? error.message : String(error);
+      log("e", ln, reason);
+      throw new APIerror({
+        ua: `Не вдалося зупинити прилад: ${reason}`,
+        en: `Failed to stop the device: ${reason}`,
+        ru: `Не удалось остановить прибор: ${reason}`,
+      });
+    }
+  }
 
   isTimeoutError(error) {
     if (!error) return false;
@@ -245,6 +344,11 @@ class ClassManager extends ClassDevManagerGeneral {
       let mode = this.regs["mode"].value;
       if (mode == null || mode == 0 || mode == 3 || mode == 7) return 0;
     }
+    // Alarm живе всередині currentState, окремого читання в драйвері немає
+    if (regName == "Alarm") {
+      const state = await this.getCurrentState();
+      return state.Alarm;
+    }
 
     let res;
 
@@ -258,24 +362,7 @@ class ClassManager extends ClassDevManagerGeneral {
           console.log(ln + "reg=");
           console.dir(reg);
         }
-        if (reg.value == null) {
-          reg.comment = {
-            ua: `Немає зв'язку!`,
-            en: `Not connected!`,
-            ru: `Нет связи!`,
-          };
-        } else {
-          let described = reg.modesDescription[reg.value];
-          let comment = described && described.comment;
-          reg.comment =
-            comment && comment.ua
-              ? comment
-              : {
-                  ua: `mode=${reg.value}`,
-                  en: `mode=${reg.value}`,
-                  ru: `mode=${reg.value}`,
-                };
-        }
+        this.refreshModeComment();
       } // if mode
       return res;
     } catch (error) {
@@ -316,8 +403,73 @@ class ClassManager extends ClassDevManagerGeneral {
     return this.getCompactHtml();
   }
 
+  refreshModeComment() {
+    let reg = this.regs["mode"];
+    if (reg.value == null) {
+      reg.comment = {
+        ua: `Немає зв'язку!`,
+        en: `Not connected!`,
+        ru: `Нет связи!`,
+      };
+      return;
+    }
+    let described = reg.modesDescription[reg.value];
+    let comment = described && described.comment;
+    reg.comment =
+      comment && comment.ua
+        ? comment
+        : {
+            ua: `mode=${reg.value}`,
+            en: `mode=${reg.value}`,
+            ru: `mode=${reg.value}`,
+          };
+  }
+
   async getT() {
-    return this.getRegister("T1");
+    this.regs.T1.timestamp = 0;
+    const value = await this.getRegister("T1");
+    this.regs.T1.value = value;
+    return value;
+  }
+
+  /**
+   * Читає регістр currentState і записує Alarm, programN, step, mode у this.regs.
+   * @returns {Promise<{Alarm: number, programN: number, step: number, mode: number}>}
+   */
+  async getCurrentState() {
+    let ln = this.ln + "getCurrentState()::";
+    try {
+      const res = await this.driver.getRegPromise({
+        iface: this.iface,
+        devAddr: this.addr,
+        regName: "currentState",
+      });
+      const value = Array.isArray(res) ? res[0] && res[0].value : res && res.value;
+      if (!value) throw new Error("прилад не повернув поточний стан");
+      const ids = ["Alarm", "programN", "step", "mode"];
+      const next = {};
+      for (const id of ids) {
+        const num = Number(value[id]);
+        if (!Number.isInteger(num)) {
+          throw new Error(`currentState.${id}=${value[id]}`);
+        }
+        next[id] = num;
+      }
+      for (const id of ids) {
+        this.regs[id].value = next[id];
+      }
+      this.refreshModeComment();
+      return value;
+    } catch (error) {
+      if (error && error.name === "apiError") throw error;
+      let reason = error && error.message ? error.message : String(error);
+      log("e", ln, reason);
+      throw new APIerror({
+        ua: `Не вдалося прочитати поточний стан: ${reason}`,
+        en: `Failed to read the current state: ${reason}`,
+        ru: `Не удалось прочитать текущее состояние: ${reason}`,
+      });
+    }
   }
 
   async setProgram(program) {
@@ -338,6 +490,66 @@ class ClassManager extends ClassDevManagerGeneral {
         ua: `Не вдалося записати програму: ${reason}`,
         en: `Failed to write the program: ${reason}`,
         ru: `Не удалось записать программу: ${reason}`,
+      });
+    }
+  }
+
+  /**
+   * Запис одного регістра менеджера в прилад і в regs.
+   * @param {String} regName id регістра в this.regs
+   * @param {Number} value
+   */
+  async setReg(regName, value) {
+    let ln = this.ln + `setReg(${regName}=${value})::`;
+    let reg = this.regs[regName];
+    if (!reg) throw new Error(ln + `regs[${regName}] is undefined!`);
+    const res = await this.driver.setRegPromise({
+      iface: this.iface,
+      devAddr: this.addr,
+      regName: reg.driverRegName,
+      value,
+    });
+    const written = res && res.value != null ? res.value : value;
+    reg.value = written;
+    return written;
+  }
+
+  /**
+   * Ставить поточну програму і крок приладу.
+   * Дозволено лише в режимі Stop (mode = 0).
+   * @param {{prgN: number, stepN: number}} arg prgN 1..3, stepN 1..5
+   * @returns {Promise<true|APIerror>}
+   */
+  async setPrSt(arg = {}) {
+    let ln = this.ln + "setPrSt()::";
+    const prgN = Number(arg.prgN);
+    const stepN = Number(arg.stepN);
+    try {
+      if (!Number.isInteger(prgN) || prgN < 1 || prgN > 3) {
+        throw new Error(`prgN=${arg.prgN} має бути 1..3`);
+      }
+      if (!Number.isInteger(stepN) || stepN < 1 || stepN > 5) {
+        throw new Error(`stepN=${arg.stepN} має бути 1..5`);
+      }
+      // кеш mode може бути застарілим: перед записом читаємо прилад
+      this.regs.mode.timestamp = 0;
+      const mode = await this.getRegister("mode");
+      if (mode !== 0) {
+        throw new Error(
+          `програму і крок можна встановлювати лише коли прилад зупинено (mode=0), зараз mode=${mode}`,
+        );
+      }
+      await this.setReg("programN", prgN);
+      await this.setReg("step", stepN);
+      return true;
+    } catch (error) {
+      if (error && error.name === "apiError") return error;
+      let reason = error && error.message ? error.message : String(error);
+      log("e", ln, reason);
+      return new APIerror({
+        ua: `Не вдалося встановити програму ${arg.prgN} крок ${arg.stepN}: ${reason}`,
+        en: `Failed to set program ${arg.prgN} step ${arg.stepN}: ${reason}`,
+        ru: `Не удалось установить программу ${arg.prgN} шаг ${arg.stepN}: ${reason}`,
       });
     }
   }

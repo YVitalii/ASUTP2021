@@ -16,7 +16,7 @@ function readValue(field) {
  * Крок уже містить Pr і St. Регістри tT, H, Y беруться з ClassTaskThermalSimple.
  * @extends ClassStepGeneral
  */
-class ClassStepTRM251 extends ClassStepGeneral {
+class ClassStep_TRM251_Thermal extends ClassStepGeneral {
   /**
    * @param {Object} props
    * @property {Number} props.Pr - номер програми, уже стоїть на кроці
@@ -24,7 +24,7 @@ class ClassStepTRM251 extends ClassStepGeneral {
    * @property {Number} props.tT - цільова температура, °C
    * @property {Number|String} props.H - час нагрівання, хв або "ГГ:ХХ"
    * @property {Number|String} props.Y - час витримки, хв або "ГГ:ХХ"
-   * @property {Number} [props.maxT=1200] - верхня межа tT
+   * @property {Number} [props.maxT=120] - верхня межа tT
    * @property {Number} [props.checkPeriod=5] - період опитування, с
    * @property {async Function} props.getState - повертає {Pr, St, mode}
    */
@@ -44,12 +44,15 @@ class ClassStepTRM251 extends ClassStepGeneral {
     }
     const getState = props.getState;
 
-    if (!Number.isFinite(Number(props.Pr)) || !Number.isFinite(Number(props.St))) {
+    if (
+      !Number.isFinite(Number(props.Pr)) ||
+      !Number.isFinite(Number(props.St))
+    ) {
       throw new Error(this.ln + "step must already contain Pr and St");
     }
 
     const template = new ClassThermalTaskSimple({
-      maxT: Number.isFinite(props.maxT) ? props.maxT : 1200,
+      maxT: Number.isFinite(props.maxT) ? props.maxT : 120,
       tT: props.tT,
       H: props.H,
       Y: props.Y,
@@ -67,7 +70,9 @@ class ClassStepTRM251 extends ClassStepGeneral {
       Y: this.regs.Y.value,
     };
 
-    this.checkPeriod = Number.isFinite(props.checkPeriod) ? props.checkPeriod : 5;
+    this.checkPeriod = Number.isFinite(props.checkPeriod)
+      ? props.checkPeriod
+      : 5;
     // ClassStepGeneral.start() кличе beforeStart. beforeAll з завдання — цей гачок.
     // this.getState() лишається знімком кроку з ClassStepGeneral.
     this.beforeStart = () => this.beforeAll();
@@ -76,10 +81,10 @@ class ClassStepTRM251 extends ClassStepGeneral {
 
   /**
    * @param {Object} props налаштування кроку
-   * @returns {ClassStepTRM251}
+   * @returns {ClassStep_TRM251_Thermal}
    */
   static getStep(props) {
-    return new ClassStepTRM251(props);
+    return new ClassStep_TRM251_Thermal(props);
   }
 
   async beforeAll() {
@@ -145,4 +150,4 @@ class ClassStepTRM251 extends ClassStepGeneral {
   }
 }
 
-module.exports = ClassStepTRM251;
+module.exports = ClassStep_TRM251_Thermal;

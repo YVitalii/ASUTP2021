@@ -2,8 +2,6 @@
 const pug = require("pug");
 const path = require("path");
 const log = require("../../tools/log");
-const clone = require("clone");
-const ClassStepsSerial = require("../../controllers/ClassStep/ClassStepsSerial");
 const normalizePath = require("path").normalize;
 const dummy = require("../../tools/dummy.js").dummyPromise;
 
@@ -11,7 +9,7 @@ class ClassProcessManager {
   constructor(props = {}) {
     this.homeURL = props.homeURL ? props.homeURL + "/processManager" : "/";
     this.homeDir = normalizePath(
-      props.homeDir ? props.homeDir + "processManager\\" : "/"
+      props.homeDir ? props.homeDir + "processManager\\" : "/",
     );
     // this.moduleDir = __dirname;
     this.id = "processManager";
@@ -45,6 +43,12 @@ class ClassProcessManager {
     }
     this.devicesManager = props.devicesManager;
 
+    //  -------- stepsManager ---------
+    if (!props.stepsManager) {
+      throw new Error(this.ln + "stepsManager must be defined!! ");
+    }
+    this.stepsManager = props.stepsManager;
+
     // ---------- afterAll() -----------
     //  функція, що виконується після завершення програми
     this.afterAll = props.afterAll ? props.afterAll : undefined;
@@ -57,161 +61,23 @@ class ClassProcessManager {
     this.htmlProgram = {};
     this.htmlProgram.states = []; // програма для браузера
     this.htmlProgram.lastUpdate = 0; // відмітка часу останнього оновлення програми для браузера
-    // парсимо поточну програму 3 сек - щоб встиг завантажитися tasksManager
-    setTimeout(() => {
-      this.setProgram();
-      this.loggerManager.start();
-    }, 3000);
+    // програма в tasksManager уже завантажена синхронно
+    this.setProgram();
+    this.loggerManager.start();
   }
 
-  /**
-   * рекурсивна функція, що парсить крок(и)
-   */
-  setStep(prefix, arr, list) {
-    let trace = 0,
-      ln = this.ln + "setStep()::";
-    trace
-      ? log(
-          "i",
-          ln,
-          `Started with: prefix=`,
-          prefix,
-          ";  list=",
-          JSON.stringify(list)
-        )
-      : null;
-    // if (trace) {
-    //   log("i", ln, `list=`);
-    //   console.dir(list);
-    // }
-    if (Array.isArray(list)) {
-      // list - масив
-      // створюємо внутрішній масив
-      let newArr = [];
-      for (let j = 0; j < list.length; j++) {
-        let newPrefix = prefix + `_${j}`;
-        const item = list[j];
-        // викликаємо самі себе для кожного елементу масиву
-        this.setStep(newPrefix, newArr, item);
-      }
-      // після обходу всіх потомків, отриманий внутрішній масив додаємо до батьківського
-      arr.push(newArr);
-    }
-    if (!list.id) {
-      // якщо елемент не має поля id - вихід
-      return;
-    }
-    // копіюємо елемент в props
-    let props = { ...list };
-    props.id = prefix;
-    // створюємо крок
-    let taskType = this.tasksManager.getType(list.id);
-    if (!taskType || typeof taskType.getStep !== "function") {
-      throw new Error(
-        ln + `Unknown task type "${list.id}". Registered: [` +
-          (typeof this.tasksManager.getTasksList === "function"
-            ? Array.from(
-                this.tasksManager.availableTasksTypes
-                  ? this.tasksManager.availableTasksTypes.keys()
-                  : []
-              ).join(", ")
-            : "") +
-          "]"
-      );
-    }
-    let step = taskType.getStep(props);
-    // if (trace) {
-    //   log("i", ln, `step=`);
-    //   console.dir(step);
-    // }
-    // додаємо крок до масиву
-    arr.push(step);
-  } //setStep()
-
   setProgram() {
-    // --беремо готову прогаму з tasksManager--
-    // готову програму брати неможна, так як іншмй користувач може її змінити,
-    // а нам потрібно зафіксувати момент "Пуск" і виконувати останню програму
-    //  тому робимо копію списку завдань та парсимо кроки тут.
-    //  TODO Перенести в процесМенеджер список доступних кроків з tasksManager
-    // в tasksManager брати список звідси
+    // Список завдань фіксуємо на момент виклику: беремо копію з tasksManager
+    // і віддаємо її stepsManager. Поки програма виконується, createProgram відмовляє.
     let trace = 0,
       ln = this.ln + " setProgram()::";
-    if (this.program.state && this.program.state._id == "going") {
-      // -------- програма на виконанні, неможливо її змінити --------
-      let err = {
-        ua: `Не можна завантажити нову програму, в режимі виконання поточної`,
-        en: `Can't set new tasks while the program is running`,
-        ru: `Нельзя загрузить новую програму во время выполнения текущей `,
-      };
-      return { err, data: null };
-    }
+    let tasksList = this.tasksManager.getActiveTask().content;
+    let result = this.stepsManager.createProgram(tasksList);
+    if (!result || result.err) return result;
 
-    //копіюємо поточний список завдань
-    this.listSteps = this.tasksManager.getActiveTask().content;
-    if (typeof this.listSteps === "string") {
-      try {
-        this.listSteps = JSON.parse(this.listSteps);
-      } catch (error) {
-        let err = {
-          ua: `Помилка розбору активної програми`,
-          en: `Failed to parse active program`,
-          ru: `Ошибка разбора активной программы`,
-        };
-        log("e", ln, err.ua, error.message || error);
-        return { err, data: null };
-      }
-    }
-    if (!Array.isArray(this.listSteps) || this.listSteps.length === 0) {
-      let err = {
-        ua: `Активна програма порожня або має невірний формат`,
-        en: `Active program is empty or has invalid format`,
-        ru: `Активная программа пуста или имеет неверный формат`,
-      };
-      log("e", ln, err.ua);
-      return { err, data: null };
-    }
-
-    // трасувальник отриманого списку завдань
-    trace = 0;
-    if (trace) {
-      log("i", ln, `this.listSteps=`);
-      console.dir(this.listSteps);
-    }
-    trace = 0;
-    //скидаємо поточне імя лог-файлу
-    this.currLogFileName = undefined;
-    // очищуємо програму
-    let program = [];
-    // створюємо кроки
-    // запускаємо рекурсивну функцію-генератор кроків
-    this.setStep("st", program, this.listSteps);
-    // оскільки функція видає масив масивів, беремо перший елемент
-    // це милиця але поки немає часу розбиратися
-    if (!Array.isArray(program[0]) || program[0].length === 0) {
-      let err = {
-        ua: `Не вдалося побудувати кроки програми`,
-        en: `Failed to build program steps`,
-        ru: `Не удалось построить шаги программы`,
-      };
-      log("e", ln, err.ua);
-      return { err, data: null };
-    }
-    this.program = new ClassStepsSerial({
-      id: this.id + ".program::",
-      header: {
-        ua: `${this.listSteps[0].name}`,
-        en: `${this.listSteps[0].name}`,
-        ru: `${this.listSteps[0].name}`,
-      },
-      comment: {
-        ua: `Активна програма`,
-        en: `Active program`,
-        ru: `Активная программа`,
-      },
-      ln: this.ln,
-      tasks: program[0],
-    });
+    this.listSteps = this.stepsManager.listSteps;
+    this.currLogFileName = null;
+    this.program = this.stepsManager.program;
 
     // --- по завершенню програми потрібно або зупинити всі прилади,
     // або виконати специфічні дії, що записані
@@ -235,17 +101,20 @@ class ClassProcessManager {
 
       if (this.program.state._id == "finished") {
         let time = 15; // 15 хв
-        this.currLogFileName = undefined;
+        this.currLogFileName = null;
         trace
           ? log(
               "i",
               ln,
-              `Scheduled stoping write log file after ${time} minutes`
+              `Scheduled stoping write log file after ${time} minutes`,
             )
           : null;
-        setTimeout(() => {
-          this.loggerManager.start();
-        }, time * 60 * 1000);
+        setTimeout(
+          () => {
+            this.loggerManager.start();
+          },
+          time * 60 * 1000,
+        );
       }
     }; //this.program.afterAll
     // this.setTaskPoints(program[0]);
@@ -269,38 +138,6 @@ class ClassProcessManager {
     }
     return { err: null, data };
   } // setProgram() {
-
-  /**
-   *
-   * @param {String} prefix - префікс кроку
-   * @param {Object | Array} item  - під-крок для парсингу
-   * @param {Array} result - результат парсингу
-   * @returns
-   */
-  getStep(prefix, item, result = []) {
-    let trace = 0,
-      ln = this.ln + "getStep()::";
-    if (Array.isArray(item)) {
-      let newArr = [];
-      for (let index = 0; index < item.length; index++) {
-        const element = this.getStep(prefix + "_" + index, item[index], newArr);
-        if (element) {
-          newArr.push(newArr);
-        }
-      } // for
-      result.push(newArr);
-    } else {
-      if (!item.id) {
-        return;
-      }
-      if (trace) {
-        log("i", ln, `prefix=${prefix}; item=`);
-        console.dir(item);
-      }
-      trace ? log("", ln, `item.id=`, item.id) : null;
-      result.push(item.getState());
-    }
-  }
 
   getStates() {
     let trace = 0,
@@ -389,7 +226,7 @@ class ClassProcessManager {
         : null;
     } while (
       this.loggerManager.fileManager.exist(
-        fileName + this.loggerManager._fileExtensions.logger
+        fileName + this.loggerManager._fileExtensions.logger,
       )
     );
     trace
@@ -397,7 +234,7 @@ class ClassProcessManager {
           "i",
           ln,
           `New log file created: fileName=`,
-          fileName + this.loggerManager._fileExtensions.logger
+          fileName + this.loggerManager._fileExtensions.logger,
         )
       : null;
     return fileName;
@@ -424,7 +261,7 @@ class ClassProcessManager {
       return { err, data: null };
     }
     // якщо починаємо з кроку №1 - то програму запущено спочатку
-    if (stepN == 1 || this.currLogFileName === undefined) {
+    if (stepN == 1 || this.currLogFileName == null) {
       //очищуємо попередній стан кроків
       this.setProgram();
       //створюємо нове імя файлу

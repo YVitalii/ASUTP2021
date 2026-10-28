@@ -3,6 +3,7 @@ const TasksManager = require("../../controllers/tasksController/ClassTasksManage
 const ClassDevicesManager = require("../../devices/devicesManager/ClassDevicesManager.js");
 const ClassLoggerManager = require("../../controllers/loggerManager/ClassLoggerManager.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
+const Class_StepsManager = require("../../processes/processManager/Class_StepsManager.js");
 
 const test = require("../../config.js").test;
 
@@ -59,6 +60,10 @@ class ClassEntityGeneral {
       homeDir: this.homeDir,
       homeURL: this.homeURL,
     });
+    // ------------- stepsManager -----------------
+    this.stepsManager = new Class_StepsManager({
+      ln: this.id + "::StepsManager::",
+    });
     // ------------- processManager -----------------
     this.processManager = new ClassProcessManager({
       homeDir: this.homeDir,
@@ -66,6 +71,7 @@ class ClassEntityGeneral {
       tasksManager: this.tasksManager,
       loggerManager: this.loggerManager,
       devicesManager: this.devicesManager,
+      stepsManager: this.stepsManager,
       ln: this.id + "::ProcessManager::",
     });
   } // constructor

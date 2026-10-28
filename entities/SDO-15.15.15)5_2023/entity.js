@@ -3,6 +3,7 @@ const pug = require("pug");
 const TasksManager = require("../../controllers/tasksController/ClassTasksManager.js");
 const ClassTaskThermal = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermal.js");
 const ClassProcessManager = require("../../processes/processManager/ClassProcessManager.js");
+const Class_StepsManager = require("../../processes/processManager/Class_StepsManager.js");
 //const ThermStep = require("./program/thermStep/ClassThermProcessStep.js");
 const log = require("../../tools/log.js");
 
@@ -69,10 +70,14 @@ let thermalProcess = new ClassTaskThermal({
 // реєструємо задачу термообробки в менеджері програм
 entity.tasksManager.addType(thermalProcess);
 
+entity.stepsManager = new Class_StepsManager({
+  ln: entity.id + "::StepsManager::",
+});
 entity.processManager = new ClassProcessManager({
   homeDir: entity.homeDir,
   homeURL: entity.homeURL,
   tasksManager: entity.tasksManager,
+  stepsManager: entity.stepsManager,
   ln: entity.id + "::ProcessManager::",
 });
 

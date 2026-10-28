@@ -1,15 +1,15 @@
 /**
- * Тести ClassStepTRM251.
- * Запуск: node --test ./devices/OWEN_TRM251/tests/test_ClassStepTRM251.js
+ * Тести ClassStep_TRM251_Thermal.
+ * Запуск: node --test ./devices/OWEN_TRM251/tests/test_ClassStep_TRM251_Thermal.js
  */
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
-const ClassStepTRM251 = require("../ClassStepTRM251.js");
+const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
 const parseProgram = require("../parseProgram_RS485.js");
 const standardProgram = require("./testProgram.js");
 
 function create(props = {}) {
-  return new ClassStepTRM251({
+  return new ClassStep_TRM251_Thermal({
     Pr: 1,
     St: 1,
     tT: 100,
@@ -26,7 +26,7 @@ function going(item) {
   return item;
 }
 
-describe("ClassStepTRM251", () => {
+describe("ClassStep_TRM251_Thermal", () => {
   describe("constructor", () => {
     it("бере Pr і St з кроку, а tT, H, Y — з опису термокроку", () => {
       const item = create({ H: "01:10", Y: "01:15" });
@@ -53,8 +53,8 @@ describe("ClassStepTRM251", () => {
         Y: 20,
         getState: async () => ({ Pr: 2, St: 3, mode: 1 }),
       };
-      const made = ClassStepTRM251.getStep(props);
-      assert.ok(made instanceof ClassStepTRM251);
+      const made = ClassStep_TRM251_Thermal.getStep(props);
+      assert.ok(made instanceof ClassStep_TRM251_Thermal);
       assert.equal(made.goal.Pr, 2);
       assert.equal(made.goal.St, 3);
       assert.equal(made.goal.tT, 80);
@@ -188,7 +188,7 @@ describe("ClassStepTRM251", () => {
 
       const steps = thermal.map(
         (step) =>
-          new ClassStepTRM251({
+          new ClassStep_TRM251_Thermal({
             ...step,
             getState: async () => ({ Pr: step.Pr, St: step.St, mode: 1 }),
           })
@@ -211,7 +211,7 @@ describe("ClassStepTRM251", () => {
         { name: "Програма" },
         { tT: 100, H: "01:10", Y: "01:15" },
       ]);
-      const item = new ClassStepTRM251({
+      const item = new ClassStep_TRM251_Thermal({
         ...program[1],
         getState: async () => ({ Pr: 1, St: 1, mode: 1 }),
       });
