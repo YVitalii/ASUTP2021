@@ -2,14 +2,17 @@
  * Адаптує вміст програми перед записом у TRM-251.
  * [0] — заголовок, лишається без змін.
  * Кожному кроку додає номер програми Pr = 1..3 і номер кроку St = 1..5
- * (5 кроків на програму, не більше 15 кроків) і ставить type = "TRM251stepThermal".
+ * (5 кроків на програму, не більше 15 кроків) і ставить type з ClassStep_TRM251_Thermal.type.
  * Коли номер програми змінюється, перед першим кроком нової програми
- * вставляє { type: "TRM251stepNextProgram", prgN }.
+ * вставляє { type: ClassStep_TRM251_nextProgram.type, prgN }.
  * Рядок часу "ГГ:ХХ" у регістрі кроку переводить у хвилини: "01:10" → 70.
  *
  * @param {Array|string} program вміст програми або його JSON
  * @returns {Array}
  */
+const ClassStep_TRM251_Thermal = require("./ClassStep_TRM251_Thermal.js");
+const ClassStep_TRM251_nextProgram = require("./ClassStep_TRM251_nextProgram.js");
+
 const TIME_HHMM = /^(\d+):(\d{1,2})$/;
 const STEPS_PER_PROGRAM = 5;
 const MAX_PROGRAMS = 3;
@@ -26,7 +29,7 @@ function adaptStep(step, index) {
   const adapted = {
     Pr: Math.floor(index / STEPS_PER_PROGRAM) + 1,
     St: (index % STEPS_PER_PROGRAM) + 1,
-    type: "TRM251stepThermal",
+    type: ClassStep_TRM251_Thermal.type,
   };
   for (const key of Object.keys(step)) {
     if (key === "Pr" || key === "St" || key === "type") continue;
@@ -62,7 +65,10 @@ function beforeProgramSet(program) {
     }
     const adapted = adaptStep(step, i - 1);
     if (previousPr !== null && adapted.Pr !== previousPr) {
-      result.push({ type: "TRM251stepNextProgram", prgN: adapted.Pr });
+      result.push({
+        type: ClassStep_TRM251_nextProgram.type,
+        prgN: adapted.Pr,
+      });
     }
     previousPr = adapted.Pr;
     result.push(adapted);

@@ -17,6 +17,9 @@ function readValue(field) {
  * @extends ClassStepGeneral
  */
 class ClassStep_TRM251_Thermal extends ClassStepGeneral {
+  /** Ідентифікатор кроку в програмі. */
+  static type = "TRM251stepThermal";
+
   /**
    * @param {Object} props
    * @property {Number} props.Pr - номер програми, уже стоїть на кроці
@@ -26,7 +29,8 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
    * @property {Number|String} props.Y - час витримки, хв або "ГГ:ХХ"
    * @property {Number} [props.maxT=120] - верхня межа tT
    * @property {Number} [props.checkPeriod=5] - період опитування, с
-   * @property {async Function} props.getState - повертає {Pr, St, mode}
+   * @property {Object} [props.device] - менеджер приладу TRM-251
+   * @property {async Function} [props.getState] - стан приладу, якщо менеджера немає
    */
   constructor(props = {}) {
     props.header =
@@ -39,10 +43,25 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
           };
     super(props);
 
-    if (typeof props.getState !== "function") {
-      throw new Error(this.ln + "props.getState must be a function");
+    if (props.device == undefined) {
+      this.device = null;
+      if (typeof props.getState !== "function") {
+        throw new Error(
+          this.ln +
+            "Критична помилка: немає props.device і props.getState. Крок зупинено.",
+        );
+      }
+      this.getState = props.getState;
+    } else {
+      this.device = props.device;
+      const readState = props.device.getCurrentState;
+      if (readState == undefined || typeof readState !== "function") {
+        throw new Error(
+          this.ln +
+            "Критична помилка: props.device.getCurrentState має бути функцією. Крок зупинено.",
+        );
+      }
     }
-    const getState = props.getState;
 
     if (
       !Number.isFinite(Number(props.Pr)) ||
@@ -74,17 +93,34 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
       ? props.checkPeriod
       : 5;
     // ClassStepGeneral.start() кличе beforeStart. beforeAll з завдання — цей гачок.
-    // this.getState() лишається знімком кроку з ClassStepGeneral.
     this.beforeStart = () => this.beforeAll();
-    this.testProcess = () => this.poll(getState);
+    this.testProcess = () => this.poll();
   }
 
   /**
+   * Запит поточного стану приладу через менеджер.
+   * Якщо менеджера немає, у конструкторі this.getState замінюється на props.getState.
+   */
+  getState() {
+    return this.device.getCurrentState();
+  }
+
+  /**
+   * Створює крок. Виклик: ClassStep_TRM251_Thermal.getStep(props).
    * @param {Object} props налаштування кроку
    * @returns {ClassStep_TRM251_Thermal}
    */
   static getStep(props) {
     return new ClassStep_TRM251_Thermal(props);
+  }
+
+  /**
+   * Фабрика для StepsManager: тип кроку "TRM251stepThermal".
+   * @param {Object} props налаштування кроку
+   * @returns {ClassStep_TRM251_Thermal}
+   */
+  static createStep(props) {
+    return ClassStep_TRM251_Thermal.getStep(props);
   }
 
   async beforeAll() {
@@ -96,12 +132,12 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
    * Коли програма або крок змінились, або режим «Завершено» — крок виконано.
    * @returns {Promise<boolean>} false — крок ще триває або вже зупинений
    */
-  async poll(getState) {
+  async poll() {
     if (this.state._id !== "going") return false;
 
     let res;
     try {
-      res = await getState();
+      res = await this.getState();
     } catch (error) {
       if (this.state._id === "going") this.error(error);
       return false;
@@ -109,8 +145,9 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
     if (!res || this.state._id !== "going") return false;
 
     const mode = Number(readValue(res.mode));
-    const pr = readValue(res.Pr);
-    const st = readValue(res.St);
+    // менеджер віддає programN і step, тест і опис кроку — Pr і St
+    const pr = readValue(res.Pr != null ? res.Pr : res.programN);
+    const st = readValue(res.St != null ? res.St : res.step);
 
     if (mode === 0) {
       this.stop({

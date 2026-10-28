@@ -5,6 +5,7 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
+const ClassStep_TRM251_nextProgram = require("../ClassStep_TRM251_nextProgram.js");
 const parseProgram = require("../parseProgram_RS485.js");
 const standardProgram = require("./testProgram.js");
 
@@ -41,7 +42,42 @@ describe("ClassStep_TRM251_Thermal", () => {
       assert.equal(item.goal.H, 70);
       assert.equal(item.goal.Y, 75);
       assert.equal(item.checkPeriod, 5);
-      assert.equal(item.getState()._id, "waiting");
+      assert.equal(ClassStep_TRM251_Thermal.type, "TRM251stepThermal");
+      assert.equal(item.device, null);
+      assert.equal(item.state._id, "waiting");
+    });
+
+    it("props.device зберігає менеджер приладу і читає його стан", async () => {
+      const device = {
+        async getCurrentState() {
+          return { programN: 1, step: 2, mode: 1 };
+        },
+      };
+      const item = going(
+        new ClassStep_TRM251_Thermal({
+          Pr: 1,
+          St: 1,
+          tT: 100,
+          H: 10,
+          Y: 10,
+          device,
+        }),
+      );
+      assert.equal(item.device, device);
+      assert.throws(
+        () =>
+          new ClassStep_TRM251_Thermal({
+            Pr: 1,
+            St: 1,
+            tT: 100,
+            H: 10,
+            Y: 10,
+            device: {},
+          }),
+        /getCurrentState має бути функцією/,
+      );
+      assert.equal(await item.testProcess(), true);
+      assert.equal(item.state._id, "finished");
     });
 
     it("getStep повертає новий екземпляр із переданими налаштуваннями", () => {
@@ -54,7 +90,10 @@ describe("ClassStep_TRM251_Thermal", () => {
         getState: async () => ({ Pr: 2, St: 3, mode: 1 }),
       };
       const made = ClassStep_TRM251_Thermal.getStep(props);
+      const created = ClassStep_TRM251_Thermal.createStep(props);
       assert.ok(made instanceof ClassStep_TRM251_Thermal);
+      assert.ok(created instanceof ClassStep_TRM251_Thermal);
+      assert.equal(created.goal.Pr, 2);
       assert.equal(made.goal.Pr, 2);
       assert.equal(made.goal.St, 3);
       assert.equal(made.goal.tT, 80);
@@ -63,7 +102,10 @@ describe("ClassStep_TRM251_Thermal", () => {
     });
 
     it("кидає помилку без getState і без готових Pr/St", () => {
-      assert.throws(() => create({ getState: undefined }), /getState/);
+      assert.throws(
+        () => create({ getState: undefined }),
+        /Критична помилка: немає props\.device і props\.getState/,
+      );
       assert.throws(() => create({ Pr: undefined }), /already contain Pr and St/);
       assert.throws(() => create({ St: undefined }), /already contain Pr and St/);
     });
@@ -115,6 +157,35 @@ describe("ClassStep_TRM251_Thermal", () => {
       assert.deepEqual(planned, [2000]);
     });
 
+    it("читає programN і step зі стану менеджера", async () => {
+      const same = going(
+        create({
+          getState: async () => ({ programN: 1, step: 1, mode: 1 }),
+        }),
+      );
+      const planned = [];
+      const original = global.setTimeout;
+      global.setTimeout = (fn, ms) => {
+        planned.push(ms);
+        return 1;
+      };
+      try {
+        assert.equal(await same.testProcess(), false);
+      } finally {
+        global.setTimeout = original;
+      }
+      assert.equal(same.state._id, "going");
+      assert.deepEqual(planned, [5000]);
+
+      const next = going(
+        create({
+          getState: async () => ({ programN: 1, step: 2, mode: 1 }),
+        }),
+      );
+      assert.equal(await next.testProcess(), true);
+      assert.equal(next.state._id, "finished");
+    });
+
     it("читає Pr, St і mode з поля value", async () => {
       const item = going(
         create({
@@ -162,7 +233,7 @@ describe("ClassStep_TRM251_Thermal", () => {
     it("parseProgram ставить Pr/St і з них збираються кроки", () => {
       const thermal = standardProgram.filter((step) => step.type === "TRM251stepThermal");
       assert.deepEqual(standardProgram[6], {
-        type: "TRM251stepNextProgram",
+        type: ClassStep_TRM251_nextProgram.type,
         prgN: 2,
       });
       assert.deepEqual(

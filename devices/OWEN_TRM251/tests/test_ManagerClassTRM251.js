@@ -3,6 +3,7 @@ const { deepEqual, equal, match, rejects } = require("node:assert");
 const Manager = require("../ManagerClassTRM251.js");
 const driver = require("../driver.js");
 const ClassThermalTaskSimple = require("../../../controllers/thermoController/ClassTaskThermal/ClassTaskThermalSimple.js");
+const ClassStep_TRM251_nextProgram = require("../ClassStep_TRM251_nextProgram.js");
 
 const origSetRegPromise = driver.setRegPromise;
 const origGetRegPromise = driver.getRegPromise;
@@ -72,7 +73,7 @@ describe("ManagerClassTRM251 setProgram", () => {
     await dev.setProgram([
       header,
       { type: "TRM251stepThermal", tT: 110, H: 10, Y: 20 },
-      { type: "TRM251stepNextProgram", prgN: 2 },
+      { type: ClassStep_TRM251_nextProgram.type, prgN: 2 },
       { type: "TRM251stepThermal", tT: 200, H: 15, Y: 25 },
     ]);
 

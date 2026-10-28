@@ -6,6 +6,7 @@ const { dummyPromise } = require("../../tools/dummy.js");
 const units = require("../../config.js").units;
 const emulateDevices = require("../../config.js").emulateRS485;
 const APIerror = require("../../tools/apiError.js");
+const ClassStep_TRM251_nextProgram = require("./ClassStep_TRM251_nextProgram.js");
 
 function readStepField(step, name) {
   const reg = step && step.regs && step.regs[name];
@@ -22,7 +23,7 @@ function programForDriver(program) {
   for (let index = 1; index < program.length; index++) {
     const step = program[index];
     // Службовий перехід між програмами в регістр приладу не пишеться.
-    if (step && step.type === "TRM251stepNextProgram") continue;
+    if (step && step.type === ClassStep_TRM251_nextProgram.type) continue;
     const tT = Number(readStepField(step, "tT"));
     const H = Number(readStepField(step, "H"));
     const Y = Number(readStepField(step, "Y"));

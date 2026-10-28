@@ -5,6 +5,11 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const beforeProgramSet = require("../beforeProgramSet.js");
+const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
+const ClassStep_TRM251_nextProgram = require("../ClassStep_TRM251_nextProgram.js");
+
+const stepType = ClassStep_TRM251_Thermal.type;
+const nextType = ClassStep_TRM251_nextProgram.type;
 
 function programWithSteps(count, step = (i) => ({ tT: i, H: "00:01", Y: "00:02" })) {
   const list = [{ id: "program", name: "Тест" }];
@@ -37,7 +42,7 @@ describe("beforeProgramSet", () => {
     assert.deepEqual(result[1], {
       Pr: 1,
       St: 1,
-      type: "TRM251stepThermal",
+      type: stepType,
       tT: 100,
       H: 70,
       Y: 75,
@@ -53,7 +58,7 @@ describe("beforeProgramSet", () => {
     assert.deepEqual(result[1], {
       Pr: 1,
       St: 1,
-      type: "TRM251stepThermal",
+      type: stepType,
       tT: 250,
       H: 30,
       Y: 5,
@@ -82,16 +87,16 @@ describe("beforeProgramSet", () => {
       { Pr: result[5].Pr, St: result[5].St },
       { Pr: 1, St: 5 }
     );
-    assert.deepEqual(result[6], { type: "TRM251stepNextProgram", prgN: 2 });
+    assert.deepEqual(result[6], { type: nextType, prgN: 2 });
     assert.deepEqual(
       { Pr: result[7].Pr, St: result[7].St, type: result[7].type },
-      { Pr: 2, St: 1, type: "TRM251stepThermal" }
+      { Pr: 2, St: 1, type: stepType }
     );
     assert.deepEqual(
       { Pr: result[11].Pr, St: result[11].St },
       { Pr: 2, St: 5 }
     );
-    assert.deepEqual(result[12], { type: "TRM251stepNextProgram", prgN: 3 });
+    assert.deepEqual(result[12], { type: nextType, prgN: 3 });
     assert.deepEqual(
       { Pr: result[13].Pr, St: result[13].St },
       { Pr: 3, St: 1 }
@@ -117,7 +122,7 @@ describe("beforeProgramSet", () => {
 
     assert.equal(result[1].Pr, 1);
     assert.equal(result[1].St, 1);
-    assert.deepEqual(result[6], { type: "TRM251stepNextProgram", prgN: 2 });
+    assert.deepEqual(result[6], { type: nextType, prgN: 2 });
     assert.equal(result[7].Pr, 2);
     assert.equal(result[7].St, 1);
   });
@@ -135,7 +140,7 @@ describe("beforeProgramSet", () => {
     assert.deepEqual(result[1], {
       Pr: 1,
       St: 1,
-      type: "TRM251stepThermal",
+      type: stepType,
       tT: 100,
       H: 70,
       Y: 75,
