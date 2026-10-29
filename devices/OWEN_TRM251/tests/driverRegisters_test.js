@@ -6,6 +6,28 @@ const { describe, it } = require("node:test");
 const driver = require("../driver.js");
 
 describe("Driver's registers test:", () => {
+  describe("I1", () => {
+    function inputFrame(point, value, status = 0) {
+      const buf = Buffer.alloc(8);
+      buf.writeUInt16BE(point, 0);
+      buf.writeInt32BE(value, 2);
+      buf.writeUInt16BE(status, 6);
+      return buf;
+    }
+
+    it("ділить ціле значення на 10 у степені положення крапки", () => {
+      const res = driver.regs.get("I1").get_(inputFrame(1, 236));
+      equal(res.err, null);
+      equal(res.data.value, 23.6);
+    });
+
+    it("читає від'ємну температуру", () => {
+      const res = driver.regs.get("I1").get_(inputFrame(1, -214));
+      equal(res.err, null);
+      equal(res.data.value, -21.4);
+    });
+  });
+
   // ----------------- tT ----------------------
   describe("taskT (tT)", () => {
     let regName = "tT";

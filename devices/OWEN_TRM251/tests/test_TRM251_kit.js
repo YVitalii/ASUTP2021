@@ -13,7 +13,9 @@ const TRM251_emulator = require("./TRM251_emulator.js");
 
 describe("комплект TRM-251", () => {
   const steps = createTRM251StepsManager();
-  const tasks = steps.program.tasks;
+  const program = steps.program;
+  const tasks = program.tasks;
+  console.dir(program.getState(), { depth: null });
 
   it("повертає Class_StepsManager із зареєстрованими кроками TRM-251", () => {
     assert.ok(steps instanceof Class_StepsManager);
@@ -28,7 +30,8 @@ describe("комплект TRM-251", () => {
   });
 
   it("збирає програму: термокроки і перехід на програму 2", () => {
-    assert.equal(steps.program.header.ua, "Колеса чавунні. Відпуск.");
+    assert.equal(steps.program.header.ua, "prg02");
+    assert.equal(steps.program.comment.ua, "Колеса чавунні. Відпуск.");
     assert.equal(tasks.length, 10);
     assert.deepEqual(
       tasks.map((step) => step.constructor.type),

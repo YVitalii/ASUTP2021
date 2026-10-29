@@ -52,7 +52,7 @@ const ifaceW2 = require("../../conf_iface.js").w2;
 const TRM251 = require("../../devices/OWEN_TRM251/manager.js");
 // --- створюємо та реєструємо прилад №1 - той що стоїть в печі
 // let furnace = new TRP08(ifaceW2, 1, { id: "furnace", addT: 0 });
-let furnace = new TRM251({ iface: ifaceW2, addr: 1, id: "furnace", addT: 0 });
+let furnace = new TRM251({ iface: ifaceW2, addr: 16, id: "furnace", addT: 0 });
 
 entity.devicesManager.addDevice(furnace.id, furnace);
 

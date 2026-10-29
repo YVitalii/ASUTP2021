@@ -100,6 +100,19 @@ describe("Class_StepsManager", () => {
     equal(steps.program.tasks[1].tT, 50);
   });
 
+  it("незареєстрований description лишається заголовком програми", () => {
+    const steps = new Class_StepsManager();
+    steps.addStepType("taskThermal", stepType("thermal"));
+    const res = steps.createProgram([
+      { type: "description", fName: "prg05", description: "Відпуск" },
+      { type: "taskThermal", tT: 110 },
+    ]);
+    equal(res.err, null);
+    equal(steps.program.header.ua, "prg05");
+    equal(steps.program.tasks.length, 1);
+    equal(steps.program.tasks[0].tT, 110);
+  });
+
   it("createProgram приймає застаріле поле id замість type", () => {
     const steps = manager();
     const res = steps.createProgram([
@@ -117,20 +130,18 @@ describe("Class_StepsManager", () => {
     match(empty.err.ua, /порожня/);
     equal(empty.data, null);
 
-    throws(
-      () =>
-        steps.createProgram([
-          { type: "description", name: "x" },
-          { type: "інший" },
-        ]),
-      /невідомий тип/,
-    );
+    const unknown = steps.createProgram([
+      { type: "description", name: "x" },
+      { type: "інший" },
+    ]);
+    match(unknown.err.ua, /невідомий тип/);
+    equal(unknown.data, null);
   });
 
   it("createProgram не замінює програму, поки вона виконується", () => {
     const steps = manager();
     steps.createProgram([
-      { type: "description", name: "перша" },
+      { type: "description", name: "перша", fName: "перша" },
       { type: "taskThermal", tT: 10 },
     ]);
     steps.program.state._id = "going";

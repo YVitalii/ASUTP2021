@@ -24,6 +24,23 @@ function thermalProgram() {
   ];
 }
 
+describe("ManagerClassTRM251 температура", () => {
+  after(() => {
+    driver.getRegPromise = origGetRegPromise;
+  });
+
+  it("округляє температуру з драйвера до 1 знака після коми", async () => {
+    driver.getRegPromise = async () => [
+      { value: 123.456, detail: { afterGet: { note: "" } } },
+    ];
+    const dev = device();
+    dev.regs.T1.timestamp = 0;
+    const value = await dev.getT();
+    equal(value, 123.5);
+    equal(dev.regs.T1.value, 123.5);
+  });
+});
+
 describe("ManagerClassTRM251 setProgram", () => {
   after(() => {
     driver.setRegPromise = origSetRegPromise;

@@ -29,6 +29,7 @@ class ClassStep_TRM251_nextProgram extends ClassStepGeneral {
             ru: `Следующая программа ${props.prgN}`,
           };
     super(props);
+    this.state.type = "ProsessStep_SimpleBadge";
     this.prgN = props.prgN;
     this.device = props.device == undefined ? null : props.device;
 

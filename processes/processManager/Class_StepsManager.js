@@ -91,6 +91,8 @@ class Class_StepsManager {
     }
     let type = this.stepType(list, ln);
     if (!type) return;
+    // Заголовок програми — не крок. Якщо тип description не зареєстровано, його не створюємо.
+    if (type === "description" && !this.stepsList.has(type)) return;
     let props = { ...list };
     props.id = prefix;
     arr.push(this.getStep(type, props));
@@ -154,7 +156,16 @@ class Class_StepsManager {
 
     this.listSteps = tasksList;
     let program = [];
-    this.setStep("st", program, tasksList);
+    try {
+      this.setStep("st", program, tasksList);
+    } catch (error) {
+      let message = error && error.message ? error.message : String(error);
+      log("e", ln, message);
+      return {
+        err: { ua: message, en: message, ru: message },
+        data: null,
+      };
+    }
     if (!Array.isArray(program[0]) || program[0].length <= 0) {
       let err = {
         ua: `Не вдалося побудувати кроки програми`,
@@ -165,20 +176,22 @@ class Class_StepsManager {
       return { err, data: null };
     }
 
-    let name = tasksList[0] && tasksList[0].name;
+    let head = tasksList[0] || {};
+    let name = head.name;
+    let programId = "prg_" + head.fName;
     this.program = new ClassStepsSerial({
-      id: this.id + ".program::",
+      id: programId,
       header: {
-        ua: `${name}`,
-        en: `${name}`,
-        ru: `${name}`,
+        ua: head.fName,
+        en: head.fName,
+        ru: head.fName,
       },
       comment: {
-        ua: `Активна програма`,
-        en: `Active program`,
-        ru: `Активная программа`,
+        ua: head.description,
+        en: head.description,
+        ru: head.description,
       },
-      ln: this.ln,
+      ln: programId + "::",
       tasks: program[0],
     });
 

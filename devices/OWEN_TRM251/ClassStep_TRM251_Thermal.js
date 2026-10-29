@@ -2,6 +2,20 @@ const ClassStepGeneral = require("../../controllers/ClassStep/ClassStepGeneral")
 const ClassThermalTaskSimple = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermalSimple.js");
 
 /**
+ * Хвилини → "ГГ:ХХ". Рядок часу лишається як є. 70 → "01:10".
+ */
+function minutesToHHMM(value) {
+  if (typeof value === "string" && /^\d+:\d{1,2}$/.test(value.trim())) {
+    return value.trim();
+  }
+  const minutes = Number(value);
+  if (!Number.isFinite(minutes) || minutes < 0) return value;
+  const total = Math.round(minutes);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(Math.floor(total / 60))}:${pad(total % 60)}`;
+}
+
+/**
  * Число з регістра: або саме число, або об'єкт {value}.
  */
 function readValue(field) {
@@ -33,15 +47,17 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
    * @property {async Function} [props.getState] - стан приладу, якщо менеджера немає
    */
   constructor(props = {}) {
+    const title = `${props.Pr}:${props.St}. tT=${props.tT}; H=${minutesToHHMM(props.H)}; Y=${minutesToHHMM(props.Y)}`;
     props.header =
       props.header && props.header.ua
         ? props.header
         : {
-            ua: `Пр${props.Pr} Крок${props.St}`,
-            en: `Pr${props.Pr} Step${props.St}`,
-            ru: `Пр${props.Pr} Шаг${props.St}`,
+            ua: title,
+            en: title,
+            ru: title,
           };
     super(props);
+    this.state.type = "ProsessStep_SimpleBadge";
 
     if (props.device == undefined) {
       this.device = null;
@@ -51,7 +67,7 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
             "Критична помилка: немає props.device і props.getState. Крок зупинено.",
         );
       }
-      this.getState = props.getState;
+      this.getDeviceState = props.getState;
     } else {
       this.device = props.device;
       const readState = props.device.getCurrentState;
@@ -99,9 +115,10 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
 
   /**
    * Запит поточного стану приладу через менеджер.
-   * Якщо менеджера немає, у конструкторі this.getState замінюється на props.getState.
+   * Якщо менеджера немає, у конструкторі this.getDeviceState замінюється на props.getState.
+   * Окреме ім'я, щоб не затирати ClassStepGeneral.getState().
    */
-  getState() {
+  getDeviceState() {
     return this.device.getCurrentState();
   }
 
@@ -137,7 +154,7 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
 
     let res;
     try {
-      res = await this.getState();
+      res = await this.getDeviceState();
     } catch (error) {
       if (this.state._id === "going") this.error(error);
       return false;

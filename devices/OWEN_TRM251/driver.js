@@ -110,8 +110,8 @@ for (let i = 1; i < 3; i++) {
         err = null;
       // положення крапки
       let pointOffset = arg.slice(0, 2).readUInt16BE();
-      // температура
-      data = arg.slice(2, 6).readUInt32BE() / (10 ^ pointOffset);
+      // температура. ^ — це XOR, степінь записується як **
+      data = arg.slice(2, 6).readInt32BE() / 10 ** pointOffset;
       // статус
       let status = arg.slice(6).readUInt16BE();
       let statusMsg = getNote(status);

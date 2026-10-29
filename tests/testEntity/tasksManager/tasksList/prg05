@@ -1,6 +1,6 @@
 [
 	{
-		"id": "description",
+		"type": "description",
 		"fName": "prg05",
 		"description": "Колеса чавунні. Відпуск.",
 		"date": "2026-10-23T13:13:19.069Z"

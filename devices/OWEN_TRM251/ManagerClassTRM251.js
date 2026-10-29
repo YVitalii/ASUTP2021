@@ -8,6 +8,13 @@ const emulateDevices = require("../../config.js").emulateRS485;
 const APIerror = require("../../tools/apiError.js");
 const ClassStep_TRM251_nextProgram = require("./ClassStep_TRM251_nextProgram.js");
 
+function roundTemperature(value) {
+  if (value === null || value === undefined || value === "") return value;
+  const num = Number(value);
+  if (!Number.isFinite(num)) return value;
+  return Number(num.toFixed(1));
+}
+
 function readStepField(step, name) {
   const reg = step && step.regs && step.regs[name];
   if (reg && reg.value !== undefined && reg.value !== null) return reg.value;
@@ -355,6 +362,10 @@ class ClassManager extends ClassDevManagerGeneral {
 
     try {
       res = await super.getRegister(regName);
+      if (regName == "T1" || regName == "T2") {
+        res = roundTemperature(res);
+        this.regs[regName].value = res;
+      }
       if (regName == "mode") {
         let reg = this.regs["mode"];
 
