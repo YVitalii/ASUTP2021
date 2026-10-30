@@ -38,7 +38,7 @@ class ClassStep {
     // перелік можливих станів: "waiting","going","finished","stoped","error"
     this.state._id = "waiting";
     this.state.note = { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` };
-    this.state.startTime = undefined;
+    this.state.startTime = null;
     this.state.duration = "00d00:00:00"; // тривалість кроку "ДДdГГ:ХХ:СС"
     // зберігає опис помилки
     this.err = null;

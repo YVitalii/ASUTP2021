@@ -47,6 +47,11 @@ export default defineConfig(
             secure: false,
             // rewrite: (path) => path.replace(/^\/api/, ""),
           },
+          "/process": {
+            target: "http://127.0.0.1:3044",
+            changeOrigin: true,
+            secure: false,
+          },
         },
       },
     };

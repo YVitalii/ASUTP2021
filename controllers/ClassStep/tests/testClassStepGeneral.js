@@ -33,7 +33,7 @@ describe("ClassStepGeneral", () => {
       assert.equal(item.state.duration, "00d00:00:00");
       assert.equal(item.currentDuration, 0);
       assert.equal(item.err, null);
-      assert.equal(item.state.startTime, undefined);
+      assert.equal(item.state.startTime, null);
       assert.deepEqual(item.state.note, {
         ua: "Очікування",
         en: "Waiting",

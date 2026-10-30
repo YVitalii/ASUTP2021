@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProcessManager</title>
+    <style>
+      html,
+      body,
+      #app,
+      .host,
+      .frame {
+        box-sizing: border-box;
+        height: 100%;
+        margin: 0;
+      }
+      .host {
+        display: flex;
+        flex-direction: column;
+      }
+      .switcher {
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+      }
+      .frame {
+        flex: 1 1 auto;
+        min-height: 0;
+        background: #f7f7f7;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

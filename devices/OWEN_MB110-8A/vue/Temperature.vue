@@ -1,31 +1,37 @@
 <template>
- <h6 :title="title" class="text-center border rounded"> {{ value }} </h6>    
+  <h6 :title="title" class="text-center border rounded">{{ shown }}</h6>
 </template>
 
+<script setup lang="ts">
+import { ref, watch } from "vue";
 
-<script setup>
+const props = withDefaults(
+  defineProps<{
+    value?: number | string | null;
+    title?: string;
+  }>(),
+  {
+    value: "?",
+    title: "?",
+  },
+);
 
-import { ref, watch} from 'vue';
-const props=defineProps({
-  value: {
-    type: Number,
-    default: '?',
-  },
-  title:{
-    type: String,
-    default: '?',
-  },
-});
-const value = ref(props.value);
 const title = props.title;
-watch(() => props.value, (newValue) => {
-    if (newValue === undefined || newValue === null) {
-        newValue = '?';
-    } else {
-        let income=newValue;
-        newValue= parseFloat(newValue).toFixed(1)
-        console.log(`Temperature.vue::newValue(${income}):: ${title}=${newValue}`);
-    };
-    value.value = newValue;
-},{ immediate: true });
+const shown = ref<string>(String(props.value ?? "?"));
+
+watch(
+  () => props.value,
+  (incoming) => {
+    if (incoming === undefined || incoming === null) {
+      shown.value = "?";
+      return;
+    }
+    const formatted = parseFloat(String(incoming)).toFixed(1);
+    console.log(
+      `Temperature.vue::newValue(${incoming}):: ${title}=${formatted}`,
+    );
+    shown.value = formatted;
+  },
+  { immediate: true },
+);
 </script>
