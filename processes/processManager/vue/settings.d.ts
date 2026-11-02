@@ -12,6 +12,10 @@ export interface DescriptionField {
 export interface StateColors {
   board: string;
   background: string;
+  /** Товщина рамки вузла, наприклад "4px". */
+  boardWidth?: string;
+  /** Жирний підпис вузла. */
+  textBold?: boolean;
 }
 
 export interface ProcessManagerSettings {

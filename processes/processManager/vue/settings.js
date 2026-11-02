@@ -12,6 +12,8 @@ export const settings = {
     going: {
       board: "#2e9e4f",
       background: "color-mix(in srgb, #2e9e4f 18%, white)",
+      boardWidth: "4px",
+      textBold: true,
     },
     error: {
       board: "#d32f2f",

@@ -12,18 +12,17 @@
       </div>
     </section>
     <slot v-else name="description" />
-    <PM_Process_Content>
-      <div v-if="loading" class="pm-loading" role="status">
-        <span class="pm-spinner" />
-        <span>Завантаження…</span>
-      </div>
-      <pre v-else class="pm-state">{{ stateText }}</pre>
-    </PM_Process_Content>
+    <div v-if="loading" class="pm-loading pm-content-loading" role="status">
+      <span class="pm-spinner" />
+      <span>Завантаження…</span>
+    </div>
+    <PM_Process_Content v-else-if="program" :state="program" />
+    <pre v-else class="pm-state">{{ errorMessage }}</pre>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { usePostJson } from "../../../vueComponents/composables/usePostJson";
 import PM_Process_Content from "./PM_Process_Content.vue";
 import { settings } from "./settings.js";
@@ -44,6 +43,7 @@ type ProgramState = {
   startTime?: string | null;
   duration?: string;
   _id?: string;
+  tasks?: unknown;
 };
 
 type StateResponse = {
@@ -59,8 +59,15 @@ const emit = defineEmits<{
 const stateIds = Object.keys(settings.states);
 
 const loading = ref(true);
-const stateText = ref("");
+const program = ref<ProgramState | null>(null);
+const errorMessage = ref("");
+/** JSON попереднього стану: однаковий відповідь не замінює program. */
+let lastStateJson = "";
 const activeId = ref(props.stateId);
+/** Опитування стану, мс. */
+const pollMs = 10_000;
+let pollTimer: ReturnType<typeof setInterval> | null = null;
+let pollBusy = false;
 
 watch(
   () => props.stateId,
@@ -95,23 +102,43 @@ function errorText(err: LocalizedMessage | string | null | undefined) {
   return err.ua || err.en || err.ru || "Немає даних";
 }
 
-onMounted(async () => {
+async function loadState() {
+  if (pollBusy) return;
+  pollBusy = true;
   try {
     const response = await usePostJson<StateResponse>(processStateUrl(), {});
     if (response?.err || response?.data?.content == null) {
-      stateText.value = errorText(response?.err);
+      if (!program.value) errorMessage.value = errorText(response?.err);
       return;
     }
     const content = response.data.content;
-    stateText.value = JSON.stringify(content, null, 2);
+    const nextJson = JSON.stringify(content);
+    if (nextJson === lastStateJson) return;
+    lastStateJson = nextJson;
+    errorMessage.value = "";
+    program.value = content;
     if (content._id) activeId.value = content._id;
     emit("loaded", content);
   } catch (error) {
-    stateText.value =
-      error instanceof Error ? error.message : "Немає зв'язку з сервером";
+    if (!program.value) {
+      errorMessage.value =
+        error instanceof Error ? error.message : "Немає зв'язку з сервером";
+    }
   } finally {
+    pollBusy = false;
     loading.value = false;
   }
+}
+
+onMounted(() => {
+  void loadState();
+  pollTimer = setInterval(() => {
+    void loadState();
+  }, pollMs);
+});
+
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer);
 });
 </script>
 
@@ -156,8 +183,15 @@ onMounted(async () => {
   flex: 0 0 auto;
 }
 
+.pm-content-loading {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  margin: 2px;
+  padding: 5px;
+}
+
 .pm-state {
-  margin: 0;
+  margin: 2px;
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 12px;

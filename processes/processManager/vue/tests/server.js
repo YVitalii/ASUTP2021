@@ -17,6 +17,50 @@ function expressPath(url) {
 
 const steps = createTRM251StepsManager();
 const app = express();
+const endStatuses = ["finished", "stoped", "error"];
+
+/** waiting → going → випадково finished, stoped або error. Далі статус не змінюється. */
+function nextStepStatus(current) {
+  if (current === "waiting") return "going";
+  if (current === "going") {
+    return endStatuses[Math.floor(Math.random() * endStatuses.length)];
+  }
+  return current;
+}
+
+function listLeafSteps(task, out = []) {
+  if (!task || typeof task !== "object") return out;
+  if (Array.isArray(task.tasks) && task.tasks.length) {
+    for (const child of task.tasks) listLeafSteps(child, out);
+    return out;
+  }
+  if (task.state && task.id != null && task.state._id != null) out.push(task);
+  return out;
+}
+
+/**
+ * Один POST рухає лише один крок, щоб going встигав бути на діаграмі.
+ * Поточний going → випадковий кінцевий статус, наступний waiting → going.
+ */
+function advanceProgramSteps() {
+  const tasks = steps.program && steps.program.tasks;
+  if (!Array.isArray(tasks)) return;
+  const leaves = [];
+  for (const task of tasks) listLeafSteps(task, leaves);
+  const changes = [];
+  const going = leaves.find((step) => step.state._id === "going");
+  if (going) {
+    const next = nextStepStatus(going.state._id);
+    going.state._id = next;
+    changes.push(`${going.id}: ${next}`);
+  }
+  const waiting = leaves.find((step) => step.state._id === "waiting");
+  if (waiting) {
+    waiting.state._id = "going";
+    changes.push(`${waiting.id}: going`);
+  }
+  if (changes.length) console.log("Статуси кроків:", changes.join(", "));
+}
 
 app.use(express.json());
 app.use((req, res, next) => {
@@ -30,8 +74,9 @@ app.use((req, res, next) => {
   next();
 });
 
-function sendState(_req, res) {
+function sendState(req, res) {
   try {
+    if (req.method === "POST") advanceProgramSteps();
     const content = steps.program.getState();
     res.json({ err: null, data: { content } });
   } catch (error) {

@@ -5,7 +5,7 @@
 module.exports = [
   {
     id: "description",
-    type: "description",
+    type: "stepDescription",
     fName: "prg02",
     description: "Колеса чавунні. Відпуск.",
     date: "2026-10-23T11:54:11.075Z",
