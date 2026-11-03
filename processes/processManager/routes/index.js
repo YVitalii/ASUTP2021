@@ -1,52 +1,116 @@
 var express = require("express");
 var router = express.Router();
 const pug = require("pug");
-const resolvePath = require("path").resolve;
 const log = require("../../../tools/log.js");
 
-// router.all("*", function(req, res, next) {
-// })
+/**
+ * Шляхи з processes/processManager/vue/settings.js:
+ * POST /process/state, /process/start, /process/stop.
+ * Відповідь: { err, data }. Стан: data.content = program.getState().
+ * Старт: тіло { stepId }.
+ */
 
-router.post("/getProgram", function (req, res, next) {
-  res.json(req.entity.processManager.getHtmlProgram());
-});
+function message(ua, en, ru) {
+  return { ua, en, ru: ru || en };
+}
 
-router.post("/start", async function (req, res, next) {
-  let trace = 1,
-    ln = `post("${req.originalUrl}")::`;
-  let step = req.body.step;
-  if (trace) {
-    log("w", ln, `Recived command start from step N ${step}`);
-    console.dir(req.body);
+function errorText(error) {
+  const text = error && error.message ? error.message : String(error);
+  return message(`Помилка: '${text}'`, `Error: '${text}'`, `Ошибка: '${text}'`);
+}
+
+function taskHasId(task, id) {
+  if (!task || typeof task !== "object") return false;
+  if (task.id != null && String(task.id) === id) return true;
+  if (!Array.isArray(task.tasks)) return false;
+  return task.tasks.some((child) => taskHasId(child, id));
+}
+
+/**
+ * stepId з клієнта — id кроку. program.start чекає індекс у program.tasks.
+ * Порожній stepId — старт з початку (крок 1, як у ClassProcessManager.start).
+ * @returns {number|null}
+ */
+function stepNumber(manager, stepId) {
+  const id = stepId == null ? "" : String(stepId).trim();
+  const tasks = manager && manager.program && manager.program.tasks;
+  if (id === "") return 1;
+  if (Array.isArray(tasks)) {
+    const index = tasks.findIndex((task) => taskHasId(task, id));
+    if (index >= 0) return index;
   }
-  let result = await req.entity.processManager.start(step);
-  res.json(result);
-});
+  if (/^\d+$/.test(id)) return parseInt(id, 10);
+  return null;
+}
 
-router.post("/stop", function (req, res, next) {
-  let trace = 1,
-    ln = `post("${req.originalUrl}")::`;
-  if (trace) {
-    log("w", ln, `Recived command stop`);
-    console.dir(req.body);
+function mountProcessApi(target) {
+  target.post("/process/state", postState);
+  target.post("/process/start", postStart);
+  target.post("/process/stop", postStop);
+}
+
+function postState(req, res) {
+  const ln = `post("${req.originalUrl}")::`;
+  try {
+    const manager = req.entity && req.entity.processManager;
+    const program = manager && manager.program;
+    if (!program || typeof program.getState !== "function") {
+      res.json({
+        err: message("Немає програми", "No program", "Нет программы"),
+        data: null,
+      });
+      return;
+    }
+    res.json({ err: null, data: { content: program.getState() } });
+  } catch (error) {
+    log("e", ln + (error && error.message ? error.message : error));
+    res.json({ err: errorText(error), data: null });
   }
-  let data = { ua: `Ok`, en: `Ok`, ru: `Ok` };
-  req.entity.processManager.stop();
-  res.json(data);
-});
+}
 
-router.post("/state", function (req, res, next) {
-  let data = {
-    // 2026-09-23 Поки заглушка, потрібно дописати код
-    runningProgramName: null, // імя активної програми або null
-    activeSteps: null, // регістри опису активних кроків  або null
-  };
-  res.json(data);
-});
+async function postStart(req, res) {
+  const ln = `post("${req.originalUrl}")::`;
+  const stepId = req.body && req.body.stepId;
+  try {
+    const manager = req.entity && req.entity.processManager;
+    const stepN = stepNumber(manager, stepId);
+    if (stepN == null) {
+      const id = stepId == null ? "" : String(stepId);
+      res.json({
+        err: message(
+          `Крок "${id}" не знайдено`,
+          `Step "${id}" was not found`,
+          `Шаг "${id}" не найден`,
+        ),
+        data: null,
+      });
+      return;
+    }
+    log("w", ln, `start stepId=${stepId == null ? "" : stepId} stepN=${stepN}`);
+    const result = await manager.start(stepN);
+    res.json(result);
+  } catch (error) {
+    log("e", ln + (error && error.message ? error.message : error));
+    res.json({ err: errorText(error), data: null });
+  }
+}
+
+function postStop(req, res) {
+  const ln = `post("${req.originalUrl}")::`;
+  try {
+    log("w", ln, "stop");
+    req.entity.processManager.stop();
+    res.json({ err: null, data: null });
+  } catch (error) {
+    log("e", ln + (error && error.message ? error.message : error));
+    res.json({ err: errorText(error), data: null });
+  }
+}
+
+mountProcessApi(router);
+
 /* main page  */
 router.get("/", function (req, res, next) {
-  let user = req.user.username,
-    entityName = req.entity.fullName[req.user.lang];
   let trace = 1,
     ln = 'tests/server/routes/index.js::get("/")::';
   if (trace) {
@@ -60,7 +124,7 @@ router.get("/", function (req, res, next) {
     ru: `${req.entity.fullName["ru"]} <br> <small>Тестирование processManager</small>`,
   };
   res.send(pug.renderFile(req.locals.mainPug, { pageTitle, body: html }));
-  // res.send(`${req.baseUrl}/`);
 });
 
 module.exports = router;
+module.exports.mountProcessApi = mountProcessApi;

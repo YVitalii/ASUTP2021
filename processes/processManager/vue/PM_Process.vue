@@ -16,7 +16,11 @@
       <span class="pm-spinner" />
       <span>Завантаження…</span>
     </div>
-    <PM_Process_Content v-else-if="program" :state="program" />
+    <PM_Process_Content
+      v-else-if="program"
+      :state="program"
+      @select-step="(step) => emit('select-step', step)"
+    />
     <pre v-else class="pm-state">{{ errorMessage }}</pre>
   </div>
 </template>
@@ -31,8 +35,10 @@ const props = withDefaults(
   defineProps<{
     /** Стан програми: waiting, going, error, finished, stoped. */
     stateId?: string;
+    /** Збільшується після Старт/Стоп, щоб одразу перечитати стан. */
+    reloadToken?: number;
   }>(),
-  { stateId: "waiting" },
+  { stateId: "waiting", reloadToken: 0 },
 );
 
 type LocalizedMessage = { ua?: string; en?: string; ru?: string };
@@ -54,6 +60,7 @@ type StateResponse = {
 const emit = defineEmits<{
   loaded: [program: ProgramState];
   "update:stateId": [id: string];
+  "select-step": [step: { id: string; header?: ProgramState["header"] }];
 }>();
 
 const stateIds = Object.keys(settings.states);
@@ -88,6 +95,13 @@ const frameStyle = computed(() => ({
 watch(activeId, (id) => {
   if (id && id !== props.stateId) emit("update:stateId", id);
 });
+
+watch(
+  () => props.reloadToken,
+  () => {
+    void loadState();
+  },
+);
 
 /** baseUrl сторінки + шлях стану з settings ("./process/state" → "/process/state"). */
 function processStateUrl() {

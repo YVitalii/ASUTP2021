@@ -15,7 +15,7 @@ import { onMounted, useTemplateRef, watch } from "vue";
 import parseTasksToMermaid, {
   safeId,
 } from "../../../vueComponents/composables/MermaidTools/parseTasksToMermaid.js";
-import { fieldLabelText } from "../../../vueComponents/fields/fieldLabel.ts";
+import { fieldLabelText } from "../../../vueComponents/fields/fieldLabel";
 import { settings } from "./settings.js";
 
 type MermaidApi = {
@@ -32,6 +32,10 @@ const props = defineProps<{
   state: {
     tasks?: unknown;
   };
+}>();
+
+const emit = defineEmits<{
+  "select-step": [step: { id: string; header?: StepStatus["header"] }];
 }>();
 
 type LocalizedText = { ua?: string; en?: string; ru?: string };
@@ -57,7 +61,7 @@ let drawnStatuses = new Map<string, string>();
 const stepTip = useTemplateRef<HTMLDivElement>("stepTip");
 const tipHandlers = new Map<
   Element,
-  { show: (event: MouseEvent) => void; hide: () => void }
+  { show: () => void; hide: () => void; pick: () => void }
 >();
 
 async function loadMermaid() {
@@ -167,6 +171,7 @@ function bindTooltip(step: StepStatus) {
   if (previous) {
     section.removeEventListener("mouseenter", previous.show);
     section.removeEventListener("mouseleave", previous.hide);
+    section.removeEventListener("click", previous.pick);
   }
   const show = () => {
     const title = tip.querySelector("h6");
@@ -188,9 +193,13 @@ function bindTooltip(step: StepStatus) {
   const hide = () => {
     tip.hidden = true;
   };
+  const pick = () => {
+    emit("select-step", { id: step.id, header: step.header });
+  };
   section.addEventListener("mouseenter", show);
   section.addEventListener("mouseleave", hide);
-  tipHandlers.set(section, { show, hide });
+  section.addEventListener("click", pick);
+  tipHandlers.set(section, { show, hide, pick });
 }
 
 function bindTooltips(steps: StepStatus[]) {
@@ -264,6 +273,10 @@ watch(
 
 .mermaid {
   margin: 0;
+}
+
+.pm-content :deep(.node) {
+  cursor: pointer;
 }
 
 .pm-step-tip {

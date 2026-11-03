@@ -1,8 +1,6 @@
-export interface FieldLabel {
-  ua?: string;
-  en?: string;
-  ru?: string;
-}
+import type { FieldLabel } from "../../../vueComponents/fields/fieldLabel";
+
+export type { FieldLabel };
 
 export interface DescriptionField {
   label: FieldLabel;
@@ -21,6 +19,8 @@ export interface StateColors {
 export interface ProcessManagerSettings {
   url: {
     state: string;
+    start: string;
+    stop: string;
   };
   states: {
     waiting: StateColors;
@@ -30,6 +30,11 @@ export interface ProcessManagerSettings {
     stoped: StateColors;
   };
   process: {
+    command: {
+      start: FieldLabel;
+      stop: FieldLabel;
+      step: FieldLabel;
+    };
     description: {
       header: DescriptionField;
       comment: DescriptionField;

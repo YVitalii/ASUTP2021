@@ -1,0 +1,31 @@
+
+//- pre #{JSON.stringify(processMan.htmlProgram)} 
+-var buttonsContainer = "process_buttonsContainer"
+-var programContainer = "process_programContainer"
+
+
+
+//- div.row(id=buttonsContainer) 
+//- div.col  
+
+div.col.h-100.bordered.border-secondary
+  div.row(id=buttonsContainer)
+    //- div.col
+  div.row 
+    div.col(id=programContainer)     
+
+script.
+  var  processMan = {};
+
+  processMan.myElementsRender = myElementsRender;
+  processMan.homeURL = `#{processMan.homeURL}/`;
+  processMan.editTaskUrl = `#{processMan.tasksManager.homeURL}/`;
+  processMan.buttons = {};
+  processMan.buttons.container =  document.getElementById(!{`"${buttonsContainer}"`}); 
+  processMan.program = {};
+  processMan.program.container = document.getElementById(!{`"${programContainer}"`});
+
+script
+  include ./js/processMan_Buttons.js
+  include ./js/myElR_ClassElementStep.js
+  include ./js/processMan_Main.js

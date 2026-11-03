@@ -2,6 +2,8 @@
 export const settings = {
   url: {
     state: "./process/state",
+    start: "./process/start",
+    stop: "./process/stop",
   },
   /** Кольори рамки та фону за _id програми. */
   states: {
@@ -29,6 +31,11 @@ export const settings = {
     },
   },
   process: {
+    command: {
+      start: { ua: "Старт", en: "Start", ru: "Старт" },
+      stop: { ua: "Стоп", en: "Stop", ru: "Стоп" },
+      step: { ua: "Крок:", en: "Step:", ru: "Шаг:" },
+    },
     description: {
       header: {
         label: { ua: "Назва:", en: "Name:" },

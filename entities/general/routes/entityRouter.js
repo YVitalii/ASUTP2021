@@ -2,6 +2,8 @@ var express = require("express");
 var router = express.Router();
 
 const pug = require("pug");
+const mountProcessApi = require("../../../processes/processManager/routes/index.js")
+  .mountProcessApi;
 // ------------ логгер  --------------------
 let log = require("../../../tools/log.js"); // логер
 let logName = "entityRouter.js::";
@@ -24,6 +26,8 @@ router.use("/:id/*", function (req, res, next) {
 // app.use("/entity/:id/devicesManager/", devicesManagerRouter);
 
 // app.use("/entity/:id/loggerManager/", loggerManagerRouter);
+
+mountProcessApi(router);
 
 router.get("/", function (req, res, next) {
   // сторінка зі списком печей
