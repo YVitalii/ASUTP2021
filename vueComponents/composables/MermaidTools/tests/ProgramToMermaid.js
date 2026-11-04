@@ -26,12 +26,12 @@ function lang(text) {
  */
 function toTask(step) {
   if (step.type === "stepDescription") return step;
-  if (step.type === "TRM251_nextProgram") {
+  if (step.type === "TRM251_goToPrSt") {
     return {
-      id: `nextProgram_${step.prgN}`,
+      id: `goToPrSt_${step.prN}_${step.stN}`,
       type: "ProsessStep_SimpleBadge",
       _id: "waiting",
-      header: lang(`Наступна програма ${step.prgN}`),
+      header: lang(`Перехід Пр:${step.prN} Кр:${step.stN}`),
     };
   }
   const title = `${step.Pr}:${step.St}. tT=${step.tT}; H=${minutesToHHMM(step.H)}; Y=${minutesToHHMM(step.Y)}`;

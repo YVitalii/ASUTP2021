@@ -6,7 +6,7 @@ const log = require("../../../tools/log.js");
 /**
  * Шляхи з processes/processManager/vue/settings.js:
  * POST /process/state, /process/start, /process/stop.
- * Відповідь: { err, data }. Стан: data.content = program.getState().
+ * Відповідь: { err, data }. Стан: data.content = processManager.getStates().
  * Старт: тіло { stepId }.
  */
 
@@ -53,15 +53,14 @@ function postState(req, res) {
   const ln = `post("${req.originalUrl}")::`;
   try {
     const manager = req.entity && req.entity.processManager;
-    const program = manager && manager.program;
-    if (!program || typeof program.getState !== "function") {
+    if (!manager || typeof manager.getStates !== "function") {
       res.json({
         err: message("Немає програми", "No program", "Нет программы"),
         data: null,
       });
       return;
     }
-    res.json({ err: null, data: { content: program.getState() } });
+    res.json({ err: null, data: { content: manager.getStates() } });
   } catch (error) {
     log("e", ln + (error && error.message ? error.message : error));
     res.json({ err: errorText(error), data: null });

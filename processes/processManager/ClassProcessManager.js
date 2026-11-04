@@ -61,9 +61,96 @@ class ClassProcessManager {
     this.htmlProgram = {};
     this.htmlProgram.states = []; // програма для браузера
     this.htmlProgram.lastUpdate = 0; // відмітка часу останнього оновлення програми для браузера
-    // програма в tasksManager уже завантажена синхронно
-    this.setProgram();
+    // Програма і типи кроків можуть з'явитися вже після конструктора.
+    // Перше читання з TasksManager — через 3 с, далі ще дві спроби з тим самим інтервалом.
+    this.programLoadAttempt = 0;
+    this.scheduleProgramLoad();
     this.loggerManager.start();
+  }
+
+  scheduleProgramLoad() {
+    let timer = setTimeout(() => {
+      this.loadProgramFromTasks();
+    }, 3000);
+    if (timer && typeof timer.unref === "function") timer.unref();
+  }
+
+  programContentReady(content) {
+    if (Array.isArray(content)) return content.length > 0;
+    if (typeof content === "string") return content.trim().length > 0;
+    return false;
+  }
+
+  loadProgramFromTasks() {
+    if (this.program && this.program.state && this.program.state._id) return;
+
+    this.programLoadAttempt += 1;
+    let content;
+    let obtained = false;
+    try {
+      let task = this.tasksManager.getActiveTask();
+      content = task && task.content;
+      obtained = this.programContentReady(content);
+    } catch (error) {
+      obtained = false;
+    }
+
+    if (!obtained) {
+      if (this.programLoadAttempt < 3) {
+        this.scheduleProgramLoad();
+        return;
+      }
+      this.stopProgramWithError({
+        ua: `Не вдалося отримати програму з TasksManager`,
+        en: `Failed to get the program from TasksManager`,
+        ru: `Не удалось получить программу из TasksManager`,
+      });
+      return;
+    }
+
+    let result;
+    try {
+      result = this.setProgram();
+    } catch (error) {
+      let message = error && error.message ? error.message : String(error);
+      result = { err: { ua: message, en: message, ru: message }, data: null };
+    }
+    if (!result || result.err) {
+      if (this.programLoadAttempt < 3) {
+        this.scheduleProgramLoad();
+        return;
+      }
+      this.stopProgramWithError(
+        result && result.err
+          ? result.err
+          : {
+              ua: `Не вдалося отримати програму з TasksManager`,
+              en: `Failed to get the program from TasksManager`,
+              ru: `Не удалось получить программу из TasksManager`,
+            },
+      );
+    }
+  }
+
+  stopProgramWithError(err) {
+    let ln = this.ln + "stopProgramWithError()::";
+    let note =
+      err && err.ua
+        ? err
+        : {
+            ua: `Не вдалося отримати програму з TasksManager`,
+            en: `Failed to get the program from TasksManager`,
+            ru: `Не удалось получить программу из TasksManager`,
+          };
+    log("e", ln, note.ua);
+    if (this.program && typeof this.program.error === "function") {
+      this.program.error(note);
+      return;
+    }
+    this.program = {
+      header: this.header,
+      state: { _id: "error", note },
+    };
   }
 
   setProgram() {
@@ -142,7 +229,7 @@ class ClassProcessManager {
   getStates() {
     let trace = 0,
       ln = this.ln + "getStates()::";
-    let states = this.program.getStates();
+    let states = this.program.getState();
     if (trace) {
       log("i", ln, `states=`);
       console.dir(states);
@@ -269,14 +356,15 @@ class ClassProcessManager {
     }
 
     await this.loggerManager.start(this.currLogFileName);
+    // запускаємо програму
     this.program.start(stepN);
 
     //await this.loggerManager.start(fileName);
 
     let data = {
-      ua: `Програма "${this.program.header.ua}" почала виконання!`,
-      en: `Program is "${this.program.header.en}" started!`,
-      ru: `Програма "${this.program.header.ru}" запущена!`,
+      ua: `${this.ln}Програма "${this.program.header.ua}" почала виконання!`,
+      en: `${this.ln}Program is "${this.program.header.en}" started!`,
+      ru: `${this.ln}Програма "${this.program.header.ru}" запущена!`,
     };
     this.listSteps[0].started = new Date().toISOString();
     await this.loggerManager.saveTasks(this.listSteps);

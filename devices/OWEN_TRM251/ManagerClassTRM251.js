@@ -6,7 +6,7 @@ const { dummyPromise } = require("../../tools/dummy.js");
 const units = require("../../config.js").units;
 const emulateDevices = require("../../config.js").emulateRS485;
 const APIerror = require("../../tools/apiError.js");
-const ClassStep_TRM251_nextProgram = require("./ClassStep_TRM251_nextProgram.js");
+const ClassStep_TRM251_goToPrSt = require("./ClassStep_TRM251_goToPrSt.js");
 
 function roundTemperature(value) {
   if (value === null || value === undefined || value === "") return value;
@@ -30,7 +30,7 @@ function programForDriver(program) {
   for (let index = 1; index < program.length; index++) {
     const step = program[index];
     // Службовий перехід між програмами в регістр приладу не пишеться.
-    if (step && step.type === ClassStep_TRM251_nextProgram.type) continue;
+    if (step && step.type === ClassStep_TRM251_goToPrSt.type) continue;
     const tT = Number(readStepField(step, "tT"));
     const H = Number(readStepField(step, "H"));
     const Y = Number(readStepField(step, "Y"));
@@ -61,6 +61,8 @@ class ClassManager extends ClassDevManagerGeneral {
       console.dir(props);
     }
     super(props);
+    // пауза між спробами запуску, мс; за замовчуванням 2 с
+    this.timeout = props.timeout ? props.timeout : 2 * 1000;
     for (let i = 1; i < 3; i++) {
       this.addRegister({
         id: `T${i}`,
@@ -233,8 +235,11 @@ class ClassManager extends ClassDevManagerGeneral {
     try {
       this.regs.mode.timestamp = 0;
       const mode = await this.getRegister("mode");
-      if (mode != 0) await this.stop();
-      const placed = await this.setPrSt({ prgN: prN, stepN: stN });
+      if (mode != 0) {
+        const stopped = await this.stop();
+        if (stopped !== true) throw stopped;
+      }
+      const placed = await this.setPrSt({ prN, stN });
       if (placed !== true) throw placed;
       await this.driver.setRegPromise({
         iface: this.iface,
@@ -256,56 +261,89 @@ class ClassManager extends ClassDevManagerGeneral {
   }
 
   /**
-   * Якщо прилад не зупинений — stop(), записує програму і продовжує з prN/stN.
-   * prN і stN за замовчуванням 1.
-   * @param {{program: Array, prN?: number, stN?: number}} arg
-   * @returns {Promise<true>}
+   * Ставить програму і крок через setPrSt, потім вмикає прилад.
+   * prN і stN, якщо їх немає, ставить setPrSt: обидва 1. Програму в регістр цей метод не пише.
+   * Поки mode = 0, до 3 разів пише startStop = 1 і чекає this.timeout.
+   * mode = 1 → true. Інакше APIerror з поточним mode.
+   * @param {{prN?: number, stN?: number}} arg
+   * @returns {Promise<true|APIerror>}
    */
   async start(arg = {}) {
     let ln = this.ln + "start()::";
-    const prN = arg.prN == null ? 1 : arg.prN;
-    const stN = arg.stN == null ? 1 : arg.stN;
+    const placed = await this.setPrSt(arg);
+    if (placed !== true) return placed;
+
     try {
-      this.regs.mode.timestamp = 0;
-      const mode = await this.getRegister("mode");
-      if (mode != 0) await this.stop();
-      await this.setProgram(arg.program);
-      return await this.continueFrom({ prN, stN });
+      let mode = await this.getRegisterDirectly("mode");
+      let times = 3;
+      while (mode == 0 && times > 0) {
+        await this.driver.setRegPromise({
+          iface: this.iface,
+          devAddr: this.addr,
+          regName: "startStop",
+          value: 1,
+        });
+        await dummyPromise(this.timeout);
+        mode = await this.getRegisterDirectly("mode");
+        times -= 1;
+      }
+      if (mode == 1) return true;
+      const error = new APIerror({
+        ua: `Прилад не запустився, mode=${mode}`,
+        en: `Device did not start, mode=${mode}`,
+        ru: `Прибор не запустился, mode=${mode}`,
+      });
+      log("e", ln, error.msg.ua);
+      return error;
     } catch (error) {
-      if (error && error.name === "apiError") throw error;
+      if (error && error.name === "apiError") return error;
       let reason = error && error.message ? error.message : String(error);
       log("e", ln, reason);
-      throw new APIerror({
-        ua: `Не вдалося запустити програму ${prN} крок ${stN}: ${reason}`,
-        en: `Failed to start program ${prN} step ${stN}: ${reason}`,
-        ru: `Не удалось запустить программу ${prN} шаг ${stN}: ${reason}`,
+      return new APIerror({
+        ua: `Не вдалося запустити прилад: ${reason}`,
+        en: `Failed to start the device: ${reason}`,
+        ru: `Не удалось запустить прибор: ${reason}`,
       });
     }
   }
 
   /**
-   * Зупиняє прилад, якщо він не в режимі Stop.
-   * Повторна зупинка вже зупиненого приладу дає помилку Modbus, тому при mode = 0 запис не йде.
-   * @returns {Promise<true>}
+   * Зупиняє прилад. Аргументів немає.
+   * Поки mode не 0, до 3 разів пише startStop = 0 і чекає this.timeout.
+   * mode = 0 → true. Інакше APIerror з поточним mode.
+   * Уже зупинений прилад не отримує повторний запис startStop.
+   * @returns {Promise<true|APIerror>}
    */
   async stop() {
     let ln = this.ln + "stop()::";
+
     try {
-      const mode = await this.getRegister("mode");
-      if (mode != 0) {
+      let mode = await this.getRegisterDirectly("mode");
+      let times = 3;
+      while (mode != 0 && times > 0) {
         await this.driver.setRegPromise({
           iface: this.iface,
           devAddr: this.addr,
           regName: "startStop",
           value: 0,
         });
+        await dummyPromise(this.timeout);
+        mode = await this.getRegisterDirectly("mode");
+        times -= 1;
       }
-      return true;
+      if (mode == 0) return true;
+      const error = new APIerror({
+        ua: `Прилад не зупинився, mode=${mode}`,
+        en: `Device did not stop, mode=${mode}`,
+        ru: `Прибор не остановился, mode=${mode}`,
+      });
+      log("e", ln, error.msg.ua);
+      return error;
     } catch (error) {
-      if (error && error.name === "apiError") throw error;
+      if (error && error.name === "apiError") return error;
       let reason = error && error.message ? error.message : String(error);
       log("e", ln, reason);
-      throw new APIerror({
+      return new APIerror({
         ua: `Не вдалося зупинити прилад: ${reason}`,
         en: `Failed to stop the device: ${reason}`,
         ru: `Не удалось остановить прибор: ${reason}`,
@@ -343,6 +381,16 @@ class ClassManager extends ClassDevManagerGeneral {
       }, period);
     }
   } // getMode()
+
+  /**
+   * Читає регістр з приладу, минаючи кеш.
+   * @param {String} regName id регістра в this.regs
+   * @returns {Promise<*>}
+   */
+  async getRegisterDirectly(regName) {
+    this.regs[regName].timestamp = 0;
+    return this.getRegister(regName);
+  }
 
   async getRegister(regName) {
     let trace = 0,
@@ -438,10 +486,7 @@ class ClassManager extends ClassDevManagerGeneral {
   }
 
   async getT() {
-    this.regs.T1.timestamp = 0;
-    const value = await this.getRegister("T1");
-    this.regs.T1.value = value;
-    return value;
+    return this.getRegister("T1");
   }
 
   /**
@@ -528,40 +573,55 @@ class ClassManager extends ClassDevManagerGeneral {
 
   /**
    * Ставить поточну програму і крок приладу.
-   * Дозволено лише в режимі Stop (mode = 0).
-   * @param {{prgN: number, stepN: number}} arg prgN 1..3, stepN 1..5
+   * prN і stN за замовчуванням 1. Дозволено лише в режимі Stop (mode = 0).
+   * До 3 разів пише програму і крок, чекає this.timeout і читає їх з приладу.
+   * Повертає true, коли прочитані значення збігаються із заданими.
+   * @param {{prN?: number, stN?: number}} arg prN 1..3, stN 1..5
    * @returns {Promise<true|APIerror>}
    */
   async setPrSt(arg = {}) {
     let ln = this.ln + "setPrSt()::";
-    const prgN = Number(arg.prgN);
-    const stepN = Number(arg.stepN);
+    const prN = arg.prN == null ? 1 : arg.prN;
+    const stN = arg.stN == null ? 1 : arg.stN;
+    const programN = Number(prN);
+    const stepN = Number(stN);
     try {
-      if (!Number.isInteger(prgN) || prgN < 1 || prgN > 3) {
-        throw new Error(`prgN=${arg.prgN} має бути 1..3`);
+      if (!Number.isInteger(programN) || programN < 1 || programN > 3) {
+        throw new Error(`prN=${prN} має бути 1..3`);
       }
       if (!Number.isInteger(stepN) || stepN < 1 || stepN > 5) {
-        throw new Error(`stepN=${arg.stepN} має бути 1..5`);
+        throw new Error(`stN=${stN} має бути 1..5`);
       }
       // кеш mode може бути застарілим: перед записом читаємо прилад
-      this.regs.mode.timestamp = 0;
-      const mode = await this.getRegister("mode");
+      const mode = await this.getRegisterDirectly("mode");
       if (mode !== 0) {
         throw new Error(
           `програму і крок можна встановлювати лише коли прилад зупинено (mode=0), зараз mode=${mode}`,
         );
       }
-      await this.setReg("programN", prgN);
-      await this.setReg("step", stepN);
-      return true;
+      let placedProgram;
+      let placedStep;
+      let times = 3;
+      while (times > 0) {
+        await this.setReg("programN", programN);
+        await this.setReg("step", stepN);
+        await dummyPromise(this.timeout);
+        placedProgram = Number(await this.getRegisterDirectly("programN"));
+        placedStep = Number(await this.getRegisterDirectly("step"));
+        if (placedProgram === programN && placedStep === stepN) return true;
+        times -= 1;
+      }
+      throw new Error(
+        `прилад лишився на програмі ${placedProgram} крок ${placedStep}`,
+      );
     } catch (error) {
       if (error && error.name === "apiError") return error;
       let reason = error && error.message ? error.message : String(error);
       log("e", ln, reason);
       return new APIerror({
-        ua: `Не вдалося встановити програму ${arg.prgN} крок ${arg.stepN}: ${reason}`,
-        en: `Failed to set program ${arg.prgN} step ${arg.stepN}: ${reason}`,
-        ru: `Не удалось установить программу ${arg.prgN} шаг ${arg.stepN}: ${reason}`,
+        ua: `Не вдалося встановити програму ${prN} крок ${stN}: ${reason}`,
+        en: `Failed to set program ${prN} step ${stN}: ${reason}`,
+        ru: `Не удалось установить программу ${prN} шаг ${stN}: ${reason}`,
       });
     }
   }
@@ -573,20 +633,20 @@ if (!module.parent) {
   // якщо запущено як окремий модуль
 
   let w2 = {
-    send: (val) => {
+    send: async (val) => {
       return val;
     },
   };
-  let entity = new ClassManager({ iface: w2, id: "TRM251", addr: 1 });
+  let entity = new ClassManager({ iface: w2, id: "TRM251", addr: 16 });
   // console.dir(entity, { depth: 2 });
-  console.dir(entity);
+  // console.dir(entity);
   // console.dir(entity.getCompactHtml({ baseUrl: "/devices/OWEN_TRM251/" }));
-  // async function read() {
-  //   let res = await entity.getParams("T1;T2;T3;T4;T5;T6;T7;T8");
-  //   console.dir(res);
-  //   setTimeout(read, 2000);
-  // }
+  async function read() {
+     let res = await entity.getT();
+     console.dir(res);
+     setTimeout(read, 2000);
+  }
 
-  //read();
+  read();
   //console.log(entity.getFullHtml());
 }

@@ -84,6 +84,68 @@ function create(extra = {}) {
 }
 
 describe("ClassProcessManager", () => {
+  function planTimers() {
+    const planned = [];
+    global.setTimeout = (fn, ms) => {
+      planned.push({ fn, ms });
+      return { unref() {} };
+    };
+    return planned;
+  }
+
+  it("конструктор планує читання програми через 3 секунди", () => {
+    const planned = planTimers();
+    const { steps } = create();
+
+    equal(steps.received, null);
+    equal(planned.length, 1);
+    equal(planned[0].ms, 3000);
+    planned[0].fn();
+    deepEqual(steps.received, [{ type: "description", name: "Відпуск" }]);
+  });
+
+  it("повторює читання програми, поки TasksManager її не віддасть", () => {
+    const planned = planTimers();
+    const { proc } = create();
+    let reads = 0;
+    proc.tasksManager.getActiveTask = () => {
+      reads += 1;
+      if (reads < 3) return { content: [] };
+      return { content: [{ type: "description", name: "Відпуск" }] };
+    };
+
+    planned[0].fn();
+    planned[1].fn();
+    equal(proc.program.header, undefined);
+    planned[2].fn();
+
+    equal(planned.length, 3);
+    equal(proc.program.header.ua, "Відпуск");
+    equal(proc.program.state._id, "waiting");
+  });
+
+  it("після трьох невдач пише помилку і зупиняє програму", () => {
+    const planned = planTimers();
+    const { proc } = create();
+    proc.tasksManager.getActiveTask = () => {
+      throw new Error("програма ще не готова");
+    };
+    let stopped = null;
+    proc.program.error = (err) => {
+      stopped = err;
+      proc.program.state = { _id: "error", note: err };
+    };
+
+    planned[0].fn();
+    planned[1].fn();
+    planned[2].fn();
+
+    equal(planned.length, 3);
+    equal(proc.programLoadAttempt, 3);
+    equal(stopped.ua, "Не вдалося отримати програму з TasksManager");
+    equal(proc.program.state._id, "error");
+  });
+
   it("конструктор вимагає менеджери", () => {
     throws(() => new ClassProcessManager({}), /TasksManager must be defined/);
     throws(

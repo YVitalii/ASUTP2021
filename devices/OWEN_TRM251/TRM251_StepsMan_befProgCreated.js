@@ -1,17 +1,33 @@
 /**
  * Адаптує вміст програми перед записом у TRM-251.
- * [0] — заголовок, лишається без змін.
- * Кожному кроку додає номер програми Pr = 1..3 і номер кроку St = 1..5
- * (5 кроків на програму, не більше 15 кроків) і ставить type з ClassStep_TRM251_Thermal.type.
- * Коли номер програми змінюється, перед першим кроком нової програми
- * вставляє { type: ClassStep_TRM251_nextProgram.type, prgN }.
- * Рядок часу "ГГ:ХХ" у регістрі кроку переводить у хвилини: "01:10" → 70.
+ *
+ * Вхід — масив або JSON-рядок цього масива, не більше 15 кроків:
+ *   [0] заголовок, будь-який об'єкт. Поля не читаються.
+ *       Приклад: { type:"description", fName, description, date }.
+ *   [1..] крок, об'єкт.
+ *       tT — цільова температура, °C.
+ *       H, Y — час нагрівання і витримки: хвилини числом або рядок "ГГ:ХХ"
+ *       ("01:10", допускається пробіл і одна цифра: " 1:5 ").
+ *       Інші поля кроку теж копіюються. Будь-який рядок кроку вигляду "ГГ:ХХ"
+ *       стає числом хвилин. Вхідний type кроку не зберігається.
+ *
+ * Вихід — масив:
+ *   [0] той самий об'єкт заголовка, без копіювання і без перетворення часу.
+ *   Далі кожен крок:
+ *     { Pr, St, type: ClassStep_TRM251_Thermal.type, ...поля кроку }
+ *     Pr = floor(i / 5) + 1, St = (i % 5) + 1, i — номер кроку з нуля.
+ *     П'ять кроків на програму, програми 1..3. Уже задані Pr і St замінюються.
+ *   Коли Pr змінюється, перед першим кроком нової програми вставляється
+ *     { type: ClassStep_TRM251_goToPrSt.type, prN, stN }
+ *     prN — номер програми, stN — крок, на які переходимо.
+ *   Приклад кроку: { tT:100, H:"01:10", Y:"01:15" }
+ *     → { Pr:1, St:1, type: ClassStep_TRM251_Thermal.type, tT:100, H:70, Y:75 }.
  *
  * @param {Array|string} program вміст програми або його JSON
  * @returns {Array}
  */
 const ClassStep_TRM251_Thermal = require("./ClassStep_TRM251_Thermal.js");
-const ClassStep_TRM251_nextProgram = require("./ClassStep_TRM251_nextProgram.js");
+const ClassStep_TRM251_goToPrSt = require("./ClassStep_TRM251_goToPrSt.js");
 
 const TIME_HHMM = /^(\d+):(\d{1,2})$/;
 const STEPS_PER_PROGRAM = 5;
@@ -66,8 +82,9 @@ function beforeProgramSet(program) {
     const adapted = adaptStep(step, i - 1);
     if (previousPr !== null && adapted.Pr !== previousPr) {
       result.push({
-        type: ClassStep_TRM251_nextProgram.type,
-        prgN: adapted.Pr,
+        type: ClassStep_TRM251_goToPrSt.type,
+        prN: adapted.Pr,
+        stN: adapted.St,
       });
     }
     previousPr = adapted.Pr;

@@ -4,13 +4,13 @@
  * через beforeProgramSet і віддає крокам один TRM251_emulator.
  */
 const Class_StepsManager = require("../../../processes/processManager/Class_StepsManager.js");
-const beforeProgramSet = require("../beforeProgramSet.js");
+const beforeProgramSet = require("../TRM251_StepsMan_befProgCreated.js");
 const tasksList = require("./program_tasksList.js");
 const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
-const ClassStep_TRM251_nextProgram = require("../ClassStep_TRM251_nextProgram.js");
+const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
 const TRM251_emulator = require("./TRM251_emulator.js");
 
-const stepClasses = [ClassStep_TRM251_Thermal, ClassStep_TRM251_nextProgram];
+const stepClasses = [ClassStep_TRM251_Thermal, ClassStep_TRM251_goToPrSt];
 
 function createTRM251StepsManager() {
   const device = new TRM251_emulator();

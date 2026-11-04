@@ -5,7 +5,7 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
-const ClassStep_TRM251_nextProgram = require("../ClassStep_TRM251_nextProgram.js");
+const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
 const parseProgram = require("../parseProgram_RS485.js");
 const standardProgram = require("./testProgram.js");
 
@@ -233,8 +233,9 @@ describe("ClassStep_TRM251_Thermal", () => {
     it("parseProgram ставить Pr/St і з них збираються кроки", () => {
       const thermal = standardProgram.filter((step) => step.type === "TRM251stepThermal");
       assert.deepEqual(standardProgram[6], {
-        type: ClassStep_TRM251_nextProgram.type,
-        prgN: 2,
+        type: ClassStep_TRM251_goToPrSt.type,
+        prN: 2,
+        stN: 1,
       });
       assert.deepEqual(
         thermal.map((step) => ({

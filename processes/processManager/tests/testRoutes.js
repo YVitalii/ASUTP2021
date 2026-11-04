@@ -21,15 +21,18 @@ function createManager() {
     state: { _id: "waiting" },
     tasks: [{ id: "description", tasks: [] }, heat, hold],
     getState() {
-      return {
-        id: "program",
-        _id: this.state._id,
-        tasks: this.tasks.map((task) => ({ id: task.id })),
-      };
+      throw new Error("маршрут має читати processManager.getStates()");
     },
   };
   return {
     program,
+    getStates() {
+      return {
+        id: "program",
+        _id: program.state._id,
+        tasks: program.tasks.map((task) => ({ id: task.id })),
+      };
+    },
     async start(stepN) {
       startedWith = stepN;
       return { err: null, data: { ua: "started", en: "started", ru: "started" } };

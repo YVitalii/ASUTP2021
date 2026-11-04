@@ -3,7 +3,7 @@ const { deepEqual, equal, match, rejects } = require("node:assert");
 const Manager = require("../ManagerClassTRM251.js");
 const driver = require("../driver.js");
 const ClassThermalTaskSimple = require("../../../controllers/thermoController/ClassTaskThermal/ClassTaskThermalSimple.js");
-const ClassStep_TRM251_nextProgram = require("../ClassStep_TRM251_nextProgram.js");
+const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
 
 const origSetRegPromise = driver.setRegPromise;
 const origGetRegPromise = driver.getRegPromise;
@@ -90,7 +90,7 @@ describe("ManagerClassTRM251 setProgram", () => {
     await dev.setProgram([
       header,
       { type: "TRM251stepThermal", tT: 110, H: 10, Y: 20 },
-      { type: ClassStep_TRM251_nextProgram.type, prgN: 2 },
+      { type: ClassStep_TRM251_goToPrSt.type, prgN: 2 },
       { type: "TRM251stepThermal", tT: 200, H: 15, Y: 25 },
     ]);
 
@@ -156,8 +156,15 @@ describe("ManagerClassTRM251 setPrSt", () => {
       calls.push(props);
       return { value: props.value };
     };
-    const dev = withMode(device(), 0);
-    const res = await dev.setPrSt({ prgN: 2, stepN: 4 });
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return 0;
+      if (name === "programN") return 2;
+      if (name === "step") return 4;
+      throw new Error("неочікуваний регістр " + name);
+    };
+    const res = await dev.setPrSt({ prN: 2, stN: 4 });
 
     equal(res, true);
     deepEqual(
@@ -177,13 +184,13 @@ describe("ManagerClassTRM251 setPrSt", () => {
       called = true;
     };
     const dev = device();
-    const badProgram = await dev.setPrSt({ prgN: 4, stepN: 1 });
-    const badStep = await dev.setPrSt({ prgN: 1, stepN: 0 });
+    const badProgram = await dev.setPrSt({ prN: 4, stN: 1 });
+    const badStep = await dev.setPrSt({ prN: 1, stN: 0 });
 
     equal(badProgram.name, "apiError");
-    match(badProgram.msg.ua, /prgN=4 має бути 1\.\.3/);
+    match(badProgram.msg.ua, /prN=4 має бути 1\.\.3/);
     equal(badStep.name, "apiError");
-    match(badStep.msg.ua, /stepN=0 має бути 1\.\.5/);
+    match(badStep.msg.ua, /stN=0 має бути 1\.\.5/);
     equal(called, false);
   });
 
@@ -193,7 +200,7 @@ describe("ManagerClassTRM251 setPrSt", () => {
       called = true;
     };
     const dev = withMode(device(), 1);
-    const res = await dev.setPrSt({ prgN: 1, stepN: 2 });
+    const res = await dev.setPrSt({ prN: 1, stN: 2 });
 
     equal(res.name, "apiError");
     match(res.msg.ua, /лише коли прилад зупинено \(mode=0\)/);
@@ -209,12 +216,61 @@ describe("ManagerClassTRM251 setPrSt", () => {
       return { value: props.value };
     };
     const dev = withMode(device(), 0);
-    const res = await dev.setPrSt({ prgN: 1, stepN: 2 });
+    const res = await dev.setPrSt({ prN: 1, stN: 2 });
 
     equal(res.name, "apiError");
     match(res.msg.ua, /Не вдалося встановити програму 1 крок 2/);
     match(res.msg.ua, /немає відповіді/);
     deepEqual(calls, ["programN", "step"]);
+  });
+
+  it("повертає помилку, якщо прилад лишився на іншій програмі або кроці", async () => {
+    const calls = [];
+    driver.setRegPromise = async (props) => {
+      calls.push(props.regName);
+      return { value: props.value };
+    };
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return 0;
+      if (name === "programN") return 1;
+      if (name === "step") return 1;
+      throw new Error("неочікуваний регістр " + name);
+    };
+    const res = await dev.setPrSt({ prN: 2, stN: 4 });
+    equal(res.name, "apiError");
+    match(res.msg.ua, /прилад лишився на програмі 1 крок 1/);
+    deepEqual(calls, [
+      "programN",
+      "step",
+      "programN",
+      "step",
+      "programN",
+      "step",
+    ]);
+  });
+
+  it("повторює запис, поки прочитані програма і крок не збігаються", async () => {
+    const calls = [];
+    let reads = 0;
+    driver.setRegPromise = async (props) => {
+      calls.push(props.regName);
+      return { value: props.value };
+    };
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return 0;
+      if (name === "programN") {
+        reads += 1;
+        return reads < 2 ? 1 : 2;
+      }
+      if (name === "step") return reads < 2 ? 1 : 4;
+      throw new Error("неочікуваний регістр " + name);
+    };
+    equal(await dev.setPrSt({ prN: 2, stN: 4 }), true);
+    deepEqual(calls, ["programN", "step", "programN", "step"]);
   });
 });
 
@@ -274,51 +330,89 @@ describe("ManagerClassTRM251 start/stop", () => {
     return dev;
   }
 
-  it("у Stop записує програму, крок 1/1 і startStop=1", async () => {
+  it("у Stop ставить програму 1 крок 1 і чекає mode=1", async () => {
     const calls = [];
+    let mode = 0;
     driver.setRegPromise = async (props) => {
       calls.push({ regName: props.regName, value: props.value });
-      return { value: props.value };
-    };
-    const dev = running(device(), 0);
-    const res = await dev.start({ program: thermalProgram() });
-
-    equal(res, true);
-    deepEqual(
-      calls.map((call) => call.regName),
-      ["program", "programN", "step", "startStop"],
-    );
-    equal(calls[1].value, 1);
-    equal(calls[2].value, 1);
-    equal(calls[3].value, 1);
-  });
-
-  it("якщо прилад працює, спочатку зупиняє, потім пише програму і стартує", async () => {
-    const calls = [];
-    let mode = 1;
-    driver.setRegPromise = async (props) => {
-      calls.push({ regName: props.regName, value: props.value });
-      if (props.regName === "startStop" && props.value === 0) mode = 0;
+      if (props.regName === "startStop") mode = 1;
       return { value: props.value };
     };
     const dev = device();
-    dev.getRegister = async (regName) =>
-      regName === "mode" ? mode : undefined;
-    const res = await dev.start({
-      program: thermalProgram(),
-      prN: 2,
-      stN: 3,
-    });
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return mode;
+      if (name === "programN") return 1;
+      if (name === "step") return 1;
+      throw new Error("неочікуваний регістр " + name);
+    };
+    const res = await dev.start();
 
     equal(res, true);
     deepEqual(
-      calls.map((call) => call.regName),
-      ["startStop", "program", "programN", "step", "startStop"],
+      calls.map((call) => [call.regName, call.value]),
+      [
+        ["programN", 1],
+        ["step", 1],
+        ["startStop", 1],
+      ],
     );
-    equal(calls[0].value, 0);
-    equal(calls[2].value, 2);
-    equal(calls[3].value, 3);
-    equal(calls[4].value, 1);
+  });
+
+  it("повторює startStop, поки mode лишається 0", async () => {
+    const calls = [];
+    let mode = 0;
+    driver.setRegPromise = async (props) => {
+      calls.push(props.regName);
+      if (props.regName === "startStop" && calls.filter((name) => name === "startStop").length === 2) {
+        mode = 1;
+      }
+      return { value: props.value };
+    };
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return mode;
+      if (name === "programN") return 2;
+      if (name === "step") return 3;
+      throw new Error("неочікуваний регістр " + name);
+    };
+    equal(await dev.start({ prN: 2, stN: 3 }), true);
+    deepEqual(calls, ["programN", "step", "startStop", "startStop"]);
+  });
+
+  it("після 3 спроб повертає помилку з mode, якщо прилад не в роботі", async () => {
+    const calls = [];
+    driver.setRegPromise = async (props) => {
+      calls.push(props.regName);
+      return { value: props.value };
+    };
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return 0;
+      if (name === "programN") return 1;
+      if (name === "step") return 1;
+      throw new Error("неочікуваний регістр " + name);
+    };
+    const res = await dev.start();
+
+    equal(res.name, "apiError");
+    match(res.msg.ua, /mode=0/);
+    deepEqual(calls, ["programN", "step", "startStop", "startStop", "startStop"]);
+  });
+
+  it("якщо прилад не зупинений, повертає помилку setPrSt і не вмикає startStop", async () => {
+    let called = false;
+    driver.setRegPromise = async () => {
+      called = true;
+    };
+    const dev = running(device(), 1);
+    const res = await dev.start({ prN: 2, stN: 3 });
+
+    equal(res.name, "apiError");
+    match(res.msg.ua, /лише коли прилад зупинено/);
+    equal(called, false);
   });
 
   it("continueFrom у Stop ставить крок і startStop=1", async () => {
@@ -327,7 +421,14 @@ describe("ManagerClassTRM251 start/stop", () => {
       calls.push({ regName: props.regName, value: props.value });
       return { value: props.value };
     };
-    const dev = running(device(), 0);
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return 0;
+      if (name === "programN") return 2;
+      if (name === "step") return 4;
+      throw new Error("неочікуваний регістр " + name);
+    };
     equal(await dev.continueFrom({ prN: 2, stN: 4 }), true);
     deepEqual(
       calls.map((call) => [call.regName, call.value]),
@@ -348,7 +449,13 @@ describe("ManagerClassTRM251 start/stop", () => {
       return { value: props.value };
     };
     const dev = device();
-    dev.getRegister = async () => mode;
+    dev.timeout = 0;
+    dev.getRegister = async (name) => {
+      if (name === "mode") return mode;
+      if (name === "programN") return 1;
+      if (name === "step") return 1;
+      throw new Error("неочікуваний регістр " + name);
+    };
     equal(await dev.continueFrom(), true);
     deepEqual(
       calls.map((call) => [call.regName, call.value]),
@@ -371,18 +478,51 @@ describe("ManagerClassTRM251 start/stop", () => {
     equal(called, false);
   });
 
-  it("stop записує startStop=0, коли прилад не зупинений", async () => {
+  it("пише startStop=0, поки mode не стане 0", async () => {
     const calls = [];
+    let mode = 2;
     driver.setRegPromise = async (props) => {
       calls.push(props);
+      if (props.regName === "startStop" && props.value === 0) mode = 0;
       return { value: props.value };
     };
-    const dev = running(device(), 2);
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async () => mode;
     equal(await dev.stop(), true);
     equal(calls.length, 1);
     equal(calls[0].regName, "startStop");
     equal(calls[0].value, 0);
     equal(calls[0].devAddr, 16);
     equal(calls[0].iface, iface);
+  });
+
+  it("повторює зупинку, поки mode не 0", async () => {
+    const calls = [];
+    let mode = 1;
+    driver.setRegPromise = async (props) => {
+      calls.push(props.value);
+      if (calls.length === 2) mode = 0;
+      return { value: props.value };
+    };
+    const dev = device();
+    dev.timeout = 0;
+    dev.getRegister = async () => mode;
+    equal(await dev.stop(), true);
+    deepEqual(calls, [0, 0]);
+  });
+
+  it("після 3 спроб повертає помилку з mode, якщо прилад не зупинився", async () => {
+    const calls = [];
+    driver.setRegPromise = async (props) => {
+      calls.push(props.value);
+      return { value: props.value };
+    };
+    const dev = running(device(), 2);
+    dev.timeout = 0;
+    const res = await dev.stop();
+    equal(res.name, "apiError");
+    match(res.msg.ua, /mode=2/);
+    deepEqual(calls, [0, 0, 0]);
   });
 });

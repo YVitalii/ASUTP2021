@@ -6,6 +6,9 @@ const classEntityFurnace = require("../../entities/general/ClassEntityFurnace.js
 const dummy = require("../../tools/dummy.js").dummyPromise;
 const log = require("../../tools/log.js");
 const ClassThermalTaskSimple = require("../../controllers/thermoController/ClassTaskThermal/ClassTaskThermalSimple.js");
+const beforeProgramSet = require("../../devices/OWEN_TRM251/TRM251_StepsMan_befProgCreated.js");
+const ClassStep_TRM251_Thermal = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Thermal.js");
+const ClassStep_TRM251_goToPrSt = require("../../devices/OWEN_TRM251/ClassStep_TRM251_goToPrSt.js");
 let trace = 0,
   gln = __filename + "::";
 
@@ -13,26 +16,26 @@ let trace = 0,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
 let props = {
-  id: "SNO-6-6-4)12_2025",
+  id: "5,7.5,7.5,2)10_2026-10",
   homeDir: __dirname,
 };
-
+let code = "-5,7.5,7.5,2/10";
 // -- коротке імя печі
 props.shortName = {
-  ua: "СНО-6.6.4/12ВЦ",
-  en: "SNO-6.6.4/12VC",
-  ru: "СНО-6.6.4/12ВЦ",
+  ua: `СНО${code}`,
+  en: `SNO${code}`,
+  ru: `СНО${code}`,
 };
 
 // -- повне імя печі, якщо не вказано  props.fullName = props.shortName
 props.fullName = {
-  ua: "Електропіч СНО-6.6.4/12ВЦ",
-  en: "Furnace SNO-6.6.4/12VC",
-  ru: "Електропечь СНО-6.6.4/12ВЦ",
+  ua: `Електропіч ${props.shortName.ua}`,
+  en: `Furnace ${props.shortName.en}`,
+  ru: `Електропечь ${props.shortName.ru}`,
 };
 
 // -- максимальна температура в печі required {Number}
-props.maxT = 1200;
+props.maxT = 1000;
 
 // -------- створюємо та повертаємо об'єкт печі
 let entity = new classEntityFurnace(props);
@@ -55,6 +58,25 @@ const TRM251 = require("../../devices/OWEN_TRM251/manager.js");
 let furnace = new TRM251({ iface: ifaceW2, addr: 16, id: "furnace", addT: 0 });
 
 entity.devicesManager.addDevice(furnace.id, furnace);
+
+// Кроки TRM-251 збираються з активної програми перед першим setProgram.
+entity.stepsManager.beforeProgramCreated = function ({ program }) {
+  return beforeProgramSet(program).map((item, index) => {
+    if (index === 0) return item;
+    return { ...item, device: furnace, maxT: props.maxT };
+  });
+};
+entity.stepsManager.addStepType(
+  ClassStep_TRM251_Thermal.type,
+  ClassStep_TRM251_Thermal,
+);
+entity.stepsManager.addStepType(
+  ClassStep_TRM251_goToPrSt.type,
+  ClassStep_TRM251_goToPrSt,
+);
+
+console.log("------------- entity.stepsManager= ---------------");
+console.dir(entity.stepsManager, { depth: 2, colors: true });
 
 // // --- створюємо та реєструємо прилад №2 -  центр камери
 // let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });

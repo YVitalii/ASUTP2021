@@ -6,7 +6,7 @@ const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const createTRM251StepsManager = require("./createTRM251StepsManager.js");
 const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
-const ClassStep_TRM251_nextProgram = require("../ClassStep_TRM251_nextProgram.js");
+const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
 
 describe("TRM251 програма виконується", () => {
   it("StepsManager.start() проходить усі кроки і переходить на програму 2", async () => {
@@ -36,8 +36,9 @@ describe("TRM251 програма виконується", () => {
       ],
     );
     assert.equal(tasks[0].constructor, ClassStep_TRM251_Thermal);
-    assert.equal(tasks[5].constructor, ClassStep_TRM251_nextProgram);
-    assert.equal(tasks[5].prgN, 2);
+    assert.equal(tasks[5].constructor, ClassStep_TRM251_goToPrSt);
+    assert.equal(tasks[5].prN, 2);
+    assert.equal(tasks[5].stN, 1);
     assert.equal(StepsManager.program.state._id, "finished");
     assert.equal(StepsManager.device.prgN, 2);
     assert.equal(StepsManager.device.step, 5);

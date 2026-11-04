@@ -1,5 +1,5 @@
 const { Buffer } = require("node:buffer");
-const beforeProgramSet = require("./beforeProgramSet");
+const beforeProgramSet = require("./TRM251_StepsMan_befProgCreated.js");
 
 /**
  * Адаптує програму (Pr, St, час у хвилинах) і збирає буфер RS485.
