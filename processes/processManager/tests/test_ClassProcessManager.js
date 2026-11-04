@@ -52,7 +52,7 @@ function create(extra = {}) {
     },
   };
   const steps = {
-    listSteps: list,
+    tasksList: list,
     program: built,
     received: null,
     err: extra.err || null,

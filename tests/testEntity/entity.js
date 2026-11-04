@@ -9,6 +9,7 @@ const ClassThermalTaskSimple = require("../../controllers/thermoController/Class
 const beforeProgramSet = require("../../devices/OWEN_TRM251/TRM251_StepsMan_befProgCreated.js");
 const ClassStep_TRM251_Thermal = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Thermal.js");
 const ClassStep_TRM251_goToPrSt = require("../../devices/OWEN_TRM251/ClassStep_TRM251_goToPrSt.js");
+const ClassStep_TRM251_ProgLoadToDev = require("../../devices/OWEN_TRM251/ClassStep_TRM251_ProgLoadToDev.js");
 let trace = 0,
   gln = __filename + "::";
 
@@ -69,11 +70,21 @@ entity.stepsManager.beforeProgramCreated = function ({ program }) {
 entity.stepsManager.addStepType(
   ClassStep_TRM251_Thermal.type,
   ClassStep_TRM251_Thermal,
-);
+  furnace
+ );
 entity.stepsManager.addStepType(
-  ClassStep_TRM251_goToPrSt.type,
-  ClassStep_TRM251_goToPrSt,
-);
+    ClassStep_TRM251_goToPrSt.type,
+    ClassStep_TRM251_goToPrSt,
+    furnace
+  );
+entity.stepsManager.addStepType(
+    ClassStep_TRM251_ProgLoadToDev.type,
+    ClassStep_TRM251_ProgLoadToDev,
+    furnace
+  );
+
+
+
 
 console.log("------------- entity.stepsManager= ---------------");
 console.dir(entity.stepsManager, { depth: 2, colors: true });

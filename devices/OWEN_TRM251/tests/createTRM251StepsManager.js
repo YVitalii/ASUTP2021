@@ -33,7 +33,7 @@ function createTRM251StepsManager() {
   });
 
   for (const Step of stepClasses) {
-    steps.addStepType(Step.type, Step);
+    steps.addStepType(Step.type, Step, device);
   }
 
   const res = steps.createProgram(tasksList);

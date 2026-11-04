@@ -1,5 +1,6 @@
 const log = require("../../tools/log");
 const ClassStepsSerial = require("../../controllers/ClassStep/ClassStepsSerial");
+const ClassStepsParallel = require("../../controllers/ClassStep/ClassStepsParallel");
 
 /**
  * Реєстр типів кроків і збірка програми зі списку завдань.
@@ -10,8 +11,9 @@ class Class_StepsManager {
     this.id = props.id ? props.id : "stepsManager";
     this.ln = props.ln ? props.ln : `Class_StepsManager(${this.id})::`;
     this.stepsList = new Map();
+    this.stepDevices = new Map();
     this.program = {};
-    this.listSteps = [];
+    this.tasksList = [];
     this.beforeProgramCreated =
       typeof props.beforeProgramCreated === "function"
         ? props.beforeProgramCreated
@@ -22,8 +24,9 @@ class Class_StepsManager {
    * Реєструє тип кроку. StepObject мусить мати createStep(props).
    * @param {String} type
    * @param {Object} StepObject
+   * @param {Object|Array|*} devices - обов'язковий список/об'єкт приладів для типу кроку
    */
-  addStepType(type, StepObject) {
+  addStepType(type, StepObject, devices) {
     let ln = this.ln + "addStepType()::";
     if (typeof type !== "string" || type === "") {
       throw new Error(ln + "type має бути непорожнім рядком");
@@ -31,14 +34,19 @@ class Class_StepsManager {
     if (!StepObject || typeof StepObject.createStep !== "function") {
       throw new Error(ln + `тип "${type}" не має createStep(props)`);
     }
+    if (devices === undefined || devices === null) {
+      throw new Error(ln + "devices є обов'язковим аргументом");
+    }
     if (this.stepsList.has(type)) {
       throw new Error(ln + `тип "${type}" уже зареєстровано`);
     }
     this.stepsList.set(type, StepObject);
+    this.stepDevices.set(type, devices);
   }
 
   /**
    * Створює екземпляр кроку за типом.
+   * Якщо для типу зареєстровано кілька devices — повертає ClassStepsParallel.
    * @param {String} type
    * @param {Object} props
    */
@@ -53,7 +61,23 @@ class Class_StepsManager {
           "]",
       );
     }
-    return StepObject.createStep(props);
+    let devices = this.stepDevices.get(type);
+    if (Array.isArray(devices) && devices.length > 1) {
+      let steps = [];
+      for (let device of devices) {
+        let newProps = { ...props, device };
+        steps.push(StepObject.createStep(newProps));
+      }
+      return new ClassStepsParallel({
+        tasks: steps,
+        id: props && props.id,
+        header: props && props.header,
+        comment: props && props.comment,
+        ln: props && props.ln,
+      });
+    }
+    let device = Array.isArray(devices) ? devices[0] : devices;
+    return StepObject.createStep({ ...props, device }, device);
   }
 
   /**
@@ -154,7 +178,7 @@ class Class_StepsManager {
       return { err, data: null };
     }
 
-    this.listSteps = tasksList;
+    this.tasksList = tasksList;
     let program = [];
     try {
       this.setStep("st", program, tasksList);

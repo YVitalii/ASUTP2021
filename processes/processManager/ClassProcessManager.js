@@ -162,7 +162,7 @@ class ClassProcessManager {
     let result = this.stepsManager.createProgram(tasksList);
     if (!result || result.err) return result;
 
-    this.listSteps = this.stepsManager.listSteps;
+    this.listSteps = this.stepsManager.tasksList;
     this.currLogFileName = null;
     this.program = this.stepsManager.program;
 
