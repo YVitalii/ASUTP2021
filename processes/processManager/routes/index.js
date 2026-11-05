@@ -94,11 +94,11 @@ async function postStart(req, res) {
   }
 }
 
-function postStop(req, res) {
+async function postStop(req, res) {
   const ln = `post("${req.originalUrl}")::`;
   try {
     log("w", ln, "stop");
-    req.entity.processManager.stop();
+    await req.entity.processManager.stop();
     res.json({ err: null, data: null });
   } catch (error) {
     log("e", ln + (error && error.message ? error.message : error));

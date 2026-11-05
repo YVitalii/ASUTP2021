@@ -17,6 +17,6 @@ describe("зібрана програма TRM-251", () => {
   it("console.dir стану обробленої програми", () => {
     const state = dirCompiledProgramState();
     assert.equal(state._id, "waiting");
-    assert.equal(state.tasks.length, 10);
+    assert.equal(state.tasks.length, 13);
   });
 });

@@ -162,6 +162,24 @@ function hideStepTip() {
   if (stepTip.value) stepTip.value.hidden = true;
 }
 
+/** Ставить підказку біля кроку так, щоб вона цілком лишалась у вікні. */
+function placeStepTip(anchor: Element) {
+  const tip = stepTip.value;
+  if (!tip) return;
+  const margin = 8;
+  const box = anchor.getBoundingClientRect();
+  const tipBox = tip.getBoundingClientRect();
+  const maxLeft = window.innerWidth - margin - tipBox.width;
+  const maxTop = window.innerHeight - margin - tipBox.height;
+  let left = box.left + box.width / 2 - tipBox.width / 2;
+  let top = box.top - tipBox.height - margin;
+  if (top < margin) top = box.bottom + margin;
+  left = Math.min(Math.max(left, margin), Math.max(margin, maxLeft));
+  top = Math.min(Math.max(top, margin), Math.max(margin, maxTop));
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
+}
+
 /** Спливаюча підказка: заголовок кроку і час початку. */
 function bindTooltip(step: StepStatus) {
   const section = document.querySelector(`[id*="flowchart-${safeId(step.id)}-"]`);
@@ -185,10 +203,8 @@ function bindTooltip(step: StepStatus) {
       const row = tip.querySelector(`[data-field="${field}"]`);
       if (row) row.textContent = text;
     }
-    const box = section.getBoundingClientRect();
-    tip.style.left = `${box.left + box.width / 2}px`;
-    tip.style.top = `${box.top}px`;
     tip.hidden = false;
+    placeStepTip(section);
   };
   const hide = () => {
     tip.hidden = true;
@@ -282,24 +298,32 @@ watch(
 .pm-step-tip {
   position: fixed;
   z-index: 20;
-  transform: translate(-50%, calc(-100% - 8px));
+  box-sizing: border-box;
+  max-width: min(320px, calc(100vw - 16px));
   background-color: #333;
   color: #fff;
   border-radius: 4px;
   padding: 6px 10px;
   font-size: 12px;
+  line-height: 1.35;
   text-align: left;
   pointer-events: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .pm-step-tip h6 {
   margin: 0 0 4px;
   font-size: 1rem;
   font-weight: 600;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .pm-step-tip__row {
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 </style>

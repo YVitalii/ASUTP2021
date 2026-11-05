@@ -26,6 +26,30 @@ function lang(text) {
  */
 function toTask(step) {
   if (step.type === "stepDescription") return step;
+  if (step.type === "TRM251_ProgLoadToDev") {
+    return {
+      id: "progLoad",
+      type: "ProsessStep_SimpleBadge",
+      _id: "waiting",
+      header: lang("Запис програми в прилад"),
+    };
+  }
+  if (step.type === "TRM251_Start") {
+    return {
+      id: "start",
+      type: "ProsessStep_SimpleBadge",
+      _id: "waiting",
+      header: lang(`Пуск Пр${step.prN}; Кр${step.stN}`),
+    };
+  }
+  if (step.type === "TRM251_Stop") {
+    return {
+      id: "stop",
+      type: "ProsessStep_SimpleBadge",
+      _id: "waiting",
+      header: lang("Стоп"),
+    };
+  }
   if (step.type === "TRM251_goToPrSt") {
     return {
       id: `goToPrSt_${step.prN}_${step.stN}`,

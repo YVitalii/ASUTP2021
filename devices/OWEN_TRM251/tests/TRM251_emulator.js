@@ -59,6 +59,47 @@ class TRM251_emulator {
     this.mode = 1;
     return true;
   }
+
+  /**
+   * Запам'ятовує програму. Крок запису потім читає її через getRegister.
+   * @param {Array} program
+   * @returns {Promise<true>}
+   */
+  async setProgram(program) {
+    this.program = program;
+    return true;
+  }
+
+  /**
+   * Для "program" віддає записані кроки з числом tT і порожній крок-термінатор.
+   * @param {string} name
+   * @returns {Promise<Array|number>}
+   */
+  async getRegister(name) {
+    if (name !== "program") return 0;
+    const body = [];
+    const program = Array.isArray(this.program) ? this.program : [];
+    for (let index = 1; index < program.length; index++) {
+      const step = program[index];
+      if (!step || !Number.isFinite(Number(step.tT))) continue;
+      body.push({
+        tT: Number(step.tT),
+        H: Number(step.H),
+        Y: Number(step.Y),
+      });
+    }
+    body.push({ tT: 0, H: 0, Y: 0 });
+    return [{ id: "program1" }, ...body];
+  }
+
+  /**
+   * Зупиняє прилад: mode = 0.
+   * @returns {Promise<true>}
+   */
+  async stop() {
+    this.mode = 0;
+    return true;
+  }
 }
 
 module.exports = TRM251_emulator;

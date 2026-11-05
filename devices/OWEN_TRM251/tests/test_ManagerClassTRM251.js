@@ -39,6 +39,24 @@ describe("ManagerClassTRM251 температура", () => {
     equal(value, 123.5);
     equal(dev.regs.T1.value, 123.5);
   });
+
+  it("читання з кешу не подовжує актуальність, тож наступне читання йде в прилад", async () => {
+    let calls = 0;
+    driver.getRegPromise = async () => {
+      calls += 1;
+      return [{ value: 20 + calls, detail: { afterGet: { note: "" } } }];
+    };
+    const dev = device();
+    dev.regs.T1.timestamp = 0;
+    equal(await dev.getT(), 21);
+    const readAt = dev.regs.T1.timestamp;
+    equal(await dev.getT(), 21);
+    equal(calls, 1);
+    equal(dev.regs.T1.timestamp, readAt);
+    dev.regs.T1.timestamp = Date.now() - dev.regs.T1.obsolescence * 1000 - 1;
+    equal(await dev.getT(), 22);
+    equal(calls, 2);
+  });
 });
 
 describe("ManagerClassTRM251 setProgram", () => {
@@ -107,6 +125,7 @@ describe("ManagerClassTRM251 setProgram", () => {
       throw new Error("немає відповіді");
     };
     const dev = device();
+    dev.period.if.timeOut = 0;
     await rejects(
       () => dev.setProgram(thermalProgram()),
       (error) => {
@@ -216,12 +235,13 @@ describe("ManagerClassTRM251 setPrSt", () => {
       return { value: props.value };
     };
     const dev = withMode(device(), 0);
+    dev.period.if.timeOut = 0;
     const res = await dev.setPrSt({ prN: 1, stN: 2 });
 
     equal(res.name, "apiError");
     match(res.msg.ua, /Не вдалося встановити програму 1 крок 2/);
     match(res.msg.ua, /немає відповіді/);
-    deepEqual(calls, ["programN", "step"]);
+    deepEqual(calls, ["programN", ...Array(dev.errorCounter.max).fill("step")]);
   });
 
   it("повертає помилку, якщо прилад лишився на іншій програмі або кроці", async () => {
@@ -308,6 +328,7 @@ describe("ManagerClassTRM251 getCurrentState", () => {
       throw new Error("немає відповіді");
     };
     const dev = device();
+    dev.period.if.timeOut = 0;
     await rejects(
       () => dev.getCurrentState(),
       (error) => {

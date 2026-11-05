@@ -13,13 +13,17 @@
  *
  * Вихід — масив:
  *   [0] той самий об'єкт заголовка, без копіювання і без перетворення часу.
- *   Далі кожен крок:
+ *   [1] { type: TRM251_ProgLoadToDev, program } — program це розібрана програма
+ *       [заголовок, ...кроки], без кроків запису, пуску і стопу.
+ *   [2] { type: TRM251_Start, prN: 1, stN: 1 }.
+ *   Далі розбір кроків, як раніше:
  *     { Pr, St, type: ClassStep_TRM251_Thermal.type, ...поля кроку }
  *     Pr = floor(i / 5) + 1, St = (i % 5) + 1, i — номер кроку з нуля.
  *     П'ять кроків на програму, програми 1..3. Уже задані Pr і St замінюються.
  *   Коли Pr змінюється, перед першим кроком нової програми вставляється
  *     { type: ClassStep_TRM251_goToPrSt.type, prN, stN }
  *     prN — номер програми, stN — крок, на які переходимо.
+ *   Останній елемент — { type: TRM251_Stop }.
  *   Приклад кроку: { tT:100, H:"01:10", Y:"01:15" }
  *     → { Pr:1, St:1, type: ClassStep_TRM251_Thermal.type, tT:100, H:70, Y:75 }.
  *
@@ -28,6 +32,9 @@
  */
 const ClassStep_TRM251_Thermal = require("./ClassStep_TRM251_Thermal.js");
 const ClassStep_TRM251_goToPrSt = require("./ClassStep_TRM251_goToPrSt.js");
+const ClassStep_TRM251_ProgLoadToDev = require("./ClassStep_TRM251_ProgLoadToDev.js");
+const ClassStep_TRM251_Start = require("./ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("./ClassStep_TRM251_Stop.js");
 
 const TIME_HHMM = /^(\d+):(\d{1,2})$/;
 const STEPS_PER_PROGRAM = 5;
@@ -72,7 +79,7 @@ function beforeProgramSet(program) {
     );
   }
 
-  const result = [list[0]];
+  const parsed = [list[0]];
   let previousPr = null;
   for (let i = 1; i < list.length; i++) {
     const step = list[i];
@@ -81,16 +88,29 @@ function beforeProgramSet(program) {
     }
     const adapted = adaptStep(step, i - 1);
     if (previousPr !== null && adapted.Pr !== previousPr) {
-      result.push({
+      parsed.push({
         type: ClassStep_TRM251_goToPrSt.type,
         prN: adapted.Pr,
         stN: adapted.St,
       });
     }
     previousPr = adapted.Pr;
-    result.push(adapted);
+    parsed.push(adapted);
   }
-  return result;
+  return [
+    list[0],
+    {
+      type: ClassStep_TRM251_ProgLoadToDev.type,
+      program: parsed,
+    },
+    {
+      type: ClassStep_TRM251_Start.type,
+      prN: 1,
+      stN: 1,
+    },
+    ...parsed.slice(1),
+    { type: ClassStep_TRM251_Stop.type },
+  ];
 }
 
 module.exports = beforeProgramSet;

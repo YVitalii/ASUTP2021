@@ -1,6 +1,15 @@
 const ClassStepGeneral = require("../../controllers/ClassStep/ClassStepGeneral");
 const { dummyPromise } = require("../../tools/dummy.js");
 const ClassStep_TRM251_goToPrSt = require("./ClassStep_TRM251_goToPrSt.js");
+const ClassStep_TRM251_Start = require("./ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("./ClassStep_TRM251_Stop.js");
+
+const PROCESS_STEP_TYPES = new Set([
+  ClassStep_TRM251_goToPrSt.type,
+  "TRM251_ProgLoadToDev",
+  ClassStep_TRM251_Start.type,
+  ClassStep_TRM251_Stop.type,
+]);
 
 const WRITE_ATTEMPTS = 3;
 const VERIFY_WAIT_MS = 2000;
@@ -12,13 +21,13 @@ function readField(step, name) {
   return undefined;
 }
 
-/** Кроки, які setProgram реально пише в прилад: без заголовка і без маркера переходу. */
+/** Кроки, які setProgram реально пише в прилад: без заголовка і без кроків процесу. */
 function stepsForDevice(program) {
   const steps = [];
   if (!Array.isArray(program)) return steps;
   for (let index = 1; index < program.length; index++) {
     const step = program[index];
-    if (step && step.type === ClassStep_TRM251_goToPrSt.type) continue;
+    if (step && PROCESS_STEP_TYPES.has(step.type)) continue;
     steps.push({
       tT: Number(readField(step, "tT")),
       H: Number(readField(step, "H")),

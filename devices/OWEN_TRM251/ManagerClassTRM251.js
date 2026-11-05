@@ -7,6 +7,17 @@ const units = require("../../config.js").units;
 const emulateDevices = require("../../config.js").emulateRS485;
 const APIerror = require("../../tools/apiError.js");
 const ClassStep_TRM251_goToPrSt = require("./ClassStep_TRM251_goToPrSt.js");
+const ClassStep_TRM251_ProgLoadToDev = require("./ClassStep_TRM251_ProgLoadToDev.js");
+const ClassStep_TRM251_Start = require("./ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("./ClassStep_TRM251_Stop.js");
+
+// Кроки процесу: у регістр програми приладу не пишуться.
+const PROCESS_STEP_TYPES = new Set([
+  ClassStep_TRM251_goToPrSt.type,
+  ClassStep_TRM251_ProgLoadToDev.type,
+  ClassStep_TRM251_Start.type,
+  ClassStep_TRM251_Stop.type,
+]);
 
 function roundTemperature(value) {
   if (value === null || value === undefined || value === "") return value;
@@ -29,8 +40,7 @@ function programForDriver(program) {
   const steps = [program[0]];
   for (let index = 1; index < program.length; index++) {
     const step = program[index];
-    // Службовий перехід між програмами в регістр приладу не пишеться.
-    if (step && step.type === ClassStep_TRM251_goToPrSt.type) continue;
+    if (step && PROCESS_STEP_TYPES.has(step.type)) continue;
     const tT = Number(readStepField(step, "tT"));
     const H = Number(readStepField(step, "H"));
     const Y = Number(readStepField(step, "Y"));
@@ -241,12 +251,7 @@ class ClassManager extends ClassDevManagerGeneral {
       }
       const placed = await this.setPrSt({ prN, stN });
       if (placed !== true) throw placed;
-      await this.driver.setRegPromise({
-        iface: this.iface,
-        devAddr: this.addr,
-        regName: "startStop",
-        value: 1,
-      });
+      await this.callDriver("set", { regName: "startStop", value: 1 });
       return true;
     } catch (error) {
       if (error && error.name === "apiError") throw error;
@@ -277,12 +282,7 @@ class ClassManager extends ClassDevManagerGeneral {
       let mode = await this.getRegisterDirectly("mode");
       let times = 3;
       while (mode == 0 && times > 0) {
-        await this.driver.setRegPromise({
-          iface: this.iface,
-          devAddr: this.addr,
-          regName: "startStop",
-          value: 1,
-        });
+        await this.callDriver("set", { regName: "startStop", value: 1 });
         await dummyPromise(this.timeout);
         mode = await this.getRegisterDirectly("mode");
         times -= 1;
@@ -321,12 +321,7 @@ class ClassManager extends ClassDevManagerGeneral {
       let mode = await this.getRegisterDirectly("mode");
       let times = 3;
       while (mode != 0 && times > 0) {
-        await this.driver.setRegPromise({
-          iface: this.iface,
-          devAddr: this.addr,
-          regName: "startStop",
-          value: 0,
-        });
+        await this.callDriver("set", { regName: "startStop", value: 0 });
         await dummyPromise(this.timeout);
         mode = await this.getRegisterDirectly("mode");
         times -= 1;
@@ -412,12 +407,18 @@ class ClassManager extends ClassDevManagerGeneral {
       res = await super.getRegister(regName);
       if (regName == "T1" || regName == "T2") {
         res = roundTemperature(res);
-        this.regs[regName].value = res;
+        const reg = this.regs[regName];
+        // Запис value оновлює timestamp. Повторне округлення кешу
+        // не має продовжувати термін актуальності, інакше прилад читається один раз.
+        const readAt = reg.timestamp;
+        if (reg._value !== res) reg.value = res;
+        reg.timestamp = readAt;
       }
       if (regName == "mode") {
         let reg = this.regs["mode"];
-
-        reg.value = res;
+        const readAt = reg.timestamp;
+        if (reg._value !== res) reg.value = res;
+        reg.timestamp = readAt;
         if (trace) {
           console.log(ln + "reg=");
           console.dir(reg);
@@ -496,12 +497,8 @@ class ClassManager extends ClassDevManagerGeneral {
   async getCurrentState() {
     let ln = this.ln + "getCurrentState()::";
     try {
-      const res = await this.driver.getRegPromise({
-        iface: this.iface,
-        devAddr: this.addr,
-        regName: "currentState",
-      });
-      const value = Array.isArray(res) ? res[0] && res[0].value : res && res.value;
+      const res = await this.callDriver("get", { regName: "currentState" });
+      const value = res && res.value;
       if (!value) throw new Error("прилад не повернув поточний стан");
       const ids = ["Alarm", "programN", "step", "mode"];
       const next = {};
@@ -533,12 +530,7 @@ class ClassManager extends ClassDevManagerGeneral {
     let ln = this.ln + "setProgram()::";
     try {
       const value = programForDriver(program);
-      return await this.driver.setRegPromise({
-        iface: this.iface,
-        devAddr: this.addr,
-        regName: "program",
-        value,
-      });
+      return await this.callDriver("set", { regName: "program", value });
     } catch (error) {
       if (error && error.name === "apiError") throw error;
       let reason = error && error.message ? error.message : String(error);
@@ -556,13 +548,52 @@ class ClassManager extends ClassDevManagerGeneral {
    * @param {String} regName id регістра в this.regs
    * @param {Number} value
    */
+  /**
+   * Запит у прилад через iteration менеджера: черга busy, повтори і лічильник помилок.
+   * get лишає масив драйвера, set загортає відповідь у масив, бо iteration читає res[0].
+   * @param {"get"|"set"} kind
+   * @param {{regName: string, value?: *}} params
+   * @returns {Promise<{value: *}>}
+   */
+  async callDriver(kind, params) {
+    let lastError;
+    const run = async (query) => {
+      try {
+        if (kind === "get") return await this.driver.getRegPromise(query);
+        return [await this.driver.setRegPromise(query)];
+      } catch (error) {
+        lastError = error;
+        if (!error.messages) {
+          const text = error && error.message ? error.message : String(error);
+          error.messages = { ua: text, en: text, ru: text };
+        }
+        throw error;
+      }
+    };
+    const res = await this.iteration(run, {
+      iface: this.iface,
+      devAddr: this.addr,
+      regName: params.regName,
+      value: params.value,
+    });
+    const item = Array.isArray(res) ? res[0] : res;
+    if (!item || item.value == null) {
+      const reason =
+        lastError && lastError.message
+          ? lastError.message
+          : item && item.note
+            ? item.note
+            : "немає відповіді";
+      throw new Error(reason);
+    }
+    return item;
+  }
+
   async setReg(regName, value) {
     let ln = this.ln + `setReg(${regName}=${value})::`;
     let reg = this.regs[regName];
     if (!reg) throw new Error(ln + `regs[${regName}] is undefined!`);
-    const res = await this.driver.setRegPromise({
-      iface: this.iface,
-      devAddr: this.addr,
+    const res = await this.callDriver("set", {
       regName: reg.driverRegName,
       value,
     });

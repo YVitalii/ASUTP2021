@@ -8,9 +8,15 @@ const assert = require("node:assert/strict");
 const beforeProgramSet = require("../TRM251_StepsMan_befProgCreated.js");
 const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
 const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
+const ClassStep_TRM251_ProgLoadToDev = require("../ClassStep_TRM251_ProgLoadToDev.js");
+const ClassStep_TRM251_Start = require("../ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("../ClassStep_TRM251_Stop.js");
 
 const stepType = ClassStep_TRM251_Thermal.type;
 const nextType = ClassStep_TRM251_goToPrSt.type;
+const loadType = ClassStep_TRM251_ProgLoadToDev.type;
+const startType = ClassStep_TRM251_Start.type;
+const stopType = ClassStep_TRM251_Stop.type;
 
 function programWithSteps(count, step = (i) => ({ tT: i, H: "00:01", Y: "00:02" })) {
   const list = [{ id: "program", name: "Тест" }];
@@ -31,7 +37,11 @@ describe("beforeProgramSet", () => {
     assert.equal(header.note, "01:10");
     assert.equal(source[1].H, "01:10");
     assert.equal(source[1].Pr, undefined);
-    assert.notEqual(result[1], source[1]);
+    assert.equal(result[1].type, loadType);
+    assert.equal(result[1].program[0], header);
+    assert.deepEqual(result[2], { type: startType, prN: 1, stN: 1 });
+    assert.deepEqual(result.at(-1), { type: stopType });
+    assert.notEqual(result[3], source[1]);
   });
 
   it("переводить ГГ:ХХ у хвилини і ставить Pr/St першому кроку", () => {
@@ -40,7 +50,7 @@ describe("beforeProgramSet", () => {
       { tT: 100, H: "01:10", Y: "01:15" },
     ]);
 
-    assert.deepEqual(result[1], {
+    assert.deepEqual(result[3], {
       Pr: 1,
       St: 1,
       type: stepType,
@@ -48,6 +58,7 @@ describe("beforeProgramSet", () => {
       H: 70,
       Y: 75,
     });
+    assert.equal(result[1].program[1], result[3]);
   });
 
   it("лишає числові хвилини і рядки, що не є часом", () => {
@@ -56,7 +67,7 @@ describe("beforeProgramSet", () => {
       { tT: 250, H: 30, Y: "00:05", type: "taskThermal_TRM251", note: "01" },
     ]);
 
-    assert.deepEqual(result[1], {
+    assert.deepEqual(result[3], {
       Pr: 1,
       St: 1,
       type: stepType,
@@ -73,41 +84,42 @@ describe("beforeProgramSet", () => {
       { H: " 1:5 ", Y: "00:00" },
     ]);
 
-    assert.equal(result[1].H, 65);
-    assert.equal(result[1].Y, 0);
+    assert.equal(result[3].H, 65);
+    assert.equal(result[3].Y, 0);
   });
 
   it("нумерує кроки Pr 1..3 і St 1..5", () => {
     const result = beforeProgramSet(programWithSteps(15));
 
     assert.deepEqual(
-      { Pr: result[1].Pr, St: result[1].St },
+      { Pr: result[3].Pr, St: result[3].St },
       { Pr: 1, St: 1 }
     );
     assert.deepEqual(
-      { Pr: result[5].Pr, St: result[5].St },
+      { Pr: result[7].Pr, St: result[7].St },
       { Pr: 1, St: 5 }
     );
-    assert.deepEqual(result[6], { type: nextType, prN: 2, stN: 1 });
+    assert.deepEqual(result[8], { type: nextType, prN: 2, stN: 1 });
     assert.deepEqual(
-      { Pr: result[7].Pr, St: result[7].St, type: result[7].type },
+      { Pr: result[9].Pr, St: result[9].St, type: result[9].type },
       { Pr: 2, St: 1, type: stepType }
     );
     assert.deepEqual(
-      { Pr: result[11].Pr, St: result[11].St },
+      { Pr: result[13].Pr, St: result[13].St },
       { Pr: 2, St: 5 }
     );
-    assert.deepEqual(result[12], { type: nextType, prN: 3, stN: 1 });
+    assert.deepEqual(result[14], { type: nextType, prN: 3, stN: 1 });
     assert.deepEqual(
-      { Pr: result[13].Pr, St: result[13].St },
+      { Pr: result[15].Pr, St: result[15].St },
       { Pr: 3, St: 1 }
     );
     assert.deepEqual(
-      { Pr: result[17].Pr, St: result[17].St },
+      { Pr: result[19].Pr, St: result[19].St },
       { Pr: 3, St: 5 }
     );
-    assert.equal(result[17].H, 1);
-    assert.equal(result[17].Y, 2);
+    assert.equal(result[19].H, 1);
+    assert.equal(result[19].Y, 2);
+    assert.deepEqual(result.at(-1), { type: stopType });
   });
 
   it("перезаписує вже наявні Pr і St за позицією кроку", () => {
@@ -121,24 +133,28 @@ describe("beforeProgramSet", () => {
       { Pr: 1, St: 1, tT: 150 },
     ]);
 
-    assert.equal(result[1].Pr, 1);
-    assert.equal(result[1].St, 1);
-    assert.deepEqual(result[6], { type: nextType, prN: 2, stN: 1 });
-    assert.equal(result[7].Pr, 2);
-    assert.equal(result[7].St, 1);
+    assert.equal(result[3].Pr, 1);
+    assert.equal(result[3].St, 1);
+    assert.deepEqual(result[8], { type: nextType, prN: 2, stN: 1 });
+    assert.equal(result[9].Pr, 2);
+    assert.equal(result[9].St, 1);
   });
 
   it("приймає програму лише із заголовка", () => {
     const header = { name: "Порожня" };
     const result = beforeProgramSet([header]);
-    assert.deepEqual(result, [header]);
+    assert.equal(result[0], header);
+    assert.deepEqual(result[1], { type: loadType, program: [header] });
+    assert.deepEqual(result[2], { type: startType, prN: 1, stN: 1 });
+    assert.deepEqual(result[3], { type: stopType });
+    assert.equal(result.length, 4);
   });
 
   it("приймає вміст програми рядком JSON", () => {
     const result = beforeProgramSet(
       JSON.stringify([{ name: "Програма" }, { tT: 100, H: "01:10", Y: "01:15" }])
     );
-    assert.deepEqual(result[1], {
+    assert.deepEqual(result[3], {
       Pr: 1,
       St: 1,
       type: stepType,

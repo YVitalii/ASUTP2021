@@ -283,14 +283,14 @@ describe("ClassProcessManager", () => {
     await rejects(() => proc.start("крок"), /Invalid step number/);
   });
 
-  it("stop зупиняє лише програму в стані going", () => {
+  it("stop зупиняє лише програму в стані going", async () => {
     const { proc, built } = create();
     proc.program = built;
-    proc.stop();
+    await proc.stop();
     equal(built.stopped, false);
 
     built.state._id = "going";
-    proc.stop();
+    await proc.stop();
     equal(built.stopped, true);
   });
 

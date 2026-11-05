@@ -10,17 +10,20 @@ const beforeProgramSet = require("../../devices/OWEN_TRM251/TRM251_StepsMan_befP
 const ClassStep_TRM251_Thermal = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Thermal.js");
 const ClassStep_TRM251_goToPrSt = require("../../devices/OWEN_TRM251/ClassStep_TRM251_goToPrSt.js");
 const ClassStep_TRM251_ProgLoadToDev = require("../../devices/OWEN_TRM251/ClassStep_TRM251_ProgLoadToDev.js");
+const ClassStep_TRM251_Start = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Stop.js");
 let trace = 0,
   gln = __filename + "::";
 
 // ------ ідентифікатор печі,
 // так як використовується в якості назви теки на диску та URL
 // то не повинен містити в собі заборонені символи
+
+let code = "-5,7.5,7.5,2/10";
 let props = {
-  id: "5,7.5,7.5,2)10_2026-10",
+  id: "SNO" + code.replaceAll("/", ")") + "_2026-10",
   homeDir: __dirname,
 };
-let code = "-5,7.5,7.5,2/10";
 // -- коротке імя печі
 props.shortName = {
   ua: `СНО${code}`,
@@ -70,24 +73,36 @@ entity.stepsManager.beforeProgramCreated = function ({ program }) {
 entity.stepsManager.addStepType(
   ClassStep_TRM251_Thermal.type,
   ClassStep_TRM251_Thermal,
-  furnace
- );
+  furnace,
+);
 entity.stepsManager.addStepType(
-    ClassStep_TRM251_goToPrSt.type,
-    ClassStep_TRM251_goToPrSt,
-    furnace
-  );
+  ClassStep_TRM251_goToPrSt.type,
+  ClassStep_TRM251_goToPrSt,
+  furnace,
+);
 entity.stepsManager.addStepType(
-    ClassStep_TRM251_ProgLoadToDev.type,
-    ClassStep_TRM251_ProgLoadToDev,
-    furnace
-  );
+  ClassStep_TRM251_ProgLoadToDev.type,
+  ClassStep_TRM251_ProgLoadToDev,
+  furnace,
+);
+entity.stepsManager.addStepType(
+  ClassStep_TRM251_Start.type,
+  ClassStep_TRM251_Start,
+  furnace,
+);
+entity.stepsManager.addStepType(
+  ClassStep_TRM251_Stop.type,
+  ClassStep_TRM251_Stop,
+  furnace,
+);
 
+let tasks = require("../../devices/OWEN_TRM251/tests/program_tasksList.js");
 
-
-
-console.log("------------- entity.stepsManager= ---------------");
-console.dir(entity.stepsManager, { depth: 2, colors: true });
+setTimeout(() => {
+  console.log("------------- entity.stepsManager= ---------------");
+  console.dir(entity.stepsManager.program, { depth: 2, colors: true });
+}, 5000);
+// entity.stepsManager.createProgram(tasks);
 
 // // --- створюємо та реєструємо прилад №2 -  центр камери
 // let dev2 = new TRP08(ifaceW2, 2, { id: "trp08n2", addT: 0 });

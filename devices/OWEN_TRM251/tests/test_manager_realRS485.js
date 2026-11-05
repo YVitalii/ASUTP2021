@@ -5,7 +5,6 @@ const { deepEqual, equal, ok } = require("node:assert");
 const { after, describe, it } = require("node:test");
 const Manager = require("../ManagerClassTRM251.js");
 const fullProgram = require("./testProgram.js");
-const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
 
 const ADDR = 16;
 
@@ -37,7 +36,7 @@ describe("Manager TRM251 на реальному RS485", { concurrency: false },
 
       const expected = fullProgram
         .slice(1)
-        .filter((step) => step.type !== ClassStep_TRM251_goToPrSt.type)
+        .filter((step) => Number.isFinite(Number(step.tT)))
         .map((step) => ({ tT: step.tT, H: step.H, Y: step.Y }));
       device.regs.program.timestamp = 0;
       const readBack = await device.getRegister("program");

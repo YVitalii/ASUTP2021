@@ -167,7 +167,7 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
     const st = readValue(res.St != null ? res.St : res.step);
 
     if (mode === 0) {
-      this.stop({
+      await this.stop({
         ua: `Зупинено користувачем`,
         en: `Stopped by user`,
         ru: `Остановлено пользователем`,
@@ -201,6 +201,24 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
 
     setTimeout(() => this.testProcess(), this.checkPeriod * 1000);
     return false;
+  }
+
+  /**
+   * Сигнал Стоп: крок зупиняється, і прилад теж.
+   * @param {Object} [msg]
+   */
+  async stop(msg) {
+    const wasGoing = this.state._id === "going";
+    super.stop(msg);
+    if (!wasGoing || !this.device || typeof this.device.stop !== "function") {
+      return;
+    }
+    try {
+      const stopped = await this.device.stop();
+      if (stopped !== true) this.error(stopped);
+    } catch (error) {
+      this.error(error);
+    }
   }
 }
 

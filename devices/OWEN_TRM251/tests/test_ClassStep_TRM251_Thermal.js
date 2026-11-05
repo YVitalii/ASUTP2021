@@ -112,6 +112,40 @@ describe("ClassStep_TRM251_Thermal", () => {
   });
 
   describe("testProcess", () => {
+    it("stop зупиняє прилад", async () => {
+      const calls = [];
+      const item = going(
+        create({
+          device: {
+            getCurrentState: async () => ({ programN: 1, step: 1, mode: 1 }),
+            async stop() {
+              calls.push([]);
+              return true;
+            },
+          },
+        }),
+      );
+      await item.stop();
+      assert.equal(item.state._id, "stoped");
+      assert.deepEqual(calls, [[]]);
+    });
+
+    it("stop лишає помилку, якщо прилад не зупинився", async () => {
+      const item = going(
+        create({
+          device: {
+            getCurrentState: async () => ({ programN: 1, step: 1, mode: 1 }),
+            async stop() {
+              return new Error("mode=1");
+            },
+          },
+        }),
+      );
+      await item.stop();
+      assert.equal(item.state._id, "error");
+      assert.match(item.err.ua, /mode=1/);
+    });
+
     it("режим 0 зупиняє крок", async () => {
       const item = going(
         create({ getState: async () => ({ Pr: 1, St: 1, mode: 0 }) })
@@ -232,7 +266,7 @@ describe("ClassStep_TRM251_Thermal", () => {
   describe("стандартна програма", () => {
     it("parseProgram ставить Pr/St і з них збираються кроки", () => {
       const thermal = standardProgram.filter((step) => step.type === "TRM251stepThermal");
-      assert.deepEqual(standardProgram[6], {
+      assert.deepEqual(standardProgram[8], {
         type: ClassStep_TRM251_goToPrSt.type,
         prN: 2,
         stN: 1,
@@ -284,7 +318,7 @@ describe("ClassStep_TRM251_Thermal", () => {
         { tT: 100, H: "01:10", Y: "01:15" },
       ]);
       const item = new ClassStep_TRM251_Thermal({
-        ...program[1],
+        ...program[3],
         getState: async () => ({ Pr: 1, St: 1, mode: 1 }),
       });
       assert.deepEqual(

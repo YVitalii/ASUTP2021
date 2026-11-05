@@ -371,12 +371,12 @@ class ClassProcessManager {
     return { err: null, data };
   }
 
-  stop() {
+  async stop() {
     console.log("--------------- stop() --------------------");
     // let ln = this.ln + "stop()::";
     // trace ? log("i", ln, `Started!`) : null;
     if (this.program.state && this.program.state._id == "going") {
-      this.program.stop();
+      await this.program.stop();
       return;
     }
 

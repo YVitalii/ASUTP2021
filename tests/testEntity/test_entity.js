@@ -10,6 +10,9 @@ const Iface = require("../../rs485/class_RS485_iface.js");
 const Manager = require("../../devices/OWEN_TRM251/ManagerClassTRM251.js");
 const ClassLoggerManager = require("../../controllers/loggerManager/ClassLoggerManager.js");
 const ClassStep_TRM251_Thermal = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Thermal.js");
+const ClassStep_TRM251_ProgLoadToDev = require("../../devices/OWEN_TRM251/ClassStep_TRM251_ProgLoadToDev.js");
+const ClassStep_TRM251_Start = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("../../devices/OWEN_TRM251/ClassStep_TRM251_Stop.js");
 
 Iface.prototype.openPort = async function () {};
 Iface.prototype.iterate = function () {};
@@ -27,13 +30,13 @@ describe("entity: TasksManager і ProcessManager", () => {
     const task = entity.tasksManager.getActiveTask();
 
     equal(entity.processManager.tasksManager, entity.tasksManager);
-    equal(task.taskName, "prg05");
-    equal(task.content[0].type, "description");
-    equal(task.content[0].fName, "prg05");
+    equal(task.taskName, "prg02");
+    equal(task.content[0].id, "description");
+    equal(task.content[0].fName, "prg02");
     equal(task.content[0].description, "Колеса чавунні. Відпуск.");
     deepEqual(
       task.content.slice(1).map((step) => step.tT),
-      [330, 110],
+      [35, 45, 55, 65, 70, 75],
     );
   });
 
@@ -47,20 +50,26 @@ describe("entity: TasksManager і ProcessManager", () => {
     equal(program.state._id, "waiting");
     equal(entity.processManager.listSteps[0].fName, task.content[0].fName);
 
-    equal(program.tasks.length, task.content.length - 1);
-    equal(program.tasks[0].constructor.type, ClassStep_TRM251_Thermal.type);
-    equal(program.tasks[1].constructor.type, ClassStep_TRM251_Thermal.type);
+    const thermals = program.tasks.filter(
+      (step) => step.constructor.type === ClassStep_TRM251_Thermal.type,
+    );
+    equal(program.tasks[0].constructor.type, ClassStep_TRM251_ProgLoadToDev.type);
+    equal(program.tasks[1].constructor.type, ClassStep_TRM251_Start.type);
+    equal(program.tasks[1].regs.prN, 1);
+    equal(program.tasks[1].regs.stN, 1);
+    equal(program.tasks.at(-1).constructor.type, ClassStep_TRM251_Stop.type);
+    equal(thermals.length, task.content.length - 1);
     deepEqual(
-      program.tasks.map((step) => step.goal.tT),
+      thermals.map((step) => step.goal.tT),
       task.content.slice(1).map((step) => step.tT),
     );
-    equal(program.tasks[0].goal.Pr, 1);
-    equal(program.tasks[0].goal.St, 1);
-    equal(program.tasks[0].goal.H, 50);
-    equal(program.tasks[0].goal.Y, 70);
-    equal(program.tasks[1].goal.Pr, 1);
-    equal(program.tasks[1].goal.St, 2);
-    equal(program.tasks[1].goal.Y, 20);
+    equal(thermals[0].goal.Pr, 1);
+    equal(thermals[0].goal.St, 1);
+    equal(thermals[0].goal.H, 5);
+    equal(thermals[0].goal.Y, 5);
+    equal(thermals[1].goal.Pr, 1);
+    equal(thermals[1].goal.St, 2);
+    equal(thermals[1].goal.Y, 66);
   });
 
   it("ProcessManager.getStates() повертає стан зібраної програми", () => {
@@ -72,10 +81,10 @@ describe("entity: TasksManager і ProcessManager", () => {
     equal(states._id, "waiting");
     equal(states.header.ua, task.content[0].fName);
     equal(states.comment.ua, task.content[0].description);
-    equal(states.tasks.length, task.content.length - 1);
+    equal(states.tasks.length, entity.processManager.program.tasks.length);
     deepEqual(
       states.tasks.map((step) => step._id),
-      ["waiting", "waiting"],
+      entity.processManager.program.tasks.map(() => "waiting"),
     );
     deepEqual(
       states.tasks.map((step) => step.header.ua),

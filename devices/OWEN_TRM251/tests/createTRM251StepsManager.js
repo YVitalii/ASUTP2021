@@ -8,9 +8,18 @@ const beforeProgramSet = require("../TRM251_StepsMan_befProgCreated.js");
 const tasksList = require("./program_tasksList.js");
 const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
 const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
+const ClassStep_TRM251_ProgLoadToDev = require("../ClassStep_TRM251_ProgLoadToDev.js");
+const ClassStep_TRM251_Start = require("../ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("../ClassStep_TRM251_Stop.js");
 const TRM251_emulator = require("./TRM251_emulator.js");
 
-const stepClasses = [ClassStep_TRM251_Thermal, ClassStep_TRM251_goToPrSt];
+const stepClasses = [
+  ClassStep_TRM251_Thermal,
+  ClassStep_TRM251_goToPrSt,
+  ClassStep_TRM251_ProgLoadToDev,
+  ClassStep_TRM251_Start,
+  ClassStep_TRM251_Stop,
+];
 
 function createTRM251StepsManager() {
   const device = new TRM251_emulator();

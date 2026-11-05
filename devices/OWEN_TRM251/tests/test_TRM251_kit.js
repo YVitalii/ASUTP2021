@@ -7,6 +7,9 @@ const assert = require("node:assert/strict");
 const Class_StepsManager = require("../../../processes/processManager/Class_StepsManager.js");
 const ClassStep_TRM251_Thermal = require("../ClassStep_TRM251_Thermal.js");
 const ClassStep_TRM251_goToPrSt = require("../ClassStep_TRM251_goToPrSt.js");
+const ClassStep_TRM251_ProgLoadToDev = require("../ClassStep_TRM251_ProgLoadToDev.js");
+const ClassStep_TRM251_Start = require("../ClassStep_TRM251_Start.js");
+const ClassStep_TRM251_Stop = require("../ClassStep_TRM251_Stop.js");
 const tasksList = require("./program_tasksList.js");
 const createTRM251StepsManager = require("./createTRM251StepsManager.js");
 const TRM251_emulator = require("./TRM251_emulator.js");
@@ -32,10 +35,12 @@ describe("комплект TRM-251", () => {
   it("збирає програму: термокроки і перехід на програму 2", () => {
     assert.equal(steps.program.header.ua, "prg02");
     assert.equal(steps.program.comment.ua, "Колеса чавунні. Відпуск.");
-    assert.equal(tasks.length, 10);
+    assert.equal(tasks.length, 13);
     assert.deepEqual(
       tasks.map((step) => step.constructor.type),
       [
+        ClassStep_TRM251_ProgLoadToDev.type,
+        ClassStep_TRM251_Start.type,
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
@@ -46,17 +51,20 @@ describe("комплект TRM-251", () => {
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
+        ClassStep_TRM251_Stop.type,
       ],
     );
   });
 
   it("термокрок зберігає Pr, St і температури після beforeProgramSet", () => {
-    assert.deepEqual(tasks[0].goal, { Pr: 1, St: 1, tT: 110, H: 10, Y: 20 });
-    assert.deepEqual(tasks[2].goal, { Pr: 1, St: 3, tT: 450, H: 59, Y: 120 });
-    assert.equal(tasks[5].prN, 2);
-    assert.equal(tasks[5].stN, 1);
-    assert.deepEqual(tasks[6].goal, { Pr: 2, St: 1, tT: 200, H: 15, Y: 25 });
-    assert.deepEqual(tasks[7].goal, { Pr: 2, St: 2, tT: 400, H: 60, Y: 90 });
+    assert.equal(tasks[1].regs.prN, 1);
+    assert.equal(tasks[1].regs.stN, 1);
+    assert.deepEqual(tasks[2].goal, { Pr: 1, St: 1, tT: 110, H: 10, Y: 20 });
+    assert.deepEqual(tasks[4].goal, { Pr: 1, St: 3, tT: 450, H: 59, Y: 120 });
+    assert.equal(tasks[7].prN, 2);
+    assert.equal(tasks[7].stN, 1);
+    assert.deepEqual(tasks[8].goal, { Pr: 2, St: 1, tT: 200, H: 15, Y: 25 });
+    assert.deepEqual(tasks[9].goal, { Pr: 2, St: 2, tT: 400, H: 60, Y: 90 });
   });
 
   it("усі кроки працюють з одним емулятором приладу", () => {
