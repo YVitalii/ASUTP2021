@@ -18,6 +18,8 @@ const getFC10data = require("./getFC10data.js");
 // функція для форматування виводу буфера в консоль
 const parseBuf = require("../tools/parseBuf.js");
 const gLn = "class_RS485_interface.js::";
+/** 1 — трасування порту, черги, запису кадру і отриманих байтів */
+let gTrace = 1;
 // завантаження логера
 const log = require("../tools/log.js");
 const dummy = require("../tools/dummy.js").dummyPromise;
@@ -68,7 +70,7 @@ class IfaceRS485 extends ClassGeneral {
     this.comment = this.stateMessages.disconnected;
     // налаштування логера
     let ln = this.ln + "constructor()::";
-    let trace = 0;
+    let trace = gTrace;
 
     this.timeoutBetweenCalls = props.timeoutBetweenCalls
       ? props.timeoutBetweenCalls
@@ -111,7 +113,7 @@ class IfaceRS485 extends ClassGeneral {
 
     // ---------- ставимо прослуховувача- збирача даних --------------
     this.serial.on("data", (data) => {
-      let trace = 0,
+      let trace = gTrace,
         ln = this.ln + 'serial.on("data")::';
       // при отриманні шматка інформації, запамятовуємо їх в буфер відповіді
       this.task.res = Buffer.concat([this.task.res, data]);
@@ -153,7 +155,7 @@ class IfaceRS485 extends ClassGeneral {
   }
 
   async openPortPromise(serial) {
-    let trace = 1,
+    let trace = gTrace,
       ln = this.ln + "openPortPromise(serial)::";
     return new Promise(function (resolve, reject) {
       if (serial.isOpen) {
@@ -177,7 +179,7 @@ class IfaceRS485 extends ClassGeneral {
   // функція callback для serial.open,
   // створена для перезапуску самої себе до моменту успішного відкриття порту
   async openPort() {
-    let trace = 1,
+    let trace = gTrace,
       ln = this.ln + "openPort()::";
     //this.isOpened = this.serial.isOpen;
     while (!this.isOpened) {
@@ -216,7 +218,7 @@ class IfaceRS485 extends ClassGeneral {
    */
   send(req, cb) {
     // налаштування трасувальника
-    let trace = 1,
+    let trace = gTrace,
       ln =
         this.ln +
         `Incoming data:(id=${req.id};FC=${req.FC};addr=${req.addr};data=${parseBuf(
@@ -310,7 +312,7 @@ class IfaceRS485 extends ClassGeneral {
    */
   iterate() {
     // -- налаштування трасувальника -----
-    let trace = 0,
+    let trace = gTrace,
       ln = this.ln + `iterate()::`;
     trace ? log("i", ln, `Started! isOpen=${this.serial.isOpen}`) : null;
     this.isOpened = this.serial.isOpen;
@@ -351,7 +353,7 @@ class IfaceRS485 extends ClassGeneral {
    * @param {Task} task
    */
   transactionStart(task) {
-    let trace = 0,
+    let trace = gTrace,
       ln = this.ln + `transactionStart(${parseBuf(task.req)})::`;
     trace ? log("i", ln, `Started!`) : null;
 
@@ -376,7 +378,7 @@ class IfaceRS485 extends ClassGeneral {
    * @param {Task} task - поточне завдання
    */
   transactionFinish(task) {
-    let trace = 0,
+    let trace = gTrace,
       ln = this.ln + `transactionFinish(${parseBuf(task.req)})::`;
     // trace ? log("i", ln, `Started!`) : null;
     let duration = 0;
@@ -478,7 +480,7 @@ function extractData(buf) {
   // принимает буфер
   // вырезает из него данные и возвращает их
   // в виде буфера
-  let trace = 1,
+  let trace = gTrace,
     ln = gLn + "extractData(" + parseBuf(buf) + ")::";
   trace ? log(ln, "Started!") : null;
 

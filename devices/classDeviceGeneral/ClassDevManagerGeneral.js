@@ -343,6 +343,8 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     i = 0;
     // ознака успішності операції
     let ok = false;
+    // відповідь приладу, а не синтетичний "Device offline!"
+    let delivered = false;
     do {
       try {
         // перед кожною транзакцією перевіряємо стан порту, так як за
@@ -352,6 +354,7 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         res = await funcItem(params);
         // все пройшло успішно
         ok = true;
+        delivered = true;
         trace ? log("i", ln, `res=`, res) : null;
       } catch (error) {
         let trace = 1;
@@ -362,6 +365,11 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
           // console.dir(error);
         }
         //log("e", ln, "err=", error.messages.en);
+        // Помилка регістра (наприклад Modbus на tT) не є обривом лінії.
+        if (!this.countsLinkError(error, params)) {
+          this.busy = false;
+          throw error;
+        }
         // лічимо помилки
         if (!this.offLine) this.errorCounter.value += 1;
         if (this.errorCounter.value >= this.errorCounter.max) {
@@ -391,18 +399,26 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
     } while (!ok);
     // знімаємо ознаку зайнятості
     this.busy = false;
-    if (res[0].value != null) {
-      // скидаємо лічильник помилок
+    if (delivered) {
+      // будь-яка успішна транзакція відновлює лінію, навіть якщо value = 0 або null
       this.errorCounter.value = 0;
-      // скидаємо ознаку, що прилад відсутній в мережі
       this.offLine = false;
-      //якщо трасуваання - виводимо результат в лог
       trace ? log("i", ln + "Iteration completed") : null;
     }
 
     // повертаємо результат
     return res;
   } //async iteration
+
+  /**
+   * false — помилка не обрив лінії: лічильник і offLine не змінюються, повтору немає.
+   * @param {Error} error
+   * @param {Object} params
+   * @returns {boolean}
+   */
+  countsLinkError(error, params) {
+    return true;
+  }
 
   /** Функція записує 1 регістр в фізичний прилад
    * @param {String} regName - назва регістру, така як визначена в this.driver
@@ -481,14 +497,16 @@ module.exports = class ClassDevManagerGeneral extends ClassGeneral {
         regName: reg.driverRegName,
       });
     } catch (error) {
-      log("e", ln, error);
-      throw new Error(error.ua);
+      log("e", ln, error && error.message ? error.message : error);
+      throw error;
     }
     // оновлюємо дані в state
     trace ? log("i", ln, `res=`, res) : null;
     if (res[0] && res[0].value != undefined) {
       reg.value = res[0].value;
-      reg.note = res[0].detail.afterGet.note;
+      if (res[0].detail && res[0].detail.afterGet) {
+        reg.note = res[0].detail.afterGet.note;
+      }
     }
 
     return reg.value;

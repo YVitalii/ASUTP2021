@@ -25,6 +25,25 @@ function readValue(field) {
   return field;
 }
 
+/** Timeout, offline або закритий порт: лінія ще може повернутися. */
+function isLinkGap(error) {
+  const text = [
+    error && error.message,
+    error && error.ua,
+    error && error.msg && error.msg.ua,
+    error && error.msg && error.msg.en,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return /timeout|device offline|порт не відкрит|port not opened/i.test(text);
+}
+
+const RUNNING_NOTE = {
+  ua: `Виконується`,
+  en: `In progress`,
+  ru: `Выполняется`,
+};
+
 /**
  * Крок програми TRM-251.
  * Крок уже містить Pr і St. Регістри tT, H, Y беруться з ClassTaskThermalSimple.
@@ -156,10 +175,26 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
     try {
       res = await this.getDeviceState();
     } catch (error) {
-      if (this.state._id === "going") this.error(error);
+      if (this.state._id !== "going") return false;
+      if (isLinkGap(error)) {
+        this.state.note = {
+          ua: `Немає відповіді приладу, очікування зв'язку`,
+          en: `No device reply, waiting for the link`,
+          ru: `Нет ответа прибора, ожидание связи`,
+        };
+        this.setChanged();
+        this.logger("w", this.state.note);
+        setTimeout(() => this.testProcess(), this.checkPeriod * 1000);
+        return false;
+      }
+      this.error(error);
       return false;
     }
     if (!res || this.state._id !== "going") return false;
+    if (this.state.note && this.state.note.ua === `Немає відповіді приладу, очікування зв'язку`) {
+      this.state.note = RUNNING_NOTE;
+      this.setChanged();
+    }
 
     const mode = Number(readValue(res.mode));
     // менеджер віддає programN і step, тест і опис кроку — Pr і St
@@ -191,11 +226,7 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
       return false;
     }
     if (mode === 3 || pr != this.goal.Pr || st != this.goal.St) {
-      this.finish({
-        ua: `Крок виконано успішно`,
-        en: `Step finished successfully`,
-        ru: `Шаг выполнен успешно`,
-      });
+      this.finish();
       return true;
     }
 

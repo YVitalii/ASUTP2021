@@ -1,7 +1,7 @@
 doctype html
 -var _lang = lang ? lang : 'ua'
 -var _pageTitle = pageTitle[_lang] ? pageTitle[_lang] : 'pageTitle: not defined'
-html(class="h-100")
+html.page-root
   head
     title !{_pageTitle}
     link(rel='stylesheet', href='/stylesheets/style.css')
@@ -20,13 +20,10 @@ html(class="h-100")
       include ./js/tools.js
     //-   include ../tools/createReport.js
 
-  body(class="h-100"  )
+  body.page-shell
     include header.pug
-    div(class="container-fluid h-100 d-flex flex-column" ) 
-      //- pageBody 
-      div(class="row h-100" )
-        div(class="col h-100")
-          div(id="pageBody" class="container-fluide h-100") !{body}
+    //- pageBody заповнює екран під шапкою
+    #pageBody.page-shell__body !{body}
 
       //- від footera поки відмовився
 

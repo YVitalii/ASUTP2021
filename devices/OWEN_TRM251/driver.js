@@ -2,6 +2,8 @@ const ClassDriverGeneral = require("../classDeviceGeneral/ClassDriverGeneral");
 const { degC, lpm, m3ph, percent } = require("../../config.js").units;
 const log = require("../../tools/log.js"); // логер
 const gLn = "TRM251_driver::";
+/** 1 — трасування формування запиту і розбору відповіді кожного регістра */
+let gTrace = 1;
 
 /** Функція для скорочення записів
  * env = Object of ClassDriverRegisterGeneral
@@ -42,7 +44,7 @@ let readOnly = function (env) {
  * @throws {Error} - Throws an error if the data cannot be converted to a valid number.
  */
 const toNumber = function (data, env) {
-  let trace = 0,
+  let trace = gTrace,
     ln = env.ln + `toNumber():id=${env.id}::`;
   trace ? log("i", ln, `data=${data}`) : null;
   // console.dir(data);
@@ -91,7 +93,7 @@ for (let i = 1; i < 3; i++) {
     _get: function (arg) {
       let req = _getFC3(this),
         ln = "_get::",
-        trace = 0;
+        trace = gTrace;
       if (trace) {
         console.log(ln + `req=`);
         console.dir(req);
@@ -99,7 +101,7 @@ for (let i = 1; i < 3; i++) {
       return req;
     },
     get_: function (arg) {
-      let trace = 0,
+      let trace = gTrace,
         ln = gLn + this.id + `::get_::`;
       if (trace) {
         log("i", ln, `arg=`);
@@ -151,7 +153,7 @@ driver.addRegister({
   note: `Current set point`,
   units: degC,
   _get: function (arg) {
-    let trace = 0,
+    let trace = gTrace,
       ln = this.id + `::_get(${arg})::`;
     let req = _getFC3(this);
     req.data.data = 1;
@@ -162,7 +164,7 @@ driver.addRegister({
     return req;
   }, //_get
   get_: function (arg) {
-    let trace = 0,
+    let trace = gTrace,
       ln = this.id + `::get_(${arg})::`;
 
     // поточна уставка
@@ -190,7 +192,7 @@ driver.addRegister({
   note: `Working mode`,
   units: { ua: ``, en: ``, ru: `` },
   _get: function (arg = 0) {
-    let trace = 0,
+    let trace = gTrace,
       ln = this.id + `::_get(${arg})::`;
     let req = _getFC3(this);
     req.data.data = 1;
@@ -201,7 +203,7 @@ driver.addRegister({
     return req;
   }, //_get
   get_: function (arg) {
-    let trace = 0,
+    let trace = gTrace,
       ln = this.id + `::get_(${arg})::`;
     let note = this.note;
     err = null;
@@ -239,7 +241,7 @@ driver.addRegister({
     return readOnly(this);
   }, //get_
   _set: function (arg) {
-    let trace = 0,
+    let trace = gTrace,
       ln = this.id + `::_set(${arg})::`;
     let data = null,
       err = null;
@@ -303,7 +305,7 @@ driver.addRegister({
     return { err, data };
   }, //_get
   get_: function (arg) {
-    let trace = 0,
+    let trace = gTrace,
       ln = gLn + this.id + `::get_::`,
       txt = "";
     if (trace) {
@@ -373,7 +375,7 @@ driver.addRegister({
       },
       err = null,
       ln = gLn + this.id + "::_set()::",
-      trace = 1;
+      trace = gTrace;
 
     if (!Array.isArray(arg)) {
       throw new Error(ln + "arg should be an Array");

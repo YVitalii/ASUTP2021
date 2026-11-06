@@ -1,43 +1,38 @@
 <template>
-  <section class="pm-description" :style="sectionStyle" aria-label="Опис програми">
-    <component
-      :is="componentFor(headerField.type)"
+  <section
+    ref="host"
+    class="pm-description"
+    :style="sectionStyle"
+    aria-label="Опис програми"
+    @mouseenter="showCaption"
+    @mouseleave="hideCaption"
+  >
+    <TextNote
       class="pm-row"
-      :model-value="headerField.value"
-      :label="headerField.label"
-      disabled
+      :label="localized(headerField.label)"
+      :content="headerField.value ?? ''"
     />
-    <component
-      :is="componentFor(commentField.type)"
+    <TextNote
       class="pm-row"
-      :model-value="commentField.value"
-      :label="commentField.label"
-      disabled
+      :label="localized(commentField.label)"
+      :content="commentField.value ?? ''"
     />
     <div class="pm-times">
-      <component
-        :is="componentFor(startField.type)"
+      <DayTimeField_Labeled
         class="pm-time"
-        :model-value="startField.value"
-        :label="startField.label"
-        disabled
-      />
-      <component
-        :is="componentFor(durationField.type)"
-        class="pm-time"
-        :model-value="durationField.value"
+        :model-value="durationField.value ?? ''"
         :label="durationField.label"
         disabled
       />
     </div>
+    <CaptionSimple ref="caption" :content="captionText" />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, type Component } from "vue";
-import TextField_Labeled from "../../../vueComponents/fields/TextField_Labeled.vue";
-import TextAreaField_Labeled from "../../../vueComponents/fields/TextAreaField_Labeled.vue";
-import DateTimeField_Labeled from "../../../vueComponents/fields/DateTimeField_Labeled.vue";
+import { computed, useTemplateRef } from "vue";
+import TextNote from "../../../vueComponents/fields/TextNote.vue";
+import CaptionSimple from "../../../vueComponents/fields/CaptionSimple.vue";
 import DayTimeField_Labeled from "../../../vueComponents/fields/DayTimeField_Labeled.vue";
 import { settings } from "./settings.js";
 
@@ -69,15 +64,10 @@ type LocalizedText = {
   ru?: string;
 };
 
-const fieldComponents: Record<string, Component> = {
-  TextField_Labeled,
-  TextAreaField_Labeled,
-  DateTimeField_Labeled,
-  DayTimeField_Labeled,
-};
-
 const description = settings.process.description;
 const fieldOrder = ["header", "comment", "startTime", "duration"] as const;
+const host = useTemplateRef<HTMLElement>("host");
+const caption = useTemplateRef<InstanceType<typeof CaptionSimple>>("caption");
 
 function localized(value: string | LocalizedText | null | undefined) {
   if (value == null) return "";
@@ -89,8 +79,23 @@ function localized(value: string | LocalizedText | null | undefined) {
   return value.ua || value.en || value.ru || "";
 }
 
-function componentFor(type: string) {
-  return fieldComponents[type] ?? TextField_Labeled;
+/** ISO-час → локальний рядок. Порожнє значення — "???". */
+function formatStart(value: string | null | undefined) {
+  if (value == null || value === "") return "???";
+  if (/^\d{1,2}:\d{2}$/.test(value)) return value;
+  if (/^\d{1,2}:\d{2}:\d{2}$/.test(value)) {
+    const [hours, minutes] = value.split(":");
+    return `${hours}:${minutes}`;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "???";
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 const values = computed(() => ({
@@ -126,8 +131,21 @@ const sectionStyle = computed(() => {
 
 const headerField = computed(() => fields.value.header);
 const commentField = computed(() => fields.value.comment);
-const startField = computed(() => fields.value.startTime);
 const durationField = computed(() => fields.value.duration);
+
+const captionText = computed(() => {
+  const started = `${localized(description.startTime.label)} ${formatStart(props.startTime)}`;
+  const about = commentField.value.value ?? "";
+  return about ? `${started}\n${about}` : started;
+});
+
+function showCaption() {
+  if (host.value) void caption.value?.show(host.value);
+}
+
+function hideCaption() {
+  caption.value?.hide();
+}
 </script>
 
 <style scoped>

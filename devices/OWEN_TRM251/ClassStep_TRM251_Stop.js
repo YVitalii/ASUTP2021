@@ -37,11 +37,7 @@ class ClassStep_TRM251_Stop extends ClassStepGeneral {
         this.error(res);
         throw res;
       }
-      this.finish({
-        ua: "Зупинено",
-        en: "Stopped",
-        ru: "Остановлено",
-      });
+      this.finish();
     };
   }
 

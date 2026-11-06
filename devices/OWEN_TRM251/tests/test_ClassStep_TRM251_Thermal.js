@@ -232,7 +232,7 @@ describe("ClassStep_TRM251_Thermal", () => {
       );
       assert.equal(await item.testProcess(), true);
       assert.equal(item.state._id, "finished");
-      assert.equal(item.state.note.ua, "Крок виконано успішно");
+      assert.match(item.state.note.ua, /^Завершено /);
     });
 
     it("режим 3 завершує крок, навіть якщо Pr/St ще збігаються", async () => {
@@ -241,6 +241,33 @@ describe("ClassStep_TRM251_Thermal", () => {
       );
       assert.equal(await item.testProcess(), true);
       assert.equal(item.state._id, "finished");
+    });
+
+    it("timeout не завершує крок і планує наступне опитування", async () => {
+      const item = going(
+        create({
+          checkPeriod: 2,
+          getState: async () => {
+            throw new Error(
+              "Не вдалося прочитати поточний стан: checkError(res=0x[]):Помилка timeout",
+            );
+          },
+        }),
+      );
+      const planned = [];
+      const original = global.setTimeout;
+      global.setTimeout = (fn, ms) => {
+        planned.push(ms);
+        return 1;
+      };
+      try {
+        assert.equal(await item.testProcess(), false);
+      } finally {
+        global.setTimeout = original;
+      }
+      assert.equal(item.state._id, "going");
+      assert.equal(item.state.note.ua, "Немає відповіді приладу, очікування зв'язку");
+      assert.deepEqual(planned, [2000]);
     });
 
     it("помилка читання приладу переводить крок у error", async () => {

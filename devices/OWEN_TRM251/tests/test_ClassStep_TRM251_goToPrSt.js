@@ -55,7 +55,7 @@ describe("ClassStep_TRM251_goToPrSt", () => {
     await item.beforeStart();
     assert.deepEqual(calls, [{ prN: 2, stN: 1 }]);
     assert.equal(item.state._id, "finished");
-    assert.equal(item.state.note.ua, "Перехід на Пр:2 Кр:1");
+    assert.match(item.state.note.ua, /^Завершено /);
   });
 
   it("після однієї невдачі повторює перехід і завершує крок", async () => {

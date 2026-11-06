@@ -158,9 +158,14 @@ class ClassProcessManager {
     // і віддаємо її stepsManager. Поки програма виконується, createProgram відмовляє.
     let trace = 0,
       ln = this.ln + " setProgram()::";
-    let tasksList = this.tasksManager.getActiveTask().content;
+    let task = this.tasksManager.getActiveTask();
+    let tasksList = task && task.content;
     let result = this.stepsManager.createProgram(tasksList);
     if (!result || result.err) return result;
+    this.loadedTask = {
+      name: task && task.taskName,
+      lastChange: task && task.lastChange,
+    };
 
     this.listSteps = this.stepsManager.tasksList;
     this.currLogFileName = null;
@@ -226,9 +231,33 @@ class ClassProcessManager {
     return { err: null, data };
   } // setProgram() {
 
+  /**
+   * Поки програма не виконується, інша назва або час редагування в TasksManager
+   * збирають її заново. У going лишається програма, з якою пішов запуск.
+   */
+  refreshWaitingProgram() {
+    const id = this.program && this.program.state && this.program.state._id;
+    if (id === "going") return;
+    let task;
+    try {
+      task = this.tasksManager.getActiveTask();
+    } catch (error) {
+      return;
+    }
+    const loaded = this.loadedTask || {};
+    const name = task && task.taskName;
+    const lastChange = task && task.lastChange;
+    if (name === loaded.name && lastChange === loaded.lastChange) return;
+    this.setProgram();
+  }
+
   getStates() {
     let trace = 0,
       ln = this.ln + "getStates()::";
+    this.refreshWaitingProgram();
+    if (!this.program || typeof this.program.getState !== "function") {
+      return this.program && this.program.state ? this.program.state : {};
+    }
     let states = this.program.getState();
     if (trace) {
       log("i", ln, `states=`);
@@ -327,6 +356,14 @@ class ClassProcessManager {
     return fileName;
   }
 
+  /** Нова збірка лише для першого кроку програми. Його id — st_1. */
+  startsFromFirstStep(stepN) {
+    const tasks = this.program && this.program.tasks;
+    const step = Array.isArray(tasks) ? tasks[stepN] : null;
+    const id = step && step.id != null ? String(step.id) : "";
+    return id === "st_1" || id === "st1";
+  }
+
   async start(stepN = 1) {
     let trace = 1,
       ln = this.ln + `Start(${stepN})::`;
@@ -347,11 +384,11 @@ class ClassProcessManager {
       log("e", ln + err.ua);
       return { err, data: null };
     }
-    // якщо починаємо з кроку №1 - то програму запущено спочатку
-    if (stepN == 1 || this.currLogFileName == null) {
-      //очищуємо попередній стан кроків
+    // id st_1 — нова збірка, усі кроки знову waiting. Інший крок лишає стани.
+    if (this.startsFromFirstStep(stepN)) {
       this.setProgram();
-      //створюємо нове імя файлу
+    }
+    if (this.startsFromFirstStep(stepN) || this.currLogFileName == null) {
       this.currLogFileName = this.generateLogFileName();
     }
 

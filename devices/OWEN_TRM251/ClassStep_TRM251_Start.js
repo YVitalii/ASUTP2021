@@ -43,11 +43,7 @@ class ClassStep_TRM251_Start extends ClassStepGeneral {
         this.error(res);
         throw res;
       }
-      this.finish({
-        ua: `Запущено Пр${this.regs.prN}; Кр${this.regs.stN}`,
-        en: `Started Pr${this.regs.prN}; St${this.regs.stN}`,
-        ru: `Запущено Пр${this.regs.prN}; Шг${this.regs.stN}`,
-      });
+      this.finish();
     };
   }
 

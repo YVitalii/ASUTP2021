@@ -159,6 +159,17 @@ describe("ClassStepGeneral", () => {
       });
     });
 
+    it("без повідомлення пише Завершено і локальний час", () => {
+      const item = step();
+      item.state._id = "going";
+      item.state.startTime = new Date();
+      item.finish();
+      assert.equal(item.state._id, "finished");
+      assert.match(item.state.note.ua, /^Завершено /);
+      assert.match(item.state.note.en, /^Finished /);
+      assert.match(item.state.note.ru, /^Завершено /);
+    });
+
     it("finish ставить finished і приймає власне повідомлення", () => {
       const item = step();
       item.state._id = "going";
@@ -203,7 +214,7 @@ describe("ClassStepGeneral", () => {
         checkTime: 10,
         async beforeStart() {
           before += 1;
-          item.finish();
+          item.finish({ ua: "Готово", en: "Done", ru: "Готово" });
         },
         async afterAll() {
           after += 1;
@@ -216,6 +227,7 @@ describe("ClassStepGeneral", () => {
       assert.equal(before, 1);
       assert.equal(after, 1);
       assert.equal(item.state._id, "finished");
+      assert.equal(item.state.note.ua, "Готово");
       assert.ok(item.state.endTime instanceof Date);
       assert.equal(item.err, null);
     });
@@ -234,6 +246,7 @@ describe("ClassStepGeneral", () => {
 
       assert.equal(await item.start(), 1);
       assert.equal(item.state._id, "stoped");
+      assert.match(item.state.note.ua, /зупинено/);
       assert.equal(after, 1);
     });
 

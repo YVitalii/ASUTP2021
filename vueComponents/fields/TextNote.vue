@@ -60,7 +60,7 @@ const long = computed(() => (props.content ?? "").length > 25);
 .text-note__content {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: bold;
   line-height: 1.2;
   overflow-wrap: break-word;

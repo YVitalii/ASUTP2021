@@ -26,6 +26,10 @@ function readBack(extra = []) {
 function device(hooks = {}) {
   return {
     regs: { program: { timestamp: 50 } },
+    async stop() {
+      if (hooks.stop) return hooks.stop();
+      return true;
+    },
     async setProgram(value) {
       if (hooks.setProgram) return hooks.setProgram(value);
     },
@@ -55,7 +59,7 @@ describe("ClassStep_TRM251_ProgLoadToDev", () => {
     assert.equal(ClassStep_TRM251_ProgLoadToDev.type, "TRM251_ProgLoadToDev");
     assert.equal(item.device, dev);
     assert.equal(item.program, program);
-    assert.equal(item.header.ua, "Запис програми в прилад");
+    assert.equal(item.header.ua, "Запис програми");
     assert.equal(item.state.type, "ProsessStep_SimpleBadge");
     assert.equal(item.waitMs, 2000);
     assert.equal(item.state._id, "waiting");
@@ -74,7 +78,7 @@ describe("ClassStep_TRM251_ProgLoadToDev", () => {
   it("кидає помилку без приладу або програми", () => {
     assert.throws(
       () => new ClassStep_TRM251_ProgLoadToDev({ program }),
-      /setProgram і getRegister/,
+      /stop, setProgram і getRegister/,
     );
     assert.throws(
       () =>
@@ -89,6 +93,10 @@ describe("ClassStep_TRM251_ProgLoadToDev", () => {
   it("записує програму, читає її і завершує крок", async () => {
     const calls = [];
     const dev = device({
+      stop() {
+        calls.push(["stop"]);
+        return true;
+      },
       setProgram(value) {
         calls.push(["set", value]);
       },
@@ -100,14 +108,28 @@ describe("ClassStep_TRM251_ProgLoadToDev", () => {
         ]);
       },
     });
-    const item = create({ device: dev });
-    await item.beforeStart();
+    const item = create({ device: dev, checkTime: 10 });
+    item.state._id = "waiting";
+    await item.testProcess();
     assert.deepEqual(calls, [
+      ["stop"],
       ["set", program],
       ["get", "program", 0],
     ]);
     assert.equal(item.state._id, "finished");
-    assert.match(item.state.note.ua, /записано/);
+    assert.match(item.state.note.ua, /^Завершено /);
+  });
+
+  it("start лишає примітку про запис програми", async () => {
+    const item = new ClassStep_TRM251_ProgLoadToDev({
+      device: device(),
+      program,
+      checkTime: 10,
+    });
+    item.waitMs = 0;
+    await item.start();
+    assert.equal(item.state._id, "finished");
+    assert.match(item.state.note.ua, /^Завершено /);
   });
 
   it("після розбіжності повторює запис і завершує крок", async () => {
@@ -124,7 +146,7 @@ describe("ClassStep_TRM251_ProgLoadToDev", () => {
       writes += 1;
     };
     const item = create({ device: dev });
-    await item.beforeStart();
+    await item.testProcess();
     assert.equal(writes, 2);
     assert.equal(reads, 2);
     assert.equal(item.state._id, "finished");
@@ -141,7 +163,7 @@ describe("ClassStep_TRM251_ProgLoadToDev", () => {
       },
     });
     const item = create({ device: dev });
-    await assert.rejects(() => item.beforeStart(), /не збігається/);
+    assert.equal(await item.testProcess(), false);
     assert.equal(writes, 3);
     assert.equal(item.state._id, "error");
     assert.match(item.err.ua, /не збігається/);

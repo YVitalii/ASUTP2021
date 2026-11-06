@@ -234,6 +234,7 @@ describe("ClassProcessManager", () => {
     proc.program = {
       state: { _id: "waiting" },
       header: { ua: "стара", en: "old", ru: "старая" },
+      tasks: [{ id: "st_0" }, { id: "st_1" }],
     };
     const res = await proc.start();
 
@@ -245,6 +246,57 @@ describe("ClassProcessManager", () => {
     equal(logger.saved.length, 1);
     equal(logger.saved[0], list);
     ok(list[0].started);
+  });
+
+  it("start з кроку st_1 збирає програму, щоб кроки знову були waiting", async () => {
+    const { proc, built } = create();
+    proc.program = {
+      state: { _id: "finished" },
+      header: { ua: "prg03", en: "prg03", ru: "prg03" },
+      tasks: [
+        { id: "st_1", state: { _id: "error" } },
+        { id: "st_2", goal: { Pr: 1, St: 1 }, state: { _id: "finished" } },
+      ],
+      start() {},
+    };
+    proc.listSteps = [{ name: "Відпуск" }];
+
+    const res = await proc.start(0);
+
+    equal(res.err, null);
+    equal(proc.program, built);
+    equal(built.startedFrom, 0);
+  });
+
+  it("start з іншого кроку не перезбирає програму і не змінює стани кроків", async () => {
+    const { proc } = create();
+    const current = {
+      state: { _id: "finished" },
+      header: { ua: "prg03", en: "prg03", ru: "prg03" },
+      tasks: [
+        { id: "st_1", state: { _id: "finished" } },
+        { id: "st_2", goal: { Pr: 1, St: 1 }, state: { _id: "error" } },
+      ],
+      start(stepN) {
+        this.startedFrom = stepN;
+      },
+    };
+    proc.program = current;
+    proc.listSteps = [{ name: "Відпуск" }];
+    proc.currLogFileName = null;
+    let rebuilt = 0;
+    proc.setProgram = () => {
+      rebuilt += 1;
+    };
+
+    const res = await proc.start(1);
+
+    equal(res.err, null);
+    equal(rebuilt, 0);
+    equal(proc.program, current);
+    equal(current.tasks[0].state._id, "finished");
+    equal(current.tasks[1].state._id, "error");
+    equal(current.startedFrom, 1);
   });
 
   it("start з іншого кроку лишає поточний лог, якщо ім'я вже є", async () => {
@@ -304,6 +356,126 @@ describe("ClassProcessManager", () => {
     const name = proc.generateLogFileName();
     equal(calls, 2);
     ok(name.endsWith("-1"));
+  });
+
+  it("getStates у going віддає зібрану програму і не перезбирає", () => {
+    const { proc, steps, built } = create();
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg01",
+      lastChange: 1,
+      content: [{ type: "description", name: "Відпуск" }],
+    });
+    proc.setProgram();
+    built.state._id = "going";
+    let calls = 0;
+    steps.createProgram = () => {
+      calls += 1;
+      return { err: null, data: null };
+    };
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg02",
+      lastChange: 2,
+      content: [{ type: "description", name: "Нова" }],
+    });
+
+    const state = proc.getStates();
+
+    equal(calls, 0);
+    equal(state._id, "going");
+    equal(state.header.ua, "Відпуск");
+    equal(proc.program, built);
+  });
+
+  it("getStates у waiting збирає нову програму, якщо змінилась назва або час", () => {
+    const { proc, steps } = create();
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg01",
+      lastChange: 1,
+      content: [{ type: "description", name: "Відпуск" }],
+    });
+    proc.setProgram();
+    const fresh = program("Нова");
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg02",
+      lastChange: 2,
+      content: [{ type: "description", name: "Нова" }],
+    });
+    steps.createProgram = (tasksList) => {
+      steps.received = tasksList;
+      steps.program = fresh;
+      return { err: null, data: { ua: "ok" } };
+    };
+
+    const state = proc.getStates();
+
+    deepEqual(steps.received, [{ type: "description", name: "Нова" }]);
+    equal(proc.program, fresh);
+    equal(state.header.ua, "Нова");
+    equal(state._id, "waiting");
+    equal(proc.loadedTask.name, "prg02");
+    equal(proc.loadedTask.lastChange, 2);
+
+    steps.received = null;
+    const again = proc.getStates();
+    equal(steps.received, null);
+    equal(again.header.ua, "Нова");
+    equal(again._id, "waiting");
+  });
+
+  it("getStates після завершення збирає нову активну програму", () => {
+    const { proc, steps, built } = create();
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg03",
+      lastChange: 1,
+      content: [{ type: "description", fName: "prg03", name: "prg03" }],
+    });
+    proc.setProgram();
+    built.state._id = "finished";
+    const fresh = program("prg02");
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg02",
+      lastChange: 2,
+      content: [{ type: "description", fName: "prg02", name: "prg02" }],
+    });
+    steps.createProgram = (tasksList) => {
+      steps.received = tasksList;
+      steps.program = fresh;
+      return { err: null, data: { ua: "ok" } };
+    };
+
+    const state = proc.getStates();
+
+    equal(steps.received[0].fName, "prg02");
+    equal(proc.program, fresh);
+    equal(state.header.ua, "prg02");
+    equal(proc.loadedTask.name, "prg02");
+  });
+
+  it("getStates у waiting перезбирає програму, якщо змінився лише час редагування", () => {
+    const { proc, steps } = create();
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg01",
+      lastChange: 1,
+      content: [{ type: "description", name: "Відпуск" }],
+    });
+    proc.setProgram();
+    const fresh = program("Відпуск");
+    let calls = 0;
+    proc.tasksManager.getActiveTask = () => ({
+      taskName: "prg01",
+      lastChange: 9,
+      content: [{ type: "description", name: "Відпуск" }],
+    });
+    steps.createProgram = () => {
+      calls += 1;
+      steps.program = fresh;
+      return { err: null, data: { ua: "ok" } };
+    };
+
+    proc.getStates();
+
+    equal(calls, 1);
+    equal(proc.loadedTask.lastChange, 9);
   });
 
   it("getHtmlProgram оновлює стан не частіше ніж раз на 10 секунд", () => {

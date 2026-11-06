@@ -17,7 +17,8 @@ const VERIFY_WAIT_MS = 2000;
 function readField(step, name) {
   const reg = step && step.regs && step.regs[name];
   if (reg && reg.value !== undefined && reg.value !== null) return reg.value;
-  if (step && step[name] !== undefined && step[name] !== null) return step[name];
+  if (step && step[name] !== undefined && step[name] !== null)
+    return step[name];
   return undefined;
 }
 
@@ -69,14 +70,17 @@ function programMatches(written, readProgram) {
     if (![point.tT, point.H, point.Y].every(Number.isFinite)) return false;
     if (!samePoint(point, got[index])) return false;
   }
-  if (got.length > written.length && !emptyPoint(got[written.length])) return false;
+  if (got.length > written.length && !emptyPoint(got[written.length]))
+    return false;
   return true;
 }
 
 /**
  * Крок запису програми в TRM-251.
- * Пише програму, чекає 2 с, читає її назад і порівнює кроки.
- * Усього три спроби запису і перевірки.
+ * testProcess з очікування кличе start(): той ставить going, час початку
+ * і примітку «Початок о…». beforeAll лише зупиняє прилад і відпускає start().
+ * Далі testProcess пише програму, чекає timeout, читає її і порівнює кроки.
+ * Усього три спроби. Потім finish або error.
  * @extends ClassStepGeneral
  */
 class ClassStep_TRM251_ProgLoadToDev extends ClassStepGeneral {
@@ -85,7 +89,7 @@ class ClassStep_TRM251_ProgLoadToDev extends ClassStepGeneral {
 
   /**
    * @param {Object} props
-   * @property {Object} props.device менеджер TRM-251: setProgram і getRegister
+   * @property {Object} props.device менеджер TRM-251: stop, setProgram і getRegister
    * @property {Array} props.program програма для запису: [заголовок, ...кроки]
    */
   constructor(props = {}) {
@@ -93,9 +97,9 @@ class ClassStep_TRM251_ProgLoadToDev extends ClassStepGeneral {
       props.header && props.header.ua
         ? props.header
         : {
-            ua: `Запис програми в прилад`,
-            en: `Load program to device`,
-            ru: `Запись программы в прибор`,
+            ua: `Запис програми`,
+            en: `Save program`,
+            ru: `Запись программы`,
           };
     super(props);
     this.state.type = "ProsessStep_SimpleBadge";
@@ -105,48 +109,83 @@ class ClassStep_TRM251_ProgLoadToDev extends ClassStepGeneral {
 
     if (
       !this.device ||
+      typeof this.device.stop !== "function" ||
       typeof this.device.setProgram !== "function" ||
       typeof this.device.getRegister !== "function"
     ) {
       throw new Error(
         this.ln +
-          "Критична помилка: props.device має мати setProgram і getRegister. Крок зупинено.",
+          "Критична помилка: props.device має мати stop, setProgram і getRegister. Крок зупинено.",
       );
     }
     if (!Array.isArray(this.program)) {
       throw new Error(
-        this.ln + "Критична помилка: props.program має бути масивом. Крок зупинено.",
+        this.ln +
+          "Критична помилка: props.program має бути масивом. Крок зупинено.",
       );
     }
 
-    this.beforeStart = async () => {
-      let lastError;
-      for (let attempt = 1; attempt <= WRITE_ATTEMPTS; attempt++) {
-        try {
-          await this.device.setProgram(this.program);
-          await dummyPromise(this.waitMs);
-          const read = await this.readProgram();
-          if (!programMatches(stepsForDevice(this.program), read)) {
-            throw new Error("програма в приладі не збігається із записаною");
-          }
-          this.finish({
-            ua: `Програму записано в прилад`,
-            en: `Program loaded to the device`,
-            ru: `Программа записана в прибор`,
-          });
-          return;
-        } catch (error) {
-          lastError = error;
-          this.logger("w", {
-            ua: `Спроба ${attempt} з ${WRITE_ATTEMPTS} не вдалась`,
-            en: `Attempt ${attempt} of ${WRITE_ATTEMPTS} failed`,
-            ru: `Попытка ${attempt} из ${WRITE_ATTEMPTS} не удалась`,
-          });
+    // ClassStepGeneral.start() кличе beforeStart. beforeAll з завдання — цей гачок.
+    this.beforeStart = () => this.beforeAll();
+  }
+
+  /** Пауза після запису: timeout приладу, інакше waitMs. */
+  timeoutMs() {
+    const timeout = Number(this.device && this.device.timeout);
+    return Number.isFinite(timeout) ? timeout : this.waitMs;
+  }
+
+  /**
+   * Зупиняє прилад. Запис не чекає тут: start() має встигнути
+   * поставити going, час початку і примітку.
+   */
+  async beforeAll() {
+    let stopped;
+    try {
+      stopped = await this.device.stop();
+    } catch (error) {
+      this.error(error);
+      throw error;
+    }
+    if (stopped !== true) {
+      this.error(stopped);
+      throw stopped;
+    }
+    this.testProcess();
+  }
+
+  /**
+   * З очікування запускає start(), щоб стани кроку виставились до запису.
+   * Далі: 1. Пише програму. 2. Чекає timeout. 3. Звіряє запис. 4. finish або error.
+   * До трьох спроб. false — крок уже не виконується.
+   * @returns {Promise<boolean|number|undefined>}
+   */
+  async testProcess() {
+    if (this.state._id === "waiting") return this.start();
+    if (this.state._id !== "going") return false;
+    let lastError;
+    for (let attempt = 1; attempt <= WRITE_ATTEMPTS; attempt++) {
+      if (this.state._id !== "going") return false;
+      try {
+        await this.device.setProgram(this.program);
+        await dummyPromise(this.timeoutMs());
+        const read = await this.readProgram();
+        if (!programMatches(stepsForDevice(this.program), read)) {
+          throw new Error("програма в приладі не збігається із записаною");
         }
+        this.finish();
+        return true;
+      } catch (error) {
+        lastError = error;
+        this.logger("w", {
+          ua: `Спроба ${attempt} з ${WRITE_ATTEMPTS} не вдалась`,
+          en: `Attempt ${attempt} of ${WRITE_ATTEMPTS} failed`,
+          ru: `Попытка ${attempt} из ${WRITE_ATTEMPTS} не удалась`,
+        });
       }
-      this.error(lastError);
-      throw lastError;
-    };
+    }
+    this.error(lastError);
+    return false;
   }
 
   /**

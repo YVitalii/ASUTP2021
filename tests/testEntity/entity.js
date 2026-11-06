@@ -171,6 +171,7 @@ logger.addReg({
     // повинна повертати числове значення регістру
     let t = await entity.devicesManager.getDevice("furnace").getRegister("T1"); //TRM251
     // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
+    if (t === null || t === undefined) t = -5;
     return t;
   },
 }); //logger.addReg(
@@ -193,7 +194,7 @@ logger.addReg({
     // повинна повертати числове значення регістру
     let t = await entity.devicesManager.getDevice("furnace").getRegister("tT"); //TRM251
     // let t = await entity.devicesManager.getDevice("furnace").getT(); //TRP08
-    t = t == null ? 0 : t;
+    t = t == null || t === undefined ? 0 : t;
     return t;
   },
 }); //logger.addReg(

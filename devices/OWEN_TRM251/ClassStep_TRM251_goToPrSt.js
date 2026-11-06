@@ -48,7 +48,7 @@ class ClassStep_TRM251_goToPrSt extends ClassStepGeneral {
       for (let attempt = 1; attempt <= GO_ATTEMPTS; attempt++) {
         try {
           await this.device.continueFrom({ prN: this.prN, stN: this.stN });
-          this.finish(this.comment);
+          this.finish();
           return;
         } catch (error) {
           lastError = error;

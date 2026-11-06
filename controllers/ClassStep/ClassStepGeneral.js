@@ -134,13 +134,16 @@ class ClassStep {
       return;
     }
 
-    let msg = this.state.startTime.toLocaleString();
-    this.state.note = {
-      ua: `Початок о ${msg}`,
-      en: `Started at ${msg}`,
-      ru: `Старт в ${msg}`,
-    };
-    this.logger("w", ln + this.state.note.ua);
+    // beforeStart уже міг викликати finish/stop/error і записати свою примітку
+    if (this.state._id === "going") {
+      let msg = this.state.startTime.toLocaleString();
+      this.state.note = {
+        ua: `Виконується`,
+        en: `In progress`,
+        ru: `Выполняется`,
+      };
+      this.logger("w", ln + this.state.note.ua);
+    }
 
     this.setChanged();
 
@@ -178,15 +181,14 @@ class ClassStep {
       return;
     }
     this.duration();
-    let duration = this.state.duration;
-
+    let now = new Date().toLocaleString();
     msg =
       msg && msg.ua
         ? msg
         : {
-            ua: `Крок зупинено! Тривалість: ${duration}`,
-            en: `Step was stoped! Duration: ${duration}`,
-            ru: `Шаг остановлен! Длительность: ${duration}`,
+            ua: `Зупинено о ${now}`,
+            en: `Stoped at ${now}`,
+            ru: `Остановлено ${now}`,
           };
     this.logger("w", ln + "Received command stop()::" + msg.en);
     this.state._id = "stoped";
@@ -223,14 +225,14 @@ class ClassStep {
       return;
     }
     this.duration();
-    let duration = this.state.duration;
+    let now = new Date().toLocaleString();
     msg =
       msg && msg.ua
         ? msg
         : {
-            ua: `Крок успішно завершено! Тривалість: ${duration}`,
-            en: `Step successfully finished! Duration: ${duration}`,
-            ru: `Шаг успешно завершен! Длительность: ${duration}`,
+            ua: `Завершено ${now}`,
+            en: `Finished ${now}`,
+            ru: `Завершено ${now}`,
           };
 
     this.logger("i", ln + "Received command finish()::" + msg.en);

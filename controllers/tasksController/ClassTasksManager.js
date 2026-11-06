@@ -188,6 +188,7 @@ class ClassTasksManager extends ClassRegister {
     this.activeTask.content = this.parseProgramContent(
       this.fileManager.readFileSync(activeProgram)
     );
+    this.activeTask.lastChange = state.lastChange || Date.now();
 
     // міграція старого формату state.info → новий
     if (!state.activeProgram || state.value !== undefined) {
@@ -342,6 +343,14 @@ class ClassTasksManager extends ClassRegister {
     await this.fileManager.writeFile(taskName, data);
     if (this.activeTask.fileName === taskName) {
       this.activeTask.content = clone(data);
+      this.activeTask.lastChange = Date.now();
+      await fs.promises.writeFile(
+        this.path.stateFile,
+        JSON.stringify({
+          activeProgram: taskName,
+          lastChange: this.activeTask.lastChange,
+        })
+      );
     }
     if (!this.tasksList.includes(taskName)) {
       this.tasksList.push(taskName);
@@ -387,11 +396,12 @@ class ClassTasksManager extends ClassRegister {
 
   /**
    * Повертає копію активного завдання.
-   * @returns {{taskName: String, content: *}}
+   * @returns {{taskName: String, lastChange: Number, content: *}}
    */
   getActiveTask() {
     return {
       taskName: this.activeTask.fileName,
+      lastChange: this.activeTask.lastChange,
       content: clone(this.activeTask.content),
     };
   }
@@ -423,13 +433,15 @@ class ClassTasksManager extends ClassRegister {
     }
     try {
       let content = await this.loadTask(taskName);
+      const lastChange = Date.now();
       this.activeTask.fileName = taskName;
       this.activeTask.content = content;
+      this.activeTask.lastChange = lastChange;
       await fs.promises.writeFile(
         this.path.stateFile,
         JSON.stringify({
           activeProgram: taskName,
-          lastChange: Date.now(),
+          lastChange,
         })
       );
     } catch (error) {

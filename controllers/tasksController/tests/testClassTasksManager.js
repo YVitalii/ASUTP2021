@@ -368,9 +368,15 @@ describe("ClassTasksManager", () => {
       fs.writeFileSync(path.join(programDir(dir), "prg01"), programBody);
       const manager = createManager(dir);
       await manager.setActiveTask("prg01");
+      const editedAt = manager.activeTask.lastChange;
 
       await manager.saveTask("prg01", updated);
 
+      assert.ok(manager.activeTask.lastChange >= editedAt);
+      assert.equal(
+        JSON.parse(fs.readFileSync(stateFile(dir), "utf8")).lastChange,
+        manager.getActiveTask().lastChange
+      );
       assert.equal(manager.activeTask.fileName, "prg01");
       assert.equal(manager.activeTask.content[0].fName, "prg01");
       assert.equal(manager.activeTask.content[0].name, "saved");
@@ -494,6 +500,7 @@ describe("ClassTasksManager", () => {
       const result = manager.getActiveTask();
 
       assert.equal(result.taskName, "prg01");
+      assert.equal(typeof result.lastChange, "number");
       assert.deepEqual(result.content, otherBody);
       assert.notEqual(result.content, manager.activeTask.content);
       result.content[0].name = "mutated";

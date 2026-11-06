@@ -39,11 +39,11 @@ export const settings = {
     description: {
       header: {
         label: { ua: "Назва:", en: "Name:" },
-        type: "TextField_Labeled",
+        type: "TextNote",
       },
       comment: {
         label: { ua: "Коментар:", en: "Comment:" },
-        type: "TextAreaField_Labeled",
+        type: "TextNote",
       },
       startTime: {
         label: { ua: "Початок:", en: "Started:" },

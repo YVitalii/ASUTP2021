@@ -73,6 +73,8 @@ class ClassManager extends ClassDevManagerGeneral {
     super(props);
     // пауза між спробами запуску, мс; за замовчуванням 2 с
     this.timeout = props.timeout ? props.timeout : 2 * 1000;
+    // скільки timeout підряд, перш ніж вважати прилад відсутнім
+    this.errorCounter.max = 5;
     for (let i = 1; i < 3; i++) {
       this.addRegister({
         id: `T${i}`,
@@ -346,6 +348,36 @@ class ClassManager extends ClassDevManagerGeneral {
     }
   }
 
+  /**
+   * Після переходу в offline гасимо останню температуру.
+   * _value, щоб не оновлювати timestamp: наступне читання T1 знову йде в прилад.
+   */
+  async iteration(funcItem, params) {
+    try {
+      return await super.iteration(funcItem, params);
+    } finally {
+      if (this.offLine && this.regs.T1) this.regs.T1._value = null;
+    }
+  }
+
+  /**
+   * Виняток Modbus на tT і T1 (коди 1…9, зокрема 17 → 9) не є втратою зв'язку.
+   * T1 у драйвері називається I1. Timeout (код 13) лічильник як і раніше крутить.
+   */
+  countsLinkError(error, params) {
+    const code = error && error.code;
+    const regName = params && params.regName;
+    if (
+      (regName === "tT" || regName === "T1" || regName === "I1") &&
+      Number.isInteger(code) &&
+      code >= 1 &&
+      code <= 9
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   isTimeoutError(error) {
     if (!error) return false;
     if (error.code === 13) return true;
@@ -427,6 +459,16 @@ class ClassManager extends ClassDevManagerGeneral {
       } // if mode
       return res;
     } catch (error) {
+      // tT і T1: виняток Modbus дає null. Timeout T1 не стирає значення,
+      // поки прилад не став offline.
+      if (regName == "tT" && !this.isTimeoutError(error)) {
+        this.regs.tT.value = null;
+        return null;
+      }
+      if (regName == "T1" && (!this.isTimeoutError(error) || this.offLine)) {
+        this.regs.T1.value = null;
+        return null;
+      }
       throw error;
     }
   }

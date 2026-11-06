@@ -57,6 +57,143 @@ describe("ManagerClassTRM251 температура", () => {
     equal(await dev.getT(), 22);
     equal(calls, 2);
   });
+
+  it("лічильник timeout дорівнює 5", () => {
+    equal(device().errorCounter.max, 5);
+  });
+
+  it("помилка Modbus на tT не крутить лічильник і не ставить offline", async () => {
+    let calls = 0;
+    const error = new Error("Невідома помилка ModBus");
+    error.code = 9;
+    error.messages = {
+      ua: "Невідома помилка ModBus",
+      en: "Undefined ModBus error",
+      ru: "Неизвестная ошибка MODBUS.",
+    };
+    driver.getRegPromise = async () => {
+      calls += 1;
+      throw error;
+    };
+    const dev = device();
+    dev.period.if.timeOut = 0;
+    dev.regs.mode.value = 1;
+    dev.regs.tT.timestamp = 0;
+    dev.errorCounter.value = 2;
+    dev.offLine = true;
+    equal(await dev.getRegister("tT"), null);
+    equal(dev.regs.tT.value, null);
+    equal(calls, 1);
+    equal(dev.errorCounter.value, 2);
+    equal(dev.offLine, true);
+  });
+
+  it("помилка Modbus на T1 ставить null і не кидає виняток", async () => {
+    let calls = 0;
+    const error = new Error("Невідома помилка ModBus");
+    error.code = 9;
+    error.messages = {
+      ua: "Невідома помилка ModBus",
+      en: "Undefined ModBus error",
+      ru: "Неизвестная ошибка MODBUS.",
+    };
+    driver.getRegPromise = async () => {
+      calls += 1;
+      throw error;
+    };
+    const dev = device();
+    dev.period.if.timeOut = 0;
+    dev.regs.T1.timestamp = 0;
+    dev.errorCounter.value = 2;
+    dev.offLine = true;
+    equal(await dev.getRegister("T1"), null);
+    equal(dev.regs.T1.value, null);
+    equal(calls, 1);
+    equal(dev.errorCounter.value, 2);
+    equal(dev.offLine, true);
+  });
+
+  it("T1 стає null після device offline, а не на першому timeout", async () => {
+    const error = new Error("Помилка timeout");
+    error.code = 13;
+    error.messages = {
+      ua: "Помилка timeout",
+      en: "Timeout error",
+      ru: "Ошибка Timeout.",
+    };
+    const dev = device();
+    dev.period.if.timeOut = 0;
+    dev.regs.T1.value = 36;
+    dev.regs.T1.timestamp = 0;
+    let calls = 0;
+    let valueAfterFirstTimeout;
+    driver.getRegPromise = async () => {
+      calls += 1;
+      if (calls === 2) valueAfterFirstTimeout = dev.regs.T1.value;
+      throw error;
+    };
+    equal(await dev.getRegister("T1"), null);
+    equal(valueAfterFirstTimeout, 36);
+    equal(dev.regs.T1.value, null);
+    equal(calls, 5);
+    equal(dev.offLine, true);
+    equal(dev.errorCounter.value, 5);
+  });
+
+  it("offline на іншому регістрі теж гасить T1", async () => {
+    const error = new Error("Помилка timeout");
+    error.code = 13;
+    error.messages = {
+      ua: "Помилка timeout",
+      en: "Timeout error",
+      ru: "Ошибка Timeout.",
+    };
+    driver.getRegPromise = async () => {
+      throw error;
+    };
+    const dev = device();
+    dev.period.if.timeOut = 0;
+    dev.regs.T1.value = 36;
+    dev.regs.mode.timestamp = 0;
+    equal(await dev.getRegister("mode"), null);
+    equal(dev.offLine, true);
+    equal(dev.regs.T1.value, null);
+  });
+
+  it("успішна транзакція з value null скидає offline і лічильник", async () => {
+    driver.getRegPromise = async () => [
+      { value: null, detail: { afterGet: { note: "" } } },
+    ];
+    const dev = device();
+    dev.offLine = true;
+    dev.errorCounter.value = 4;
+    dev.regs.mode.timestamp = 0;
+    await dev.getRegister("mode");
+    equal(dev.offLine, false);
+    equal(dev.errorCounter.value, 0);
+  });
+
+  it("п'ять timeout підряд ставлять offline", async () => {
+    let calls = 0;
+    const error = new Error("Помилка timeout");
+    error.code = 13;
+    error.messages = {
+      ua: "Помилка timeout",
+      en: "Timeout error",
+      ru: "Ошибка Timeout.",
+    };
+    driver.getRegPromise = async () => {
+      calls += 1;
+      throw error;
+    };
+    const dev = device();
+    dev.period.if.timeOut = 0;
+    dev.regs.mode.timestamp = 0;
+    equal(await dev.getRegister("mode"), null);
+    equal(calls, 5);
+    equal(dev.offLine, true);
+    equal(dev.errorCounter.value, 5);
+  });
 });
 
 describe("ManagerClassTRM251 setProgram", () => {

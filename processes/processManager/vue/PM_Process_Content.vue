@@ -1,20 +1,16 @@
 <template>
   <section class="pm-content" aria-label="Тіло програми">
     <pre id="pm_content_Mermaid" class="mermaid"></pre>
-    <div ref="stepTip" class="pm-step-tip" hidden>
-      <h6></h6>
-      <div class="pm-step-tip__row" data-field="startTime"></div>
-      <div class="pm-step-tip__row" data-field="duration"></div>
-      <div class="pm-step-tip__row" data-field="note"></div>
-    </div>
+    <CaptionSimple ref="stepTip" :content="tipContent" />
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, useTemplateRef, watch } from "vue";
+import { onMounted, ref, useTemplateRef, watch } from "vue";
 import parseTasksToMermaid, {
   safeId,
 } from "../../../vueComponents/composables/MermaidTools/parseTasksToMermaid.js";
+import CaptionSimple from "../../../vueComponents/fields/CaptionSimple.vue";
 import { fieldLabelText } from "../../../vueComponents/fields/fieldLabel";
 import { settings } from "./settings.js";
 
@@ -58,7 +54,8 @@ let mermaidApi: MermaidApi | null = null;
 let drawnDiagram = "";
 /** id кроку → _id, для якого вже стоїть стиль вузла. */
 let drawnStatuses = new Map<string, string>();
-const stepTip = useTemplateRef<HTMLDivElement>("stepTip");
+const tipContent = ref("");
+const stepTip = useTemplateRef<InstanceType<typeof CaptionSimple>>("stepTip");
 const tipHandlers = new Map<
   Element,
   { show: () => void; hide: () => void; pick: () => void }
@@ -158,26 +155,31 @@ function shownValue(value: string | null | undefined) {
   return value;
 }
 
-function hideStepTip() {
-  if (stepTip.value) stepTip.value.hidden = true;
+/** Мова сторінки (lang з main.pug) → локаль дати. */
+function pageLocale() {
+  const lang = (globalThis as { lang?: string }).lang;
+  if (lang === "en") return "en";
+  if (lang === "ru") return "ru";
+  return "uk-UA";
 }
 
-/** Ставить підказку біля кроку так, щоб вона цілком лишалась у вікні. */
-function placeStepTip(anchor: Element) {
-  const tip = stepTip.value;
-  if (!tip) return;
-  const margin = 8;
-  const box = anchor.getBoundingClientRect();
-  const tipBox = tip.getBoundingClientRect();
-  const maxLeft = window.innerWidth - margin - tipBox.width;
-  const maxTop = window.innerHeight - margin - tipBox.height;
-  let left = box.left + box.width / 2 - tipBox.width / 2;
-  let top = box.top - tipBox.height - margin;
-  if (top < margin) top = box.bottom + margin;
-  left = Math.min(Math.max(left, margin), Math.max(margin, maxLeft));
-  top = Math.min(Math.max(top, margin), Math.max(margin, maxTop));
-  tip.style.left = `${left}px`;
-  tip.style.top = `${top}px`;
+/** ISO-час початку кроку → локалізована дата. Порожнє значення — "???". */
+function formatStart(value: string | null | undefined) {
+  if (value == null || value === "") return "???";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "???";
+  return date.toLocaleString(pageLocale(), {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function hideStepTip() {
+  stepTip.value?.hide();
 }
 
 /** Спливаюча підказка: заголовок кроку і час початку. */
@@ -192,22 +194,16 @@ function bindTooltip(step: StepStatus) {
     section.removeEventListener("click", previous.pick);
   }
   const show = () => {
-    const title = tip.querySelector("h6");
-    if (title) title.textContent = headerText(step.header);
-    const rows: Record<string, string> = {
-      startTime: `${fieldLabelText(settings.process.description.startTime.label)} ${shownValue(step.startTime)}`,
-      duration: `${fieldLabelText(settings.process.description.duration.label)} ${shownValue(step.duration)}`,
-      note: `${fieldLabelText(noteLabel)} ${headerText(step.note ?? undefined) || "???"}`,
-    };
-    for (const [field, text] of Object.entries(rows)) {
-      const row = tip.querySelector(`[data-field="${field}"]`);
-      if (row) row.textContent = text;
-    }
-    tip.hidden = false;
-    placeStepTip(section);
+    tipContent.value = [
+      headerText(step.header),
+      `${fieldLabelText(settings.process.description.startTime.label)} ${formatStart(step.startTime)}`,
+      `${fieldLabelText(settings.process.description.duration.label)} ${shownValue(step.duration)}`,
+      `${fieldLabelText(noteLabel)} ${headerText(step.note ?? undefined) || "???"}`,
+    ].join("\n");
+    void tip.show(section);
   };
   const hide = () => {
-    tip.hidden = true;
+    tip.hide();
   };
   const pick = () => {
     emit("select-step", { id: step.id, header: step.header });
@@ -293,37 +289,5 @@ watch(
 
 .pm-content :deep(.node) {
   cursor: pointer;
-}
-
-.pm-step-tip {
-  position: fixed;
-  z-index: 20;
-  box-sizing: border-box;
-  max-width: min(320px, calc(100vw - 16px));
-  background-color: #333;
-  color: #fff;
-  border-radius: 4px;
-  padding: 6px 10px;
-  font-size: 12px;
-  line-height: 1.35;
-  text-align: left;
-  pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.pm-step-tip h6 {
-  margin: 0 0 4px;
-  font-size: 1rem;
-  font-weight: 600;
-  white-space: normal;
-  overflow-wrap: break-word;
-}
-
-.pm-step-tip__row {
-  white-space: normal;
-  overflow-wrap: break-word;
 }
 </style>
