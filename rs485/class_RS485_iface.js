@@ -19,7 +19,7 @@ const getFC10data = require("./getFC10data.js");
 const parseBuf = require("../tools/parseBuf.js");
 const gLn = "class_RS485_interface.js::";
 /** 1 — трасування порту, черги, запису кадру і отриманих байтів */
-let gTrace = 1;
+let gTrace = 0;
 // завантаження логера
 const log = require("../tools/log.js");
 const dummy = require("../tools/dummy.js").dummyPromise;
