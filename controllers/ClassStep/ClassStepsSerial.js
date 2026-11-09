@@ -31,8 +31,25 @@ class ClassSerialSteps extends ClassStepGeneral {
       trace ? log("i", ln, `Started step.id=`, element.id) : null;
       this.curTask.item = element;
       this.curTask.number = step;
-      await element.start();
+      let stepState = null;
+      try {
+        await element.start();
+        stepState = element.state && element.state._id;
+      } catch (error) {
+        if (this.state._id == "going") await this.error(error);
+        break;
+      }
       trace ? log("i", ln, `Finished step.id=`, element.id) : null;
+      // помилка або stop на кроці припиняють усю послідовність
+      if (this.state._id != "going") break;
+      if (stepState == "error") {
+        await this.error(element.err || element.state.note);
+        break;
+      }
+      if (stepState == "stoped") {
+        await this.stop();
+        break;
+      }
     }
 
     if (this.state._id == "going") {

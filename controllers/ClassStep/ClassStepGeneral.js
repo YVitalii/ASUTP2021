@@ -166,7 +166,7 @@ class ClassStep {
       // if (this.state._id == "error") {
       //   reject(this.err);
       // }
-      resolve(1);
+      resolve(this.state);
     });
   }
 

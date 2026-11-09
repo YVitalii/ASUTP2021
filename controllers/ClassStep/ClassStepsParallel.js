@@ -16,7 +16,29 @@ module.exports = class ClassStepParallel extends ClassStepGeneral {
     super.start();
     // TODO Милиця для очікування завершення deforeStart
     await dummy(3000);
-    await Promise.all(this.tasks.map((task) => task.start()));
+    // перший крок з помилкою або stop закриває групу; решта going отримує stop
+    let closing = false;
+    await Promise.all(
+      this.tasks.map(async (task) => {
+        let stepState = null;
+        try {
+          await task.start();
+          stepState = task.state && task.state._id;
+        } catch (error) {
+          if (closing || this.state._id != "going") return;
+          closing = true;
+          await this.error(error);
+          return;
+        }
+        if (closing || this.state._id != "going") return;
+        if (stepState == "error" || stepState == "stoped") {
+          closing = true;
+          trace ? log("i", ln, `Step ${task.id} ended with ${stepState}`) : null;
+          if (stepState == "error") await this.error(task.err || task.state.note);
+          else await this.stop();
+        }
+      }),
+    );
     if (this.state._id == "going") {
       this.finish();
       trace ? log("i", ln, `All steps finished`) : null;

@@ -236,6 +236,7 @@ entity.processManager.afterAll = async function () {
   // ---- зупиняємо нагрівання
   // await dev.setOutput(0);
   // await dev.start({ tT: 20, H: 0, Y: 1, o: 2 });
+  await this.devicesManager.getDevice("furnace").stop();
   return;
   // ---- запускаємо менеджер процесів
 };

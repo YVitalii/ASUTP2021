@@ -147,15 +147,16 @@ describe("ClassStepGeneral", () => {
       assert.equal(item.state._id, "waiting");
     });
 
-    it("stop ставить stoped і тривалість у стандартне повідомлення", () => {
+    it("stop ставить stoped, тривалість і час зупинки", () => {
       const start = 1_000_000_000_000;
       withNow(start, start + 5000, (item) => {
         item.state._id = "going";
         item.stop();
         assert.equal(item.state._id, "stoped");
-        assert.equal(item.state.note.ua, "Крок зупинено! Тривалість: 00d00:00:05");
-        assert.equal(item.state.note.en, "Step was stoped! Duration: 00d00:00:05");
-        assert.equal(item.state.note.ru, "Шаг остановлен! Длительность: 00d00:00:05");
+        assert.equal(item.state.duration, "00d00:00:05");
+        assert.match(item.state.note.ua, /^Зупинено о /);
+        assert.match(item.state.note.en, /^Stoped at /);
+        assert.match(item.state.note.ru, /^Остановлено /);
       });
     });
 
@@ -223,7 +224,8 @@ describe("ClassStepGeneral", () => {
 
       const result = await item.start();
 
-      assert.equal(result, 1);
+      assert.equal(result, item.state);
+      assert.equal(result._id, "finished");
       assert.equal(before, 1);
       assert.equal(after, 1);
       assert.equal(item.state._id, "finished");
@@ -244,9 +246,9 @@ describe("ClassStepGeneral", () => {
         },
       });
 
-      assert.equal(await item.start(), 1);
+      assert.equal((await item.start())._id, "stoped");
       assert.equal(item.state._id, "stoped");
-      assert.match(item.state.note.ua, /зупинено/);
+      assert.match(item.state.note.ua, /^Зупинено о /);
       assert.equal(after, 1);
     });
 
