@@ -1,0 +1,31 @@
+//-  ---- список контейнерів -------
+//- entity_currentValues
+//- entity_controlPanel
+//- entity_grap
+//- pre #{JSON.stringify(entity)} 
+- var trace = 1;
+- var border = trace ? "border border-secondary" : "";
+
+//-  завантажуємо потрібну нам оснастку для вимальовування компонентів
+//- script.
+//-   let trace=0, beforeTrace=1;
+
+//- include ../../../controllers/elementsRender/views/myElementsRender.pug
+
+//-  Описує загальну структуру body сторінки
+
+div(class="row")
+  div(class=`col ${border}`)
+    //------ devices manager ------------
+    div(class="container") !{currentValuesContainer}
+div(class="row h-75")
+  div(class=`col-sm-3 col-lg-2 ${border}`)
+    //------ processContainer ------------
+    div.row#entity_processContainer !{processContainer}
+  div(class=`col-sm-9 col-lg-10 ${border} h-100`)
+    //------ graphContainer ------------
+    div(class="container-fluide h-100" id="entity_graphContainer" style="padding:0") !{graphContainer}
+
+script.
+
+  setTimeout(()=>{chartMan.chart.start()},5000);
