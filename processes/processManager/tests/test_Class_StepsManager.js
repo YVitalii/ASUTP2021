@@ -32,6 +32,14 @@ function manager(devs = devices) {
 }
 
 describe("Class_StepsManager", () => {
+  it("getTaskNumberById бере номер після роздільника", () => {
+    const steps = new Class_StepsManager();
+    equal(steps.stepsPrefix, "st");
+    equal(steps.stepSeparator, "_");
+    equal(steps.getTaskNumberById("st_1"), 1);
+    equal(steps.getTaskNumberById("st_12"), 12);
+  });
+
   describe("addStepType()", () => {
     it("відхиляє об'єкт без createStep, без devices і повторний тип", () => {
       const steps = new Class_StepsManager();

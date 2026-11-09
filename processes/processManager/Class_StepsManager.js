@@ -18,6 +18,17 @@ class Class_StepsManager {
       typeof props.beforeProgramCreated === "function"
         ? props.beforeProgramCreated
         : null;
+    this.stepsPrefix = "st";
+    this.stepSeparator = "_";
+  }
+
+  /**
+   * Номер кроку з id на кшталт "st_1".
+   * @param {String} id
+   * @returns {Number}
+   */
+  getTaskNumberById(id = "") {
+    return parseInt(String(id).split(this.stepSeparator)[1]);
   }
 
   /**
@@ -109,7 +120,11 @@ class Class_StepsManager {
     if (Array.isArray(list)) {
       let newArr = [];
       for (let j = 0; j < list.length; j++) {
-        this.setStep(prefix + `_${j}`, newArr, list[j]);
+        this.setStep(
+          prefix + `${this.stepSeparator}${j}`,
+          newArr,
+          list[j],
+        );
       }
       arr.push(newArr);
     }
@@ -181,7 +196,7 @@ class Class_StepsManager {
     this.tasksList = tasksList;
     let program = [];
     try {
-      this.setStep("st", program, tasksList);
+      this.setStep(this.stepsPrefix, program, tasksList);
     } catch (error) {
       let message = error && error.message ? error.message : String(error);
       log("e", ln, message);

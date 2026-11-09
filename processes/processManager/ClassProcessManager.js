@@ -367,9 +367,23 @@ class ClassProcessManager {
   async start(stepN = 1) {
     let trace = 1,
       ln = this.ln + `Start(${stepN})::`;
-    stepN = parseInt(stepN);
+    const requested = stepN;
+    const separator =
+      this.stepsManager && this.stepsManager.stepSeparator != null
+        ? this.stepsManager.stepSeparator
+        : "_";
+    if (
+      typeof stepN === "string" &&
+      stepN.includes(separator) &&
+      this.stepsManager &&
+      typeof this.stepsManager.getTaskNumberById === "function"
+    ) {
+      stepN = this.stepsManager.getTaskNumberById(stepN);
+    } else {
+      stepN = parseInt(stepN);
+    }
     if (isNaN(stepN)) {
-      throw new Error("Invalid step number: " + stepN);
+      throw new Error("Invalid step number: " + requested);
     }
     while (!this.program.state || !this.program.state._id) {
       await dummy(1000);

@@ -20,6 +20,7 @@
           :comment="comment"
           :duration="duration"
           :start-time="startTime"
+          :note="note"
         />
       </template>
       <template #content>
@@ -75,6 +76,7 @@ type ProgramState = {
   comment?: string | LocalizedText;
   startTime?: string | null;
   duration?: string;
+  note?: string | LocalizedText | null;
   tasks?: unknown;
 };
 
@@ -82,6 +84,7 @@ const header = ref<string | LocalizedText>("");
 const comment = ref<string | LocalizedText>("");
 const duration = ref("");
 const startTime = ref<string | null>(null);
+const note = ref<string | LocalizedText | null>(null);
 const program = ref<ProgramState | null>(null);
 const pickedStepId = ref("");
 const reloadTick = ref(0);
@@ -123,6 +126,7 @@ function onLoaded(next: ProgramState) {
   comment.value = next.comment ?? "";
   duration.value = next.duration ?? "";
   startTime.value = next.startTime ?? null;
+  note.value = next.note ?? null;
   const steps = listSteps(next.tasks);
   if (!steps.some((step) => String(step.id) === pickedStepId.value)) {
     pickedStepId.value = steps[0]?.id != null ? String(steps[0].id) : "";

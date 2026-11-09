@@ -48,6 +48,7 @@ type ProgramState = {
   comment?: string | LocalizedMessage;
   startTime?: string | null;
   duration?: string;
+  note?: string | LocalizedMessage | null;
   _id?: string;
   tasks?: unknown;
 };

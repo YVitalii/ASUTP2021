@@ -24,10 +24,17 @@ describe("DateTimeField_Labeled", () => {
 });
 
 describe("DayTimeField_Labeled", () => {
-  it("прибирає секунди з ДДdГГ:ХХ:СС", () => {
+  it("прибирає секунди і 00d, коли днів немає", () => {
     const wrapper = mount(DayTimeField_Labeled, {
-      props: { modelValue: "00d00:00:00", label },
+      props: { modelValue: "00d01:02:03", label },
     });
-    expect(wrapper.get("input").element.value).toBe("00d00:00");
+    expect(wrapper.get("input").element.value).toBe("01:02");
+  });
+
+  it("лишає дні, якщо їх більше нуля", () => {
+    const wrapper = mount(DayTimeField_Labeled, {
+      props: { modelValue: "02d04:05:06", label },
+    });
+    expect(wrapper.get("input").element.value).toBe("02d04:05");
   });
 });

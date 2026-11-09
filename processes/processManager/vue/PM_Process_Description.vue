@@ -46,6 +46,8 @@ const props = withDefaults(
     duration?: string | null;
     /** Час старту. null — крок ще не починався. */
     startTime?: string | null;
+    /** Примітка стану програми. Рядок або {ua, en, ru}. */
+    note?: string | LocalizedText | null;
     /** _id програми: waiting, going, error, finished, stoped. */
     stateId?: string;
   }>(),
@@ -54,6 +56,7 @@ const props = withDefaults(
     comment: "",
     duration: "",
     startTime: null,
+    note: null,
     stateId: "waiting",
   },
 );
@@ -65,6 +68,7 @@ type LocalizedText = {
 };
 
 const description = settings.process.description;
+const noteLabel = { ua: "Примітка:", en: "Note:", ru: "Примечание:" };
 const fieldOrder = ["header", "comment", "startTime", "duration"] as const;
 const host = useTemplateRef<HTMLElement>("host");
 const caption = useTemplateRef<InstanceType<typeof CaptionSimple>>("caption");
@@ -95,7 +99,13 @@ function formatStart(value: string | null | undefined) {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
   });
+}
+
+function shown(value: string | null | undefined) {
+  if (value == null || value === "") return "???";
+  return value;
 }
 
 const values = computed(() => ({
@@ -134,9 +144,15 @@ const commentField = computed(() => fields.value.comment);
 const durationField = computed(() => fields.value.duration);
 
 const captionText = computed(() => {
-  const started = `${localized(description.startTime.label)} ${formatStart(props.startTime)}`;
-  const about = commentField.value.value ?? "";
-  return about ? `${started}\n${about}` : started;
+  const lines = [
+    values.value.header,
+    `${localized(description.startTime.label)} ${formatStart(props.startTime)}`,
+    `${localized(description.duration.label)} ${shown(props.duration)}`,
+    `${localized(noteLabel)} ${localized(props.note) || "???"}`,
+  ];
+  const about = values.value.comment;
+  if (about) lines.push(`${localized(description.comment.label)} ${about}`);
+  return lines.filter((line) => line !== "").join("\n");
 });
 
 function showCaption() {

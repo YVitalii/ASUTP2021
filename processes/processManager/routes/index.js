@@ -19,30 +19,6 @@ function errorText(error) {
   return message(`Помилка: '${text}'`, `Error: '${text}'`, `Ошибка: '${text}'`);
 }
 
-function taskHasId(task, id) {
-  if (!task || typeof task !== "object") return false;
-  if (task.id != null && String(task.id) === id) return true;
-  if (!Array.isArray(task.tasks)) return false;
-  return task.tasks.some((child) => taskHasId(child, id));
-}
-
-/**
- * stepId з клієнта — id кроку. program.start чекає індекс у program.tasks.
- * Порожній stepId — старт з початку (крок 1, як у ClassProcessManager.start).
- * @returns {number|null}
- */
-function stepNumber(manager, stepId) {
-  const id = stepId == null ? "" : String(stepId).trim();
-  const tasks = manager && manager.program && manager.program.tasks;
-  if (id === "") return 1;
-  if (Array.isArray(tasks)) {
-    const index = tasks.findIndex((task) => taskHasId(task, id));
-    if (index >= 0) return index;
-  }
-  if (/^\d+$/.test(id)) return parseInt(id, 10);
-  return null;
-}
-
 function mountProcessApi(target) {
   target.post("/process/state", postState);
   target.post("/process/start", postStart);
@@ -70,22 +46,19 @@ function postState(req, res) {
 async function postStart(req, res) {
   const ln = `post("${req.originalUrl}")::`;
   const stepId = req.body && req.body.stepId;
+  const id = stepId == null ? "" : String(stepId).trim();
   try {
     const manager = req.entity && req.entity.processManager;
-    const stepN = stepNumber(manager, stepId);
-    if (stepN == null) {
-      const id = stepId == null ? "" : String(stepId);
+    if (!manager || typeof manager.start !== "function") {
       res.json({
-        err: message(
-          `Крок "${id}" не знайдено`,
-          `Step "${id}" was not found`,
-          `Шаг "${id}" не найден`,
-        ),
+        err: message("Немає програми", "No program", "Нет программы"),
         data: null,
       });
       return;
     }
-    log("w", ln, `start stepId=${stepId == null ? "" : stepId} stepN=${stepN}`);
+    // Порожній stepId — крок 1. Інакше id на кшталт "st_1": номер дістає start().
+    const stepN = id === "" ? 1 : id;
+    log("w", ln, `start stepId=${id} stepN=${stepN}`);
     const result = await manager.start(stepN);
     res.json(result);
   } catch (error) {

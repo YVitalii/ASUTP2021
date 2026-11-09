@@ -56,6 +56,10 @@ function create(extra = {}) {
     program: built,
     received: null,
     err: extra.err || null,
+    stepSeparator: "_",
+    getTaskNumberById(id = "") {
+      return parseInt(String(id).split(this.stepSeparator)[1]);
+    },
     createProgram(tasksList) {
       this.received = tasksList;
       if (this.err) return { err: this.err, data: null };
@@ -328,6 +332,18 @@ describe("ClassProcessManager", () => {
     equal(res.data, null);
     match(res.err.ua, /вже/);
     equal(built.startedFrom, null);
+  });
+
+  it("start(\"st_1\") передає в програму номер з id", async () => {
+    const { proc, built } = create();
+    proc.program = built;
+    proc.listSteps = [{ name: "Відпуск" }];
+    proc.currLogFileName = "keep-log";
+
+    const res = await proc.start("st_1");
+
+    equal(res.err, null);
+    equal(built.startedFrom, 1);
   });
 
   it("start кидає помилку для номера кроку, який не є числом", async () => {

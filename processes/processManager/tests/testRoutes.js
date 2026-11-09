@@ -99,10 +99,10 @@ describe("processManager router", { concurrency: false }, () => {
     );
   });
 
-  it("POST /process/start бере stepId і передає індекс кроку", async () => {
-    const json = await post("/process/start", { stepId: "hold" });
+  it("POST /process/start передає stepId у start", async () => {
+    const json = await post("/process/start", { stepId: "st_2" });
     assert.equal(json.err, null);
-    assert.equal(startedWith, 2);
+    assert.equal(startedWith, "st_2");
   });
 
   it("POST /process/start без stepId стартує з кроку 1", async () => {

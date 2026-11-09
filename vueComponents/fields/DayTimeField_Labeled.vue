@@ -18,9 +18,15 @@ const props = defineProps<{
 
 const caption = computed(() => fieldLabelText(props.label));
 
-/** "ДДdГГ:ХХ:СС" → "ДДdГГ:ХХ". Рядок без секунд лишається як є. */
+/**
+ * "ДДdГГ:ХХ:СС" → "ДДdГГ:ХХ".
+ * Нуль днів ("00d") не показується: "00d01:02:03" → "01:02".
+ * Рядок без секунд лишається як є, крім такого нуля днів.
+ */
 const shown = computed(() =>
-  props.modelValue.replace(/^(\d+d\d{2}:\d{2}):\d{2}$/, "$1"),
+  props.modelValue
+    .replace(/^(\d+d\d{2}:\d{2}):\d{2}$/, "$1")
+    .replace(/^0+d/, ""),
 );
 </script>
 
