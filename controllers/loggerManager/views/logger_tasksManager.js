@@ -26,12 +26,12 @@ logMan.tasks.render = () => {
     return;
   }
   let data = logMan.tasks.data[0];
-  let name = data.name ? data.name : "___________";
+  let name = data.fName || data.name || "___________";
   logMan.tasks.tasksName.container.innerHTML = name;
   let started = new Date(data.started).toLocaleString();
   started = started == "Invalid Date" ? "___________" : started;
   logMan.tasks.tasksStarted.container.innerHTML = started;
-  let note = data.note ? data.note : "";
+  let note = data.description || data.note || "";
   logMan.tasks.tasksNote.setValue(note);
   // let description = new myElementsRender["textarea"]({
   //   container: logMan.tasks.tasksNote.container,
