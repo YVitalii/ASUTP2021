@@ -364,6 +364,78 @@ class ClassProcessManager {
     return id === "st_1" || id === "st1";
   }
 
+  /**
+   * Індекс кроку за суфіксом id (st_2), як у послідовному запуску.
+   * Якщо такого id немає — сам номер як індекс.
+   */
+  taskIndex(tasks, stepN) {
+    const n = parseInt(stepN, 10);
+    if (!Number.isInteger(n) || !Array.isArray(tasks)) return 0;
+    const found = tasks.findIndex((step) => {
+      const id = step && step.id != null ? String(step.id) : "";
+      return id === `st_${n}` || id === `st${n}`;
+    });
+    return found >= 0 ? found : n;
+  }
+
+  markGoing(step) {
+    if (!step || typeof step !== "object") return;
+    if (!step.state) step.state = {};
+    step.state._id = "going";
+    step.state.note = {
+      ua: `Виконується`,
+      en: `In progress`,
+      ru: `Выполняется`,
+    };
+    step.state.startTime = new Date();
+    step.state.duration = "00d00:00:00";
+    step.err = null;
+    step.currentDuration = 0;
+    if (typeof step.setChanged === "function") step.setChanged();
+  }
+
+  markWaiting(step) {
+    if (!step || typeof step !== "object") return;
+    if (!step.state) step.state = {};
+    step.state._id = "waiting";
+    step.state.note = {
+      ua: `Очікування`,
+      en: `Waiting`,
+      ru: `Ожидание`,
+    };
+    step.state.startTime = null;
+    step.state.duration = "00d00:00:00";
+    step.err = null;
+    step.currentDuration = 0;
+    if (typeof step.setChanged === "function") step.setChanged();
+    if (Array.isArray(step.tasks)) {
+      for (const child of step.tasks) this.markWaiting(child);
+    }
+  }
+
+  /**
+   * Поточний крок — going, кожен після нього — waiting.
+   * Кроки перед поточним лишаються як є і не задають стан програми:
+   * програма стає going разом із цим запуском.
+   */
+  prepareRun(stepN) {
+    const tasks = this.program && this.program.tasks;
+    if (!Array.isArray(tasks)) return;
+    const index = this.taskIndex(tasks, stepN);
+    const current = tasks[index];
+    if (!current) return;
+    this.markGoing(current);
+    for (let i = index + 1; i < tasks.length; i++) this.markWaiting(tasks[i]);
+    if (this.program.state) {
+      this.program.state._id = "going";
+      this.program.state.note = {
+        ua: `Виконується`,
+        en: `In progress`,
+        ru: `Выполняется`,
+      };
+    }
+  }
+
   async start(stepN = 1) {
     let trace = 1,
       ln = this.ln + `Start(${stepN})::`;
@@ -398,7 +470,7 @@ class ClassProcessManager {
       log("e", ln + err.ua);
       return { err, data: null };
     }
-    // id st_1 — нова збірка, усі кроки знову waiting. Інший крок лишає стани.
+    // id st_1 — нова збірка. Інший крок лишає вже виконані попередні кроки.
     if (this.startsFromFirstStep(stepN)) {
       this.setProgram();
     }
@@ -407,6 +479,7 @@ class ClassProcessManager {
     }
 
     await this.loggerManager.start(this.currLogFileName);
+    this.prepareRun(stepN);
     // запускаємо програму
     this.program.start(stepN);
 

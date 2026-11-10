@@ -272,14 +272,15 @@ describe("ClassProcessManager", () => {
     equal(built.startedFrom, 0);
   });
 
-  it("start з іншого кроку не перезбирає програму і не змінює стани кроків", async () => {
+  it("start з іншого кроку лишає попередні, поточний робить going, наступні waiting", async () => {
     const { proc } = create();
     const current = {
-      state: { _id: "finished" },
+      state: { _id: "error", note: { ua: "помилка попереднього кроку" } },
       header: { ua: "prg03", en: "prg03", ru: "prg03" },
       tasks: [
-        { id: "st_1", state: { _id: "finished" } },
-        { id: "st_2", goal: { Pr: 1, St: 1 }, state: { _id: "error" } },
+        { id: "st_1", state: { _id: "error" } },
+        { id: "st_2", goal: { Pr: 1, St: 1 }, state: { _id: "finished" } },
+        { id: "st_3", state: { _id: "error" }, tasks: [{ id: "st_3_1", state: { _id: "finished" } }] },
       ],
       start(stepN) {
         this.startedFrom = stepN;
@@ -293,14 +294,19 @@ describe("ClassProcessManager", () => {
       rebuilt += 1;
     };
 
-    const res = await proc.start(1);
+    const res = await proc.start(2);
 
     equal(res.err, null);
     equal(rebuilt, 0);
     equal(proc.program, current);
-    equal(current.tasks[0].state._id, "finished");
-    equal(current.tasks[1].state._id, "error");
-    equal(current.startedFrom, 1);
+    equal(current.tasks[0].state._id, "error");
+    equal(current.tasks[1].state._id, "going");
+    equal(current.tasks[1].state.note.ua, "Виконується");
+    equal(current.tasks[2].state._id, "waiting");
+    equal(current.tasks[2].tasks[0].state._id, "waiting");
+    equal(current.state._id, "going");
+    equal(current.state.note.ua, "Виконується");
+    equal(current.startedFrom, 2);
   });
 
   it("start з іншого кроку лишає поточний лог, якщо ім'я вже є", async () => {
