@@ -159,7 +159,26 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
     return ClassStep_TRM251_Thermal.getStep(props);
   }
 
+  /**
+   * Читає програму і крок приладу без кешу.
+   * Якщо вони не цільові — запускає прилад з this.goal.Pr і this.goal.St.
+   * Потім починає опитування.
+   */
   async beforeAll() {
+    if (this.device) {
+      const programN = Number(await this.device.getRegisterDirectly("programN"));
+      const step = Number(await this.device.getRegisterDirectly("step"));
+      if (programN !== this.goal.Pr || step !== this.goal.St) {
+        const started = await this.device.start({
+          prN: this.goal.Pr,
+          stN: this.goal.St,
+        });
+        if (started !== true) {
+          this.error(started);
+          throw started;
+        }
+      }
+    }
     this.testProcess();
   }
 

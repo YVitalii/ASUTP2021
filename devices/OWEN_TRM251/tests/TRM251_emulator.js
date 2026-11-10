@@ -77,6 +77,8 @@ class TRM251_emulator {
    */
   async getRegisterDirectly(name) {
     if (name === "mode") return this.mode;
+    if (name === "programN") return this.prgN;
+    if (name === "step") return this.step;
     return this.getRegister(name);
   }
 

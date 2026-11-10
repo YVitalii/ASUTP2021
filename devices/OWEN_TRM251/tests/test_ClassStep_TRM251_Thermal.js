@@ -361,6 +361,55 @@ describe("ClassStep_TRM251_Thermal", () => {
   });
 
   describe("start", () => {
+    it("beforeAll не перезапускає прилад, якщо програма і крок уже цільові", async () => {
+      const starts = [];
+      const reads = [];
+      const item = create({
+        device: {
+          async getRegisterDirectly(name) {
+            reads.push(name);
+            if (name === "programN") return 1;
+            if (name === "step") return 1;
+            return 1;
+          },
+          async getCurrentState() {
+            return { programN: 1, step: 2, mode: 1 };
+          },
+          async start(arg) {
+            starts.push(arg);
+            return true;
+          },
+        },
+      });
+      item.checkTime = 20;
+      assert.equal((await item.start())._id, "finished");
+      assert.deepEqual(reads, ["programN", "step"]);
+      assert.deepEqual(starts, []);
+    });
+
+    it("beforeAll запускає прилад з цільових Pr і St, якщо він стоїть в іншому місці", async () => {
+      const starts = [];
+      const item = create({
+        device: {
+          async getRegisterDirectly(name) {
+            if (name === "programN") return 2;
+            if (name === "step") return 4;
+            return 0;
+          },
+          async getCurrentState() {
+            return { mode: 3, programN: 1, step: 1 };
+          },
+          async start(arg) {
+            starts.push(arg);
+            return true;
+          },
+        },
+      });
+      item.checkTime = 20;
+      assert.equal((await item.start())._id, "finished");
+      assert.deepEqual(starts, [{ prN: 1, stN: 1 }]);
+    });
+
     it("beforeAll завершує крок, коли прилад пішов далі", async () => {
       let after = 0;
       const item = create({
