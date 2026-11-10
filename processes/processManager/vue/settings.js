@@ -54,5 +54,5 @@ export const settings = {
         type: "DayTimeField_Labeled",
       },
     }, // description
-  },
+  }, //
 };
