@@ -29,7 +29,7 @@ describe("TRM251_emulator", () => {
     assert.equal(dev.mode, 0);
   });
 
-  it("кожне 5-те читання збільшує крок, після 5-го кроку mode=0", async () => {
+  it("кожне 5-те читання збільшує крок, після 5-го кроку mode=3", async () => {
     const dev = new TRM251_emulator();
     await dev.start({ prN: 1, stN: 1 });
 
@@ -48,12 +48,12 @@ describe("TRM251_emulator", () => {
     const advanced = await dev.getCurrentState();
     assert.equal(advanced.step, 6);
     assert.equal(advanced.mode, 1);
-    const stopped = await dev.getCurrentState();
-    assert.equal(stopped.step, 6);
-    assert.equal(stopped.mode, 0);
+    const finished = await dev.getCurrentState();
+    assert.equal(finished.step, 6);
+    assert.equal(finished.mode, 3);
 
     const stayed = await dev.getCurrentState();
     assert.equal(stayed.step, 6);
-    assert.equal(stayed.mode, 0);
+    assert.equal(stayed.mode, 3);
   });
 });

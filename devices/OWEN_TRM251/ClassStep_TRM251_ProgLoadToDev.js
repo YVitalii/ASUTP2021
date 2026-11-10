@@ -22,13 +22,20 @@ function readField(step, name) {
   return undefined;
 }
 
+function devicePoint(step) {
+  const tT = Number(readField(step, "tT"));
+  const H = Number(readField(step, "H"));
+  const Y = Number(readField(step, "Y"));
+  return [tT, H, Y].every(Number.isFinite);
+}
+
 /** Кроки, які setProgram реально пише в прилад: без заголовка і без кроків процесу. */
 function stepsForDevice(program) {
   const steps = [];
   if (!Array.isArray(program)) return steps;
   for (let index = 1; index < program.length; index++) {
     const step = program[index];
-    if (step && PROCESS_STEP_TYPES.has(step.type)) continue;
+    if (step && PROCESS_STEP_TYPES.has(step.type) && !devicePoint(step)) continue;
     steps.push({
       tT: Number(readField(step, "tT")),
       H: Number(readField(step, "H")),

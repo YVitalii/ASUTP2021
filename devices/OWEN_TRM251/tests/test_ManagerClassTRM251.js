@@ -257,6 +257,35 @@ describe("ManagerClassTRM251 setProgram", () => {
     ]);
   });
 
+  it("пише фальш-крок 5, у якого є tT, H і Y", async () => {
+    const calls = [];
+    driver.setRegPromise = async (props) => {
+      calls.push(props);
+      return { value: props.value };
+    };
+    const header = { id: "description", fName: "prg02" };
+    const dev = device();
+    await dev.setProgram([
+      header,
+      { type: "TRM251stepThermal", tT: 110, H: 10, Y: 20 },
+      {
+        type: ClassStep_TRM251_goToPrSt.type,
+        tT: 110,
+        H: 10,
+        Y: 20,
+        prN: 2,
+        stN: 1,
+      },
+      { type: "TRM251stepThermal", tT: 200, H: 15, Y: 25 },
+    ]);
+
+    deepEqual(calls[0].value.slice(1), [
+      { tT: 110, H: 10, Y: 20 },
+      { tT: 110, H: 10, Y: 20 },
+      { tT: 200, H: 15, Y: 25 },
+    ]);
+  });
+
   it("кидає APIerror, якщо драйвер не записав програму", async () => {
     driver.setRegPromise = async () => {
       throw new Error("немає відповіді");

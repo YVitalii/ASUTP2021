@@ -140,6 +140,18 @@ describe("ClassStepsSerial", () => {
     assert.equal(next.started, false);
   });
 
+  it("start(1) виконує крок st_1, навіть якщо він перший у масиві", async () => {
+    const load = makeStep("st_1", "finish");
+    const next = makeStep("st_2", "finish");
+    const seq = program([load, next]);
+
+    await seq.start(1);
+
+    assert.equal(load.state._id, "finished");
+    assert.equal(load.started, true);
+    assert.equal(next.state._id, "finished");
+  });
+
   it("start(from) не чіпає попередні кроки і все одно зупиняється на помилці", async () => {
     const early = makeStep("st_early", "finish");
     const bad = makeStep("st_bad", "error");

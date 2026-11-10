@@ -2,6 +2,21 @@ const ClassStepGeneral = require("./ClassStepGeneral.js");
 const log = require("../../tools/log");
 const dummy = require("../../tools/dummy.js").dummyPromise;
 
+/**
+ * Номер кроку — суфікс id (st_1), не позиція в масиві.
+ * Заголовок програми не стає кроком, тож st_1 може бути на індексі 0.
+ * Якщо такого id немає, лишається сам номер як індекс.
+ */
+function stepIndex(tasks, from) {
+  const n = parseInt(from, 10);
+  if (!Number.isInteger(n) || !Array.isArray(tasks)) return 0;
+  const found = tasks.findIndex((step) => {
+    const id = step && step.id != null ? String(step.id) : "";
+    return id === `st_${n}` || id === `st${n}`;
+  });
+  return found >= 0 ? found : n;
+}
+
 class ClassSerialSteps extends ClassStepGeneral {
   constructor(props) {
     props.ln = (props.ln ? props.ln : "") + "ClassStepsSerial::";
@@ -21,7 +36,7 @@ class ClassSerialSteps extends ClassStepGeneral {
     // TODO Милиця для очікування завершення deforestart
     await dummy(3000);
     //this.testProcess();
-    for (let step = parseInt(from); step < this.tasks.length; step++) {
+    for (let step = stepIndex(this.tasks, from); step < this.tasks.length; step++) {
       // trace ? log('i',ln,`this.state._id=`,this.state._id) : null;
       if (this.state._id != "going") {
         break;

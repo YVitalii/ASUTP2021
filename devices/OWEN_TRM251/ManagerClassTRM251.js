@@ -33,6 +33,14 @@ function readStepField(step, name) {
   return undefined;
 }
 
+/** Фальш-крок 5 має tT, H, Y і пишеться в прилад. Перехід без них — ні. */
+function deviceStep(step) {
+  const tT = Number(readStepField(step, "tT"));
+  const H = Number(readStepField(step, "H"));
+  const Y = Number(readStepField(step, "Y"));
+  return [tT, H, Y].every(Number.isFinite);
+}
+
 function programForDriver(program) {
   if (!Array.isArray(program) || program.length < 2) {
     throw new Error("програма має містити заголовок і хоча б один крок");
@@ -40,7 +48,7 @@ function programForDriver(program) {
   const steps = [program[0]];
   for (let index = 1; index < program.length; index++) {
     const step = program[index];
-    if (step && PROCESS_STEP_TYPES.has(step.type)) continue;
+    if (step && PROCESS_STEP_TYPES.has(step.type) && !deviceStep(step)) continue;
     const tT = Number(readStepField(step, "tT"));
     const H = Number(readStepField(step, "H"));
     const Y = Number(readStepField(step, "Y"));

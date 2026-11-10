@@ -1,7 +1,7 @@
 /**
  * Емулятор TRM-251 для прогону кроків без приладу.
- * Поки mode не Stop, кожне 5-те читання збільшує крок на 1.
- * Крок більший за 5 переводить прилад у Stop (mode = 0).
+ * Поки програма йде, кожне 5-те читання збільшує крок на 1.
+ * Крок більший за 5 — режим «Програму виконано» (mode = 3).
  */
 class TRM251_emulator {
   constructor() {
@@ -17,10 +17,10 @@ class TRM251_emulator {
    */
   async getCurrentState() {
     if (this.mode !== 0) {
-      // Крок > 5 вже відданий попереднім читанням. Це читання ставить Stop,
-      // щоб термокрок встиг завершитись по зміні номера кроку.
+      // Крок > 5 вже відданий попереднім читанням. Це читання ставить
+      // «Програму виконано», щоб термокрок встиг завершитись по зміні номера кроку.
       if (this.step > 5) {
-        this.mode = 0;
+        this.mode = 3;
       } else {
         this.requests += 1;
         if (this.requests % 5 === 0) this.step += 1;
@@ -68,6 +68,16 @@ class TRM251_emulator {
   async setProgram(program) {
     this.program = program;
     return true;
+  }
+
+  /**
+   * mode віддає поточне значення, без кроку емулятора і без кешу.
+   * @param {string} name
+   * @returns {Promise<number|Array>}
+   */
+  async getRegisterDirectly(name) {
+    if (name === "mode") return this.mode;
+    return this.getRegister(name);
   }
 
   /**

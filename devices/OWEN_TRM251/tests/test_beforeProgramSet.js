@@ -35,6 +35,7 @@ describe("beforeProgramSet", () => {
 
     assert.equal(result[0], header);
     assert.equal(header.note, "01:10");
+    assert.equal(header.maxStepsCount, 13);
     assert.equal(source[1].H, "01:10");
     assert.equal(source[1].Pr, undefined);
     assert.equal(result[1].type, loadType);
@@ -88,37 +89,59 @@ describe("beforeProgramSet", () => {
     assert.equal(result[3].Y, 0);
   });
 
-  it("нумерує кроки Pr 1..3 і St 1..5", () => {
-    const result = beforeProgramSet(programWithSteps(15));
+  it("чотири кроки програми 1 не додають фальш-крок", () => {
+    const result = beforeProgramSet(programWithSteps(4));
+    assert.equal(result.filter((step) => step.type === nextType).length, 0);
+    assert.equal(result.at(-2).Pr, 1);
+    assert.equal(result.at(-2).St, 4);
+    assert.equal(result.at(-2).type, stepType);
+  });
 
-    assert.deepEqual(
-      { Pr: result[3].Pr, St: result[3].St },
-      { Pr: 1, St: 1 }
+  it("крок 5 програм 1 і 2 копіює tT, H, Y і переходить далі", () => {
+    const result = beforeProgramSet(
+      programWithSteps(9, (i) => ({ tT: i * 10, H: i, Y: i + 1 }))
     );
+
+    assert.deepEqual(result[7], {
+      Pr: 1,
+      St: 5,
+      type: nextType,
+      tT: 40,
+      H: 4,
+      Y: 5,
+      prN: 2,
+      stN: 1,
+    });
     assert.deepEqual(
-      { Pr: result[7].Pr, St: result[7].St },
-      { Pr: 1, St: 5 }
+      { Pr: result[8].Pr, St: result[8].St, type: result[8].type, tT: result[8].tT },
+      { Pr: 2, St: 1, type: stepType, tT: 50 }
     );
-    assert.deepEqual(result[8], { type: nextType, prN: 2, stN: 1 });
+    assert.deepEqual(result[12], {
+      Pr: 2,
+      St: 5,
+      type: nextType,
+      tT: 80,
+      H: 8,
+      Y: 9,
+      prN: 3,
+      stN: 1,
+    });
     assert.deepEqual(
-      { Pr: result[9].Pr, St: result[9].St, type: result[9].type },
-      { Pr: 2, St: 1, type: stepType }
+      { Pr: result[13].Pr, St: result[13].St, type: result[13].type },
+      { Pr: 3, St: 1, type: stepType }
     );
-    assert.deepEqual(
-      { Pr: result[13].Pr, St: result[13].St },
-      { Pr: 2, St: 5 }
+  });
+
+  it("крок 5 програми 3 лишається термокроком", () => {
+    const result = beforeProgramSet(programWithSteps(13));
+    const last = result.at(-2);
+    assert.equal(last.type, stepType);
+    assert.deepEqual({ Pr: last.Pr, St: last.St }, { Pr: 3, St: 5 });
+    assert.equal(last.tT, 13);
+    assert.equal(
+      result.filter((step) => step.type === nextType).length,
+      2
     );
-    assert.deepEqual(result[14], { type: nextType, prN: 3, stN: 1 });
-    assert.deepEqual(
-      { Pr: result[15].Pr, St: result[15].St },
-      { Pr: 3, St: 1 }
-    );
-    assert.deepEqual(
-      { Pr: result[19].Pr, St: result[19].St },
-      { Pr: 3, St: 5 }
-    );
-    assert.equal(result[19].H, 1);
-    assert.equal(result[19].Y, 2);
     assert.deepEqual(result.at(-1), { type: stopType });
   });
 
@@ -135,9 +158,12 @@ describe("beforeProgramSet", () => {
 
     assert.equal(result[3].Pr, 1);
     assert.equal(result[3].St, 1);
-    assert.deepEqual(result[8], { type: nextType, prN: 2, stN: 1 });
-    assert.equal(result[9].Pr, 2);
-    assert.equal(result[9].St, 1);
+    assert.equal(result[7].type, nextType);
+    assert.equal(result[7].prN, 2);
+    assert.equal(result[7].tT, 130);
+    assert.equal(result[8].Pr, 2);
+    assert.equal(result[8].St, 1);
+    assert.equal(result[8].tT, 140);
   });
 
   it("приймає програму лише із заголовка", () => {
@@ -179,10 +205,10 @@ describe("beforeProgramSet", () => {
     );
   });
 
-  it("кидає помилку, якщо кроків більше 15", () => {
+  it("кидає помилку, якщо кроків більше 13", () => {
     assert.throws(
-      () => beforeProgramSet(programWithSteps(16)),
-      /не більше 15 кроків/
+      () => beforeProgramSet(programWithSteps(14)),
+      /не більше 13 кроків/
     );
   });
 

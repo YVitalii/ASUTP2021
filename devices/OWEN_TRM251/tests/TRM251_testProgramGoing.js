@@ -24,17 +24,21 @@ describe("TRM251 програма виконується", () => {
 
     assert.deepEqual(
       tasks.map((step) => step.state._id),
-      Array(13).fill("finished"),
+      Array(14).fill("finished"),
     );
     assert.equal(tasks[0].constructor, ClassStep_TRM251_ProgLoadToDev);
     assert.equal(tasks[1].constructor, ClassStep_TRM251_Start);
-    assert.equal(tasks[7].constructor, ClassStep_TRM251_goToPrSt);
-    assert.equal(tasks[7].prN, 2);
-    assert.equal(tasks[7].stN, 1);
+    assert.equal(tasks[6].constructor, ClassStep_TRM251_goToPrSt);
+    assert.equal(tasks[6].prN, 2);
+    assert.equal(tasks[6].stN, 1);
+    assert.equal(tasks[11].constructor, ClassStep_TRM251_goToPrSt);
+    assert.equal(tasks[11].prN, 3);
+    assert.equal(tasks[11].stN, 1);
     assert.equal(tasks.at(-1).constructor, ClassStep_TRM251_Stop);
     assert.equal(StepsManager.program.state._id, "finished");
-    assert.equal(StepsManager.device.prgN, 2);
-    assert.equal(StepsManager.device.step, 5);
+    assert.match(tasks.at(-1).state.note.ua, /^Завершено /);
+    assert.equal(StepsManager.device.prgN, 3);
+    assert.equal(StepsManager.device.step, 2);
     assert.equal(StepsManager.device.mode, 0);
   });
 });

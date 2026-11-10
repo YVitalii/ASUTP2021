@@ -293,8 +293,13 @@ describe("ClassStep_TRM251_Thermal", () => {
   describe("стандартна програма", () => {
     it("parseProgram ставить Pr/St і з них збираються кроки", () => {
       const thermal = standardProgram.filter((step) => step.type === "TRM251stepThermal");
-      assert.deepEqual(standardProgram[8], {
+      assert.deepEqual(standardProgram[7], {
+        Pr: 1,
+        St: 5,
         type: ClassStep_TRM251_goToPrSt.type,
+        tT: 550,
+        H: 30,
+        Y: 40,
         prN: 2,
         stN: 1,
       });
@@ -311,11 +316,11 @@ describe("ClassStep_TRM251_Thermal", () => {
           { Pr: 1, St: 2, tT: 330, H: 50, Y: 70 },
           { Pr: 1, St: 3, tT: 450, H: 59, Y: 120 },
           { Pr: 1, St: 4, tT: 550, H: 30, Y: 40 },
-          { Pr: 1, St: 5, tT: 600, H: 20, Y: 30 },
-          { Pr: 2, St: 1, tT: 200, H: 15, Y: 25 },
-          { Pr: 2, St: 2, tT: 400, H: 60, Y: 90 },
-          { Pr: 2, St: 3, tT: 500, H: 40, Y: 60 },
-          { Pr: 2, St: 4, tT: 250, H: 10, Y: 15 },
+          { Pr: 2, St: 1, tT: 600, H: 20, Y: 30 },
+          { Pr: 2, St: 2, tT: 200, H: 15, Y: 25 },
+          { Pr: 2, St: 3, tT: 400, H: 60, Y: 90 },
+          { Pr: 2, St: 4, tT: 500, H: 40, Y: 60 },
+          { Pr: 3, St: 1, tT: 250, H: 10, Y: 15 },
         ]
       );
 
@@ -330,12 +335,12 @@ describe("ClassStep_TRM251_Thermal", () => {
       assert.equal(steps[0].goal.St, 1);
       assert.equal(steps[0].goal.tT, 110);
       assert.equal(steps[0].regs.Pr, undefined);
-      assert.equal(steps[4].goal.Pr, 1);
-      assert.equal(steps[4].goal.St, 5);
+      assert.equal(steps[4].goal.Pr, 2);
+      assert.equal(steps[4].goal.St, 1);
       assert.equal(steps[5].goal.Pr, 2);
-      assert.equal(steps[5].goal.St, 1);
-      assert.equal(steps[8].goal.Pr, 2);
-      assert.equal(steps[8].goal.St, 4);
+      assert.equal(steps[5].goal.St, 2);
+      assert.equal(steps[8].goal.Pr, 3);
+      assert.equal(steps[8].goal.St, 1);
       assert.equal(steps[8].goal.Y, 15);
     });
 
@@ -364,7 +369,7 @@ describe("ClassStep_TRM251_Thermal", () => {
           after += 1;
         },
       });
-      assert.equal(await item.start(), 1);
+      assert.equal((await item.start())._id, "finished");
       assert.equal(item.state._id, "finished");
       assert.equal(after, 1);
     });

@@ -3,7 +3,7 @@ const { degC, lpm, m3ph, percent } = require("../../config.js").units;
 const log = require("../../tools/log.js"); // логер
 const gLn = "TRM251_driver::";
 /** 1 — трасування формування запиту і розбору відповіді кожного регістра */
-let gTrace = 1;
+let gTrace = 0;
 
 /** Функція для скорочення записів
  * env = Object of ClassDriverRegisterGeneral

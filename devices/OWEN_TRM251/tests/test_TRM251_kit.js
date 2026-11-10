@@ -35,7 +35,7 @@ describe("комплект TRM-251", () => {
   it("збирає програму: термокроки і перехід на програму 2", () => {
     assert.equal(steps.program.header.ua, "prg02");
     assert.equal(steps.program.comment.ua, "Колеса чавунні. Відпуск.");
-    assert.equal(tasks.length, 13);
+    assert.equal(tasks.length, 14);
     assert.deepEqual(
       tasks.map((step) => step.constructor.type),
       [
@@ -45,11 +45,12 @@ describe("комплект TRM-251", () => {
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
-        ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_goToPrSt.type,
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Thermal.type,
+        ClassStep_TRM251_Thermal.type,
+        ClassStep_TRM251_goToPrSt.type,
         ClassStep_TRM251_Thermal.type,
         ClassStep_TRM251_Stop.type,
       ],
@@ -61,10 +62,12 @@ describe("комплект TRM-251", () => {
     assert.equal(tasks[1].regs.stN, 1);
     assert.deepEqual(tasks[2].goal, { Pr: 1, St: 1, tT: 110, H: 10, Y: 20 });
     assert.deepEqual(tasks[4].goal, { Pr: 1, St: 3, tT: 450, H: 59, Y: 120 });
-    assert.equal(tasks[7].prN, 2);
-    assert.equal(tasks[7].stN, 1);
-    assert.deepEqual(tasks[8].goal, { Pr: 2, St: 1, tT: 200, H: 15, Y: 25 });
-    assert.deepEqual(tasks[9].goal, { Pr: 2, St: 2, tT: 400, H: 60, Y: 90 });
+    assert.equal(tasks[6].prN, 2);
+    assert.equal(tasks[6].stN, 1);
+    assert.deepEqual(tasks[7].goal, { Pr: 2, St: 1, tT: 600, H: 20, Y: 30 });
+    assert.deepEqual(tasks[8].goal, { Pr: 2, St: 2, tT: 200, H: 15, Y: 25 });
+    assert.equal(tasks[11].prN, 3);
+    assert.deepEqual(tasks[12].goal, { Pr: 3, St: 1, tT: 250, H: 10, Y: 15 });
   });
 
   it("усі кроки працюють з одним емулятором приладу", () => {
