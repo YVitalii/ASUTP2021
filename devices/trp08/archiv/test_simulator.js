@@ -12,7 +12,7 @@ let gTrace = 0; //=1 глобальная трассировка (трассир
 // trace ? console.dir() : null;
 
 let assert = require("assert");
-let DevSim = require("../simulator.js");
+let DevSim = require("./simulator.js");
 
 console.log("------ start tests -------------");
 

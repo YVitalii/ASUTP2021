@@ -1,7 +1,7 @@
 //  nodemon --exec "mocha ./devices/TRP08/test -c" -w "./devices/TRP08" -w "./devices/TRP08/tests"
 
 var assert = require("assert");
-var TRP08 = require("../simulator_deviceClass.js");
+var TRP08 = require("./simulator_deviceClass.js");
 const log = require("../../../tools/log.js");
 // ------------ логгер  --------------------
 let logName = "<" + __filename.replace(__dirname, "").slice(1) + ">:";

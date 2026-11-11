@@ -1,12 +1,12 @@
 /**
  * 2024-03-29 Додав функцію getCompactHtml
  */
-const device = require("./driver.js");
-const log = require("../../tools/log.js");
-const trySomeTimes = require("../../tools/trySomeTimes.js");
+const device = require("../driver.js");
+const log = require("../../../tools/log.js");
+const trySomeTimes = require("../../../tools/trySomeTimes.js");
 const pug = require("pug");
 const path = require("path");
-const { dummyPromise } = require("../../tools/dummy.js");
+const { dummyPromise } = require("../../../tools/dummy.js");
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор
@@ -189,7 +189,7 @@ class Manager {
       // при ініціалізації об'єкту зупиняємо прилад так як він міг бути в стані Пуск
       await this.stop();
       //log("i", this.ln, "Command 'Stop' done!");
-    }, 2000);
+    }, 5000);
 
     log("w", `${this.ln}:: ===>  Device was created. `);
   } //constructor
@@ -214,7 +214,7 @@ class Manager {
    */
   async iteration(func, params) {
     return new Promise(async (resolve, reject) => {
-      let trace = 0,
+      let trace = 1,
         ln =
           this.ln +
           `iteration(${func.name},${params.regName}${
@@ -259,8 +259,11 @@ class Manager {
           if (this.errorCounter.value >= this.errorCounter.max) {
             this.errorCounter.value = this.errorCounter.max;
             this.offLine = true;
+            log("e", ln + "Device offline!");
             this.period = 10;
             this.state.state.value = undefined;
+            this.busy = false;
+            return { value: null, note: "Device offline!" };
           }
 
           log(
@@ -367,9 +370,9 @@ class Manager {
       props.regMode = 1; //pid
       // точність для ti, td = 0,01 в програмі, а в приладі ціле число
       props.ti = regs.ti ? parseInt(regs.ti * 100) : 0;
-      props.ti > max ? max : props.ti;
+      props.ti = props.ti > max ? max : props.ti;
       props.td = regs.td ? parseInt(regs.td * 100) : 0;
-      props.td > max ? max : props.td;
+      props.td = props.td > max ? max : props.td;
       // точність для о = 0,1 в програмі, а в приладі ціле число
       props.o = regs.o ? parseInt(regs.o * 10) : 0;
     } else {
@@ -488,16 +491,16 @@ class Manager {
       // робимо посилання на state[item] для скорочення наступного коду
       let currReg = this.state[item];
 
-      // перевіряємо чи є в нас свіжі дані, і якщо є - відразу повертаємо їх
+      // перевіряємо чи є в нас свіжі дані,  якщо є або прилад не в мережі  - відразу повертаємо їх
       if (
-        start.getTime() - currReg.timestamp.getTime() <
-        currReg.obsolescense
+        start.getTime() - currReg.timestamp.getTime() < currReg.obsolescense ||
+        this.offLine
       ) {
         resString += `${item}=[${currReg.value}]; `;
         response[item] = currReg;
         continue;
       }
-
+      trace = 0;
       // робимо запит в прилад по інтерфейсу
       let res = await this.iteration(device.getRegPromise, {
         iface: this.iface,
@@ -510,6 +513,26 @@ class Manager {
       }
       currReg.value = res[0].value;
       currReg.timestamp = res[0].timestamp;
+
+      // try {
+      //   res = await device.getRegPromise({
+      //     iface: this.iface,
+      //     id: this.addr,
+      //     regName: item,
+      //   });
+      //   if (trace) {
+      //     log("i", ln, `res=`);
+      //     console.dir(res);
+      //   }
+      //   currReg.value = res[0].value;
+      //   currReg.timestamp = res[0].timestamp;
+      //   this.busy = false;
+      // } catch (error) {
+      //   log("e", ln, error);
+      //   currReg.value = null;
+      //   this.busy = false;
+      // }
+
       trace ? console.log(ln, item, "=", currReg.value) : null;
       response[item] = currReg;
       // додаємо інформацію для повідомлення в консолі
@@ -526,6 +549,71 @@ class Manager {
     return response;
   }
 
+  // async getRegPromise(props) {
+  //   let trace = 1,
+  //     ln = `driver::getRegPromise(id=${props.id};${props.regName})::`;
+  //   let res;
+  //   let i = 0;
+  //   while (this.busy) {
+  //     log("", ln + "Device are this.busy. Waiting: ", i);
+  //     await dummyPromise(2000);
+  //   }
+  //   this.busy = true;
+  //   i = 0;
+  //   let ok = false;
+  //   do {
+  //     try {
+  //       res = await device.getRegPromise(props);
+  //       ok = true;
+  //       this.busy = false;
+  //     } catch (error) {
+  //       log("e", ln, "err=", error.messages.en);
+  //       if (error.code != 13) {
+  //         ok = true;
+  //         this.busy = false;
+  //         throw new Error(error.messages.en);
+  //       }
+
+  //       log("w", ln + `Try again.. ${i}`);
+  //       i++;
+  //       dummyPromise(2000);
+  //     }
+  //   } while (!ok);
+  //   return res;
+  // }
+
+  // async setRegPromise(props) {
+  //   let trace = 1,
+  //     ln = `driver::setRegPromise(id=${props.id};${props.regName}=${props.value})::`;
+  //   let res;
+  //   let i = 0;
+  //   while (this.busy) {
+  //     log("", ln + "Device are busy. Waiting: ", i);
+  //     await dummyPromise(2000);
+  //   }
+  //   this.busy = true;
+  //   i = 0;
+  //   let ok = false;
+  //   do {
+  //     try {
+  //       res = await device.setRegPromise(props);
+  //       ok = true;
+  //       this.busy = false;
+  //     } catch (error) {
+  //       log("e", ln, "err=", error.messages.en);
+  //       if (error.code != 13) {
+  //         ok = true;
+  //         this.busy = false;
+  //         throw new Error(error.messages.en);
+  //       }
+  //       log("w", ln + `Try again.. ${i}`);
+  //       i++;
+  //       dummyPromise(2000);
+  //     }
+  //   } while (!ok);
+  //   return res;
+  // }
+
   getCompactHtml(params = { baseUrl: "/", prefix: "" }) {
     params.prefix =
       params.prefix != ""
@@ -534,7 +622,7 @@ class Manager {
 
     let html = "";
     let regs = this.state;
-    html = pug.renderFile(path.resolve(__dirname + "/views/compactTrp.pug"), {
+    html = pug.renderFile(path.resolve(__dirname + "/../views/compactTrp.pug"), {
       device: this,
 
       tT: getRegForHtml(regs.tT),

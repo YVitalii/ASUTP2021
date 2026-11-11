@@ -1,12 +1,12 @@
 /**
  * 2024-03-29 Додав функцію getCompactHtml
  */
-const driver = require("./driver.js");
-const log = require("../../tools/log.js");
+const driver = require("../driver.js");
+const log = require("../../../tools/log.js");
 const pug = require("pug");
 // const path = require("path");
-const ClassDeviceManagerGeneral = require("../classDeviceGeneral/ClassDeviceManagerGeneral.js");
-const { dummyPromise } = require("../../tools/dummy.js");
+const ClassDeviceManagerGeneral = require("../../classDeviceGeneral/ClassDeviceManagerGeneral.js");
+const { dummyPromise } = require("../../../tools/dummy.js");
 
 /** @class
  * Клас створює об'єкт, що репрезентує терморегулятор ТРП-08

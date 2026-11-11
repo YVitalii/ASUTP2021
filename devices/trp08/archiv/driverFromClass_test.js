@@ -2,9 +2,9 @@
 const driver = require("./driverFromClass");
 const assert = require("assert");
 let iface;
-iface = require("../../conf_iface").w2;
+iface = require("../../../conf_iface").w2;
 const addr = 1; // адреса приладу в інтерфейсі rs485
-const dummy = require("../../tools/dummy").dummyPromise;
+const dummy = require("../../../tools/dummy").dummyPromise;
 
 describe("test rs485 communication", function () {
   //console.log("this.timeout=");

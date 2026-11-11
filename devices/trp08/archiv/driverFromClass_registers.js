@@ -1,5 +1,5 @@
-const ClassDriverGeneral = require("../classDeviceGeneral/ClassDriverGeneral.js");
-const log = require("../../tools/log.js");
+const ClassDriverGeneral = require("../../classDeviceGeneral/ClassDriverGeneral.js");
+const log = require("../../../tools/log.js");
 const {
   fromBCD,
   toBCD,
