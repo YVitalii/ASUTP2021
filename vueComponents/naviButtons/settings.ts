@@ -28,6 +28,30 @@ export const settings = {
 
 export const naviButtons: NaviButton[] = [
   {
+    id: "buttonEntity",
+    style: "btn-outline-primary",
+    title: "Піч",
+    hint: {
+      ua: "Керування піччю",
+      ru: "Управление печью",
+      en: "Furnace control",
+    },
+    url: "",
+    disabled: false,
+  },
+  {
+    id: "buttonTasks",
+    style: "btn-outline-primary",
+    title: "Програма",
+    hint: {
+      ua: "Редагування програми",
+      ru: "Редактирование программы",
+      en: "Program editing",
+    },
+    url: "tasksManager",
+    disabled: false,
+  },
+  {
     id: "buttonLogger",
     style: "btn-outline-primary",
     title: "Архів",
