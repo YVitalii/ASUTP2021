@@ -159,15 +159,15 @@ class ClassProcessManager {
     let trace = 0,
       ln = this.ln + " setProgram()::";
     let task = this.tasksManager.getActiveTask();
-    let tasksList = task && task.content;
-    let result = this.stepsManager.createProgram(tasksList);
+    let content = task && task.content;
+    let result = this.stepsManager.createProgram(content);
     if (!result || result.err) return result;
     this.loadedTask = {
       name: task && task.taskName,
       lastChange: task && task.lastChange,
     };
 
-    this.listSteps = this.stepsManager.tasksList;
+    this.tasksList = this.tasksManager.getActiveTask();
     this.currLogFileName = null;
     this.program = this.stepsManager.program;
 
@@ -218,10 +218,11 @@ class ClassProcessManager {
     }
     // парсимо програму для HTML
     this.getHtmlProgram();
+    let programName = this.tasksList.content[0].fName;
     let data = {
-      ua: `Програму "${this.listSteps[0].name}" успішно завантажено.`,
-      en: `Program "${this.listSteps[0].name}" was set successfully.`,
-      ru: `Программа "${this.listSteps[0].name}" успешно загружена.`,
+      ua: `Програму "${programName}" успішно завантажено.`,
+      en: `Program "${programName}" was set successfully.`,
+      ru: `Программа "${programName}" успешно загружена.`,
     };
     trace = 0;
     if (trace) {

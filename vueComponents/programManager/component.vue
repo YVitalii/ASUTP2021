@@ -272,9 +272,17 @@ const createDefaultStep = (source?: ProgramStep): ProgramStep => {
 const copyStep = (source: ProgramStep): ProgramStep =>
     JSON.parse(JSON.stringify(source));
 
+const MAX_PROGRAM_STEPS = 11;
+
+const programStepLimit = () => {
+    const headerLimit = Number(props.programData?.[0]?.maxStepsQuantity);
+    if (!Number.isFinite(headerLimit) || headerLimit <= 0) return MAX_PROGRAM_STEPS;
+    return Math.min(headerLimit, MAX_PROGRAM_STEPS);
+};
+
 const addStepAfter = (index: number) => {
     if (!props.programData) return;
-    if (stepsList.value.length >= props.programData[0].maxStepsQuantity) return;
+    if (stepsList.value.length >= programStepLimit()) return;
 
     const insertAt = index + 1;
     const source = stepsList.value[index];

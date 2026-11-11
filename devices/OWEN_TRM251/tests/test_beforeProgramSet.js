@@ -35,7 +35,7 @@ describe("beforeProgramSet", () => {
 
     assert.equal(result[0], header);
     assert.equal(header.note, "01:10");
-    assert.equal(header.maxStepsCount, 13);
+    assert.equal(header.maxStepsCount, 11);
     assert.equal(source[1].H, "01:10");
     assert.equal(source[1].Pr, undefined);
     assert.equal(result[1].type, loadType);
@@ -132,12 +132,12 @@ describe("beforeProgramSet", () => {
     );
   });
 
-  it("крок 5 програми 3 лишається термокроком", () => {
-    const result = beforeProgramSet(programWithSteps(13));
+  it("11 кроків закінчуються термокроком Pr3/St3", () => {
+    const result = beforeProgramSet(programWithSteps(11));
     const last = result.at(-2);
     assert.equal(last.type, stepType);
-    assert.deepEqual({ Pr: last.Pr, St: last.St }, { Pr: 3, St: 5 });
-    assert.equal(last.tT, 13);
+    assert.deepEqual({ Pr: last.Pr, St: last.St }, { Pr: 3, St: 3 });
+    assert.equal(last.tT, 11);
     assert.equal(
       result.filter((step) => step.type === nextType).length,
       2
@@ -205,10 +205,10 @@ describe("beforeProgramSet", () => {
     );
   });
 
-  it("кидає помилку, якщо кроків більше 13", () => {
+  it("кидає помилку, якщо кроків більше 11", () => {
     assert.throws(
-      () => beforeProgramSet(programWithSteps(14)),
-      /не більше 13 кроків/
+      () => beforeProgramSet(programWithSteps(12)),
+      /не більше 11 кроків/
     );
   });
 

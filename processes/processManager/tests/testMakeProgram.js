@@ -11,8 +11,8 @@ let test = () => {
   processManager.setProgram();
   trace = 1;
   if (trace) {
-    log("i", ln, `processManager.listSteps=`);
-    console.dir(processManager.listSteps);
+    log("i", ln, `processManager.tasksList=`);
+    console.dir(processManager.tasksList);
   }
   trace = 0;
   if (trace) {

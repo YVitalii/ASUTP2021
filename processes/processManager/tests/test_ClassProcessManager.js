@@ -32,8 +32,8 @@ function program(name = "Відпуск") {
 }
 
 function create(extra = {}) {
-  const list = extra.list || [{ type: "description", name: "Відпуск" }];
-  const built = extra.program || program(list[0] && list[0].name);
+  const list = extra.list || [{ type: "description", fName: "Відпуск" }];
+  const built = extra.program || program(list[0] && list[0].fName);
   const logger = {
     fileName: "tmp-log",
     _fileExtensions: { logger: ".log" },
@@ -105,7 +105,7 @@ describe("ClassProcessManager", () => {
     equal(planned.length, 1);
     equal(planned[0].ms, 3000);
     planned[0].fn();
-    deepEqual(steps.received, [{ type: "description", name: "Відпуск" }]);
+    deepEqual(steps.received, [{ type: "description", fName: "Відпуск" }]);
   });
 
   it("повторює читання програми, поки TasksManager її не віддасть", () => {
@@ -175,7 +175,7 @@ describe("ClassProcessManager", () => {
     match(res.data.ua, /Відпуск/);
     deepEqual(steps.received, list);
     equal(proc.program, built);
-    equal(proc.listSteps, list);
+    deepEqual(proc.tasksList, { content: list });
     equal(proc.currLogFileName, null);
     equal(typeof proc.program.afterAll, "function");
     equal(proc.htmlProgram.states.logFileName, "tmp-log");
@@ -263,7 +263,7 @@ describe("ClassProcessManager", () => {
       ],
       start() {},
     };
-    proc.listSteps = [{ name: "Відпуск" }];
+    proc.tasksList = [{ name: "Відпуск" }];
 
     const res = await proc.start(0);
 
@@ -287,7 +287,7 @@ describe("ClassProcessManager", () => {
       },
     };
     proc.program = current;
-    proc.listSteps = [{ name: "Відпуск" }];
+    proc.tasksList = [{ name: "Відпуск" }];
     proc.currLogFileName = null;
     let rebuilt = 0;
     proc.setProgram = () => {
@@ -312,7 +312,7 @@ describe("ClassProcessManager", () => {
   it("start з іншого кроку лишає поточний лог, якщо ім'я вже є", async () => {
     const { proc, built, logger } = create();
     proc.program = built;
-    proc.listSteps = [{ name: "Відпуск" }];
+    proc.tasksList = [{ name: "Відпуск" }];
     proc.currLogFileName = "same-log";
     logger.started.length = 0;
     let rebuilt = 0;
@@ -343,7 +343,7 @@ describe("ClassProcessManager", () => {
   it("start(\"st_1\") передає в програму номер з id", async () => {
     const { proc, built } = create();
     proc.program = built;
-    proc.listSteps = [{ name: "Відпуск" }];
+    proc.tasksList = [{ name: "Відпуск" }];
     proc.currLogFileName = "keep-log";
 
     const res = await proc.start("st_1");

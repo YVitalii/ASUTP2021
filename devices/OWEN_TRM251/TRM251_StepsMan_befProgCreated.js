@@ -1,7 +1,7 @@
 /**
  * Адаптує вміст програми перед записом у TRM-251.
  *
- * Вхід — масив або JSON-рядок цього масива, не більше 13 кроків:
+ * Вхід — масив або JSON-рядок цього масива, не більше 11 кроків:
  *   [0] заголовок, будь-який об'єкт. Поля не читаються.
  *       Приклад: { type:"description", fName, description, date }.
  *   [1..] крок, об'єкт.
@@ -16,8 +16,8 @@
  * мають 4 робочі кроки, а крок 5 — фальш-крок: ті самі tT, H, Y, що в кроці 4,
  * тип goToPrSt, prN наступної програми і stN 1. Він пишеться в прилад, щоб
  * слот 5 не був нульовим, і в процесі одразу переходить далі, не чекаючи кінця.
- * Програма 3 лишає крок 5 звичайним: після нього прилад сам зупиняється.
- * Разом не більше 4+4+5 = 13 кроків.
+ * Програма 3 приймає не більше 3 кроків. Разом не більше 4+4+3 = 11:
+ * довший запис не вміщується в кадр, на який прилад відповідає.
  *
  * Вихід — масив:
  *   [0] той самий об'єкт заголовка плюс maxStepsCount. Час у ньому не чіпається.
@@ -26,7 +26,7 @@
  *   [2] { type: TRM251_Start, prN: 1, stN: 1 }.
  *   Далі кроки:
  *     { Pr, St, type: ClassStep_TRM251_Thermal.type, ...поля кроку }
- *     Програми 1 і 2: St 1..4. Програма 3: St 1..5.
+ *     Програми 1 і 2: St 1..4. Програма 3: St 1..3.
  *     Уже задані Pr і St замінюються.
  *     Після 4-го кроку програми 1 або 2, якщо далі є ще кроки:
  *     { Pr, St:5, type: goToPrSt, tT, H, Y, prN, stN:1 }.
@@ -47,7 +47,8 @@ const TIME_HHMM = /^(\d+):(\d{1,2})$/;
 const STEPS_PER_PROGRAM = 4;
 const MAX_PROGRAMS = 3;
 const DEVICE_STEP_COUNT = 5;
-const MAX_STEPS = STEPS_PER_PROGRAM * MAX_PROGRAMS + 1;
+const PROGRAM3_MAX_STEPS = 3;
+const MAX_STEPS = STEPS_PER_PROGRAM * (MAX_PROGRAMS - 1) + PROGRAM3_MAX_STEPS;
 
 function toMinutes(value) {
   if (typeof value !== "string") return value;
@@ -110,7 +111,7 @@ function beforeProgramSet(program) {
   const stepsCount = list.length - 1;
   if (stepsCount > MAX_STEPS) {
     throw new Error(
-      `beforeProgramSet: TRM-251 приймає не більше ${MAX_STEPS} кроків (програми 1 і 2 по ${STEPS_PER_PROGRAM}, програма ${MAX_PROGRAMS} до 5), отримано ${stepsCount}`,
+      `beforeProgramSet: TRM-251 приймає не більше ${MAX_STEPS} кроків (програми 1 і 2 по ${STEPS_PER_PROGRAM}, програма ${MAX_PROGRAMS} до ${PROGRAM3_MAX_STEPS}), отримано ${stepsCount}`,
     );
   }
 

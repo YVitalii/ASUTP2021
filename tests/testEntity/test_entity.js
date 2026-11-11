@@ -48,7 +48,7 @@ describe("entity: TasksManager і ProcessManager", () => {
     equal(program.header.ua, task.content[0].fName);
     equal(program.comment.ua, task.content[0].description);
     equal(program.state._id, "waiting");
-    equal(entity.processManager.listSteps[0].fName, task.content[0].fName);
+    equal(entity.processManager.tasksList.content[0].fName, task.content[0].fName);
 
     const thermals = program.tasks.filter(
       (step) => step.constructor.type === ClassStep_TRM251_Thermal.type,
