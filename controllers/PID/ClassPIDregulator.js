@@ -3,82 +3,97 @@ const ClassGeneral = require("../../ClassGeneral");
 const LinearFunction = require("../../tools/general").ClassLinearFunction;
 
 function inRange(x, range = { min: 0, max: 100 }) {
-  if (x < range.min || x > range.max) {
-    // console.error(`x=${x} is out of range`);
-    if (x < range.min) return range.min;
-    if (x > range.max) return range.max;
-  }
+  if (x < range.min) return range.min;
+  if (x > range.max) return range.max;
   return x;
 }
 
-class PID extends ClassGeneral {
+/**
+ * ПІД-регулятор.
+ * PV і setPoint — у фізичних одиницях (inputRange);
+ * всередині розрахунок у шкалі 0…100; на виконавчий механізм — outputRange.
+ */
+class ClassPIDregulator extends ClassGeneral {
   /**
-   * Creates an instance of the PID regulator.
-   *
-   * @constructor
-   * @param {Object} [params={}] - The params for the PID regulator.
-   * @param {Object} [params.inputRange={min: 0, max: 100}] - The input range for normalization.
-   * @param {number} [params.inputRange.min=0] - The minimum input value.
-   * @param {number} [params.inputRange.max=100] - The maximum input value.
-   * @param {Object} [params.outputRange={min: 0, max: 100}] - The output range for normalization.
-   * @param {number} [params.outputRange.min=0] - The minimum output value.
-   * @param {number} [params.outputRange.max=100] - The maximum output value.
-   * @param {number} [params.kp=0] - The proportional gain.
-   * @param {number} [params.ki=0] - The integral gain.
-   * @param {number} params.kiError=0 - величина помилки PV, при якій інтегральна складова не рахується
-   * @param {number} [params.kd=0] - The derivative gain.
-   * @param {number} [params.setPoint=0] - The desired set point.
-   * @param {number} [params.period=1000] - ms, period between calculation
-   * @param {async Function} params.getPV - функція для отримання поточного Process Value
-   * @param {async Function} params.setOutput - функція для встановлення поточної потужності
-   *
+   * @param {Object} [params={}]
+   * @param {Object} [params.inputRange={min:0,max:100}] діапазон PV / setPoint
+   * @param {Object} [params.outputRange={min:0,max:100}] діапазон виходу на актуатор
+   * @param {number} [params.kp=0]
+   * @param {number} [params.ki=0]
+   * @param {number} [params.kd=0]
+   * @param {number} [params.kiError=0] зона помилки (фіз. од.): поза нею I=0; вище ×1.5 → output 100%
+   * @param {number} [params.setPoint=0] завдання у фізичних одиницях
+   * @param {number} [params.period=1] період розрахунку, **секунди**
+   * @param {Function} params.getPV () => number — поточне PV
+   * @param {Function} params.setOutput (u: number) => void — вихід на актуатор
    */
-
   constructor(params = {}) {
     super(params);
-    this.manual = false; //
+    this.manual = false;
+    this.going = 0;
+    this._timer = null;
 
-    this.period = params.period ? params.period * 1000 : 1000; //ms
+    this.periodSec =
+      Number.isFinite(params.period) && params.period > 0 ? params.period : 1;
+    this.period = this.periodSec * 1000; // мс для setTimeout
+
     this.inputRange = params.inputRange
       ? params.inputRange
       : { min: 0, max: 100 };
+    // фізичні од. → 0…100
     this.normalizeInput = new LinearFunction({
       x1: this.inputRange.min,
       y1: 0,
       x2: this.inputRange.max,
       y2: 100,
     });
+
     this.outputRange = params.outputRange
       ? params.outputRange
       : { min: 0, max: 100 };
-    this.normalizeOutput = new LinearFunction({
-      x1: this.outputRange.min,
-      y1: 0,
-      x2: this.outputRange.max,
-      y2: 100,
+    // 0…100 (ПІД) → фізичний вихід актуатора
+    this.scaleOutput = new LinearFunction({
+      x1: 0,
+      y1: this.outputRange.min,
+      x2: 100,
+      y2: this.outputRange.max,
     });
-    if (!params.getPV && typeof params.getPV !== "function")
-      throw new Error("getPV() function is not defined");
-    this.getPV = params.getPV;
-    console.dir(this.getPV);
 
-    if (!params.setOutput && typeof params.setOutput !== "function")
+    if (typeof params.getPV !== "function") {
+      throw new Error("getPV() function is not defined");
+    }
+    if (typeof params.setOutput !== "function") {
       throw new Error("setOutput() function is not defined");
+    }
+    this.getPV = params.getPV;
     this.setOutput = params.setOutput;
 
-    this._processValue = 0;
     this._kp = params.kp ? params.kp : 0;
     this._ki = params.ki ? params.ki : 0;
     this._kd = params.kd ? params.kd : 0;
     this._setPoint = 0;
-    this._error = 0;
-    this._errorPrev = 0;
-    this._errorSum = 0;
-    this._output = 0;
-    // величина помилки, при якій інтегральна складова не враховується
-    this.kiError = this.normalizeInput.get(params.kiError ? params.kiError : 0);
+    if (params.setPoint != undefined) {
+      this.setPoint = params.setPoint;
+    }
+
+    this.error = 0;
+    this.errorPrev = 0;
+    this.errorSum = 0;
+    this.output = 0; // 0…100 після розрахунку
+    this.qp = 0; // пропорційна складова
+    this.qi = 0; // інтегральна
+    this.qd = 0; // диференціальна
+
+    // kiError у нормалізованій шкалі 0…100 (з фізичних од.)
+    this.kiError = this.normalizeInput.get(
+      params.kiError != undefined ? params.kiError : 0
+    );
   }
 
+  /**
+   * Запуск циклу регулювання.
+   * @param {number} [setPoint] завдання у фізичних одиницях
+   */
   start(setPoint = undefined) {
     if (setPoint != undefined) {
       this.setPoint = setPoint;
@@ -87,92 +102,112 @@ class PID extends ClassGeneral {
       "i",
       this.ln +
         "start()::" +
-        `kp=${this.kp}, ki=${this.ki}, kd=${this.kd}, setPoint=${this.setPoint}`
+        `kp=${this.kp}, ki=${this.ki}, kd=${this.kd}, setPoint=${this.setPoint}, period=${this.periodSec}s`
     );
     this.errorPrev = 0;
     this.errorSum = 0;
     this.going = 1;
-    this.startTime = new Date().getTime();
+    this.startTime = Date.now();
     this.calculate();
   }
 
+  /** Зупиняє цикл setTimeout. */
+  stop() {
+    this.going = 0;
+    if (this._timer) {
+      clearTimeout(this._timer);
+      this._timer = null;
+    }
+    log("i", this.ln + "stop()");
+  }
+
   calculate() {
-    let trace = 1,
+    let trace = 0,
       ln = this.ln + `calculate()::`;
-    // console.log("Started");
-    // console.log("T=" + this.getPV());
-    // let input = 1;
-    let input = this.getPV();
-    let msg = `T=${this.getPV().toFixed(2)};`;
+
+    if (!this.going) return this.output;
     if (this.manual) return this.output;
-    input = this.normalizeInput.get(input);
-    this.error = this.setPoint - input;
-    msg += ` SP=${this.setPoint} → PV=${input.toFixed(
-      2
-    )}; error=${this.error.toFixed(2)};`;
+
+    let pv = this.getPV();
+    let pvNorm = this.normalizeInput.get(pv);
+    let spNorm = this.normalizeInput.get(this.setPoint);
+    this.error = spNorm - pvNorm;
+
+    let msg =
+      `T=${Number(pv).toFixed(2)}; SP=${this.setPoint} → PV=${pvNorm.toFixed(
+        2
+      )}; error=${this.error.toFixed(2)};`;
+
     if (Math.abs(this.error) > this.kiError) {
       this.errorSum = 0;
     } else {
       this.errorSum += this.error;
     }
+
+    let dt = this.periodSec;
+    this.qp = this.kp * this.error;
+    this.qi = this.ki * this.errorSum;
+    this.qd = this.kd * ((this.error - this.errorPrev) / dt);
+
     if (this.error > this.kiError * 1.5) {
       this.output = 100;
-      trace ? log("", ln, msg, ` output=${this.output}; `) : null;
+      trace ? log("", ln, msg, ` output=${this.output}; (force)`) : null;
     } else {
-      let qp = this.kp * this.error;
-      let qi = this.ki * this.errorSum;
-      let qd = this.kd * (this.error - this.errorPrev);
-      this.output = qp + qi + qd;
-      this.errorPrev = this.error;
-      this.output = inRange(this.output, this.outputRange);
+      this.output = inRange(this.qp + this.qi + this.qd, { min: 0, max: 100 });
       trace
         ? log(
             "",
             ln,
             msg,
-            ` errorSum=${this.errorSum.toFixed(
+            ` errorSum=${this.errorSum.toFixed(2)}; output=${this.output.toFixed(
               2
-            )}; output=${this.output.toFixed(2)} = ${qp.toFixed(
-              2
-            )}p + ${qi.toFixed(2)}i + ${qd.toFixed(2)}d`
+            )} = ${this.qp.toFixed(2)}p + ${this.qi.toFixed(2)}i + ${this.qd.toFixed(2)}d`
           )
         : null;
     }
 
-    this.setOutput(this.normalizeOutput.get(this.output));
+    this.errorPrev = this.error;
 
-    setTimeout(() => {
+    let u = this.scaleOutput.get(this.output);
+    this.setOutput(u);
+
+    this._timer = setTimeout(() => {
       this.calculate();
     }, this.period);
-    return this.normalizeOutput.get(this.output);
+
+    return u;
   }
 
   get kp() {
     return this._kp;
   }
-
   set kp(value) {
     this._kp = inRange(value);
   }
+
   get ki() {
     return this._ki;
   }
   set ki(value) {
     this._ki = inRange(value);
   }
+
   get kd() {
     return this._kd;
   }
-
   set kd(value) {
     this._kd = inRange(value);
   }
+
+  /** Завдання у фізичних одиницях (inputRange). */
   get setPoint() {
     return this._setPoint;
   }
   set setPoint(value) {
-    this._setPoint = inRange(this.normalizeInput.get(value), this.inputRange);
+    this._setPoint = inRange(value, this.inputRange);
   }
 }
 
-module.exports = PID;
+module.exports = ClassPIDregulator;
+// сумісність зі старим ім'ям експорту
+module.exports.PID = ClassPIDregulator;
