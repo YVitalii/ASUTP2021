@@ -80,9 +80,16 @@ router.get("/logs/:id", async function (req, res, next) {
     log("", ln, `req.params=`);
     console.dir(req.params);
   }
-  let response = await req.entity.loggerManager.getLoggerArchiv(req.params.id);
-  //trace ? console.log(ln + `response=${response}`) : null;
-  res.send(response);
+  try {
+    let response = await req.entity.loggerManager.getLoggerArchiv(req.params.id);
+    //trace ? console.log(ln + `response=${response}`) : null;
+    res.send(response);
+  } catch (error) {
+    res.json({
+      err: error && error.message ? error.message : String(error),
+      data: null,
+    });
+  }
 });
 
 /* main page  */
