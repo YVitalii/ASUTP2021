@@ -407,6 +407,14 @@ class ClassTasksManager extends ClassRegister {
   }
 
   /**
+   * Копія сирої програми: заголовок і кроки, без приладів і інтерфейсів.
+   * @returns {Array}
+   */
+  getActiveProgram() {
+    return clone(this.activeTask.content);
+  }
+
+  /**
    * Рендерить pug-шаблон редактора програм і повертає HTML.
    * У шаблон передається req, щоб був доступний entity.header.
    * @param {Object} req - об'єкт запиту

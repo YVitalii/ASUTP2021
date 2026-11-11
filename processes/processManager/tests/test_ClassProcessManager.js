@@ -72,6 +72,9 @@ function create(extra = {}) {
     getActiveTask() {
       return { content: this.content };
     },
+    getActiveProgram() {
+      return JSON.parse(JSON.stringify(this.content));
+    },
   };
 
   const proc = new ClassProcessManager({
@@ -248,8 +251,12 @@ describe("ClassProcessManager", () => {
     equal(built.startedFrom, 1);
     match(logger.started.at(-1), /^\d{4}-\d{2}-\d{2}_/);
     equal(logger.saved.length, 1);
-    equal(logger.saved[0], list);
-    ok(list[0].started);
+    deepEqual(
+      logger.saved[0].map(({ started, ...step }) => step),
+      list,
+    );
+    ok(logger.saved[0][0].started);
+    equal(list[0].started, undefined);
   });
 
   it("start з кроку st_1 збирає програму, щоб кроки знову були waiting", async () => {

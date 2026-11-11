@@ -491,8 +491,9 @@ class ClassProcessManager {
       en: `${this.ln}Program is "${this.program.header.en}" started!`,
       ru: `${this.ln}Програма "${this.program.header.ru}" запущена!`,
     };
-    this.stepsManager.tasksList[0].started = new Date().toISOString();
-    await this.loggerManager.saveTasks(this.stepsManager.tasksList);
+    this.tasksList = this.tasksManager.getActiveProgram();
+    this.tasksList[0].started = new Date().toISOString();
+    await this.loggerManager.saveTasks(this.tasksList);
     return { err: null, data };
   }
 

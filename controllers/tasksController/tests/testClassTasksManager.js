@@ -505,6 +505,12 @@ describe("ClassTasksManager", () => {
       assert.notEqual(result.content, manager.activeTask.content);
       result.content[0].name = "mutated";
       assert.equal(manager.activeTask.content[0].name, "test");
+
+      const program = manager.getActiveProgram();
+      assert.deepEqual(program, otherBody);
+      assert.notEqual(program, manager.activeTask.content);
+      program[0].name = "copy";
+      assert.equal(manager.activeTask.content[0].name, "test");
     });
   });
 
