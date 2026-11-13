@@ -3,7 +3,8 @@
 		"id": "description",
 		"type": "description",
 		"fName": "default",
-		"description": "Короткий опис програми"
+		"description": "Короткий опис програми",
+		"maxStepsQuantity": 12,
 	},
 	{
 		"type": "taskThermal",

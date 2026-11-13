@@ -1,1 +1,45 @@
-[{"id":"description","fName":"prg02","description":"Колеса чавунні. Відпуск.","date":"2026-11-05T15:48:58.653Z"},{"type":"thermalTaskSimple","tT":35,"H":"00:05","Y":"00:03"},{"type":"thermalTaskSimple","tT":45,"H":"00:07","Y":"00:03"},{"type":"thermalTaskSimple","tT":55,"H":"00:09","Y":"00:03"},{"type":"thermalTaskSimple","tT":65,"H":"00:11","Y":"00:03"},{"type":"thermalTaskSimple","tT":70,"H":"00:13","Y":"00:14"},{"type":"thermalTaskSimple","tT":75,"H":"00:15","Y":"00:16"}]
+[
+	{
+		"id": "description",
+		"fName": "prg02",
+		"description": "Колеса чавунні. Відпуск.",
+		"date": "2026-11-05T15:48:58.653Z",
+		"maxStepsQuantity": 11
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 35,
+		"H": "00:05",
+		"Y": "00:03"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 45,
+		"H": "00:07",
+		"Y": "00:03"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 55,
+		"H": "00:09",
+		"Y": "00:03"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 65,
+		"H": "00:11",
+		"Y": "00:03"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 70,
+		"H": "00:13",
+		"Y": "00:14"
+	},
+	{
+		"type": "thermalTaskSimple",
+		"tT": 75,
+		"H": "00:15",
+		"Y": "00:16"
+	}
+]

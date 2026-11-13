@@ -1,10 +1,11 @@
 [
 	{
 		"id": "description",
-		"type" : "description",
+		"type": "description",
 		"fName": "default",
 		"description": "Шаблон програми 2026",
-		"date": "2026-10-23T11:54:11.075Z"
+		"date": "2026-10-23T11:54:11.075Z",
+		"maxStepsQuantity": 11
 	},
 	{
 		"type": "thermalTaskSimple",

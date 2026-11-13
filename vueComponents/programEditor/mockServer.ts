@@ -43,7 +43,7 @@ export function createTypicalProgram(
       fName: "Program 1",
       description: "Колеса чавунні. Відпуск.",
       date: "2023-05-03T11:04:49.715Z",
-      maxStepsQuantity: 15,
+      maxStepsQuantity: 11,
       ...patch,
     },
     { type: "taskThermal", tT: 100, H: "00:10", Y: "00:20" },
@@ -95,7 +95,9 @@ export function createMockServer(): MockServer {
 
   const handle = (url: string, body: Record<string, unknown>): MockResponse => {
     const fileName = body.fName as string | undefined;
-    const program = (body.content ?? body.program) as ProgramContent | undefined;
+    const program = (body.content ?? body.program) as
+      | ProgramContent
+      | undefined;
 
     if (url.includes(settings.URLs.getFilesList)) {
       if (flags.failGetFilesList) {
@@ -112,7 +114,8 @@ export function createMockServer(): MockServer {
 
     if (url.includes(settings.URLs.writeFile)) {
       const stored = program ? clone(program) : undefined;
-      const fName = typeof stored?.[0]?.fName === "string" ? stored[0].fName.trim() : "";
+      const fName =
+        typeof stored?.[0]?.fName === "string" ? stored[0].fName.trim() : "";
       if (!stored || !fName) {
         return { status: 200, json: { err: programNotFoundErr, data: null } };
       }
@@ -143,7 +146,10 @@ export function createMockServer(): MockServer {
       if (!fileName || !files.has(fileName)) {
         return { status: 200, json: { err: programNotFoundErr, data: null } };
       }
-      return { status: 200, json: { err: null, data: clone(files.get(fileName)) } };
+      return {
+        status: 200,
+        json: { err: null, data: clone(files.get(fileName)) },
+      };
     }
 
     if (url.includes(settings.URLs.deleteFile)) {

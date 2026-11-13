@@ -1,0 +1,34 @@
+Пишемо новий клас-фабрику:
+@./devices/OWEN_TRM251/ClassStepTRM251.js
+
+ClassStepTRM251 extend ClassStepGeneral
+
+constructor
+1. Клонує опис регістрів з ClassTaskThermalSimple.regs
+2. Отримує опис кроку {Pr:1, St:1, tT:100, H:70, Y:75} →
+this.regs = {Pr, St, tT ...}
+3. this.getPrStMode() = props.getPrStMode() 
+→ async function - return {Pr:Number , St:Number, mode:Number }
+4. async testProcess() {
+	let res= await this.getPrStMode()
+	switch res.mode:
+		case 0: this.stop({ua:`Зупинено користувачем`, en:...}); return False
+		case 2: this.error({ua:`Аварія!`, en:...}); return False
+		case 4,5,6,7: this.error({ua:`Йде автоналаштування!`, en:...}); return False
+	if (res.Pr.value == this.goal.Pr && res.St.value == this.goal.St) return False
+	else this.finish({ua:"Крок виконано успішно", en:..})
+	setTimeout(() => this.testProcess(), this.checkPeriod * 1000);
+}
+
+async beforeAll(){
+	this.testProcess()
+}
+
+
+Пишемо статичний метод programTRM251_beforeAll.js
+async programTRM251_beforeAll(props={program,devices}){
+      
+for all devices: await props.device.setRegister({regName:"program",value:program})
+for all devices: await props.device.start()
+
+}
