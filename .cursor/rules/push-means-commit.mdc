@@ -1,0 +1,13 @@
+---
+description: Команда push означає коміт і відправку на origin
+alwaysApply: true
+---
+
+# push = commit → push origin
+
+Коли користувач пише `push`, `git push` або `git push origin`, спочатку закоміть поточні зміни, потім відправ гілку на `origin`.
+
+- Коміт українською, одним реченням, про причину зміни.
+- У коміт беріть лише файли цієї роботи. Не додавайте `devices/OWEN_TRM251/AItask.txt` і `public/src/naviButtons/naviButtons.css`, якщо там лише заміна LF на CRLF.
+- Повідомлення коміту в PowerShell передавайте here-string `@\" ... \"@`, не bash heredoc.
+- Не змінюйте git config, не пропускайте хуки, не робіть force push.
