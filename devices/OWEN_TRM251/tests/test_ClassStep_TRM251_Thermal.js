@@ -383,8 +383,34 @@ describe("ClassStep_TRM251_Thermal", () => {
       });
       item.checkTime = 20;
       assert.equal((await item.start())._id, "finished");
-      assert.deepEqual(reads, ["programN", "step"]);
+      assert.deepEqual(reads, ["programN", "step", "mode"]);
       assert.deepEqual(starts, []);
+    });
+
+    it("beforeAll запускає прилад, якщо він зупинений на цьому ж кроці", async () => {
+      const starts = [];
+      const item = create({
+        device: {
+          async getRegisterDirectly(name) {
+            if (name === "programN") return 1;
+            if (name === "step") return 1;
+            if (name === "mode") return 0;
+            return 0;
+          },
+          async getCurrentState() {
+            return { programN: 1, step: 1, mode: 1 };
+          },
+          async start(arg) {
+            starts.push(arg);
+            return true;
+          },
+        },
+      });
+      item.testProcess = async () => false;
+      item.state._id = "going";
+      await item.beforeAll();
+      assert.deepEqual(starts, [{ prN: 1, stN: 1 }]);
+      assert.equal(item.state._id, "going");
     });
 
     it("beforeAll запускає прилад з цільових Pr і St, якщо він стоїть в іншому місці", async () => {

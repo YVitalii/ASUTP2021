@@ -160,15 +160,20 @@ class ClassStep_TRM251_Thermal extends ClassStepGeneral {
   }
 
   /**
-   * Читає програму і крок приладу без кешу.
-   * Якщо вони не цільові — запускає прилад з this.goal.Pr і this.goal.St.
+   * Читає програму, крок і режим приладу без кешу.
+   * Запускає прилад з this.goal.Pr і this.goal.St, якщо він не вже працює
+   * саме на цьому кроці. Зупинений прилад (mode 0) на тому ж кроці теж
+   * запускається знову: інакше перше опитування сприймає mode 0 як Стоп.
    * Потім починає опитування.
    */
   async beforeAll() {
     if (this.device) {
       const programN = Number(await this.device.getRegisterDirectly("programN"));
       const step = Number(await this.device.getRegisterDirectly("step"));
-      if (programN !== this.goal.Pr || step !== this.goal.St) {
+      const mode = Number(await this.device.getRegisterDirectly("mode"));
+      const runningHere =
+        programN === this.goal.Pr && step === this.goal.St && mode === 1;
+      if (!runningHere) {
         const started = await this.device.start({
           prN: this.goal.Pr,
           stN: this.goal.St,
