@@ -10,6 +10,81 @@ style.
       size: A4 landscape; 
       margin: 6mm 8mm 6mm 8mm;
       }
+    html.page-root,
+    body.page-shell,
+    #pageBody{
+      height: auto !important;
+      overflow: visible !important;
+      }
+    #header,
+    #fileManagerContainer{
+      display: none !important;
+      }
+    #bodyRow{
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      page-break-inside: avoid;
+      page-break-after: avoid;
+      }
+    #chartColumn{
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 198mm !important;
+      max-height: 198mm !important;
+      overflow: hidden !important;
+      flex: none !important;
+      }
+    #reportHeader{
+      display: flex !important;
+      flex: 0 0 auto;
+      align-items: center;
+      }
+    #reportHeader img{
+      height: 10mm !important;
+      }
+    #reportHeader .h4{
+      font-size: 16px;
+      margin: 0;
+      }
+    #programHeader{
+      flex: 0 0 auto;
+      font-size: 12px;
+      line-height: 1.2;
+      }
+    #tasksNote .print-description{
+      white-space: pre-wrap;
+      overflow: visible;
+      height: auto;
+      }
+    #chartRow{
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      margin: 0 !important;
+      overflow: hidden;
+      page-break-inside: avoid;
+      }
+    #chartRow > .col-12{
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      }
+    #chartContainerId{
+      display: block !important;
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100% !important;
+      }
+    #reportSignature{
+      display: flex !important;
+      flex: 0 0 auto;
+      margin-top: 2mm;
+      }
   }
 
 diw.row.h-100#bodyRow
