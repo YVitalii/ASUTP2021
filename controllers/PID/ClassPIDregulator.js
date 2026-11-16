@@ -109,7 +109,7 @@ class PID extends ClassGeneral {
         "start()::" +
         `kp=${this.kp}, ki=${this.ki}, kd=${this.kd}, realSetPoint = ${
           setPoint ? setPoint : this.realSetPoint
-        }; normalizedSetPoint=${this.setPoint}%; kiError=${this.kiError}`
+        }; normalizedSetPoint=${this.setPoint}%; kiError=${this.kiError}`,
     );
     this.calculate();
   }
@@ -138,7 +138,7 @@ class PID extends ClassGeneral {
     this.error = this.setPoint - input;
 
     msg += ` SP=${this.setPoint}% → PV=${input.toFixed(
-      1
+      1,
     )}%; error=${this.error.toFixed(2)};`;
 
     // обчислення інтегральної складової
@@ -170,8 +170,8 @@ class PID extends ClassGeneral {
           ln,
           msg,
           ` errorSum=${this.errorSum.toFixed(2)}; output=${this.output.toFixed(
-            2
-          )} = ${qp.toFixed(2)}p + ${qi.toFixed(2)}i + ${qd.toFixed(2)}d`
+            2,
+          )} = ${qp.toFixed(2)}p + ${qi.toFixed(2)}i + ${qd.toFixed(2)}d`,
         )
       : null;
 
@@ -217,7 +217,7 @@ class PID extends ClassGeneral {
     this.realSetPoint = value;
     console.log(
       this.ln +
-        `set setPoint(${value})::realSetPoint=${value}; this._setPoint=${this._setPoint}%`
+        `set setPoint(${value})::realSetPoint=${value}; this._setPoint=${this._setPoint}%`,
     );
   }
 
@@ -231,6 +231,17 @@ class PID extends ClassGeneral {
       note: this.going
         ? { ua: `Робота`, en: `Working`, ru: `Работа` }
         : { ua: `Очікування`, en: `Waiting`, ru: `Ожидание` },
+      output: this.output,
+      normalizedOutput: this.normalizeOutput.get(this.output),
+      error: this.error,
+      errorSum: this.errorSum,
+      errorPrev: this.errorPrev,
+      kp: this.kp,
+      ki: this.ki,
+      kd: this.kd,
+      setPoint: this.setPoint,
+      realSetPoint: this.realSetPoint,
+      normalizedSetPoint: this.normalizeInput.get(this.realSetPoint),
     };
   }
 }

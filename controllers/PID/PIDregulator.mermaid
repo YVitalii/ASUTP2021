@@ -1,0 +1,22 @@
+
+---
+title PID regulator
+---
+
+
+classDiagram
+    ClassPIDregulator <|-- PIDregulator
+    ClassPIDregulator : +start()
+    ClassPIDregulator : +stop()
+    ClassPIDregulator : +getPV()
+    ClassPIDregulator : +setOutput()
+    ClassPIDregulator : +int output
+    ClassPIDregulator : +int error
+    ClassPIDregulator : +int errorSum
+    ClassPIDregulator : +int errorPrev
+    ClassPIDregulator : +int kp
+    ClassPIDregulator : +int ki
+    ClassPIDregulator : +int kd
+    ClassPIDregulator : +int setPoint
+    ClassPIDregulator : +int realSetPoint
+    ClassPIDregulator : +int normalizedSetPoint
