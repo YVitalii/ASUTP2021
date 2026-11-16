@@ -1,0 +1,242 @@
+#!/usr/bin/env bash
+# Налаштування нової Xubuntu і встановлення ПЗ для ASUTP2021.
+# Запуск від звичайного користувача (без sudo): bash tools/xUbuntu_setup
+set -euo pipefail
+
+if [ "$(id -u)" -eq 0 ]; then
+  echo "Запускайте скрипт від свого користувача, без sudo."
+  echo "Права адміністратора він запитає сам."
+  exit 1
+fi
+
+if ! command -v startxfce4 >/dev/null 2>&1; then
+  echo "Не знайдено startxfce4. Скрипт розрахований на Xubuntu."
+  exit 1
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+export DEBIAN_FRONTEND=noninteractive
+
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "/run/user/$(id -u)/bus" ]; then
+  export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+fi
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+
+apt_install() {
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    -o Dpkg::Options::=--force-confdef \
+    -o Dpkg::Options::=--force-confold \
+    "$@"
+}
+
+xfset() {
+  local channel="$1" prop="$2" type="$3" value="$4"
+  xfconf-query -c "$channel" -p "$prop" -n -t "$type" -s "$value"
+}
+
+section() {
+  echo
+  echo "=== $* ==="
+}
+
+section "Оновлення системи"
+sudo DEBIAN_FRONTEND=noninteractive apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+  -o Dpkg::Options::=--force-confdef \
+  -o Dpkg::Options::=--force-confold
+apt_install wget curl gpg ca-certificates xz-utils git build-essential python3 xfce4-xkb-plugin
+
+configure_desktop() {
+  section "Стільниця і шрифт"
+  # 2 = значки файлів і запускачів
+  xfset xfce4-desktop /desktop-icons/style int 2
+  xfset xfce4-desktop /desktop-icons/file-icons/show-home bool true
+  xfset xfce4-desktop /desktop-icons/file-icons/show-filesystem bool true
+  xfset xfce4-desktop /desktop-icons/file-icons/show-trash bool true
+  xfset xfce4-desktop /desktop-icons/file-icons/show-removable bool true
+  xfset xfce4-desktop /desktop-icons/show-thumbnails bool true
+  xfset xfce4-desktop /desktop-icons/show-hidden-files bool false
+  # У сховищі XFCE це звичайне значення DPI. До XSETTINGS воно потрапляє вже помноженим на 1024.
+  xfset xsettings /Xft/DPI int 120
+}
+
+configure_keyboard() {
+  section "Клавіатура"
+  xfset keyboards /Default/RestoreNumlock bool true
+  xfset keyboards /Default/Numlock bool true
+
+  # false = не використовувати системні налаштування, розкладкою керує XFCE
+  xfset keyboard-layout /Default/XkbDisable bool false
+
+  local vendor product layout variant count i
+  vendor="$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null || true)"
+  product="$(cat /sys/class/dmi/id/product_name 2>/dev/null || true)"
+  if printf '%s %s\n' "$vendor" "$product" | grep -qi 'acer'; then
+    echo "Клавіатура: ноутбук Acer."
+    xfset keyboard-layout /Default/XkbModel string acer_laptop
+  else
+    echo "Це не Acer (${vendor:-невідомий виробник} ${product:-}). Модель клавіатури не змінюю."
+  fi
+
+  layout="$(xfconf-query -c keyboard-layout -p /Default/XkbLayout 2>/dev/null || true)"
+  layout="${layout:-us}"
+  if ! printf '%s' "$layout" | tr ',' '\n' | grep -qx 'ua'; then
+    layout="${layout},ua"
+    xfset keyboard-layout /Default/XkbLayout string "$layout"
+    count="$(printf '%s' "$layout" | awk -F, '{print NF}')"
+    variant=""
+    i=1
+    while [ "$i" -lt "$count" ]; do
+      variant="${variant},"
+      i=$((i + 1))
+    done
+    xfset keyboard-layout /Default/XkbVariant string "$variant"
+  fi
+  xfset keyboard-layout /Default/XkbOptions/Group string grp:ctrl_shift_toggle
+}
+
+configure_panel() {
+  section "Панель завдань"
+  local -a ids=() chosen=()
+  local id pos p
+  mapfile -t ids < <(xfconf-query -c xfce4-panel -l | sed -n 's|^/panels/\(panel-[0-9][0-9]*\)$|\1|p' || true)
+  if [ "${#ids[@]}" -eq 0 ]; then
+    echo "Панель XFCE не знайдено."
+    return
+  fi
+
+  if [ "${#ids[@]}" -eq 1 ]; then
+    chosen=("${ids[0]}")
+  else
+    for id in "${ids[@]}"; do
+      pos="$(xfconf-query -c xfce4-panel -p "/panels/${id}/position" 2>/dev/null || true)"
+      p="$(printf '%s' "$pos" | sed -n 's/.*p=\([0-9][0-9]*\).*/\1/p')"
+      # На Xubuntu верхня панель зазвичай має p=6.
+      case "$p" in
+        1|2|3|6) chosen+=("$id") ;;
+      esac
+    done
+    if [ "${#chosen[@]}" -eq 0 ]; then
+      chosen=("${ids[0]}")
+    fi
+  fi
+
+  for id in "${chosen[@]}"; do
+    echo "Панель ${id}: розмір рядка 34, ширина рамки 3."
+    xfset xfce4-panel "/panels/${id}/size" uint 34
+    xfset xfce4-panel "/panels/${id}/border-width" uint 3
+  done
+
+  if xfconf-query -c xfce4-panel -l -v | grep -Eq '/plugins/plugin-[0-9]+[[:space:]]+xkb$'; then
+    echo "Плагін розкладок клавіатури вже є на панелі."
+  elif command -v xfce4-panel >/dev/null 2>&1; then
+    xfce4-panel --add=xkb
+    echo "На панель додано розкладки клавіатури."
+  fi
+
+  if command -v xfce4-panel >/dev/null 2>&1; then
+    xfce4-panel -r || true
+  fi
+}
+
+if xfconf-query -c xsettings -l >/dev/null 2>&1; then
+  configure_desktop
+  configure_keyboard
+  configure_panel
+else
+  section "Інтерфейс"
+  echo "Немає сеансу XFCE, тож стільницю, клавіатуру і панель пропущено."
+  echo "Запустіть скрипт ще раз у терміналі на стільниці Xubuntu."
+fi
+
+section "RustDesk"
+rustdesk_json="$(curl -fsSL https://api.github.com/repos/rustdesk/rustdesk/releases/latest)"
+rustdesk_url="$(printf '%s\n' "$rustdesk_json" | grep -oE 'https://github.com/rustdesk/rustdesk/releases/download/[^"]+x86_64\.deb' | head -1 || true)"
+if [ -z "$rustdesk_url" ]; then
+  echo "Не вдалося знайти rustdesk-*-x86_64.deb в останньому релізі."
+  exit 1
+fi
+rustdesk_deb="/tmp/$(basename "$rustdesk_url")"
+echo "Завантажую $(basename "$rustdesk_deb")"
+wget -O "$rustdesk_deb" "$rustdesk_url"
+apt_install "$rustdesk_deb"
+
+section "xrdp"
+if [ -f "$ROOT/setup-xrdp.sh" ]; then
+  xrdp_script="$ROOT/setup-xrdp.sh"
+elif [ -f "$HOME/setup-xrdp.sh" ]; then
+  xrdp_script="$HOME/setup-xrdp.sh"
+else
+  echo "Не знайдено setup-xrdp.sh ні в репозиторії, ні в домашньому каталозі."
+  exit 1
+fi
+sudo bash "$xrdp_script"
+
+section "Node.js 18.20.8"
+if command -v node >/dev/null 2>&1 && [ "$(node -v)" = "v18.20.8" ]; then
+  echo "Node.js v18.20.8 вже встановлено."
+else
+  node_tar="node-v18.20.8-linux-x64.tar.xz"
+  wget -O "/tmp/${node_tar}" "https://nodejs.org/dist/v18.20.8/${node_tar}"
+  sudo tar -xJf "/tmp/${node_tar}" -C /usr/local --strip-components=1
+fi
+hash -r
+echo "Node: $(node -v)"
+sudo npm install -g supervisor
+
+section "Firefox"
+if command -v snap >/dev/null 2>&1; then
+  sudo snap remove firefox || true
+fi
+sudo install -d -m 0755 /etc/apt/keyrings
+wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc >/dev/null
+echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee /etc/apt/sources.list.d/mozilla.list >/dev/null
+printf '%s\n' 'Package: *' 'Pin: origin packages.mozilla.org' 'Pin-Priority: 1000' | sudo tee /etc/apt/preferences.d/mozilla >/dev/null
+sudo DEBIAN_FRONTEND=noninteractive apt-get update
+apt_install firefox
+
+section "Репозиторій і залежності"
+if [ -f "$ROOT/package.json" ]; then
+  repo="$ROOT"
+  echo "Репозиторій уже є: $repo"
+else
+  repo="$HOME/ASUTP2021"
+  if [ ! -d "$repo/.git" ]; then
+    git clone https://github.com/YVitalii/ASUTP2021.git "$repo"
+  fi
+fi
+
+backup_dir="$(cd "$(dirname "$repo")" && pwd)/ASUTP_backUp"
+mkdir -p "$backup_dir"
+branch="$(git -C "$repo" rev-parse --abbrev-ref HEAD)"
+safe_branch="${branch//\//-}"
+backup_archive="${backup_dir}/${safe_branch}.tar.gz"
+echo "Архів гілки ${branch}: ${backup_archive}"
+git -C "$repo" archive --format=tar.gz --output="$backup_archive" HEAD
+
+(
+  cd "$repo"
+  npm install
+  npm audit fix || true
+  if [ -f tests/server/package.json ]; then
+    echo "Модулі тестового сервера"
+    (cd tests/server && npm install)
+  fi
+)
+sudo usermod -aG dialout "$USER"
+echo "Користувача $USER додано до групи dialout. Група запрацює після виходу з сеансу."
+bash "$repo/tools/start-servers-setup.sh"
+
+section "Visual Studio Code"
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/packages.microsoft.gpg >/dev/null
+sudo chmod 644 /etc/apt/keyrings/packages.microsoft.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list >/dev/null
+sudo DEBIAN_FRONTEND=noninteractive apt-get update
+apt_install code
+
+section "Готово"
+echo "Firefox поставлено з репозиторію Mozilla, не зі Snap."
+echo "Ярлик start-server лежить на робочому столі."
+echo "Щоб запрацювали dialout і xrdp, вийдіть з облікового запису до екрана входу."
+echo "Далі з Windows: Win+R, mstsc, адреса з повідомлення xrdp вище."
