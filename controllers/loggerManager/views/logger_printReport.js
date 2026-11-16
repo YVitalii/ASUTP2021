@@ -17,6 +17,7 @@ function rememberPrintView() {
     columnMaxHeight: chartColumn.style.maxHeight,
     notesLabel:
       description___description.getElementsByTagName("label")[0].innerHTML,
+    chartMargin: Object.assign({}, chartMan.chart.margin),
   };
 }
 
@@ -58,6 +59,7 @@ function fitChartToPrintPage() {
   chartColumn.style.setProperty("max-height", "198mm", "important");
   chartColumn.style.setProperty("overflow", "hidden", "important");
   chartColumn.style.setProperty("width", "100%", "important");
+  chartColumn.style.setProperty("max-width", "281mm", "important");
   chartRow.style.setProperty("flex", "1 1 auto", "important");
   chartRow.style.setProperty("min-height", "0", "important");
   chartRow.style.setProperty("height", "auto", "important");
@@ -69,10 +71,15 @@ function fitChartToPrintPage() {
   chartContainerId.style.setProperty("height", "0px", "important");
   void chartColumn.offsetHeight;
 
-  const legendHeight = legend ? legend.offsetHeight : 0;
   const mm = pxPerMm();
+  const legendHeight = Math.max(legend ? legend.offsetHeight : 0, 6 * mm);
   let chartHeight = chartRow.clientHeight - legendHeight;
-  let chartWidth = chartColumn.clientWidth;
+  const pageWidthPx = 281 * mm;
+  let chartWidth = Math.min(
+    chartContainerId.clientWidth || pageWidthPx,
+    pageWidthPx
+  );
+  chartMan.chart.margin.bottom = 52;
   if (chartHeight < 80) {
     const signatureStyle = getComputedStyle(reportSignature);
     const signatureMargin =
@@ -86,11 +93,11 @@ function fitChartToPrintPage() {
       reportSignature.offsetHeight + signatureMargin,
       12 * mm
     );
-    const legendBlock = Math.max(legendHeight, 6 * mm);
-    chartHeight = 198 * mm - headerBlock - footerBlock - legendBlock;
+    chartHeight = 198 * mm - headerBlock - footerBlock - legendHeight;
   }
-  if (chartWidth < 80) chartWidth = 281 * mm;
+  if (chartWidth < 80) chartWidth = pageWidthPx;
   chartContainerId.style.setProperty("width", chartWidth + "px", "important");
+  chartContainerId.style.setProperty("max-width", "100%", "important");
   chartContainerId.style.setProperty(
     "height",
     Math.max(chartHeight, 80) + "px",
@@ -107,13 +114,13 @@ function restorePrintView() {
   bodyRow.className = printViewBackup.bodyRowClass;
   chartColumn.className = printViewBackup.chartColumnClass;
   chartRow.className = printViewBackup.chartRowClass;
-  ["height", "max-height", "display", "flex-direction", "overflow", "width"].forEach(
+  ["height", "max-height", "display", "flex-direction", "overflow", "width", "max-width"].forEach(
     (name) => chartColumn.style.removeProperty(name)
   );
   ["height", "width", "flex", "min-height"].forEach((name) =>
     chartRow.style.removeProperty(name)
   );
-  ["height", "width", "flex"].forEach((name) =>
+  ["height", "width", "max-width", "flex"].forEach((name) =>
     chartContainerId.style.removeProperty(name)
   );
   chartContainerId.style.width = printViewBackup.chartWidth;
@@ -130,7 +137,9 @@ function restorePrintView() {
     .firstChild.classList.remove("d-none");
   reportHeader.classList.add("d-none");
   reportSignature.classList.add("d-none");
+  Object.assign(chartMan.chart.margin, printViewBackup.chartMargin);
   printViewBackup = null;
+  chartMan.chart.client.width = 0;
   chartMan.chart.checkSize();
 }
 
