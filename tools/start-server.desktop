@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ASUTP тестовий сервер
+Comment=Запуск tests/server (npm start)
+Exec=bash -c 'f=$1; f=${f#file://}; f=$(readlink -f "$f"); d=$(dirname "$f"); exec xfce4-terminal --hold -e "$d/start-server.sh"' bash %k
+Icon=utilities-terminal
+Terminal=false
+Categories=Development;
+StartupNotify=true
