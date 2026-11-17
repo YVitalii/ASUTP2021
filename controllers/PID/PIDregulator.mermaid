@@ -1,22 +1,56 @@
-
 ---
-title PID regulator
+config:
+  layout: fixed
 ---
+flowchart TB
+    this_process["<u><b>this_process</b></u>
+    +start()
+    +_mode:Set(waiting→heating→holding→finished)
+    +currentTaskT
+    +
+    this.timer=this.timer"] -- "[getPV=this.T]" --> pid["<u><b>pid регулятор </b></u>
++float:{kp,ki,kd}
++float:period 
++setOutput(0..100%):async
++setPoint(sP)
++getPV():async
++start():sync
++stop():sync"] & pos["<u><b>pos регулятор</b></u>
++float:{dSp:{min,max}}}
++setOutput(0..100%):async
++setPoint(sP)
++getPV():async
++start():sync
++stop():sync"]
+    pid -- "[this.out=setOut()]" --> this_process
+    pos -- "[this.out=setOut()]" --> this_process
+    pid_settings["pid.kp=this.o
+  pid.kd=this.td
+  pid.ki=this.ti"] --> pid
+    pos_settings["pos.dSP.min=this.o
+  pos.setPoint(this.currentTaskT)"] --> pos
+    this_process -- "[furnaceModel.heating(this.out)]" --> furnaceModel["<u><b>Furnace model</b></u>
++heating(0..100%)
++getT():sync
++float:period"]
+    furnaceModel -- "[this.T=furnaceModel.getT()]" --> this_process
+    this_process -- "this.currentTaskT" --> this_regMode(" ")
+    this_regMode_pid{{"this.regMode==1"}} -- No --> this_regMode_pos{{"this.regMode==2"}}
+    n1["this.regMode.onchange"] --> this_regMode_pid
+    this_regMode_pid -- Yes --> n2["this.regulator=pid"]
+    this_regMode_pos -- Yes --> n3["this.regulator=pos"]
+    this_regMode_pos -- No --> Error("Error:mode not developed yet")
+    n5{{"val == 17"}} --> n6["this.start()"] & n7{{"val == 0"}}
+    n7 --> n8["this.stop()"] & n9["Error: Bad data"]
+    n4["this.state.set(val)"] --> n5
+    n10["this.tT.set(val)"] --> n11["this.tT=val;<br>this.process.tT(val)"]
 
-
-classDiagram
-    ClassPIDregulator <|-- PIDregulator
-    ClassPIDregulator : +start()
-    ClassPIDregulator : +stop()
-    ClassPIDregulator : +getPV()
-    ClassPIDregulator : +setOutput()
-    ClassPIDregulator : +int output
-    ClassPIDregulator : +int error
-    ClassPIDregulator : +int errorSum
-    ClassPIDregulator : +int errorPrev
-    ClassPIDregulator : +int kp
-    ClassPIDregulator : +int ki
-    ClassPIDregulator : +int kd
-    ClassPIDregulator : +int setPoint
-    ClassPIDregulator : +int realSetPoint
-    ClassPIDregulator : +int normalizedSetPoint
+    n1@{ shape: rounded}
+    n2@{ shape: rounded}
+    n3@{ shape: rounded}
+    n6@{ shape: rounded}
+    n8@{ shape: rounded}
+    n9@{ shape: rounded}
+    n4@{ shape: rounded}
+    n10@{ shape: rounded}
+    n11@{ shape: rounded}
