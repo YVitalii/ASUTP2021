@@ -31,7 +31,7 @@ class PID extends ClassGeneral {
    * @param {number} [params.period=1000] - ms, period between calculation
    * @param {async Function} params.getPV - async функція для отримання поточного Process Value
    * @param {async Function} params.setOutput - async функція для встановлення поточної потужності
-   *
+   * @param {boolean} [params.autoCalculation=true] - автоматичний розрахунок регулятора з періодом params.period
    */
 
   constructor(params = {}) {
@@ -65,6 +65,9 @@ class PID extends ClassGeneral {
     if (!params.getPV && typeof params.getPV !== "function")
       throw new Error("getPV() function is not defined");
     this.getPV = params.getPV;
+    this.autoCalculation = params.autoCalculation
+      ? params.autoCalculation
+      : true;
 
     if (!params.setOutput && typeof params.setOutput !== "function")
       throw new Error("setOutput() function is not defined");
@@ -176,10 +179,11 @@ class PID extends ClassGeneral {
       : null;
 
     await this.setOutput(this.normalizeOutput.get(this.output));
-
-    setTimeout(() => {
-      this.calculate();
-    }, this.period);
+    if (this.autoCalculation) {
+      setTimeout(() => {
+        this.calculate();
+      }, this.period);
+    }
     return this.normalizeOutput.get(this.output);
   }
 
@@ -206,6 +210,29 @@ class PID extends ClassGeneral {
   set kd(value) {
     this._kd = inRange(value);
     console.log(this.ln + `set kd(${value})::this._kd=${this._kd}`);
+  }
+
+  /** Одиниці процесу → 0..100 %. */
+  normalize(value) {
+    return this.normalizeInput.get(value);
+  }
+
+  /** 0..100 % → одиниці процесу. */
+  deNormalize(value) {
+    if (this.normalizeInput.k === 0) return this.inputRange.min;
+    return (value - this.normalizeInput.a) / this.normalizeInput.k;
+  }
+
+  get processValue() {
+    return this.deNormalize(this._processValue);
+  }
+
+  set processValue(value) {
+    this._processValue = this.normalize(value);
+    console.log(
+      this.ln +
+        `set processValue(${value})::processValue=${this.processValue}; this._processValue=${this._processValue}%`,
+    );
   }
 
   get setPoint() {

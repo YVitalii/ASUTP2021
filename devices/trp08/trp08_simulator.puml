@@ -1,0 +1,260 @@
+
+@startuml trp08_simulator_constructor
+title TRP08 Simulator_constructor
+start
+   :this.regs;
+   note right
+    this.regs = {
+        o: 2,
+        ti: 0,
+        td: 0,
+        tT: 100,
+        regMode:1,
+        H: "0010",
+        Y:"0010",
+
+    };
+   end note
+   if (props.getPV not function) then (yes)
+    :throw new Error("getPV is not function");
+    stop
+   endif
+   :this.getPV = props.getPV;
+   if (props.setOutput not function) then (yes)
+    :throw new Error("setOutput is not function");
+    stop
+   endif
+   :this.setOutput = props.setOutput; 
+   
+
+
+   :this.pid;
+   note right
+    props.pid = props.pid ? props.pid : {};
+    props.pid.autoCalculation=false;
+    props.pid.getPV=async () => {
+        return this.getPV();
+    };
+    props.pid.setOutput=async (val) => {
+        await this.setOutput(val);
+    };
+    this.pid=new PID(props.pid);
+   end note
+end
+@enduml
+
+
+@startuml trp08_simulator_regs_state
+title TRP08 Simulator_regs_state
+
+start
+group "this.regs.state" {
+    split 
+    :set(val);
+    if (val == 17) then (yes)
+        if (this.state == "waiting" || this.state = "finished") then (yes)
+            :this.start();
+            :this.regs.state._value = 23;
+        endif
+    else (no)
+        if (val == 1) then (yes)
+            if (this.state != "waiting" || this.state != "finished") then (yes)
+                :this.stop();
+                :this.regs.state._value = 1;
+            endif
+        else (No)
+         : throw new Error("Invalid value");
+         end
+        endif
+    endif
+    split again
+    :get();
+    
+    end split
+    :return this.regs.state._value;
+}
+end
+
+@enduml
+
+@startuml trp08_simulator_start
+title TRP08 Simulator_start()
+
+start
+    :this.state = "setParams";
+    :await this.setParamsStep(this.regs);
+    :this.startTime = new Date();
+    :this.heatingStep.init(this.regs);
+    :this.regulator.start();
+end
+
+@enduml
+
+@startuml trp08_simulator_stop
+title TRP08 Simulator_stop()
+start  
+    :this.regulator.stop();
+    :this.state = "waiting";
+end
+
+@enduml
+
+@startuml TRP08 Simulator_heatingStep.init
+title TRP08 Simulator_heatingStep.init(regs)
+start
+:this.heatingStep.init();
+note right
+    this.heatingStep.startTime=new Date();
+    this.heatingStep.duration = toMinutes(this.regs.H);
+    this.heatingStep.endTime=new Date(this.heatingStep.startTime.getTime(
+    ) + this.heatingStep.duration * 60 * 1000 ));
+    this.start_tT= this.regs.T;
+    this.end_tT= this.regs.tT;
+    this.heatingStep.f =  new LinearFunction(
+        this.heatingStep.startTime.getTime(), 
+        this.heatingStep.start_tT,
+        this.heatingStep.endTime, 
+        this.heatingStep.end_tT);
+    this.state = "heating";
+    this.currentStep = this.heatingStep;
+end note
+end
+
+@enduml
+
+@startuml TRP08 Simulator_holdingStep.init
+title TRP08 Simulator_holdingStep.init(regs)
+start
+:this.holdingStep.init();
+note right
+    this.holdingStep.startTime=new Date();
+    this.holdingStep.duration = toMinutes(this.regs.H);
+    this.holdingStep.endTime=new Date(this.holdingStep.startTime.getTime(
+    ) + this.holdingStep.duration * 60 * 1000 ));
+    this.state = "holding";
+    this.currentStep = this.holdingStep;
+end note
+end
+@enduml
+
+
+
+
+
+@startuml trp08_simulator_setParamsStep
+title TRP08 Simulator_setParams(params)
+
+start
+    :this.regulator.setParams();
+note right
+let regs = {
+  kp : this.regs.o
+  ki : this.regs.ti
+  kd : this.regs.td
+  setPoint : this.regs.tT
+}
+end note    
+    :return;
+end
+
+@enduml
+
+@startuml trp08_simulator_regs.T
+title TRP08 Simulator_regs.T
+start
+split 
+    :set(val);
+    :throw new Error("readOnly");
+    stop
+split again
+    :get();
+    note left
+     await this.regulator.calculate();
+     t=this.regulator.processValue;
+     this.regs.T._value = t;
+    end note
+end split
+:return this.regs.T._value;
+end
+@enduml
+
+
+@startuml trp08_simulator_regs.o
+title TRP08 Simulator_regs.o
+start
+split 
+    :set(val);
+    :this.regulator.setParams({kp: val});
+    :this.regs.o._value = val;
+split again
+    :get();
+end split
+:return this.regs.o._value;
+end
+@enduml
+
+@startuml trp08_simulator_regs.ti
+title TRP08 Simulator_regs.ti
+start
+split 
+    :set(val);
+    :this.regulator.setParams({ki: val});
+    :this.regs.ti._value = val;
+split again
+    :get();
+end split
+:return this.regs.ti._value;
+end
+@enduml
+
+@startuml trp08_simulator_regs.td
+title TRP08 Simulator_regs.td
+start
+split 
+    :set(val);
+    :this.regulator.setParams({kd: val});
+    :this.regs.td._value = val;
+split again
+    :get();
+end split
+:return this.regs.td._value;
+end
+@enduml
+
+@startuml trp08_simulator_regs.tT
+title TRP08 Simulator_regs.tT
+start
+:value;
+    split 
+        :set(val);
+        :this.regs.tT._value = val;
+        :this.regulator.setParams({setPoint: val});
+        if (this.state == "heating") then (yes)
+            :this.heatingStep.init();
+        endif
+    split again
+        :get();
+    split again
+        :this.regs.tT.modbus=modbusIntegerBCD(this.regs.tT);
+    end split
+    :return this.regs.tT._value;
+end
+@enduml
+
+
+@startuml trp08_simulator_modbusIntegerBCD(reg)
+title modbusIntegerBCD(reg)
+start
+    :return worker;
+    note right
+    worker = {
+        set: (val:Buffer) => {
+            reg._value = fromBCD(val);
+        },
+        get: () => {
+            return toBCD(reg._value):Buffer;
+        }
+    }
+    end note
+end
+@enduml

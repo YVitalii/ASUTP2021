@@ -5,7 +5,7 @@ config:
 flowchart TB
     this_process["<u><b>this_process</b></u>
     +start()
-    +_mode:Set(waiting→heating→holding→finished)
+    +_mode:Set(waiting→setParameters→heating→holding→finished)
     +currentTaskT
     +
     this.timer=this.timer"] -- "[getPV=this.T]" --> pid["<u><b>pid регулятор </b></u>
