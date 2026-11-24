@@ -4,6 +4,7 @@ title TRP08 Simulator_constructor
 start
    :this.regs;
    note right
+    // оперативні параметри
     this.regs = {
         o: 2,
         ti: 0,
@@ -12,36 +13,79 @@ start
         regMode:1,
         H: "0010",
         Y:"0010",
-
     };
    end note
-   if (props.getPV not function) then (yes)
+
+   :this.period;
+   note right
+   // період між розрахунками регулятора
+   this.period ? props.period : 30; //sec
+   end note
+
+   if (props.getPV not function?) then (yes)
     :throw new Error("getPV is not function");
     stop
    endif
    :this.getPV = props.getPV;
-   if (props.setOutput not function) then (yes)
+   note right: асинхронна функція для отримання поточного значення processValue
+   if (props.setOutput not function?) then (yes)
     :throw new Error("setOutput is not function");
     stop
    endif
    :this.setOutput = props.setOutput; 
-   
-
+   note right: асинхронна функція для встановлення поточної потужності
 
    :this.pid;
    note right
+   // налаштування PID регулятора   
     props.pid = props.pid ? props.pid : {};
+
     props.pid.autoCalculation=false;
+    props.pid.period = this.period;
     props.pid.getPV=async () => {
         return this.getPV();
     };
+
     props.pid.setOutput=async (val) => {
-        await this.setOutput(val);
+        return await this.setOutput(val);
     };
+
     this.pid=new PID(props.pid);
    end note
+
+   :this.pos;
+   note right
+   // налаштування POS регулятора
+     props.pos = props.pos ? props.pos : {};
+     props.pos.autoCalculate=false;
+     props.pos.getPV=async () => {
+        return this.getPV();
+     };
+     props.pos.setOutput=async (val) => {
+        await this.setOutput(val);
+     };
+     this.pos=new POS(props.pos);
+   end note
+:this.regulator; 
+note right: активний на даний момент регулятор (PID або POS)
+
+:this.state = "waiting" ;
+
+note right 
+    inRange("waiting","setParams","heating", "holding","finished"))
+    стан симулятора
+    waiting - очікування
+    setParams - встановлення параметрів
+    heating - нагрів
+    holding - витримка
+    finished - завершено
+end note
+
 end
 @enduml
+
+
+
 
 
 @startuml trp08_simulator_regs_state

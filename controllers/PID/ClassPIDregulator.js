@@ -123,6 +123,48 @@ class PID extends ClassGeneral {
     return;
   }
 
+  /**
+   * Встановлює оперативні уставки, які передані в params.
+   * Відсутні поля не змінюються. getPV, setOutput та id ігноруються.
+   *
+   * @param {Object} [params={}]
+   * @param {number} [params.kp]
+   * @param {number} [params.ki]
+   * @param {number} [params.kd]
+   * @param {number} [params.setPoint] - ціль в одиницях процесу
+   * @param {number} [params.kiError]
+   * @param {number} [params.period] - с, період між розрахунками
+   * @param {boolean} [params.autoCalculation]
+   * @param {boolean} [params.manual]
+   */
+  setParams(params = {}) {
+    if (!params || typeof params !== "object") return this;
+    const keys = [
+      "kp",
+      "ki",
+      "kd",
+      "setPoint",
+      "kiError",
+      "period",
+      "autoCalculation",
+      "manual",
+    ];
+    const applied = {};
+    for (const key of keys) {
+      if (params[key] === undefined) continue;
+      if (key === "period")
+        this.period = params.period ? Number(params.period) * 1000 : 1000;
+      else if (key === "autoCalculation")
+        this.autoCalculation = params.autoCalculation === true;
+      else if (key === "manual") this.manual = params.manual === true;
+      else this[key] = params[key];
+      applied[key] = params[key];
+    }
+    if (Object.keys(applied).length)
+      log("i", this.ln + "setParams()::", applied);
+    return this;
+  }
+
   async calculate() {
     let trace = 1,
       ln = this.ln + `calculate()::`;
